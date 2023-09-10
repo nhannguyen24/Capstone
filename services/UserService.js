@@ -43,7 +43,7 @@ const getAllUsers = ({ page, limit, order, userName, userId, email, ...query }) 
               {
                 model: db.Role,
                 as: "user_role",
-                attributes: ["roleId, roleName"],
+                attributes: ["roleId", "roleName"],
               },
             ],
           });
