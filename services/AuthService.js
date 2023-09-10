@@ -58,7 +58,7 @@ const login = ({ email, password }) => new Promise(async (resolve, reject) => {
     })
     const isChecked = response && bcrypt.compareSync(password, response.password);
     const accessToken = isChecked
-      ? jwt.sign({ userId: response.userId, email: response.email, roleName: response.user_role.roleName }, process.env.JWT_SECRET, { expiresIn: '1h' })
+      ? jwt.sign({ userId: response.userId, email: response.email, roleName: response.user_role.roleName }, process.env.JWT_SECRET, { expiresIn: '1d' })
       : null
     // JWT_SECRET_REFRESH_TOKEN
     const refreshToken = isChecked
@@ -132,12 +132,12 @@ const loginGoogle = ({ name, picture, userId, email }) =>
             roleName: user.user_role.roleName,
           },
           process.env.JWT_SECRET,
-          { expiresIn: "1h" }
+          { expiresIn: "1d" }
         ),
         jwt.sign(
           { userId: response[0].userId },
           process.env.JWT_SECRET_REFRESH,
-          { expiresIn: "5d" }
+          { expiresIn: "1d" }
         ),
       ]);
 

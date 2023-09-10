@@ -16,9 +16,33 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'roleId',
         as: "user_role",
       });
-      // User.hasMany(models.Foods, { as: 'user_food', foreignKey: 'user_id'});
-      // User.hasMany(models.Store, { as: 'user_store', foreignKey: 'user_id'});
-      // User.hasMany(models.Blog, { as: 'user_blog', foreignKey: 'user_id'});
+      User.hasMany(models.Ticket, { as: 'user_ticket', foreignKey: 'userId'});
+      User.hasMany(models.Booking, { as: 'user_booking', foreignKey: 'userId'});
+
+      User.belongsToMany(models.Bus, {
+        through: 'TourDetail',
+        foreignKey: 'userId',
+        otherKey: 'busId',
+        as: "user_bus",
+      });
+      User.belongsToMany(models.Tour, {
+        through: 'TourDetail',
+        foreignKey: 'userId',
+        otherKey: 'tourId',
+        as: "user_tour",
+      });
+      User.belongsToMany(models.User, {
+        through: 'TourDetail',
+        foreignKey: 'userId',
+        otherKey: 'tourguildId',
+        as: "tourguild_driver",
+      });
+      User.belongsToMany(models.User, {
+        through: 'TourDetail',
+        foreignKey: 'userId',
+        otherKey: 'driverId',
+        as: "driver_tourguild",
+      });
     }
   }
   User.init({
