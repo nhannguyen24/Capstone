@@ -2,28 +2,25 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('TicketTypes', {
-      ticketTypeId: {
+    await queryInterface.createTable('Buses', {
+      busId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      ticketTypeName: {
+      busPlate: {
         type: Sequelize.STRING,
-	      allowNull: false,
+        allowNull: false,
       },
-      adultPriceId: {
+      numberSeat: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      busCateId: {
         type: Sequelize.UUID,
         references: {
-          model: 'prices',
-          key: 'priceId'
-        }
-      },
-      childPriceId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'prices',
-          key: 'priceId'
+          model: 'buscategories',
+          key: 'busCateId'
         }
       },
       status: {
@@ -44,6 +41,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('TicketTypes');
+    await queryInterface.dropTable('Buses');
   }
 };

@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class ProductCategory extends Model {
+  class BusCategory extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,41 +11,41 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      ProductCategory.hasMany(models.Product, { as: 'cate_product', foreignKey: 'productCateId'});
+      BusCategory.hasMany(models.Bus, { as: 'bus_cate', foreignKey: 'busCateId'});
     }
   }
-  ProductCategory.init({
-    productCateId: {
+  BusCategory.init({
+    busCateId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    productCateName: DataTypes.STRING,
+    busCateName: DataTypes.STRING,
     status: {
       type: DataTypes.ENUM,
       values: ["Active", "Deactive"],
       validate: {
         isIn: {
           args: [["Active", "Deactive"]],
-          msg: 'Invalid value for productCategory.status (Active, Deactive)'
+          msg: 'Invalid value for busCategory.status (Active, Deactive)'
         }
       }
     },
   }, {
     sequelize,
-    modelName: 'ProductCategory',
+    modelName: 'BusCategory',
   });
-  ProductCategory.beforeCreate((productCate, options) => {
+  BusCategory.beforeCreate((busCategory, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    productCate.createdAt = currentDate;
-    productCate.updatedAt = currentDate;
+    busCategory.createdAt = currentDate;
+    busCategory.updatedAt = currentDate;
   });
 
-  ProductCategory.beforeUpdate((productCate, options) => {
+  BusCategory.beforeUpdate((busCategory, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    productCate.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
+    busCategory.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
-  return ProductCategory;
+  return BusCategory;
 };

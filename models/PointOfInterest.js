@@ -56,5 +56,11 @@ module.exports = (sequelize, DataTypes) => {
     poi.createdAt = currentDate;
     poi.updatedAt = currentDate;
   });
+
+  PointOfInterest.beforeUpdate((poi, options) => {
+    const currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() + 7);
+    poi.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
+  });
   return PointOfInterest;
 };

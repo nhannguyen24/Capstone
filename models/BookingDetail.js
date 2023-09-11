@@ -30,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    totalTicketPrice: DataTypes.DECIMAL(3,3),
+    TicketPrice: DataTypes.DECIMAL(3,3),
     bookingId: {
       type: DataTypes.UUID
     },
@@ -56,6 +56,12 @@ module.exports = (sequelize, DataTypes) => {
     currentDate.setHours(currentDate.getHours() + 7);
     bookingDetail.createdAt = currentDate;
     bookingDetail.updatedAt = currentDate;
+  });
+
+  BookingDetail.beforeUpdate((bookingDetail, options) => {
+    const currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() + 7);
+    bookingDetail.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
   return BookingDetail;
 };

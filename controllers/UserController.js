@@ -1,11 +1,11 @@
 const services = require('../services/UserService');
-const {BadRequestError, InternalServerError} = require('../errors/Index');
+const {BadRequestError, InternalServerError} = require('../errors');
 
 const getAllUsers = async (req, res) => {
     try {
         const { roleName } = req.user;
         const response = await services.getAllUsers(req.query, roleName);
-        return res.status(200).json(response);
+        return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error);
@@ -32,7 +32,7 @@ const createUser = async (req, res) => {
             throw new BadRequestError('Please provide password');
         }
         const response = await services.createUser(req.body);
-        return res.status(200).json(response);
+        return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error);
@@ -48,7 +48,7 @@ const updateUser = async (req, res) => {
             throw new BadRequestError('Please provide userId');
         }
         const response = await services.updateUser(req.body);
-        return res.status(200).json(response);
+        return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error);
@@ -64,7 +64,7 @@ const updateProfile = async (req, res) => {
             throw new BadRequestError('Please provide userId');
         }
         const response = await services.updateProfile(req.body, userId);
-        return res.status(200).json(response);
+        return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error);
@@ -81,7 +81,7 @@ const deleteUser = async (req, res) => {
             throw new BadRequestError('Please provide userIds');
         }
         const response = await services.deleteUser(req.query.userIds, userId);
-        return res.status(200).json(response);
+        return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error);

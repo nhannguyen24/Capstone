@@ -83,5 +83,11 @@ module.exports = (sequelize, DataTypes) => {
     user.createdAt = currentDate;
     user.updatedAt = currentDate;
   });
+
+  User.beforeUpdate((user, options) => {
+    const currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() + 7);
+    user.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
+  });
   return User;
 };

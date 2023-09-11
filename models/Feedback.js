@@ -21,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'tourId',
         as: "feedback_tour",
       });
+      Feedback.hasMany(models.Image, { as: 'feedback_image', foreignKey: 'feedbackId'});
     }
   }
   Feedback.init({
@@ -56,6 +57,12 @@ module.exports = (sequelize, DataTypes) => {
     currentDate.setHours(currentDate.getHours() + 7);
     feedback.createdAt = currentDate;
     feedback.updatedAt = currentDate;
+  });
+
+  Feedback.beforeUpdate((feedback, options) => {
+    const currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() + 7);
+    feedback.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
   return Feedback;
 };

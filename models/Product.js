@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
       });
 
       Product.hasMany(models.ProductOrder, { as: 'product_order', foreignKey: 'productId'});
+      Product.hasMany(models.Image, { as: 'product_image', foreignKey: 'productId'});
     }
   }
   Product.init({
@@ -50,6 +51,12 @@ module.exports = (sequelize, DataTypes) => {
     currentDate.setHours(currentDate.getHours() + 7);
     product.createdAt = currentDate;
     product.updatedAt = currentDate;
+  });
+
+  Product.beforeUpdate((product, options) => {
+    const currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() + 7);
+    product.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
   return Product;
 };

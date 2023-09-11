@@ -29,6 +29,13 @@ module.exports = (sequelize, DataTypes) => {
         otherKey: 'driverId',
         as: "bus_driver",
       });
+      Bus.hasMany(models.Image, { as: 'bus_image', foreignKey: 'busId'});
+
+      Bus.belongsTo(models.BusCategory, {
+        foreignKey: "busCateId",
+        targetKey: 'busCateId',
+        as: "cate_bus",
+      });
     }
   }
   Bus.init({
@@ -39,6 +46,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     busPlate: DataTypes.STRING,
     numberSeat: DataTypes.INTEGER,
+    busCateId: {
+      type: DataTypes.UUID
+    },
     status: {
       type: DataTypes.ENUM,
       values: ["Active", "Deactive"],
@@ -58,6 +68,12 @@ module.exports = (sequelize, DataTypes) => {
     currentDate.setHours(currentDate.getHours() + 7);
     bus.createdAt = currentDate;
     bus.updatedAt = currentDate;
+  });
+
+  Bus.beforeUpdate((bus, options) => {
+    const currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() + 7);
+    bus.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
   return Bus;
 };

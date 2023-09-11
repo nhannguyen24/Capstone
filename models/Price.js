@@ -11,8 +11,11 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Price.hasMany(models.TicketType, { as: 'type_adult_ticket', foreignKey: 'priceId'});
-      Price.hasMany(models.TicketType, { as: 'type_child_ticket', foreignKey: 'priceId'});
+      Price.belongsTo(models.TicketType, {
+        foreignKey: "ticketTypeId",
+        targetKey: 'ticketTypeId',
+        as: "price_ticket_type",
+      });
     }
   }
   Price.init({
@@ -22,6 +25,10 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
     },
     amount: DataTypes.DECIMAL(3,3),
+    description: DataTypes.STRING,
+    ticketTypeId: {
+      type: DataTypes.UUID
+    },
     status: {
       type: DataTypes.ENUM,
       values: ["Active", "Deactive"],
@@ -41,6 +48,12 @@ module.exports = (sequelize, DataTypes) => {
     currentDate.setHours(currentDate.getHours() + 7);
     price.createdAt = currentDate;
     price.updatedAt = currentDate;
+  });
+
+  Price.beforeUpdate((price, options) => {
+    const currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() + 7);
+    price.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
   return Price;
 };

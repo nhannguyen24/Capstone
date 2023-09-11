@@ -19,11 +19,14 @@ const register = ({ email, password, confirmPass, roleId }) => new Promise(async
           password: hashPassword(password),
           email,
           avatar: 'https://t3.ftcdn.net/jpg/01/18/01/98/360_F_118019822_6CKXP6rXmVhDOzbXZlLqEM2ya4HhYzSV.jpg',
-          roleId: roleId ? roleId : "58c10546-5d71-47a6-842e-84f5d2f72ec3",
+          roleId: '58c10546-5d71-47a6-842e-84f5d2f72ec3',
         }
       })
       resolve({
-        mes: response[1] ? 'Register successfully' : 'Email has already used',
+        status: response[1] ? 200 : 409,
+        data: {
+          msg: response[1] ? 'Register successfully' : 'Email has already used',
+        }
       })
     }
 
@@ -44,8 +47,7 @@ const login = ({ email, password }) => new Promise(async (resolve, reject) => {
           "status",
           "createdAt",
           "updatedAt",
-          "majorId",
-          "refreshToken",
+          "refreshToken"
         ],
       },
       include: [
@@ -56,6 +58,7 @@ const login = ({ email, password }) => new Promise(async (resolve, reject) => {
         },
       ],
     })
+    
     const isChecked = response && bcrypt.compareSync(password, response.password);
     const accessToken = isChecked
       ? jwt.sign({ userId: response.userId, email: response.email, roleName: response.user_role.roleName }, process.env.JWT_SECRET, { expiresIn: '1d' })
@@ -64,17 +67,24 @@ const login = ({ email, password }) => new Promise(async (resolve, reject) => {
     const refreshToken = isChecked
       ? jwt.sign({ id: response.id }, process.env.JWT_SECRET_REFRESH, { expiresIn: '1d' })
       : null
+
+    // delete field password from response json
+    delete response.password;
+
     resolve({
-      mes: accessToken ? 'Login is successfully' : response ? 'Password is wrong' : 'Not found account',
-      'accessToken': accessToken ? `${accessToken}` : accessToken,
-      'refreshToken': refreshToken,
-      user: isChecked ? response : null
+      status: accessToken ? 200 : 401,
+      data: {
+        msg: accessToken ? 'Login is successfully' : response ? 'Password is wrong' : 'Not found account',
+        'accessToken': accessToken ? `${accessToken}` : accessToken,
+        'refreshToken': refreshToken,
+        user: isChecked ? response : null
+      }
     })
 
     if (refreshToken) {
       await db.Student.update(
         {
-            refreshToken: refreshToken,
+          refreshToken: refreshToken,
         },
         { where: { studentId: response[0].studentId } }
       );
@@ -92,7 +102,7 @@ const loginGoogle = ({ name, picture, userId, email }) =>
         raw: true,
         nest: true,
         defaults: {
-            userId: userId,
+          userId: userId,
           userName: name,
           email: email,
           avatar: picture,
@@ -111,8 +121,8 @@ const loginGoogle = ({ name, picture, userId, email }) =>
             "status",
             "createdAt",
             "updatedAt",
-            "majorId",
             "refreshToken",
+            "password"
           ],
         },
         include: [
@@ -151,12 +161,15 @@ const loginGoogle = ({ name, picture, userId, email }) =>
       }
 
       resolve({
-        mes: "Login successfully",
-        accessToken: accessToken ? `${accessToken}` : accessToken,
-        refreshToken: refreshToken,
-        user: user,
+        status: accessToken ? 200 : 400,
+        data: {
+          msg: "Login successfully",
+          accessToken: accessToken ? `${accessToken}` : accessToken,
+          refreshToken: refreshToken,
+          user: user,
+        }
       });
-      
+
     } catch (error) {
       console.log(error);
       reject(error);
@@ -171,7 +184,7 @@ const refreshAccessToken = (refreshToken) =>
         raw: true,
         nest: true,
         attributes: {
-          exclude: ["roleId", "status", "createdAt", "updatedAt", "majorId"],
+          exclude: ["roleId", "status", "createdAt", "updatedAt"],
         },
         include: [
           {
@@ -198,11 +211,14 @@ const refreshAccessToken = (refreshToken) =>
               { expiresIn: "1h" }
             );
             resolve({
-              mes: accessToken
-                ? "Create refresh token successfully"
-                : "Create refresh token unsuccessfully",
-              accessToken: accessToken ? `${accessToken}` : accessToken,
-              refreshToken: refreshToken,
+              status: accessToken ? 200 : 400,
+              data: {
+                msg: accessToken
+                  ? "Create refresh token successfully"
+                  : "Create refresh token unsuccessfully",
+                accessToken: accessToken ? `${accessToken}` : accessToken,
+                refreshToken: refreshToken,
+              }
             });
           }
         });
@@ -221,7 +237,7 @@ const logout = (userId) =>
         raw: true,
         nest: true,
         attributes: {
-          exclude: ["roleId", "status", "createdAt", "updatedAt", "majorId"],
+          exclude: ["roleId", "status", "createdAt", "updatedAt"],
         },
         include: [
           {
@@ -239,7 +255,10 @@ const logout = (userId) =>
         { where: { userId: user.userId } }
       );
       resolve({
-        mes: "Logout successfully"
+        status: response ? 200 : 400,
+        data: {
+          msg: "Logout successfully"
+        }
       });
     } catch (error) {
       reject(error);

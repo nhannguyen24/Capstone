@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { TokenExpiredError } = require("jsonwebtoken");
-const { UnauthenticatedError } = require("../errors/Index");
+const { UnauthenticatedError } = require("../errors");
 
 const auth = (req, res, next) => {
   // check header

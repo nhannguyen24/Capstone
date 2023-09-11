@@ -36,6 +36,8 @@ module.exports = (sequelize, DataTypes) => {
     bookingDate: DataTypes.DATE,
     bookingCode: DataTypes.STRING,
     totalPrice: DataTypes.DECIMAL(3,3),
+    numberAdult: DataTypes.INTEGER,
+    numberChild: DataTypes.INTEGER,
     customerId: {
       type: DataTypes.UUID
     },
@@ -58,6 +60,12 @@ module.exports = (sequelize, DataTypes) => {
     currentDate.setHours(currentDate.getHours() + 7);
     booking.createdAt = currentDate;
     booking.updatedAt = currentDate;
+  });
+
+  Booking.beforeUpdate((booking, options) => {
+    const currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() + 7);
+    booking.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
   return Booking;
 };

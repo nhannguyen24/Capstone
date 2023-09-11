@@ -41,6 +41,7 @@ module.exports = (sequelize, DataTypes) => {
         otherKey: 'driverId',
         as: "tour_driver",
       });
+      Tour.hasMany(models.Image, { as: 'tour_image', foreignKey: 'tourId'});
     }
   }
   Tour.init({
@@ -82,6 +83,12 @@ module.exports = (sequelize, DataTypes) => {
     currentDate.setHours(currentDate.getHours() + 7);
     tour.createdAt = currentDate;
     tour.updatedAt = currentDate;
+  });
+
+  Tour.beforeUpdate((tour, options) => {
+    const currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() + 7);
+    tour.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
   return Tour;
 };
