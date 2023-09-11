@@ -1,5 +1,5 @@
 const services = require('../services/StationService');
-const {BadRequestError, InternalServerError} = require('../errors');
+const {BadRequestError, InternalServerError} = require('../errors/Index');
 // const joi = require('joi');
 // const {stationId, stationIds} = require('../helpers/joi_schema');
 

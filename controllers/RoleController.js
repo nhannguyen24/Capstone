@@ -1,5 +1,5 @@
 const services = require('../services/RoleService');
-const {BadRequestError, InternalServerError} = require('../errors');
+const {BadRequestError, InternalServerError} = require('../errors/Index');
 
 const getAllRoles = async (req, res) => {
     try {

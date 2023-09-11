@@ -1,4 +1,4 @@
-const {UnauthenticatedError} = require('../errors');
+const {UnauthenticatedError} = require('../errors/Index');
 
 const isAdmin = (req, res, next) => {
     const { roleName } = req.user;

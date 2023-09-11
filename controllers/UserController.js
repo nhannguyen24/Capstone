@@ -1,5 +1,5 @@
 const services = require('../services/UserService');
-const {BadRequestError, InternalServerError} = require('../errors');
+const {BadRequestError, InternalServerError} = require('../errors/Index');
 
 const getAllUsers = async (req, res) => {
     try {

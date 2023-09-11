@@ -1,5 +1,5 @@
 const {admin} = require('../config/FirebaseConfig');
-const {InternalServerError} = require('../errors');
+const {InternalServerError} = require('../errors/Index');
 
 const decodeToken = async (req, res, next) => {
     try {

@@ -1,5 +1,5 @@
 const services = require('../services/AuthService');
-const {BadRequestError, InternalServerError} = require('../errors');
+const {BadRequestError, InternalServerError} = require('../errors/Index');
 // const joi = require('joi');
 // const {refreshToken, studentId} = require('../helpers/joi_schema');
 
