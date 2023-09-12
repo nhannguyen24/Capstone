@@ -97,31 +97,31 @@ const router = express.Router();
  */
 router.get("/", verifyToken, isAdmin, controllers.getAllUsers);
 
-// /**
-//  * @swagger
-//  * /api/v1/users/{id}:
-//  *   get:
-//  *     security: 
-//  *         - BearerAuth: []
-//  *     summary: Returns the the users by id
-//  *     tags: [user-controller]
-//  *     parameters:
-//  *       - name: id
-//  *         in: path
-//  *         schema:
-//  *           type: string
-//  *         description: Find user by userId
-//  *     responses:
-//  *       200:
-//  *         description: Get the users by id successfully
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: array
-//  *               items:
-//  *                 $ref: '#/components/schemas/User'
-//  */
-// router.get("/:id", verifyToken, controllers.getUserById);
+/**
+ * @swagger
+ * /api/v1/users/{id}:
+ *   get:
+ *     security: 
+ *         - BearerAuth: []
+ *     summary: Returns the the users by id
+ *     tags: [user-controller]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         schema:
+ *           type: string
+ *         description: Find user by userId
+ *     responses:
+ *       200:
+ *         description: Get the user by id successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ */
+router.get("/:id", verifyToken, controllers.getUserById);
 
 /**
  * @swagger
@@ -224,7 +224,7 @@ router.put("/profile", verifyToken, controllers.updateProfile);
 
 /**
  * @swagger
- * /api/v1/users/delete:
+ * /api/v1/users:
  *   delete:
  *     security: 
  *         - BearerAuth: []
@@ -246,6 +246,6 @@ router.put("/profile", verifyToken, controllers.updateProfile);
  *               items:
  *                 $ref: '#/components/schemas/User'
  */
-router.delete("/delete", verifyToken, isAdmin, controllers.deleteUser);
+router.delete("/", verifyToken, isAdmin, controllers.deleteUser);
 
 module.exports = router;

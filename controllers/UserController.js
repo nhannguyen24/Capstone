@@ -88,15 +88,18 @@ const deleteUser = async (req, res) => {
     }
 };
 
-// const getUserById = async (req, res) => {
-//     try {
-//         const { id: userId } = req.params;
-//         const response = await services.getUserById(userId);
-//         return res.status(200).json(response);
-//     } catch (error) {
-//         console.log(error);
-//         throw new InternalServerError(error.message);
-//     }
-// };
+const getUserById = async (req, res) => {
+    try {
+        const { id: userId } = req.params;
+        if(!userId) {
+            throw new BadRequestError('Please provide userId');
+        }
+        const response = await services.getUserById(userId);
+        return res.status(response.status).json(response.data);
+    } catch (error) {
+        console.log(error);
+        throw new InternalServerError(error.message);
+    }
+};
 
-module.exports = {updateUser, deleteUser, createUser, getAllUsers, updateProfile};
+module.exports = {updateUser, deleteUser, createUser, getAllUsers, updateProfile, getUserById};

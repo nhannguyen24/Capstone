@@ -93,6 +93,32 @@ router.get("/", verifyToken, controllers.getAllStation);
 
 /**
  * @swagger
+ * /api/v1/stations/{id}:
+ *   get:
+ *     security: 
+ *         - BearerAuth: []
+ *     summary: Returns the the stations by id
+ *     tags: [station-controller]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         schema:
+ *           type: string
+ *         description: Find station by stationId
+ *     responses:
+ *       200:
+ *         description: Get the station by id successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Station'
+ */
+router.get("/:id", verifyToken, controllers.getStationById);
+
+/**
+ * @swagger
  * /api/v1/stations:
  *   post:
  *     security:
@@ -146,7 +172,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createStation);
  *              status: Active
  *     responses:
  *       200:
- *         description: For update the station
+ *         description: Update the station successfully
  *         content:
  *           application/json:
  *             schema:
@@ -158,7 +184,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateStation);
 
 /**
  * @swagger
- * /api/v1/stations/delete:
+ * /api/v1/stations:
  *   delete:
  *     security: 
  *         - BearerAuth: []
@@ -172,7 +198,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateStation);
  *         description: Input stationId to delete
  *     responses:
  *       200:
- *         description: Delete the stations by id
+ *         description: Delete the stations by id successfully
  *         content:
  *           application/json:
  *             schema:
@@ -180,6 +206,6 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateStation);
  *               items:
  *                 $ref: '#/components/schemas/Station'
  */
-router.delete("/delete", verifyToken, isAdminOrManager, controllers.deleteStation);
+router.delete("/", verifyToken, isAdminOrManager, controllers.deleteStation);
 
 module.exports = router;

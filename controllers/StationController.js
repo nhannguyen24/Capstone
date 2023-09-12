@@ -13,6 +13,20 @@ const getAllStation = async (req, res) => {
     }
 };
 
+const getStationById = async (req, res) => {
+    try {
+        const { id: stationId } = req.params;
+        if(!stationId) {
+            throw new BadRequestError('Please provide stationId');
+        }
+        const response = await services.getStationById(stationId);
+        return res.status(response.status).json(response.data);
+    } catch (error) {
+        console.log(error);
+        throw new InternalServerError(error.message);
+    }
+};
+
 const createStation = async (req, res) => {
     try {
         const {stationName, address, latitude, longtitude} = req.body;
@@ -67,4 +81,4 @@ const deleteStation = async (req, res) => {
     }
 };
 
-module.exports = {getAllStation, createStation, updateStation, deleteStation};
+module.exports = {getAllStation, createStation, updateStation, deleteStation, getStationById};

@@ -23,6 +23,8 @@ module.exports = (sequelize, DataTypes) => {
         otherKey: 'routeId',
         as: "poi_route",
       });
+
+      PointOfInterest.hasMany(models.Image, { as: 'poi_image', foreignKey: 'poiId'});
     }
   }
   PointOfInterest.init({

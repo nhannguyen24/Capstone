@@ -1,11 +1,11 @@
 const multer = require("multer");
-const firebase = require("../config/firebase_config");
+const firebase = require("../config/FirebaseConfig");
 const { NotFoundError } = require("../errors/Index");
 // const request = require("request");
 const path = require("path");
-const joi = require("joi");
+// const joi = require("joi");
 const fs = require("fs");
-const { title, body, device_token } = require("../helpers/joi_schema");
+// const { title, body, device_token } = require("../helpers/joi_schema");
 
 const parentDirectory = path.dirname(__dirname);
 
@@ -64,28 +64,28 @@ const uploadFile = async (req, res, next) => {
   });
 };
 
-const pushNotification = (req, res) => {
-  const { error } = joi
-    .object({ title, body, device_token })
-    .validate( req.body );
-  if (error) throw new BadRequestError(error.details[0].message);
-  const message = {
-    notification: {
-      title: req.body.title,
-      body: req.body.content,
-    },
-    token: req.body.device_token,
-  };
+// const pushNotification = (req, res) => {
+//   const { error } = joi
+//     .object({ title, body, device_token })
+//     .validate( req.body );
+//   if (error) throw new BadRequestError(error.details[0].message);
+//   const message = {
+//     notification: {
+//       title: req.body.title,
+//       body: req.body.content,
+//     },
+//     token: req.body.device_token,
+//   };
 
-  firebase
-    .messaging()
-    .send(message)
-    .then((response) => {
-      console.log("Successfully sent message:", response);
-    })
-    .catch((error) => {
-      console.log("Error sending message:", error);
-    });
-};
+//   firebase
+//     .messaging()
+//     .send(message)
+//     .then((response) => {
+//       console.log("Successfully sent message:", response);
+//     })
+//     .catch((error) => {
+//       console.log("Error sending message:", error);
+//     });
+// };
 
-module.exports =  {uploadFile, pushNotification};
+module.exports =  {uploadFile};

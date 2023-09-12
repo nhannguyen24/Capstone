@@ -47,9 +47,6 @@ const getAllStation = (
                             const stations = await db.Station.findAll({
                                 where: query,
                                 ...queries,
-                                attributes: {
-                                    exclude: ["createdAt", "updatedAt"],
-                                },
                             });
 
                             if (roleName !== "Admin") {
@@ -70,6 +67,29 @@ const getAllStation = (
             })
         } catch (error) {
             console.log(error);
+            reject(error);
+        }
+    });
+
+const getStationById = (stationId) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            const station = await db.Station.findOne({
+                where: { stationId: stationId },
+                raw: true,
+                nest: true,
+                attributes: {
+                    exclude: ["createdAt", "updatedAt"],
+                }
+            });
+            resolve({
+                status: station ? 200 : 404,
+                data: {
+                    msg: station ? "Got station" : `Cannot find station with id: ${stationId}`,
+                    station: station,
+                }
+            });
+        } catch (error) {
             reject(error);
         }
     });
@@ -153,12 +173,12 @@ const updateStation = ({ stationId, ...body }) =>
                 });
 
                 resolve({
-                            status: stations[0] > 0 ? 200 : 400,
+                    status: stations[0] > 0 ? 200 : 400,
                     data: {
                         msg:
-                        stations[0] > 0
-                            ? `${stations[0]} station update`
-                            : "Cannot update station/ stationId not found",
+                            stations[0] > 0
+                                ? `${stations[0]} station update`
+                                : "Cannot update station/ stationId not found",
                     }
                 });
 
@@ -188,6 +208,22 @@ const updateStation = ({ stationId, ...body }) =>
 const deleteStation = (stationIds) =>
     new Promise(async (resolve, reject) => {
         try {
+            const findStation = await db.Station.findAll({
+                raw: true, nest: true,
+                where: { stationId: stationIds },
+            });
+
+            for (const station of findStation) {
+                if (station.status === "Deactive") {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: "The station already deactive!",
+                        }
+                    });
+                }
+            }
+
             const stations = await db.Station.update(
                 { status: "Deactive" },
                 {
@@ -199,9 +235,9 @@ const deleteStation = (stationIds) =>
                 status: stations > 0 ? 200 : 400,
                 data: {
                     msg:
-                    stations > 0
-                        ? `${stations} station delete`
-                        : "Cannot delete station/ stationId not found",
+                        stations > 0
+                            ? `${stations} station delete`
+                            : "Cannot delete station/ stationId not found",
                 }
             });
 
@@ -232,6 +268,6 @@ module.exports = {
     deleteStation,
     createStation,
     getAllStation,
-
+    getStationById
 };
 
