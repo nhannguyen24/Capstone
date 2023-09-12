@@ -1,7 +1,7 @@
 require('express-async-errors');
 const auth = require('./AuthRouter');
 const user = require('./UserRouter');
-// const city = require('./city');
+const station = require('./StationRouter');
 // const store = require('./store');
 const role = require('./RoleRouter');
 const bus = require('./BusRouter')
@@ -29,6 +29,8 @@ const initRoutes = (app) => {
     app.use('/api/v1/auth', auth);
     app.use('/api/v1/users', user);
     app.use('/api/v1/buses', bus);
+    app.use('/api/v1/stations', station);
+    // app.use('/api/v1/stores', store);
     app.use('/api/v1/roles', role);
 
 

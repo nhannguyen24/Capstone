@@ -2,6 +2,7 @@ const db = require("../models");
 const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
 const bcrypt = require('bcryptjs');
+const mailer = require('../utils/Mailer');
 
 const hashPassword = password => bcrypt.hashSync(password, bcrypt.genSaltSync(8));
 
@@ -12,9 +13,12 @@ const getAllUsers = ({ page, limit, order, userName, userId, email, ...query }) 
         if (error) console.error(error);
         if (user_paging != null) {
           resolve({
-            msg: "Got user",
-            user_paging: JSON.parse(user_paging),
-          });
+            status: 200,
+            data: {
+              msg: "Got user",
+              user_paging: JSON.parse(user_paging),
+            }
+          }); 
         } else {
           const queries = { raw: true, nest: true };
           const offset = !page || +page <= 1 ? 0 : +page - 1;
@@ -37,6 +41,7 @@ const getAllUsers = ({ page, limit, order, userName, userId, email, ...query }) 
                 "createAt",
                 "updateAt",
                 "refreshToken",
+                "password"
               ],
             },
             include: [
@@ -50,8 +55,11 @@ const getAllUsers = ({ page, limit, order, userName, userId, email, ...query }) 
           redisClient.setEx(`user_paging_${page}_${limit}_${order}_${userName}`, 3600, JSON.stringify(users));
 
           resolve({
-            msg: users ? "Got user" : "Cannot find user",
-            users: users,
+            status: users ? 200 : 404,
+            data: {
+              msg: users ? "Got user" : "Cannot find user",
+              users: users,
+            }
           });
         }
       });
@@ -72,10 +80,34 @@ const createUser = ({ password, ...body }) =>
           ...body,
         },
       });
+
+      if (user[1]) {
+        let response = {
+          body: {
+            name: body.userName,
+            intro: "Đây là thông tin tài khoản của bạn!",
+            table: {
+              data: [
+                {
+                  email: body.email,
+                  password: password,
+                }
+              ]
+            },
+            outro: "Rất mong được hợp tác với bạn!"
+          }
+        }
+
+        mailer.sendMail(body?.email, "Thông tin tài khoản đăng nhập", response)
+      }
+
       resolve({
-        msg: user[1]
-          ? "Create new user successfully"
-          : "Cannot create new user/ Email already exists",
+        status: user[1] ? 200 : 400,
+        data: {
+          msg: user[1]
+            ? "Create new user successfully"
+            : "Cannot create new user/ Email already exists",
+        }
       });
       redisClient.keys('user_paging*', (error, keys) => {
         if (error) {
@@ -98,48 +130,39 @@ const createUser = ({ password, ...body }) =>
     }
   });
 
-const updateUser = ({ userId, email, ...body }) =>
+const updateUser = ({ userId, ...body }) =>
   new Promise(async (resolve, reject) => {
     try {
-      // const user = await db.User.findAll({
-      //   where: {
-      //     email: email,
-      //     userId: {
-      //       [Op.ne]: userId
-      //     }
-      //   }
-      // })
-      // if (user) {
-      //   resolve({
-      //     msg: "Email already exists"
-      //   });
-      // } else {
-        const users = await db.User.update(body, {
-          where: { userId },
-        });
-        resolve({
+      const users = await db.User.update(body, {
+        where: { userId },
+        individualHooks: true,
+      });
+      resolve({
+        status: users[0] ? 200 : 400,
+        data: {
           msg:
             users[0] > 0
               ? `${users[0]} user update`
               : "Cannot update user/ userId not found",
-        });
-        redisClient.keys('user_paging*', (error, keys) => {
-          if (error) {
-            console.error('Error retrieving keys:', error);
-            return;
-          }
-          // Delete each key individually
-          keys.forEach((key) => {
-            redisClient.del(key, (deleteError, reply) => {
-              if (deleteError) {
-                console.error(`Error deleting key ${key}:`, deleteError);
-              } else {
-                console.log(`Key ${key} deleted successfully`);
-              }
-            });
+        }
+      });
+      redisClient.keys('user_paging*', (error, keys) => {
+        if (error) {
+          console.error('Error retrieving keys:', error);
+          return;
+        }
+        // Delete each key individually
+        keys.forEach((key) => {
+          redisClient.del(key, (deleteError, reply) => {
+            if (deleteError) {
+              console.error(`Error deleting key ${key}:`, deleteError);
+            } else {
+              console.log(`Key ${key} deleted successfully`);
+            }
           });
         });
-      
+      });
+
     } catch (error) {
       reject(error.message);
     }
@@ -155,12 +178,16 @@ const updateProfile = (body, userId) =>
       } else {
         const users = await db.User.update(body, {
           where: { userId: userId },
+          individualHooks: true,
         });
         resolve({
-          msg:
-            users[0] > 0
-              ? "Update profile successfully"
-              : "Cannot update user/ userId not found",
+          status: users[0] ? 200 : 400,
+          data: {
+            msg:
+              users[0] > 0
+                ? "Update profile successfully"
+                : "Cannot update user/ userId not found",
+          }
         });
         redisClient.keys('user_paging*', (error, keys) => {
           if (error) {
@@ -197,13 +224,17 @@ const deleteUser = (userIds, userId) =>
           { status: "Deactive" },
           {
             where: { userId: userIds },
+            individualHooks: true,
           }
         );
         resolve({
-          msg:
-            users > 0
-              ? `${users} user delete`
-              : "Cannot delete user/ userId not found",
+          status: users[0] ? 200 : 400,
+          data: {
+            msg:
+              users > 0
+                ? `${users} user delete`
+                : "Cannot delete user/ userId not found",
+          }
         });
         redisClient.keys('user_paging*', (error, keys) => {
           if (error) {

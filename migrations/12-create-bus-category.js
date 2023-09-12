@@ -2,14 +2,14 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Prices', {
-      priceId: {
+    await queryInterface.createTable('BusCategories', {
+      busCateId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      amount: {
-        type: Sequelize.DECIMAL(3,3),
+      busCateName: {
+        type: Sequelize.STRING,
         allowNull: false,
       },
       status: {
@@ -30,6 +30,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Prices');
+    await queryInterface.dropTable('BusCategories');
   }
 };

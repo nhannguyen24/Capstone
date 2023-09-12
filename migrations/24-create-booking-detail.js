@@ -8,7 +8,7 @@ module.exports = {
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      totalTicketPrice: {
+      TicketPrice: {
         type: Sequelize.DECIMAL(3,3),
         allowNull: false,
       },

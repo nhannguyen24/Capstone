@@ -71,5 +71,11 @@ module.exports = (sequelize, DataTypes) => {
     tourDetail.createdAt = currentDate;
     tourDetail.updatedAt = currentDate;
   });
+
+  TourDetail.beforeUpdate((tourDetail, options) => {
+    const currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() + 7);
+    tourDetail.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
+  });
   return TourDetail;
 };

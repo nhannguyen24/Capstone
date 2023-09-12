@@ -7,19 +7,19 @@ const isAdmin = (req, res, next) => {
     next();
 };
 
-const isSeller = (req, res, next) => {
+const isManager = (req, res, next) => {
     const { roleName } = req.user;
-    if (roleName !== 'Seller') 
-    throw new UnauthenticatedError('Require role Seller');
+    if (roleName !== 'Manager') 
+    throw new UnauthenticatedError('Require role Manager');
     next();
 };
 
-const isAdminOrSeller = (req, res, next) => {
+const isAdminOrManager = (req, res, next) => {
     const { roleName } = req.user;
-    if (roleName !== 'Admin' && roleName !== 'Seller') {
-      throw new UnauthenticatedError('Require role Admin or Seller');
+    if (roleName !== 'Admin' && roleName !== 'Manager') {
+      throw new UnauthenticatedError('Require role Admin or Manager');
     }
     next();
   };
 
-module.exports = {isAdmin, isSeller, isAdminOrSeller};
+module.exports = {isAdmin, isManager, isAdminOrManager};

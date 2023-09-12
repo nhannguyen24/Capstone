@@ -34,8 +34,6 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    numberAdult: DataTypes.INTEGER,
-    numberChild: DataTypes.INTEGER,
     customerId: {
       type: DataTypes.UUID
     },
@@ -64,6 +62,12 @@ module.exports = (sequelize, DataTypes) => {
     currentDate.setHours(currentDate.getHours() + 7);
     ticket.createdAt = currentDate;
     ticket.updatedAt = currentDate;
+  });
+
+  Ticket.beforeUpdate((ticket, options) => {
+    const currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() + 7);
+    ticket.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
   return Ticket;
 };

@@ -62,5 +62,11 @@ module.exports = (sequelize, DataTypes) => {
     routeDetail.createdAt = currentDate;
     routeDetail.updatedAt = currentDate;
   });
+
+  RouteDetail.beforeUpdate((routeDetail, options) => {
+    const currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() + 7);
+    routeDetail.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
+  });
   return RouteDetail;
 };

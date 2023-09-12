@@ -41,5 +41,11 @@ module.exports = (sequelize, DataTypes) => {
     role.createdAt = currentDate;
     role.updatedAt = currentDate;
   });
+
+  Role.beforeUpdate((role, options) => {
+    const currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() + 7);
+    role.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
+  });
   return Role;
 };

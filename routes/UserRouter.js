@@ -41,26 +41,6 @@ const router = express.Router();
  *         role: Admin
  */
 
-// /**
-//  * @swagger
-//  * /api/v1/users:
-//  *   get:
-//  *     security: 
-//  *         - BearerAuth: []
-//  *     summary: Returns the list of all the users
-//  *     tags: [user-controller]
-//  *     responses:
-//  *       200:
-//  *         description: Get the list of the users successfully
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: array
-//  *               items:
-//  *                 $ref: '#/components/schemas/User'
-//  */
-// router.get("/", verifyToken, verifyRole, controllers.getAllUser);
-
 /**
  * @swagger
  * /api/v1/users:
@@ -240,7 +220,7 @@ router.put("/", verifyToken, isAdmin, controllers.updateUser);
  *               items:
  *                 $ref: '#/components/schemas/User'
  */
-router.put("/profile/", verifyToken, controllers.updateProfile);
+router.put("/profile", verifyToken, controllers.updateProfile);
 
 /**
  * @swagger

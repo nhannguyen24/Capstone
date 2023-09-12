@@ -159,7 +159,6 @@ router.post('/login', controllers.login);
  *              email: dnhan2426@gmail.com
  *              password: "123456"
  *              confirmPass: "123456"
- *              roleId: 58c10546-5d71-47a6-842e-84f5d2f72ec3
  *     responses:
  *       200:
  *         description: For register new account
