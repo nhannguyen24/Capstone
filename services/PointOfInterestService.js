@@ -92,7 +92,7 @@ const getAllPointOfInterest = (
 const getPointOfInterestById = (poiId) =>
     new Promise(async (resolve, reject) => {
         try {
-            const poi = await db.Station.findOne({
+            const poi = await db.PointOfInterest.findOne({
                 where: { poiId: poiId },
                 raw: true,
                 nest: true,
