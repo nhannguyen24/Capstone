@@ -4,6 +4,7 @@ const user = require('./UserRouter');
 // const city = require('./city');
 // const store = require('./store');
 const role = require('./RoleRouter');
+const bus = require('./BusRouter')
 // const ingredient = require('./ingredient');
 // const food = require('./food');
 // const category = require('./category');
@@ -27,20 +28,9 @@ let date_ob = new Date();
 const initRoutes = (app) => {
     app.use('/api/v1/auth', auth);
     app.use('/api/v1/users', user);
-    // app.use('/api/v1/cities', city);
-    // app.use('/api/v1/stores', store);
+    app.use('/api/v1/buses', bus);
     app.use('/api/v1/roles', role);
-    // app.use('/api/v1/ingredients', ingredient);
-    // app.use('/api/v1/foods', food);
-    // app.use('/api/v1/steps', step);
-    // app.use('/api/v1/categories', category);
-    // app.use('/api/v1/categories-detail', category_detail);
-    // app.use('/api/v1/order-detail', order_detail);
-    // app.use('/api/v1/orders', order);
-    // app.use('/api/v1/categories_detail', category_detail);
-    // app.use('/api/v1/upload-image', upload_image);
-    // app.use('/api/v1/stripe', stripe);
-    // app.use('/api/v1/blogs', blog);
+
 
     // app.use('/api/v1/statistic', statistic);
     // app.use('/api/v1/stripe', stripe);
