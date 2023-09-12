@@ -49,11 +49,6 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *         schema:
  *           type: string
  *         description: Find point by poiName
- *       - name: poiId
- *         in: query
- *         schema:
- *           type: string
- *         description: Find point by poiId
  *       - name: address
  *         in: query
  *         schema:

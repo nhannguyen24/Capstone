@@ -20,7 +20,7 @@ const getPointOfInterestById = async (req, res) => {
         if(!poiId) {
             throw new BadRequestError('Please provide poiId');
         }
-        const response = await services.getStationById(poiId);
+        const response = await services.getPointOfInterestById(poiId);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);

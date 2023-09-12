@@ -49,11 +49,6 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *         schema:
  *           type: string
  *         description: Find station by stationName
- *       - name: stationId
- *         in: query
- *         schema:
- *           type: string
- *         description: Find station by stationId
  *       - name: address
  *         in: query
  *         schema:

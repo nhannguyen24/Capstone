@@ -3,12 +3,12 @@ const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
 
 const getAllStation = (
-    { page, limit, order, stationName, address, stationId, ...query },
+    { page, limit, order, stationName, address, ...query },
     roleName
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`stations_${page}_${limit}_${order}_${stationName}_${address}_${stationId}`, async (error, station) => {
+            redisClient.get(`stations_${page}_${limit}_${order}_${stationName}_${address}`, async (error, station) => {
                 if (error) console.error(error);
                 if (station != null && station != "" && roleName != 'Admin') {
                     resolve({
@@ -19,7 +19,7 @@ const getAllStation = (
                         }
                     });
                 } else {
-                    redisClient.get(`admin_stations_${page}_${limit}_${order}_${stationName}_${address}_${stationId}`, async (error, adminStation) => {
+                    redisClient.get(`admin_stations_${page}_${limit}_${order}_${stationName}_${address}`, async (error, adminStation) => {
                         if (adminStation != null && adminStation != "") {
                             resolve({
                                 status: 200,
@@ -40,7 +40,6 @@ const getAllStation = (
                             }
                             if (stationName) query.stationName = { [Op.substring]: stationName };
                             if (address) query.address = { [Op.substring]: address };
-                            if (stationId) query.stationId = { [Op.eq]: stationId };
                             if (roleName !== "Admin") {
                                 query.status = { [Op.notIn]: ['Deactive'] };
                             }
@@ -50,9 +49,9 @@ const getAllStation = (
                             });
 
                             if (roleName !== "Admin") {
-                                redisClient.setEx(`stations_${page}_${limit}_${order}_${stationName}_${address}_${stationId}`, 3600, JSON.stringify(stations));
+                                redisClient.setEx(`stations_${page}_${limit}_${order}_${stationName}_${address}`, 3600, JSON.stringify(stations));
                             } else {
-                                redisClient.setEx(`admin_stations_${page}_${limit}_${order}_${stationName}_${address}_${stationId}`, 3600, JSON.stringify(stations));
+                                redisClient.setEx(`admin_stations_${page}_${limit}_${order}_${stationName}_${address}`, 3600, JSON.stringify(stations));
                             }
                             resolve({
                                 status: stations ? 200 : 404,

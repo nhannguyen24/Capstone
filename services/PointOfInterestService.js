@@ -3,12 +3,12 @@ const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
 
 const getAllPointOfInterest = (
-    { page, limit, order, poiName, address, poiId, ...query },
+    { page, limit, order, poiName, address, ...query },
     roleName
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`pois_${page}_${limit}_${order}_${poiName}_${address}_${poiId}`, async (error, poi) => {
+            redisClient.get(`pois_${page}_${limit}_${order}_${poiName}_${address}`, async (error, poi) => {
                 if (error) console.error(error);
                 if (poi != null && poi != "" && roleName != 'Admin') {
                     resolve({
@@ -19,7 +19,7 @@ const getAllPointOfInterest = (
                         }
                     });
                 } else {
-                    redisClient.get(`admin_pois_${page}_${limit}_${order}_${poiName}_${address}_${poiId}`, async (error, adminPointOfInterest) => {
+                    redisClient.get(`admin_pois_${page}_${limit}_${order}_${poiName}_${address}`, async (error, adminPointOfInterest) => {
                         if (adminPointOfInterest != null && adminPointOfInterest != "") {
                             resolve({
                                 status: 200,
@@ -40,7 +40,6 @@ const getAllPointOfInterest = (
                             }
                             if (poiName) query.poiName = { [Op.substring]: poiName };
                             if (address) query.address = { [Op.substring]: address };
-                            if (poiId) query.poiId = { [Op.eq]: poiId };
                             if (roleName !== "Admin") {
                                 query.status = { [Op.notIn]: ['Deactive'] };
                             }
@@ -68,9 +67,9 @@ const getAllPointOfInterest = (
                             });
                             
                             if (roleName !== "Admin") {
-                                redisClient.setEx(`pois_${page}_${limit}_${order}_${poiName}_${address}_${poiId}`, 3600, JSON.stringify(pois));
+                                redisClient.setEx(`pois_${page}_${limit}_${order}_${poiName}_${address}`, 3600, JSON.stringify(pois));
                             } else {
-                                redisClient.setEx(`admin_pois_${page}_${limit}_${order}_${poiName}_${address}_${poiId}`, 3600, JSON.stringify(pois));
+                                redisClient.setEx(`admin_pois_${page}_${limit}_${order}_${poiName}_${address}`, 3600, JSON.stringify(pois));
                             }
                             resolve({
                                 status: pois ? 200 : 404,
