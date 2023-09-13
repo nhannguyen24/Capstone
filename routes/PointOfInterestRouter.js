@@ -27,9 +27,9 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *         latitude:
  *           type: number
  *           description: The point latitude
- *         longtitude:
+ *         longitude:
  *           type: number
- *           description: The point longtitude
+ *           description: The point longitude
  *         status:
  *           type: string
  *           description: The point status('Active', 'Deactive')
@@ -129,7 +129,7 @@ router.get("/:id", verifyToken, controllers.getPointOfInterestById);
  *                    description: Một trạm tuyệt vời
  *                    address: 187 Phạm Ngũ Lão
  *                    latitude: 10.7688046
- *                    longtitude: 106.6903351
+ *                    longitude: 106.6903351
  *                    images:
  *                          - image: string
  *                          - image: string
@@ -163,7 +163,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createPointOfInteres
  *                    description: Một trạm tuyệt vời
  *                    address: 187 Phạm Ngũ Lão
  *                    latitude: 10.7688046
- *                    longtitude: 106.6903351
+ *                    longitude: 106.6903351
  *                    images:
  *                          - image: string
  *                          - image: string

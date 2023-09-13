@@ -27,9 +27,9 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *         latitude:
  *           type: number
  *           description: The station latitude
- *         longtitude:
+ *         longitude:
  *           type: number
- *           description: The station longtitude
+ *           description: The station longitude
  *         status:
  *           type: string
  *           description: The station status('Active', 'Deactive')
@@ -131,7 +131,7 @@ router.get("/:id", verifyToken, controllers.getStationById);
  *              description: Một trạm tuyệt vời
  *              address: 187 Phạm Ngũ Lão
  *              latitude: 10.7688046
- *              longtitude: 106.6903351
+ *              longitude: 106.6903351
  *     responses:
  *       200:
  *         description: Create new station successfully
@@ -163,7 +163,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createStation);
  *              description: Một trạm tuyệt vời
  *              address: 187 Phạm Ngũ Lão
  *              latitude: 10.7688046
- *              longtitude: 106.6903351
+ *              longitude: 106.6903351
  *              status: Active
  *     responses:
  *       200:

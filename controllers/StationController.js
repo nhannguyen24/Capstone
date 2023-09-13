@@ -29,7 +29,7 @@ const getStationById = async (req, res) => {
 
 const createStation = async (req, res) => {
     try {
-        const {stationName, address, latitude, longtitude} = req.body;
+        const {stationName, address, latitude, longitude} = req.body;
         if(!stationName) {
             throw new BadRequestError('Please provide stationName');
         }
@@ -39,8 +39,8 @@ const createStation = async (req, res) => {
         if(!latitude) {
             throw new BadRequestError('Please provide latitude');
         }
-        if(!longtitude) {
-            throw new BadRequestError('Please provide longtitude');
+        if(!longitude) {
+            throw new BadRequestError('Please provide longitude');
         }
         const response = await services.createStation(req.body);
         return res.status(response.status).json(response.data);

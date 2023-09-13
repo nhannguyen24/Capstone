@@ -30,7 +30,7 @@ const getPointOfInterestById = async (req, res) => {
 
 const createPointOfInterest = async (req, res) => {
     try {
-        const {poiName, address, latitude, longtitude} = req.body;
+        const {poiName, address, latitude, longitude} = req.body;
         if(!poiName) {
             throw new BadRequestError('Please provide poiName');
         }
@@ -40,8 +40,8 @@ const createPointOfInterest = async (req, res) => {
         if(!latitude) {
             throw new BadRequestError('Please provide latitude');
         }
-        if(!longtitude) {
-            throw new BadRequestError('Please provide longtitude');
+        if(!longitude) {
+            throw new BadRequestError('Please provide longitude');
         }
         const response = await services.createPointOfInterest(req.body);
         return res.status(response.status).json(response.data);
