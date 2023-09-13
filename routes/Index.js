@@ -3,16 +3,13 @@ const auth = require('./AuthRouter');
 const role = require('./RoleRouter');
 const user = require('./UserRouter');
 const station = require('./StationRouter');
-<<<<<<< HEAD
 // const store = require('./store');
 const role = require('./RoleRouter');
 const bus = require('./BusRouter')
-=======
 const point = require('./PointOfInterestRouter');
 
 const uploadImage = require('./UploadFileRouter');
 
->>>>>>> 6b712ce70956de1ceba385e393f9378e91c2e1c4
 // const ingredient = require('./ingredient');
 // const food = require('./food');
 // const category = require('./category');
