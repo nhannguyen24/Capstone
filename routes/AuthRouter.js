@@ -26,7 +26,7 @@ const verifyToken = require('../middlewares/VerifyToken');
  *     tags: [auth-controller]
  *     responses:
  *       200:
- *         description: For login with google returns the token
+ *         description: Login with google returns the token successfully
  *         content:
  *           application/json:
  *             schema:
@@ -52,7 +52,7 @@ router.post('/login-google', firebaseAuth, controllers.loginGoogle);
  *              refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdHVkZW50X2lkIjoiVjJzU0MxSFNMQVNOdFRUMFJoendxRHh4d3JpMiIsImlhdCI6MTY3NjgyOTMzMiwiZXhwIjoxNjc3MjYxMzMyfQ.8LfwVJoW5hPcw1rR9-sOWlhQBT83xhQAYJXFUAE2Z9k
  *     responses:
  *       200:
- *         description: For refresh new token
+ *         description: Refresh new token successfully
  *         content:
  *           application/json:
  *             schema:
@@ -77,7 +77,7 @@ router.post('/refresh-token', controllers.refreshAccessToken);
  *         description: Input userId to logout
  *     responses:
  *       200:
- *         description: For logout
+ *         description: Logout successfully
  *         content:
  *           application/json:
  *             schema:
@@ -135,7 +135,7 @@ router.post('/logout', verifyToken, controllers.logout);
  *              password: "123456"
  *     responses:
  *       200:
- *         description: For login 
+ *         description: Login successfully
  *         content:
  *           application/json:
  *             schema:
@@ -161,7 +161,7 @@ router.post('/login', controllers.login);
  *              confirmPass: "123456"
  *     responses:
  *       200:
- *         description: For register new account
+ *         description: Register new account successfully
  *         content:
  *           application/json:
  *             schema:

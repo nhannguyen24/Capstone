@@ -3,12 +3,12 @@ const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
 
 const getAllStation = (
-    { page, limit, order, stationName, address, stationId, ...query },
+    { page, limit, order, stationName, address, ...query },
     roleName
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`stations_${page}_${limit}_${order}_${stationName}_${address}_${stationId}`, async (error, station) => {
+            redisClient.get(`stations_${page}_${limit}_${order}_${stationName}_${address}`, async (error, station) => {
                 if (error) console.error(error);
                 if (station != null && station != "" && roleName != 'Admin') {
                     resolve({
@@ -19,7 +19,7 @@ const getAllStation = (
                         }
                     });
                 } else {
-                    redisClient.get(`admin_stations_${page}_${limit}_${order}_${stationName}_${address}_${stationId}`, async (error, adminStation) => {
+                    redisClient.get(`admin_stations_${page}_${limit}_${order}_${stationName}_${address}`, async (error, adminStation) => {
                         if (adminStation != null && adminStation != "") {
                             resolve({
                                 status: 200,
@@ -40,22 +40,18 @@ const getAllStation = (
                             }
                             if (stationName) query.stationName = { [Op.substring]: stationName };
                             if (address) query.address = { [Op.substring]: address };
-                            if (stationId) query.stationId = { [Op.eq]: stationId };
                             if (roleName !== "Admin") {
                                 query.status = { [Op.notIn]: ['Deactive'] };
                             }
                             const stations = await db.Station.findAll({
                                 where: query,
                                 ...queries,
-                                attributes: {
-                                    exclude: ["createdAt", "updatedAt"],
-                                },
                             });
 
                             if (roleName !== "Admin") {
-                                redisClient.setEx(`stations_${page}_${limit}_${order}_${stationName}_${address}_${stationId}`, 3600, JSON.stringify(stations));
+                                redisClient.setEx(`stations_${page}_${limit}_${order}_${stationName}_${address}`, 3600, JSON.stringify(stations));
                             } else {
-                                redisClient.setEx(`admin_stations_${page}_${limit}_${order}_${stationName}_${address}_${stationId}`, 3600, JSON.stringify(stations));
+                                redisClient.setEx(`admin_stations_${page}_${limit}_${order}_${stationName}_${address}`, 3600, JSON.stringify(stations));
                             }
                             resolve({
                                 status: stations ? 200 : 404,
@@ -70,6 +66,29 @@ const getAllStation = (
             })
         } catch (error) {
             console.log(error);
+            reject(error);
+        }
+    });
+
+const getStationById = (stationId) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            const station = await db.Station.findOne({
+                where: { stationId: stationId },
+                raw: true,
+                nest: true,
+                attributes: {
+                    exclude: ["createdAt", "updatedAt"],
+                }
+            });
+            resolve({
+                status: station ? 200 : 404,
+                data: {
+                    msg: station ? "Got station" : `Cannot find station with id: ${stationId}`,
+                    station: station,
+                }
+            });
+        } catch (error) {
             reject(error);
         }
     });
@@ -153,12 +172,12 @@ const updateStation = ({ stationId, ...body }) =>
                 });
 
                 resolve({
-                            status: stations[0] > 0 ? 200 : 400,
+                    status: stations[0] > 0 ? 200 : 400,
                     data: {
                         msg:
-                        stations[0] > 0
-                            ? `${stations[0]} station update`
-                            : "Cannot update station/ stationId not found",
+                            stations[0] > 0
+                                ? `${stations[0]} station update`
+                                : "Cannot update station/ stationId not found",
                     }
                 });
 
@@ -188,6 +207,22 @@ const updateStation = ({ stationId, ...body }) =>
 const deleteStation = (stationIds) =>
     new Promise(async (resolve, reject) => {
         try {
+            const findStation = await db.Station.findAll({
+                raw: true, nest: true,
+                where: { stationId: stationIds },
+            });
+
+            for (const station of findStation) {
+                if (station.status === "Deactive") {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: "The station already deactive!",
+                        }
+                    });
+                }
+            }
+
             const stations = await db.Station.update(
                 { status: "Deactive" },
                 {
@@ -199,9 +234,9 @@ const deleteStation = (stationIds) =>
                 status: stations > 0 ? 200 : 400,
                 data: {
                     msg:
-                    stations > 0
-                        ? `${stations} station delete`
-                        : "Cannot delete station/ stationId not found",
+                        stations > 0
+                            ? `${stations} station delete`
+                            : "Cannot delete station/ stationId not found",
                 }
             });
 
@@ -232,6 +267,6 @@ module.exports = {
     deleteStation,
     createStation,
     getAllStation,
-
+    getStationById
 };
 
