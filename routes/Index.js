@@ -11,6 +11,8 @@ const price = require('./PriceRoute')
 const point = require('./PointOfInterestRouter')
 const uploadImage = require('./UploadFileRouter')
 // const ingredient = require('./ingredient');
+const route = require('./RouteRouter');
+
 // const food = require('./food');
 // const category = require('./category');
 // const step = require('./guild_step');
@@ -42,6 +44,7 @@ const initRoutes = (app) => {
     app.use('/api/v1/roles', role);
 
     app.use('/api/v1/points', point);
+    app.use('/api/v1/routes', route);
 
     app.use('/api/v1/upload-image', uploadImage);
     

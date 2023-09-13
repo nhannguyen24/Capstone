@@ -115,12 +115,14 @@ const createStation = ({ stationName, ...body }) =>
                 },
             })
 
+            // console.log(createStation[0].dataValues.stationId);
+
             resolve({
                 status: createStation[1] ? 200 : 400,
                 data: {
                     msg: createStation[1]
                         ? "Create new station successfully"
-                        : "Cannot create new station/Station already exists",
+                        : "Cannot create new station/Station name already exists",
                     station: createStation[1] ? station : null,
                 }
             });
@@ -231,11 +233,11 @@ const deleteStation = (stationIds) =>
                 }
             );
             resolve({
-                status: stations > 0 ? 200 : 400,
+                status: stations[0] > 0 ? 200 : 400,
                 data: {
                     msg:
-                        stations > 0
-                            ? `${stations} station delete`
+                        stations[0] > 0
+                            ? `${stations[0]} station delete`
                             : "Cannot delete station/ stationId not found",
                 }
             });
