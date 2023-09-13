@@ -2,14 +2,14 @@ const db = require("../models");
 const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
 const bcrypt = require('bcryptjs');
-const mailer = require('../utils/Mailer');
+const mailer = require('../utils/MailerUtil');
 
 const hashPassword = password => bcrypt.hashSync(password, bcrypt.genSaltSync(8));
 
-const getAllUsers = ({ page, limit, order, userName, userId, email, ...query }) =>
+const getAllUsers = ({ page, limit, order, userName, email, ...query }) =>
   new Promise(async (resolve, reject) => {
     try {
-      redisClient.get(`user_paging_${page}_${limit}_${order}_${userName}`, async (error, user_paging) => {
+      redisClient.get(`user_paging_${page}_${limit}_${order}_${userName}_${email}`, async (error, user_paging) => {
         if (error) console.error(error);
         if (user_paging != null) {
           resolve({
@@ -18,7 +18,7 @@ const getAllUsers = ({ page, limit, order, userName, userId, email, ...query }) 
               msg: "Got user",
               user_paging: JSON.parse(user_paging),
             }
-          }); 
+          });
         } else {
           const queries = { raw: true, nest: true };
           const offset = !page || +page <= 1 ? 0 : +page - 1;
@@ -28,7 +28,6 @@ const getAllUsers = ({ page, limit, order, userName, userId, email, ...query }) 
           if (order) queries.order = [order];
           else queries.order = [['updatedAt', 'DESC']];
           if (userName) query.userName = { [Op.substring]: userName };
-          if (userId) query.userId = { [Op.substring]: userId };
           if (email) query.email = { [Op.substring]: email };
           // query.status = { [Op.ne]: "Deactive" };
 
@@ -52,8 +51,8 @@ const getAllUsers = ({ page, limit, order, userName, userId, email, ...query }) 
               },
             ],
           });
-          redisClient.setEx(`user_paging_${page}_${limit}_${order}_${userName}`, 3600, JSON.stringify(users));
-
+          redisClient.setEx(`user_paging_${page}_${limit}_${order}_${userName}_${email}`, 3600, JSON.stringify(users));
+          
           resolve({
             status: users ? 200 : 404,
             data: {
@@ -68,6 +67,40 @@ const getAllUsers = ({ page, limit, order, userName, userId, email, ...query }) 
     }
   });
 
+const getUserById = (userId) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const user = await db.User.findOne({
+        where: { userId: userId },
+        raw: true,
+        nest: true,
+        attributes: {
+          exclude: [
+            "roleId",
+            "createdAt",
+            "updatedAt",
+            "refresh_token",
+          ],
+        },
+        include: [
+          {
+            model: db.Role,
+            as: "user_role",
+            attributes: ["roleId", "roleName"],
+          },
+        ],
+      });
+      resolve({
+        status: user ? 200 : 404,
+        data: {
+          msg: user ? "Got user" : `Cannot find user with id: ${userId}`,
+          user: user,
+        }
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
 
 const createUser = ({ password, ...body }) =>
   new Promise(async (resolve, reject) => {
@@ -220,6 +253,22 @@ const deleteUser = (userIds, userId) =>
           msg: `Cannot delete user/ Account ${userId} is in use`,
         });
       } else {
+        const findUser = await db.User.findAll({
+          raw: true, nest: true,
+          where: { userId: userIds },
+        });
+
+        for (const user of findUser) {
+          if (user.status === "Deactive") {
+            resolve({
+              status: 400,
+              data: {
+                msg: "The user already deactive!",
+              }
+            });
+          }
+        }
+
         const users = await db.User.update(
           { status: "Deactive" },
           {
@@ -227,12 +276,13 @@ const deleteUser = (userIds, userId) =>
             individualHooks: true,
           }
         );
+        console.log(users[0]);
         resolve({
-          status: users[0] ? 200 : 400,
+          status: users[0] > 0 ? 200 : 400,
           data: {
             msg:
-              users > 0
-                ? `${users} user delete`
+              users[0] > 0
+                ? `${users[0]} user delete`
                 : "Cannot delete user/ userId not found",
           }
         });
@@ -258,76 +308,13 @@ const deleteUser = (userIds, userId) =>
     }
   });
 
-// const getUserById = (userId) =>
-//   new Promise(async (resolve, reject) => {
-//     try {
-//       const user = await db.User.findOne({
-//         where: { userId: userId },
-//         raw: true,
-//         nest: true,
-//         attributes: {
-//           exclude: [
-//             "roleId",
-//             "createdAt",
-//             "updatedAt",
-//             "refreshToken",
-//           ],
-//         },
-//         include: [
-//           {
-//             model: db.Role,
-//             as: "userRole",
-//             attributes: ["roleId", "roleName"],
-//           },
-//         ],
-//       });
-//       resolve({
-//         msg: user ? "Got user" : `Cannot find user with id: ${userId}`,
-//         user: user,
-//       });
-//     } catch (error) {
-//       reject(error);
-//     }
-//   });
-
-// const getUserByEmail = (email) =>
-//   new Promise(async (resolve, reject) => {
-//     try {
-//       const user = await db.User.findOne({
-//         where: { email: email },
-//         raw: true,
-//         nest: true,
-//         attributes: {
-//           exclude: [
-//             "roleId",
-//             "createdAt",
-//             "updatedAt",
-//             "refreshToken",
-//           ],
-//         },
-//         include: [
-//           {
-//             model: db.Role,
-//             as: "userRole",
-//             attributes: ["roleId", "roleName"],
-//           },
-//         ],
-//       });
-//       resolve({
-//         msg: user ? "Found user" : `Not found user with email: ${email}`,
-//         user: user,
-//       });
-//     } catch (error) {
-//       reject(error);
-//     }
-//   });
-
 
 module.exports = {
   updateUser,
   deleteUser,
   createUser,
   getAllUsers,
-  updateProfile
+  updateProfile,
+  getUserById
 };
 

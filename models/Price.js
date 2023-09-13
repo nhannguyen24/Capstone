@@ -26,6 +26,16 @@ module.exports = (sequelize, DataTypes) => {
     },
     amount: DataTypes.DECIMAL(3,3),
     description: DataTypes.STRING,
+    day: {
+      type: DataTypes.ENUM,
+      values: ["Normal", "Weekend", "Holiday"],
+      validate: {
+        isIn: {
+          args: [["Normal", "Weekend", "Holiday"]],
+          msg: 'Invalid value for price.status (Normal, Weekend, Holiday)'
+        }
+      }
+    },
     ticketTypeId: {
       type: DataTypes.UUID
     },
