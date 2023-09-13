@@ -4,7 +4,6 @@ const role = require('./RoleRouter');
 const user = require('./UserRouter');
 const station = require('./StationRouter');
 
-const role = require('./RoleRouter');
 const bus = require('./BusRouter')
 const busCate = require('./BusCategoryRoute')
 const ticketType = require('./TicketTypeRoute')
