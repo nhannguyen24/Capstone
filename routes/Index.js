@@ -3,10 +3,14 @@ const auth = require('./AuthRouter');
 const role = require('./RoleRouter');
 const user = require('./UserRouter');
 const station = require('./StationRouter');
-const point = require('./PointOfInterestRouter');
 
-const uploadImage = require('./UploadFileRouter');
-
+const role = require('./RoleRouter');
+const bus = require('./BusRouter')
+const busCate = require('./BusCategoryRoute')
+const ticketType = require('./TicketTypeRoute')
+const price = require('./PriceRoute')
+const point = require('./PointOfInterestRouter')
+const uploadImage = require('./UploadFileRouter')
 // const ingredient = require('./ingredient');
 // const food = require('./food');
 // const category = require('./category');
@@ -30,7 +34,14 @@ const initRoutes = (app) => {
     app.use('/api/v1/auth', auth);
     app.use('/api/v1/roles', role);
     app.use('/api/v1/users', user);
+    app.use('/api/v1/buses', bus);
+    app.use('/api/v1/bus-cates', busCate);
+    app.use('/api/v1/prices', price);
+    app.use('/api/v1/ticket-types', ticketType);
     app.use('/api/v1/stations', station);
+
+    app.use('/api/v1/roles', role);
+
     app.use('/api/v1/points', point);
 
     app.use('/api/v1/upload-image', uploadImage);
