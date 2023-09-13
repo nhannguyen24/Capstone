@@ -65,7 +65,7 @@ const getAllPointOfInterest = (
                                     }
                                 ]
                             });
-                            
+
                             if (roleName !== "Admin") {
                                 redisClient.setEx(`pois_${page}_${limit}_${order}_${poiName}_${address}`, 3600, JSON.stringify(pois));
                             } else {
@@ -252,18 +252,18 @@ const deletePointOfInterest = (poiIds) =>
             const findPonit = await db.PointOfInterest.findAll({
                 raw: true, nest: true,
                 where: { poiId: poiIds },
-              });
-      
-              for (const point of findPonit) {
+            });
+
+            for (const point of findPonit) {
                 if (point.status === "Deactive") {
-                  resolve({
-                    status: 400,
-                    data: {
-                      msg: "The point of interest already deactive!",
-                    }
-                  });
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: "The point of interest already deactive!",
+                        }
+                    });
                 }
-              }
+            }
 
             const pois = await db.PointOfInterest.update(
                 { status: "Deactive" },
@@ -273,11 +273,11 @@ const deletePointOfInterest = (poiIds) =>
                 }
             );
             resolve({
-                status: pois > 0 ? 200 : 400,
+                status: pois[0] > 0 ? 200 : 400,
                 data: {
                     msg:
-                        pois > 0
-                            ? `${pois} poi delete`
+                        pois[0] > 0
+                            ? `${pois[0]} poi delete`
                             : "Cannot delete poi/ poiId not found",
                 }
             });

@@ -289,12 +289,13 @@ const deleteRoute = (routeIds) =>
                     individualHooks: true,
                 }
             );
+            
             resolve({
-                status: routes > 0 ? 200 : 400,
+                status: routes[0] > 0 ? 200 : 400,
                 data: {
                     msg:
-                        routes > 0
-                            ? `${routes} route delete`
+                        routes[0] > 0
+                            ? `${routes[0]} route delete`
                             : "Cannot delete route/ routeId not found",
                 }
             });

@@ -233,11 +233,11 @@ const deleteStation = (stationIds) =>
                 }
             );
             resolve({
-                status: stations > 0 ? 200 : 400,
+                status: stations[0] > 0 ? 200 : 400,
                 data: {
                     msg:
-                        stations > 0
-                            ? `${stations} station delete`
+                        stations[0] > 0
+                            ? `${stations[0]} station delete`
                             : "Cannot delete station/ stationId not found",
                 }
             });
