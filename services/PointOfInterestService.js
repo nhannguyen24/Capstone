@@ -147,7 +147,7 @@ const createPointOfInterest = ({ images, poiName, ...body }) =>
                 data: {
                     msg: createPointOfInterest[1]
                         ? "Create new poi successfully"
-                        : "Cannot create new poi/PointOfInterest already exists",
+                        : "Cannot create new poi/Point name already exists",
                     poi: createPointOfInterest[1] ? poi : null,
                 }
             });

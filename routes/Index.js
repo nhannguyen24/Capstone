@@ -4,10 +4,11 @@ const role = require('./RoleRouter');
 const user = require('./UserRouter');
 const station = require('./StationRouter');
 const point = require('./PointOfInterestRouter');
+const route = require('./RouteRouter');
 
 const uploadImage = require('./UploadFileRouter');
 
-// const ingredient = require('./ingredient');
+
 // const food = require('./food');
 // const category = require('./category');
 // const step = require('./guild_step');
@@ -32,6 +33,7 @@ const initRoutes = (app) => {
     app.use('/api/v1/users', user);
     app.use('/api/v1/stations', station);
     app.use('/api/v1/points', point);
+    app.use('/api/v1/routes', route);
 
     app.use('/api/v1/upload-image', uploadImage);
     

@@ -23,6 +23,8 @@ module.exports = (sequelize, DataTypes) => {
         otherKey: 'poiId',
         as: "route_poi",
       });
+      Route.hasMany(models.RouteDetail, { as: 'route_detail', foreignKey: 'routeId'});
+      
     }
   }
   Route.init({
