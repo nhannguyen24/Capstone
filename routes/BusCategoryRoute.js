@@ -1,4 +1,4 @@
-const controllers = require('../controllers/BusController');
+const controllers = require('../controllers/BusCategoryController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
 const {isAdmin} = require('../middlewares/VerifyRole');
@@ -7,18 +7,12 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/v1/buses:
+ * /api/v1/bus-cates:
  *   get:
  *     security: 
  *         - BearerAuth: []
- *     summary: Get buses by bus plate
- *     tags: [bus-controller]
- *     parameters:
- *       - in: query
- *         name: busPlate
- *         schema:
- *           type: string
- *           example: 79B
+ *     summary: Get all bus categories
+ *     tags: [bus-category-controller]
  * 
  *     responses:
  *       200:
@@ -28,35 +22,23 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isAdmin, controllers.getBusByPlate);
+router.get("/", verifyToken, isAdmin, controllers.getAllBusCates);
 
 
 /**
  * @swagger
- * /api/v1/buses:
+ * /api/v1/bus-cates:
  *   post:
  *     security: 
  *         - BearerAuth: []
- *     summary: Create a new bus
- *     tags: [bus-controller]
+ *     summary: Create a new bus category
+ *     tags: [bus-category-controller]
  *     parameters:
  *       - in: query
- *         name: busPlate
+ *         name: busCateName
  *         schema:
  *           type: string
- *           example: 51B-217.91
- *         required: true
- *       - in: query
- *         name: numberSeat
- *         schema:
- *           type: integer
- *           example: 30
- *         required: true
- *       - in: query
- *         name: busCateId
- *         schema:
- *           type: string
- *           example: 79973808-e97f-4487-9677-3cc0d57248a2
+ *           example: Double Decker Bus
  *         required: true
  *     responses:
  *       201:
@@ -72,38 +54,28 @@ router.get("/", verifyToken, isAdmin, controllers.getBusByPlate);
  *             schema:
  *               type: object
  */
-router.post("/", verifyToken, isAdmin, controllers.createBus);
+router.post("/", verifyToken, isAdmin, controllers.createBusCate);
 
 /**
  * @swagger
- * /api/v1/buses/{busId}:
+ * /api/v1/bus-cates/{busCateId}:
  *   put:
  *     security: 
  *         - BearerAuth: []
- *     summary: Update bus by id
- *     tags: [bus-controller]
+ *     summary: Update bus category by id
+ *     tags: [bus-category-controller]
  *     parameters:
  *       - in: path
- *         name: busId
- *         schema:
- *           type: string
- *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
- *         required: true
- *       - in: query
- *         name: busPlate
- *         schema:
- *           type: string
- *           example: 79B.514-01
- *       - in: query
- *         name: numberSeat
- *         schema:
- *           type: integer
- *           example: 30
- *       - in: query
  *         name: busCateId
  *         schema:
  *           type: string
  *           example: 79973808-e97f-4487-9677-3cc0d57248a2
+ *         required: true
+ *       - in: query
+ *         name: busCateName
+ *         schema:
+ *           type: string
+ *           example: Advanced Double Decker Bus
  *       - in: query
  *         name: status
  *         schema:
@@ -117,7 +89,7 @@ router.post("/", verifyToken, isAdmin, controllers.createBus);
  *         content:
  *           application/json:
  *             schema:
- *               type: object
+ *               type: string
  *       400:
  *         description: Bad request
  *         content:
@@ -131,22 +103,22 @@ router.post("/", verifyToken, isAdmin, controllers.createBus);
  *             schema:
  *               type: string
  */
-router.put("/:busId", verifyToken, isAdmin, controllers.updateBus);
+router.put("/:busCateId", verifyToken, isAdmin, controllers.updateBusCate);
 
 /**
  * @swagger
- * /api/v1/buses/{busId}:
+ * /api/v1/bus-cates/{busCateId}:
  *   delete:
  *     security: 
  *         - BearerAuth: []
- *     summary: Update bus status by id
- *     tags: [bus-controller]
+ *     summary: Deactive a bus category by id
+ *     tags: [bus-category-controller]
  *     parameters:
  *       - in: path
- *         name: busId
+ *         name: busCateId
  *         schema:
  *           type: string
- *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
+ *           example: 79973808-e97f-4487-9677-3cc0d57248a2
  *         required: true
  *     responses:
  *       200:
@@ -154,7 +126,7 @@ router.put("/:busId", verifyToken, isAdmin, controllers.updateBus);
  *         content:
  *           application/json:
  *             schema:
- *               type: object
+ *               type: string
  *       400:
  *         description: Bad request
  *         content:
@@ -168,6 +140,6 @@ router.put("/:busId", verifyToken, isAdmin, controllers.updateBus);
  *             schema:
  *               type: string
  */
-router.delete("/:busId", verifyToken, isAdmin, controllers.deleteBus);
+router.delete("/:busCateId", verifyToken, isAdmin, controllers.deleteBusCate);
 
 module.exports = router;

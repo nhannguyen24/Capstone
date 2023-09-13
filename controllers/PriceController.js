@@ -1,39 +1,39 @@
-const services = require('../services/BusService');
+const services = require('../services/PriceService');
 const {BadRequestError, InternalServerError} = require('../errors/Index');
 
-const getBusByPlate = async (req, res) => {
+const getAllPrices = async (req, res) => {
     try {
-        const response = await services.getAllBuses(req);
+        const response = await services.getAllPrices(req);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
     }
 };
 
-const createBus = async (req, res) => {
+const createPrice = async (req, res) => {
     try {
-        const response = await services.createBus(req);
+        const response = await services.createPrice(req);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
     }
 }
 
-const updateBus = async (req, res) => {
+const updatePrice = async (req, res) => {
     try {
-        const response = await services.updateBus(req);
+        const response = await services.updatePrice(req);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
     }
 }
-const deleteBus = async (req, res) => {
+const deletePrice = async (req, res) => {
     try {
-        const response = await services.deleteBus(req);
+        const response = await services.deletePrice(req);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
     }
 }
 
-module.exports = { getBusByPlate, createBus, updateBus, deleteBus }
+module.exports = { getAllPrices, createPrice, updatePrice, deletePrice }

@@ -5,6 +5,9 @@ const station = require('./StationRouter');
 // const store = require('./store');
 const role = require('./RoleRouter');
 const bus = require('./BusRouter')
+const busCate = require('./BusCategoryRoute')
+const ticketType = require('./TicketTypeRoute')
+const price = require('./PriceRoute')
 // const ingredient = require('./ingredient');
 // const food = require('./food');
 // const category = require('./category');
@@ -29,6 +32,9 @@ const initRoutes = (app) => {
     app.use('/api/v1/auth', auth);
     app.use('/api/v1/users', user);
     app.use('/api/v1/buses', bus);
+    app.use('/api/v1/bus-cates', busCate);
+    app.use('/api/v1/prices', price);
+    app.use('/api/v1/ticket-types', ticketType);
     app.use('/api/v1/stations', station);
     // app.use('/api/v1/stores', store);
     app.use('/api/v1/roles', role);
