@@ -34,7 +34,7 @@ module.exports = (sequelize, DataTypes) => {
       Bus.belongsTo(models.BusCategory, {
         foreignKey: "busCateId",
         targetKey: 'busCateId',
-        as: "cate_bus",
+        as: "bus_cate",
       });
     }
   }

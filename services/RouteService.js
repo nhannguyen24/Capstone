@@ -51,6 +51,9 @@ const getAllRoute = (
                                         as: "route_detail",
                                         attributes: {
                                             exclude: [
+                                                "routeId",
+                                                "stationId",
+                                                "poiId",
                                                 "createdAt",
                                                 "updatedAt",
                                                 "status",
@@ -289,7 +292,7 @@ const deleteRoute = (routeIds) =>
                     individualHooks: true,
                 }
             );
-            
+
             resolve({
                 status: routes[0] > 0 ? 200 : 400,
                 data: {

@@ -25,7 +25,6 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
     },
     amount: DataTypes.DECIMAL(3,3),
-    description: DataTypes.STRING,
     day: {
       type: DataTypes.ENUM,
       values: ["Normal", "Weekend", "Holiday"],

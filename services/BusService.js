@@ -4,38 +4,54 @@ const { Op } = require('sequelize');
 const getAllBuses = (req) => new Promise(async (resolve, reject) => {
     try {
         var busPlate = req.query.busPlate
-        if(busPlate === undefined || busPlate === null){
+        if (busPlate === undefined || busPlate === null) {
             busPlate = ""
         }
 
         const buses = await db.Bus.findAll({
-            where: { 
-                busPlate: { 
-                    [Op.substring]: busPlate 
-                } 
+            where: {
+                busPlate: {
+                    [Op.substring]: busPlate
+                }
             },
             attributes: {
                 exclude: ["busCateId"]
             },
             include: [
                 {
-                  model: db.BusCategory,
-                  as: "cate_bus",
+                    model: db.BusCategory,
+                    as: "bus_cate",
                 },
-              ],
+                {
+                    model: db.Image,
+                    as: "bus_image",
+                    attributes: {
+                        exclude: [
+                            "poiId",
+                            "busId",
+                            "tourId",
+                            "productId",
+                            "feedbackId",
+                            "createdAt",
+                            "updatedAt",
+                            "status",
+                        ],
+                    },
+                },
+            ],
         });
 
 
-            resolve({
-                status: 200,
-                data: bus.length() > 0 ? {
-                    msg: `Get the list of the buses successfully`,
-                    buses: buses
-                } : {
-                    msg: `Bus not found`,
-                    buses: []
-                }
-            });
+        resolve({
+            status: 200,
+            data: buses ? {
+                msg: `Get the list of the buses successfully`,
+                buses: buses
+            } : {
+                msg: `Bus not found`,
+                buses: []
+            }
+        });
 
     } catch (error) {
         reject(error);
@@ -47,6 +63,7 @@ const createBus = (req) => new Promise(async (resolve, reject) => {
         const busPlate = req.query.busPlate
         const seat = req.query.numberSeat
         const busCateId = req.query.busCateId
+        const image = req.query.image
 
         const busCate = await db.BusCategory.findOne({
             where: {
@@ -66,6 +83,11 @@ const createBus = (req) => new Promise(async (resolve, reject) => {
         const [bus, created] = await db.Bus.findOrCreate({
             where: { busPlate: busPlate },
             defaults: { busPlate: busPlate, numberSeat: seat, busCateId: busCate.busCateId }
+        });
+
+        await db.Image.create({
+            image: image,
+            busId: bus.dataValues.busId,
         });
 
         resolve({
@@ -90,7 +112,7 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
             }
         })
 
-        if(!bus){
+        if (!bus) {
             resolve({
                 status: 400,
                 data: {
@@ -100,7 +122,7 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
         }
 
         var busCateId = req.query.busCateId
-        if(busCateId === undefined || busCateId === null){
+        if (busCateId === undefined || busCateId === null) {
             busCateId = bus.busCateId
         } else {
             const busCate = await db.BusCategory.findOne({
@@ -108,7 +130,7 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
                     busCateId: busCateId
                 }
             })
-            if(!busCate){
+            if (!busCate) {
                 resolve({
                     status: 400,
                     data: {
@@ -119,19 +141,19 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
         }
 
         var busPlate = req.query.busPlate
-        if(busPlate === undefined || busPlate === null){
+        if (busPlate === undefined || busPlate === null) {
             busPlate = bus.busPlate
         }
         var seat = req.query.numberSeat
-        if(seat === undefined || seat === null){
+        if (seat === undefined || seat === null) {
             seat = bus.numberSeat
         }
         var status = req.query.status
-        if(status === undefined || status === null){
+        if (status === undefined || status === null) {
             status = bus.status
         }
 
-        if("Deactive" == status){
+        if ("Deactive" == status) {
             const tour = await db.TourDetail.findOne({
                 where: {
                     busId: busId,
@@ -143,11 +165,11 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
                     ["date", "DESC"]
                 ]
             })
-    
-            if(tour){
+
+            if (tour) {
                 const tourDate = new Date(tour.date)
                 const currentDate = new Date()
-                if(tourDate > currentDate){
+                if (tourDate > currentDate) {
                     resolve({
                         status: 409,
                         data: {
@@ -156,7 +178,7 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
                         }
                     })
                 }
-            } 
+            }
         }
 
 
@@ -165,7 +187,7 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
             numberSeat: seat,
             busCateId: busCateId,
             status: status
-        },{
+        }, {
             where: {
                 busId: bus.busId
             }, transaction: t
@@ -196,7 +218,7 @@ const deleteBus = (req) => new Promise(async (resolve, reject) => {
             }
         })
 
-        if(!bus){
+        if (!bus) {
             resolve({
                 status: 400,
                 data: {
@@ -217,10 +239,10 @@ const deleteBus = (req) => new Promise(async (resolve, reject) => {
             ]
         })
 
-        if(tour){
+        if (tour) {
             const tourDate = new Date(tour.date)
             const currentDate = new Date()
-            if(tourDate > currentDate){
+            if (tourDate > currentDate) {
                 resolve({
                     status: 409,
                     data: {
@@ -232,7 +254,7 @@ const deleteBus = (req) => new Promise(async (resolve, reject) => {
 
         await db.Bus.update({
             status: "Deactive"
-        },{
+        }, {
             where: {
                 busId: bus.busId
             }

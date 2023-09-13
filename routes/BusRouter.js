@@ -58,6 +58,12 @@ router.get("/", verifyToken, isAdmin, controllers.getBusByPlate);
  *           type: string
  *           example: 79973808-e97f-4487-9677-3cc0d57248a2
  *         required: true
+ *       - in: query
+ *         name: image
+ *         schema:
+ *           type: string
+ *           example: string
+ *         required: true
  *     responses:
  *       201:
  *         description: Created
