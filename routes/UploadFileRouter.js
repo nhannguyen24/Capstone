@@ -1,6 +1,7 @@
 const {uploadFile} = require('../middlewares/FirebaseService')
 const express = require('express');
 const router = express.Router();
+const verifyToken = require('../middlewares/VerifyToken');
 
 /**
  * @swagger
@@ -9,7 +10,7 @@ const router = express.Router();
  *     security: 
  *         - BearerAuth: []
  *     summary: Upload image
- *     tags: [upload-controller]
+ *     tags: [firebase-controller]
  *     requestBody:
  *          required: true
  *          content:
@@ -17,11 +18,9 @@ const router = express.Router();
  *              schema:
  *                type: object
  *                properties:
- *                  files:  
- *                      type: array
- *                      items:
- *                        type: string
- *                        format: binary
+ *                  file:
+ *                    type: string
+ *                    format: binary
  *     responses:
  *       200:
  *         description: Upload image
@@ -31,7 +30,7 @@ const router = express.Router();
  *               type: string
  *               format: binary
  */
-router.post("/", uploadFile);
+router.post("/", verifyToken, uploadFile);
 
 
 module.exports = router;

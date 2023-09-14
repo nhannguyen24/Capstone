@@ -1,68 +1,54 @@
 const multer = require("multer");
 const firebase = require("../config/FirebaseConfig");
 const { NotFoundError } = require("../errors/Index");
-// const request = require("request");
-const path = require("path");
-// const joi = require("joi");
-const fs = require("fs");
-// const { title, body, device_token } = require("../helpers/joi_schema");
 
-const parentDirectory = path.dirname(__dirname);
-
-const uploadFile = async (req, res, next) => {
+const uploadFile = async (req, res) => {
   const upload = multer({
     storage: multer.memoryStorage(),
   });
 
-  upload.array("files", 10)(req, res, async () => {
-    if (!req.files) {
+  upload.single("file")(req, res, async () => {
+    if (!req.file) {
       throw new NotFoundError("No files found");
     }
 
-    const uploadPromises = req.files.map(file => {
-      const blob = firebase.bucket.file(file.originalname);
+    const blob = firebase.bucket.file(req.file.originalname);
 
-      const blobWriter = blob.createWriteStream({
-        metadata: {
-          contentType: file.mimetype,
-        },
-      });
-
-      return new Promise((resolve, reject) => {
-        blobWriter.on("error", async (err) => {
-          console.log(err);
-          await firebase.storage().bucket().file(file.originalname).delete();
-          reject(new Error("Upload file to Firebase error!"));
-        });
-
-        blobWriter.on("finish", () => {
-          console.log(`File upload ${file.originalname}`);
-        });
-
-        blobWriter.end(file.buffer);
-
-        blob.getSignedUrl({
-          action: "read",
-          expires: "10-17-2023", // expiration date in mm-dd-yyyy format
-        })
-          .then(([url]) => {
-            resolve(url);
-          })
-          .catch((err) => {
-            console.log(err);
-            reject(new Error("Get signed URL from Firebase error!"));
-          });
-      });
+    const blobWriter = blob.createWriteStream({
+      metadata: {
+        contentType: req.file.mimetype,
+      },
     });
 
-    try {
-      const urls = await Promise.all(uploadPromises);
-      return res.status(200).json({ files: urls });
-    } catch (error) {
-      return res.status(500).json({ message: error.message });
-    }
+    blobWriter.on("error", async (err) => {
+      console.log(err);
+      await firebase.storage().bucket().file(req.file.originalname).delete();
+      return res.status(500).json({ message: "Upload file to firebase error!" });
+    });
+
+    blobWriter.on("finish", () => {
+      console.log(`File upload ${req.file.originalname}`);
+    });
+
+    // Get a signed URL for the file
+    const file = firebase.bucket.file(req.file.originalname);
+    const [url] = await file.getSignedUrl({
+      action: "read",
+      expires: "01-17-2024", // expiration date in mm-dd-yyyy format
+    });
+
+    blobWriter.end(req.file.buffer);
+    return res.status(200).json({ url });
   });
 };
+
+module.exports =  {uploadFile};
+
+
+
+
+
+
 
 // const pushNotification = (req, res) => {
 //   const { error } = joi
@@ -88,4 +74,4 @@ const uploadFile = async (req, res, next) => {
 //     });
 // };
 
-module.exports =  {uploadFile};
+
