@@ -31,7 +31,7 @@ const router = express.Router();
  *     security: 
  *         - BearerAuth: []
  *     summary: Returns the list of all the roles
- *     tags: [role-controller]
+ *     tags: [Role]
  *     parameters:
  *       - name: roleName
  *         in: query

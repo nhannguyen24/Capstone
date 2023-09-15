@@ -1,24 +1,18 @@
-const controllers = require('../controllers/BusController');
+const controllers = require('../controllers/TicketController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isAdminOrManager} = require('../middlewares/VerifyRole');
+const {isAdmin} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
 /**
  * @swagger
- * /api/v1/buses:
+ * /api/v1/tickets:
  *   get:
  *     security: 
  *         - BearerAuth: []
- *     summary: Get buses by bus plate
- *     tags: [Bus]
- *     parameters:
- *       - in: query
- *         name: busPlate
- *         schema:
- *           type: string
- *           example: 79B
+ *     summary: get tickets 
+ *     tags: [Ticket]
  * 
  *     responses:
  *       200:
@@ -28,42 +22,63 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, controllers.getBusByPlate);
-
+router.get("/", verifyToken, isAdmin, controllers.getAllTickets);
 
 /**
  * @swagger
- * /api/v1/buses:
+ * /api/v1/tickets/{ticketId}:
+ *   get:
+ *     security: 
+ *         - BearerAuth: []
+ *     summary: Get ticket by id
+ *     tags: [Ticket]
+ *     parameters:
+ *       - in: path
+ *         name: ticketId
+ *         schema:
+ *           type: string
+ *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ */
+router.get("/:ticketId", verifyToken, isAdmin, controllers.getTicketById);
+
+/**
+ * @swagger
+ * /api/v1/tickets:
  *   post:
  *     security: 
  *         - BearerAuth: []
- *     summary: Create a new bus
- *     tags: [Bus]
- *     parameters:
- *       - in: query
- *         name: busPlate
- *         schema:
- *           type: string
- *           example: 51B-217.91
- *         required: true
- *       - in: query
- *         name: numberSeat
- *         schema:
- *           type: integer
- *           example: 30
- *         required: true
- *       - in: query
- *         name: isDoubleDecker
- *         schema:
- *           type: boolean
- *           example: true
- *         required: true
- *       - in: query
- *         name: image
- *         schema:
- *           type: string
- *           example: string
- *         required: true
+ *     summary: Create a new ticket
+ *     tags: [Ticket]
+ *     requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                  ticketId:
+ *                      type: string
+ *                  tourId:
+ *                      type: string
+ *            example:
+ *              {
+ *                  ticketId: d406c07b-7f66-4a90-88d1-8c5cfdd34a42,
+ *                  tourId: d406c07b-7f66-4a90-88d1-8c5cfdd34a42,
+ *              }
  *     responses:
  *       201:
  *         description: Created
@@ -77,63 +92,40 @@ router.get("/", verifyToken, controllers.getBusByPlate);
  *           application/json:
  *             schema:
  *               type: object
- */
-router.post("/", verifyToken, isAdminOrManager, controllers.createBus);
-
-/**
- * @swagger
- * /api/v1/buses/{busId}:
- *   get:
- *     security: 
- *         - BearerAuth: []
- *     summary: Get bus by id
- *     tags: [Bus]
- *     parameters:
- *       - in: path
- *         name: busId
- *         schema:
- *           type: string
- *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
- *         required: true
- *     responses:
- *       200:
- *         description: OK
+ *       409:
+ *         description: Conflict
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  */
-router.get("/:busId", verifyToken, isAdmin, controllers.getBusById);
+router.post("/", verifyToken, isAdmin, controllers.createTicket);
 
 /**
  * @swagger
- * /api/v1/buses/{busId}:
+ * /api/v1/tickets/{ticketId}:
  *   put:
  *     security: 
  *         - BearerAuth: []
- *     summary: Update bus by id
- *     tags: [Bus]
+ *     summary: Update ticket by id
+ *     tags: [Ticket]
  *     parameters:
  *       - in: path
- *         name: busId
+ *         name: ticketId
  *         schema:
  *           type: string
  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
  *         required: true
  *       - in: query
- *         name: busPlate
+ *         name: tourId
  *         schema:
  *           type: string
- *           example: 79B.514-01
+ *           example: d406c07b-7f66-4a90-88d1-8c5cfdd34a42
  *       - in: query
- *         name: numberSeat
+ *         name: ticketTypeId
  *         schema:
- *           type: integer
- *           example: 30
- *       - in: query
- *         name: isDoubleDecker
- *         schema:
- *           type: boolean
+ *           type: string
+ *           example: d406c07b-7f66-4a90-88d1-8c5cfdd34a42
  *       - in: query
  *         name: status
  *         schema:
@@ -141,6 +133,7 @@ router.get("/:busId", verifyToken, isAdmin, controllers.getBusById);
  *           enum:
  *              - Active
  *              - Deactive
+ *        
  *     responses:
  *       200:
  *         description: OK
@@ -153,27 +146,27 @@ router.get("/:busId", verifyToken, isAdmin, controllers.getBusById);
  *         content:
  *           application/json:
  *             schema:
- *               type: string
+ *               type: object
  *       409:
  *         description: Conflict
  *         content:
  *           application/json:
  *             schema:
- *               type: string
+ *               type: object
  */
-router.put("/:busId", verifyToken, isAdminOrManager, controllers.updateBus);
+router.put("/:ticketId", verifyToken, isAdmin, controllers.updateTicket);
 
 /**
  * @swagger
- * /api/v1/buses/{busId}:
+ * /api/v1/tickets/{ticketId}:
  *   delete:
  *     security: 
  *         - BearerAuth: []
- *     summary: Update bus status by id
- *     tags: [Bus]
+ *     summary: Delete ticket by id
+ *     tags: [Ticket]
  *     parameters:
  *       - in: path
- *         name: busId
+ *         name: ticketId
  *         schema:
  *           type: string
  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
@@ -190,14 +183,14 @@ router.put("/:busId", verifyToken, isAdminOrManager, controllers.updateBus);
  *         content:
  *           application/json:
  *             schema:
- *               type: string
+ *               type: object
  *       409:
  *         description: Conflict
  *         content:
  *           application/json:
  *             schema:
- *               type: string
+ *               type: object
  */
-router.delete("/:busId", verifyToken, isAdminOrManager, controllers.deleteBus);
+router.delete("/:ticketId", verifyToken, isAdmin, controllers.deleteTicket);
 
 module.exports = router;

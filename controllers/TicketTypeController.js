@@ -9,6 +9,14 @@ const getAllTicketTypes = async (req, res) => {
         throw new InternalServerError(error);
     }
 };
+const getTicketTypeById = async (req, res) => {
+    try {
+        const response = await services.getTicketTypeById(req);
+        return res.status(response.status).json(response.data);
+    } catch (error) {
+        throw new InternalServerError(error);
+    }
+};
 
 const createTicketType = async (req, res) => {
     try {
@@ -36,4 +44,4 @@ const updateTicketType = async (req, res) => {
 //     }
 // }
 
-module.exports = { getAllTicketTypes, createTicketType, updateTicketType }
+module.exports = { getAllTicketTypes, getTicketTypeById, createTicketType, updateTicketType }

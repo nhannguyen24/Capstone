@@ -1,48 +1,48 @@
-const services = require('../services/PriceService');
+const services = require('../services/TicketService');
 const {BadRequestError, InternalServerError} = require('../errors/Index');
 
-const getAllPrices = async (req, res) => {
+const getAllTickets = async (req, res) => {
     try {
-        const response = await services.getAllPrices(req);
+        const response = await services.getAllTickets(req);
+        return res.status(response.status).json(response.data);
+    } catch (error) {
+        throw new InternalServerError(error);
+    }
+};
+const getTicketById = async (req, res) => {
+    try {
+        const response = await services.getTicketById(req);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
     }
 };
 
-const getPriceById = async (req, res) => {
+const createTicket = async (req, res) => {
     try {
-        const response = await services.getPriceById(req);
-        return res.status(response.status).json(response.data);
-    } catch (error) {
-        throw new InternalServerError(error);
-    }
-};
-
-const createPrice = async (req, res) => {
-    try {
-        const response = await services.createPrice(req);
+        const response = await services.createTicket(req);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
     }
 }
 
-const updatePrice = async (req, res) => {
+const updateTicket = async (req, res) => {
     try {
-        const response = await services.updatePrice(req);
-        return res.status(response.status).json(response.data);
-    } catch (error) {
-        throw new InternalServerError(error);
-    }
-}
-const deletePrice = async (req, res) => {
-    try {
-        const response = await services.deletePrice(req);
+        const response = await services.updateTicket(req);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
     }
 }
 
-module.exports = { getAllPrices, getPriceById, createPrice, updatePrice, deletePrice }
+const deleteTicket = async (req, res) => {
+    try {
+        const response = await services.deleteTicket(req);
+        return res.status(response.status).json(response.data);
+    } catch (error) {
+        throw new InternalServerError(error);
+    }
+}
+
+module.exports = { getAllTickets, getTicketById, createTicket, updateTicket, deleteTicket }

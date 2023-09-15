@@ -12,7 +12,7 @@ const router = express.Router();
  *     security: 
  *         - BearerAuth: []
  *     summary: get ticket-types 
- *     tags: [ticket-type-controller]
+ *     tags: [Ticket Type]
  * 
  *     responses:
  *       200:
@@ -26,12 +26,38 @@ router.get("/", verifyToken, isAdmin, controllers.getAllTicketTypes);
 
 /**
  * @swagger
+ * /api/v1/ticket-types/{ticketTypeId}:
+ *   get:
+ *     security: 
+ *         - BearerAuth: []
+ *     summary: Get ticket-type by id
+ *     tags: [Ticket Type]
+ *     parameters:
+ *       - in: path
+ *         name: ticketTypeId
+ *         schema:
+ *           type: string
+ *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ */
+router.get("/:ticketTypeId", verifyToken, isAdmin, controllers.getTicketTypeById);
+
+
+/**
+ * @swagger
  * /api/v1/ticket-types:
  *   post:
  *     security: 
  *         - BearerAuth: []
  *     summary: Create a new ticket-type
- *     tags: [ticket-type-controller]
+ *     tags: [Ticket Type]
  *     requestBody:
  *        required: true
  *        content:
@@ -71,7 +97,7 @@ router.post("/", verifyToken, isAdmin, controllers.createTicketType);
  *     security: 
  *         - BearerAuth: []
  *     summary: Update ticket-type by id
- *     tags: [ticket-type-controller]
+ *     tags: [Ticket Type]
  *     parameters:
  *       - in: path
  *         name: ticketTypeId
@@ -113,7 +139,7 @@ router.put("/:ticketTypeId", verifyToken, isAdmin, controllers.updateTicketType)
 //  *     security: 
 //  *         - BearerAuth: []
 //  *     summary: Update ticket-type status by id
-//  *     tags: [ticket-type-controller]
+//  *     tags: [Ticket Type]
 //  *     parameters:
 //  *       - in: path
 //  *         name: ticketTypeId

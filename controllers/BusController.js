@@ -9,6 +9,14 @@ const getBusByPlate = async (req, res) => {
         throw new InternalServerError(error);
     }
 };
+const getBusById = async (req, res) => {
+    try {
+        const response = await services.getBusById(req);
+        return res.status(response.status).json(response.data);
+    } catch (error) {
+        throw new InternalServerError(error);
+    }
+};
 
 const createBus = async (req, res) => {
     try {
@@ -36,4 +44,4 @@ const deleteBus = async (req, res) => {
     }
 }
 
-module.exports = { getBusByPlate, createBus, updateBus, deleteBus }
+module.exports = { getBusByPlate, getBusById, createBus, updateBus, deleteBus }

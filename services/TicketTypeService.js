@@ -4,8 +4,6 @@ const { Op } = require('sequelize');
 const getAllTicketTypes = (req) => new Promise(async (resolve, reject) => {
     try {
         const ticketTypes = await db.TicketType.findAll();
-
-    
             resolve({
                 status: 200,
                 data: ticketTypes.length > 0 ? {
@@ -14,6 +12,30 @@ const getAllTicketTypes = (req) => new Promise(async (resolve, reject) => {
                 }:{
                     msg: `Ticket type not found`,
                     ticketTypes: []
+                }
+            });
+        
+    } catch (error) {
+        reject(error);
+    }
+});
+
+const getTicketTypeById = (req) => new Promise(async (resolve, reject) => {
+    try {
+        const ticketTypeId = req.params.ticketTypeId
+        const ticketType = await db.TicketType.findOne({
+            where: {
+                ticketTypeId: ticketTypeId
+            }
+        });
+            resolve({
+                status: 200,
+                data: ticketType ? {
+                    msg: `Get ticket type successfully`,
+                    ticketType: ticketType
+                }:{
+                    msg: `Ticket type not found`,
+                    ticketType: []
                 }
             });
         
@@ -92,30 +114,6 @@ const updateTicketType = (req) => new Promise(async (resolve, reject) => {
         if (description === undefined || description === null) {
             description = ticketType.description
         }
-        // var status = req.query.status
-        // if (status === undefined || status === null) {
-        //     status = ticketType.status
-        // }
-        // if("Deactive" == status){
-        //     const prices = await db.Price.findAll({
-        //         where: {
-        //             ticketTypeId: ticketType.ticketTypeId,
-        //             status: {
-        //                 [Op.like]: "Active"
-        //             }
-        //         },
-        //     })
-        //     if(prices){
-        //         resolve({
-        //             status: 409,
-        //             data: {
-        //                 msg: `Cannot update ticket type status to Deactive because it currently has in-use prices`,
-        //                 prices: prices
-        //             }
-        //         })
-        //     }
-
-        // }
 
         await db.TicketType.update({
             ticketTypeName: ticketTypeName,
@@ -182,4 +180,4 @@ const updateTicketType = (req) => new Promise(async (resolve, reject) => {
 // });
 
 
-module.exports = { getAllTicketTypes, createTicketType, updateTicketType };
+module.exports = { getAllTicketTypes, getTicketTypeById, createTicketType, updateTicketType };

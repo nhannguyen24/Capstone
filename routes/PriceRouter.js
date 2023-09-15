@@ -12,7 +12,7 @@ const router = express.Router();
  *     security: 
  *         - BearerAuth: []
  *     summary: Get prices 
- *     tags: [price-controller]
+ *     tags: [Price]
  * 
  *     responses:
  *       200:
@@ -31,7 +31,7 @@ router.get("/", verifyToken, isAdminOrManager, controllers.getAllPrices);
  *     security: 
  *         - BearerAuth: []
  *     summary: Create a new price
- *     tags: [price-controller]
+ *     tags: [Price]
  *     requestBody:
  *        required: true
  *        content:
@@ -75,11 +75,35 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createPrice);
 /**
  * @swagger
  * /api/v1/prices/{priceId}:
+ *   get:
+ *     security: 
+ *         - BearerAuth: []
+ *     summary: Get price by id
+ *     tags: [Price]
+ *     parameters:
+ *       - in: path
+ *         name: priceId
+ *         schema:
+ *           type: string
+ *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ */
+router.get("/:priceId", verifyToken, isAdmin, controllers.getPriceById);
+/**
+ * @swagger
+ * /api/v1/prices/{priceId}:
  *   put:
  *     security: 
  *         - BearerAuth: []
  *     summary: Update price by id
- *     tags: [price-controller]
+ *     tags: [Price]
  *     parameters:
  *       - in: path
  *         name: priceId
@@ -130,7 +154,7 @@ router.put("/:priceId", verifyToken, isAdminOrManager, controllers.updatePrice);
  *     security: 
  *         - BearerAuth: []
  *     summary: Delete price by id
- *     tags: [price-controller]
+ *     tags: [Price]
  *     parameters:
  *       - in: path
  *         name: priceId

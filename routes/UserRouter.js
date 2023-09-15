@@ -48,7 +48,7 @@ const router = express.Router();
  *     security: 
  *         - BearerAuth: []
  *     summary: Returns the list of all the users paging
- *     tags: [user-controller]
+ *     tags: [User]
  *     parameters:
  *       - name: userName
  *         in: query
@@ -104,7 +104,7 @@ router.get("/", verifyToken, isAdmin, controllers.getAllUsers);
  *     security: 
  *         - BearerAuth: []
  *     summary: Returns the the users by id
- *     tags: [user-controller]
+ *     tags: [User]
  *     parameters:
  *       - name: id
  *         in: path
@@ -130,7 +130,7 @@ router.get("/:id", verifyToken, controllers.getUserById);
  *     security: 
  *         - BearerAuth: []
  *     summary: Create new user
- *     tags: [user-controller]
+ *     tags: [User]
  *     requestBody:
  *        required: true
  *        content:
@@ -161,7 +161,7 @@ router.post("/", verifyToken, isAdmin, controllers.createUser);
  *     security: 
  *         - BearerAuth: []
  *     summary: Update the user by id
- *     tags: [user-controller]
+ *     tags: [User]
  *     requestBody:
  *        required: true
  *        content:
@@ -196,7 +196,7 @@ router.put("/", verifyToken, isAdmin, controllers.updateUser);
  *     security: 
  *         - BearerAuth: []
  *     summary: Update the profile
- *     tags: [user-controller]
+ *     tags: [User]
  *     requestBody:
  *        required: true
  *        content:
@@ -229,7 +229,7 @@ router.put("/profile", verifyToken, controllers.updateProfile);
  *     security: 
  *         - BearerAuth: []
  *     summary: Delete the users by id
- *     tags: [user-controller]
+ *     tags: [User]
  *     parameters:
  *       - name: userIds[0]
  *         in: query
