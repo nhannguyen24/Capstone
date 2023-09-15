@@ -20,22 +20,16 @@ module.exports = (sequelize, DataTypes) => {
       Bus.belongsToMany(models.User, {
         through: 'Schedule',
         foreignKey: 'busId',
-        otherKey: 'tourguildId',
+        otherKey: 'tourguildId', 
         as: "bus_tourguild",
       });
       Bus.belongsToMany(models.User, {
         through: 'Schedule',
-        foreignKey: 'busId',
+        foreignKey: 'busId', 
         otherKey: 'driverId',
         as: "bus_driver",
       });
       Bus.hasMany(models.Image, { as: 'bus_image', foreignKey: 'busId'});
-
-      Bus.belongsTo(models.BusCategory, {
-        foreignKey: "busCateId",
-        targetKey: 'busCateId',
-        as: "bus_cate",
-      });
     }
   }
   Bus.init({
