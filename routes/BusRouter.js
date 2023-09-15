@@ -103,7 +103,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createBus);
  *             schema:
  *               type: object
  */
-router.get("/:busId", verifyToken, isAdmin, controllers.getBusById);
+router.get("/:busId", verifyToken, isAdminOrManager, controllers.getBusById);
 
 /**
  * @swagger

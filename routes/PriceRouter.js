@@ -95,7 +95,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createPrice);
  *             schema:
  *               type: object
  */
-router.get("/:priceId", verifyToken, isAdmin, controllers.getPriceById);
+router.get("/:priceId", verifyToken, isAdminOrManager, controllers.getPriceById);
 /**
  * @swagger
  * /api/v1/prices/{priceId}:
