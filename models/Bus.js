@@ -12,19 +12,19 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Bus.belongsToMany(models.Tour, {
-        through: 'TourDetail',
+        through: 'Schedule',
         foreignKey: 'busId',
         otherKey: 'tourId',
         as: "bus_tour",
       });
       Bus.belongsToMany(models.User, {
-        through: 'TourDetail',
+        through: 'Schedule',
         foreignKey: 'busId',
         otherKey: 'tourguildId',
         as: "bus_tourguild",
       });
       Bus.belongsToMany(models.User, {
-        through: 'TourDetail',
+        through: 'Schedule',
         foreignKey: 'busId',
         otherKey: 'driverId',
         as: "bus_driver",
@@ -46,16 +46,14 @@ module.exports = (sequelize, DataTypes) => {
     },
     busPlate: DataTypes.STRING,
     numberSeat: DataTypes.INTEGER,
-    busCateId: {
-      type: DataTypes.UUID
-    },
+    isDoubleDecker: DataTypes.BOOLEAN,
     status: {
       type: DataTypes.ENUM,
-      values: ["Active", "Deactive"],
+      values: ["Active", "Deactive", "Maintain"],
       validate: {
         isIn: {
-          args: [["Active", "Deactive"]],
-          msg: 'Invalid value for bus.status (Active, Deactive)'
+          args: [["Active", "Deactive", "Maintain"]],
+          msg: 'Invalid value for bus.status (Active, Deactive, Maintain)'
         }
       }
     },

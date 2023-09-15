@@ -2,22 +2,35 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Prices', {
-      priceId: {
+    await queryInterface.createTable('Bookings', {
+      bookingId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      amount: {
+      bookingDate: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
+      bookingCode: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      totalPrice: {
         type: Sequelize.DECIMAL(3,3),
         allowNull: false,
       },
-      ticketTypeId: {
+      customerId: {
         type: Sequelize.UUID,
         references: {
-          model: 'tickettypes',
-          key: 'ticketTypeId'
+          model: 'users',
+          key: 'userId'
         }
+      },
+      bookingStatus: {
+        type: Sequelize.ENUM,
+        values: ["Ongoing", "Canceled", "Finished"],
+        defaultValue: 'Ongoing',
       },
       status: {
         type: Sequelize.ENUM,
@@ -37,6 +50,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Prices');
+    await queryInterface.dropTable('Bookings');
   }
 };

@@ -8,17 +8,6 @@ module.exports = {
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      date: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
-      busId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'buses',
-          key: 'busId'
-        }
-      },
       tourId: {
         type: Sequelize.UUID,
         references: {
@@ -26,18 +15,11 @@ module.exports = {
           key: 'tourId'
         }
       },
-      tourguildId: {
+      poiId: {
         type: Sequelize.UUID,
         references: {
-          model: 'users',
-          key: 'userId'
-        }
-      },
-      driverId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'users',
-          key: 'userId'
+          model: 'pointofinterests',
+          key: 'poiId'
         }
       },
       status: {

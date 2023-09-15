@@ -1,7 +1,7 @@
 const controllers = require('../controllers/BusCategoryController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isAdmin} = require('../middlewares/VerifyRole');
+const {isAdminOrManager} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -22,7 +22,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isAdmin, controllers.getAllBusCates);
+router.get("/", verifyToken, isAdminOrManager, controllers.getAllBusCates);
 
 
 /**
@@ -54,7 +54,7 @@ router.get("/", verifyToken, isAdmin, controllers.getAllBusCates);
  *             schema:
  *               type: object
  */
-router.post("/", verifyToken, isAdmin, controllers.createBusCate);
+router.post("/", verifyToken, isAdminOrManager, controllers.createBusCate);
 
 /**
  * @swagger
@@ -103,7 +103,7 @@ router.post("/", verifyToken, isAdmin, controllers.createBusCate);
  *             schema:
  *               type: string
  */
-router.put("/:busCateId", verifyToken, isAdmin, controllers.updateBusCate);
+router.put("/:busCateId", verifyToken, isAdminOrManager, controllers.updateBusCate);
 
 /**
  * @swagger
@@ -140,6 +140,6 @@ router.put("/:busCateId", verifyToken, isAdmin, controllers.updateBusCate);
  *             schema:
  *               type: string
  */
-router.delete("/:busCateId", verifyToken, isAdmin, controllers.deleteBusCate);
+router.delete("/:busCateId", verifyToken, isAdminOrManager, controllers.deleteBusCate);
 
 module.exports = router;
