@@ -42,7 +42,7 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *     security: 
  *         - BearerAuth: []
  *     summary: Returns the list of all the stations
- *     tags: [station-controller]
+ *     tags: [Station]
  *     parameters:
  *       - name: stationName
  *         in: query
@@ -93,7 +93,7 @@ router.get("/", verifyToken, controllers.getAllStation);
  *     security: 
  *         - BearerAuth: []
  *     summary: Returns the the stations by id
- *     tags: [station-controller]
+ *     tags: [Station]
  *     parameters:
  *       - name: id
  *         in: path
@@ -119,7 +119,7 @@ router.get("/:id", verifyToken, controllers.getStationById);
  *     security:
  *       - BearerAuth: []
  *     summary: Create new station
- *     tags: [station-controller]
+ *     tags: [Station]
  *     requestBody:
  *        required: true
  *        content:
@@ -151,7 +151,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createStation);
  *     security: 
  *         - BearerAuth: []
  *     summary: Update the station by id
- *     tags: [station-controller]
+ *     tags: [Station]
  *     requestBody:
  *       content:
  *          application/json:
@@ -184,7 +184,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateStation);
  *     security: 
  *         - BearerAuth: []
  *     summary: Delete the stations by id
- *     tags: [station-controller]
+ *     tags: [Station]
  *     parameters:
  *       - name: stationIds[0]
  *         in: query

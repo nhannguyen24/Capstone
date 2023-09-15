@@ -42,7 +42,7 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *     security: 
  *         - BearerAuth: []
  *     summary: Returns the list of all the points
- *     tags: [point-of-interest-controller]
+ *     tags: [Point Of Interest]
  *     parameters:
  *       - name: poiName
  *         in: query
@@ -93,7 +93,7 @@ router.get("/", verifyToken, controllers.getAllPointOfInterest);
  *     security: 
  *         - BearerAuth: []
  *     summary: Returns the the points by id
- *     tags: [point-of-interest-controller]
+ *     tags: [Point Of Interest]
  *     parameters:
  *       - name: id
  *         in: path
@@ -119,7 +119,7 @@ router.get("/:id", verifyToken, controllers.getPointOfInterestById);
  *     security:
  *       - BearerAuth: []
  *     summary: Create new point
- *     tags: [point-of-interest-controller]
+ *     tags: [Point Of Interest]
  *     requestBody:
  *       content:
  *          application/json:
@@ -152,7 +152,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createPointOfInteres
  *     security: 
  *         - BearerAuth: []
  *     summary: Update the point by id
- *     tags: [point-of-interest-controller]
+ *     tags: [Point Of Interest]
  *     requestBody:
  *       content:
  *          application/json:
@@ -187,7 +187,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updatePointOfInterest
  *     security: 
  *         - BearerAuth: []
  *     summary: Delete the pois by id
- *     tags: [point-of-interest-controller]
+ *     tags: [Point Of Interest]
  *     parameters:
  *       - name: poiIds[0]
  *         in: query

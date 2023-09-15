@@ -30,7 +30,7 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *     security: 
  *         - BearerAuth: []
  *     summary: Returns the list of all the routes
- *     tags: [route-controller]
+ *     tags: [Route]
  *     parameters:
  *       - name: routeName
  *         in: query
@@ -76,7 +76,7 @@ router.get("/", verifyToken, controllers.getAllRoute);
  *     security: 
  *         - BearerAuth: []
  *     summary: Returns the the routes by id
- *     tags: [route-controller]
+ *     tags: [Route]
  *     parameters:
  *       - name: id
  *         in: path
@@ -102,7 +102,7 @@ router.get("/:id", verifyToken, controllers.getRouteById);
  *     security:
  *       - BearerAuth: []
  *     summary: Create new route
- *     tags: [route-controller]
+ *     tags: [Route]
  *     requestBody:
  *       content:
  *          application/json:
@@ -134,7 +134,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createRoute);
  *     security: 
  *         - BearerAuth: []
  *     summary: Update the route by id
- *     tags: [route-controller]
+ *     tags: [Route]
  *     requestBody:
  *       content:
  *          application/json:
@@ -163,7 +163,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateRoute);
  *     security: 
  *         - BearerAuth: []
  *     summary: Delete the routes by id
- *     tags: [route-controller]
+ *     tags: [Route]
  *     parameters:
  *       - name: routeIds[0]
  *         in: query

@@ -23,7 +23,7 @@ const verifyToken = require('../middlewares/VerifyToken');
  *     summary: For login with google returns the token
  *     security: 
  *         - BearerAuth: []
- *     tags: [auth-controller]
+ *     tags: [Auth]
  *     responses:
  *       200:
  *         description: Login with google returns the token successfully
@@ -41,7 +41,7 @@ router.post('/login-google', firebaseAuth, controllers.loginGoogle);
  *     summary: For refresh new token
  *     security: 
  *         - BearerAuth: []
- *     tags: [auth-controller]
+ *     tags: [Auth]
  *     requestBody:
  *        required: true
  *        content:
@@ -68,7 +68,7 @@ router.post('/refresh-token', controllers.refreshAccessToken);
  *     summary: For logout
  *     security: 
  *         - BearerAuth: []
- *     tags: [auth-controller]
+ *     tags: [Auth]
  *     parameters:
  *       - name: userId
  *         in: query
@@ -123,7 +123,7 @@ router.post('/logout', verifyToken, controllers.logout);
  * /api/v1/auth/login:
  *   post:
  *     summary: For login 
- *     tags: [auth-controller]
+ *     tags: [Auth]
  *     requestBody:
  *        required: true
  *        content:
@@ -148,7 +148,7 @@ router.post('/login', controllers.login);
  * /api/v1/auth/register:
  *   post:
  *     summary: For register new account
- *     tags: [auth-controller]
+ *     tags: [Auth]
  *     requestBody:
  *        required: true
  *        content:

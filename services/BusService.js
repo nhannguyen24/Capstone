@@ -15,13 +15,9 @@ const getAllBuses = (req) => new Promise(async (resolve, reject) => {
                 }
             },
             attributes: {
-                exclude: ["busCateId"]
+                exclude: []
             },
             include: [
-                {
-                    model: db.BusCategory,
-                    as: "bus_cate",
-                },
                 {
                     model: db.Image,
                     as: "bus_image",
@@ -58,31 +54,62 @@ const getAllBuses = (req) => new Promise(async (resolve, reject) => {
     }
 });
 
+const getBusById = (req) => new Promise(async (resolve, reject) => {
+    try {
+        const busId = req.params.busId
+
+        const bus = await db.Bus.findOne({
+            where: {
+                busId: busId
+            },
+            include: [
+                {
+                    model: db.Image,
+                    as: "bus_image",
+                    attributes: {
+                        exclude: [
+                            "poiId",
+                            "busId",
+                            "tourId",
+                            "productId",
+                            "feedbackId",
+                            "createdAt",
+                            "updatedAt",
+                            "status",
+                        ],
+                    },
+                },
+            ],
+        });
+
+
+        resolve({
+            status: 200,
+            data: bus ? {
+                msg: `Get bus successfully`,
+                bus: bus
+            } : {
+                msg: `Bus not found`,
+                bus: []
+            }
+        });
+
+    } catch (error) {
+        reject(error);
+    }
+});
+
 const createBus = (req) => new Promise(async (resolve, reject) => {
     try {
         const busPlate = req.query.busPlate
         const seat = req.query.numberSeat
-        const busCateId = req.query.busCateId
+        const isDoubleDecker = req.query.isDoubleDecker
         const image = req.query.image
 
-        const busCate = await db.BusCategory.findOne({
-            where: {
-                busCateId: busCateId
-            }
-        })
-
-        if (!busCate) {
-            resolve({
-                status: 400,
-                data: {
-                    msg: `Bus category not found with id ${busCateId}`,
-                }
-            })
-        }
 
         const [bus, created] = await db.Bus.findOrCreate({
             where: { busPlate: busPlate },
-            defaults: { busPlate: busPlate, numberSeat: seat, busCateId: busCate.busCateId }
+            defaults: { busPlate: busPlate, numberSeat: seat, isDoubleDecker: isDoubleDecker }
         });
 
         await db.Image.create({
@@ -121,25 +148,6 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
             })
         }
 
-        var busCateId = req.query.busCateId
-        if (busCateId === undefined || busCateId === null) {
-            busCateId = bus.busCateId
-        } else {
-            const busCate = await db.BusCategory.findOne({
-                where: {
-                    busCateId: busCateId
-                }
-            })
-            if (!busCate) {
-                resolve({
-                    status: 400,
-                    data: {
-                        msg: `Bus category not found with id ${busCateId}`,
-                    }
-                })
-            }
-        }
-
         var busPlate = req.query.busPlate
         if (busPlate === undefined || busPlate === null) {
             busPlate = bus.busPlate
@@ -147,6 +155,10 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
         var seat = req.query.numberSeat
         if (seat === undefined || seat === null) {
             seat = bus.numberSeat
+        }
+        var isDoubleDecker = req.query.isDoubleDecker
+        if (isDoubleDecker === undefined || isDoubleDecker === null) {
+            isDoubleDecker = bus.isDoubleDecker
         }
         var status = req.query.status
         if (status === undefined || status === null) {
@@ -173,7 +185,7 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
                     resolve({
                         status: 409,
                         data: {
-                            msg: `Cannot update bus status to Deactive because it currently has ongoing job`,
+                            msg: `Cannot update bus status to Deactive because it currently has ongoing tour`,
                             tour: tour
                         }
                     })
@@ -185,7 +197,7 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
         await db.Bus.update({
             busPlate: busPlate,
             numberSeat: seat,
-            busCateId: busCateId,
+            isDoubleDecker: isDoubleDecker,
             status: status
         }, {
             where: {
@@ -274,4 +286,4 @@ const deleteBus = (req) => new Promise(async (resolve, reject) => {
 });
 
 
-module.exports = { getAllBuses, createBus, updateBus, deleteBus };
+module.exports = { getAllBuses, getBusById, createBus, updateBus, deleteBus };

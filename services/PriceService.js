@@ -5,16 +5,41 @@ const getAllPrices = (req) => new Promise(async (resolve, reject) => {
     try {
         const prices = await db.Price.findAll();
 
-            resolve({
-                status: 200,
-                data: prices.length > 0 ? {
-                    msg: `Prices found`,
-                    prices: prices
-                } : {
-                    msg: `Prices not found`,
-                    prices: []
-                }
-            });
+        resolve({
+            status: 200,
+            data: prices.length > 0 ? {
+                msg: `Prices found`,
+                prices: prices
+            } : {
+                msg: `Prices not found`,
+                prices: []
+            }
+        });
+
+    } catch (error) {
+        reject(error);
+    }
+});
+
+const getPriceById = (req) => new Promise(async (resolve, reject) => {
+    try {
+        const priceId = req.params.priceId
+        const price = await db.Price.findOne({
+            where: {
+                priceId: priceId
+            }
+        });
+
+        resolve({
+            status: 200,
+            data: price ? {
+                msg: `Get price successfully`,
+                price: price
+            } : {
+                msg: `Price not found`,
+                price: []
+            }
+        });
 
     } catch (error) {
         reject(error);
@@ -176,4 +201,4 @@ const deletePrice = (req) => new Promise(async (resolve, reject) => {
 });
 
 
-module.exports = { getAllPrices, createPrice, updatePrice, deletePrice };
+module.exports = { getAllPrices, getPriceById, createPrice, updatePrice, deletePrice };
