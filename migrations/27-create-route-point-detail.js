@@ -8,6 +8,10 @@ module.exports = {
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
+      index: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
       routeId: {
         type: Sequelize.UUID,
         references: {

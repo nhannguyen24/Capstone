@@ -28,6 +28,9 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
+    index: DataTypes.INTEGER,
+    arrivalTime: DataTypes.TIME,
+    stopoverTime: DataTypes.TIME,
     routeId: {
       type: DataTypes.UUID
     },

@@ -109,10 +109,14 @@ router.get("/:id", verifyToken, controllers.getRouteById);
  *            schema:                     
  *                  example:
  *                    routeName: Tuyến đường Nha Trang
- *                    distance: 10.0
+ *                    distance: 10.5
  *                    station:
- *                          - string
- *                          - string
+ *                          - stationId: string
+ *                            arrivalTime: '08:30:00'
+ *                            stopoverTime: '00:05:00'
+ *                          - stationId: string
+ *                            arrivalTime: '08:35:00'
+ *                            stopoverTime: '00:05:00'
  *                    point:
  *                          - string
  *                          - string

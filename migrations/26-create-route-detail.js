@@ -8,6 +8,18 @@ module.exports = {
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
+      index: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      arrivalTime: {
+        type: Sequelize.TIME,
+        allowNull: false,
+      },
+      stopoverTime: {
+        type: Sequelize.TIME,
+        allowNull: false,
+      },
       routeId: {
         type: Sequelize.UUID,
         references: {

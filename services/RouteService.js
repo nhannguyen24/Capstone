@@ -37,6 +37,11 @@ const getAllRoute = (
                             if (order) queries.order = [[order]]
                             else {
                                 queries.order = [['updatedAt', 'DESC']];
+                                queries.order = [
+                                    ['updatedAt', 'DESC'],
+                                    [{ model: db.RouteDetail, as: 'route_detail' }, 'index', 'ASC'],
+                                    [{ model: db.RoutePointDetail, as: 'route_poi_detail' }, 'index', 'ASC']
+                                  ];
                             }
                             if (routeName) query.routeName = { [Op.substring]: routeName };
                             if (roleName !== "Admin") {
@@ -155,7 +160,8 @@ const createRoute = ({ routeName, ...body }) =>
                         routeName: routeName
                     },
                     defaults: {
-                        routeName: routeName
+                        routeName: routeName,
+                        distance: body.distance
                     },
                     transaction,
                 });
@@ -168,13 +174,17 @@ const createRoute = ({ routeName, ...body }) =>
                         }
                     })
                 }
-
+                let index = 0;
                 const stationDetails = await Promise.all(
                     body.station.map(async (stationObj) => {
+                        index += 1;
                         const stationDetail = await db.RouteDetail.create(
                             {
+                                index: index,
                                 routeId: createRoute[0].dataValues.routeId,
-                                stationId: stationObj,
+                                stationId: stationObj.stationId,
+                                arrivalTime: stationObj.arrivalTime,
+                                stopoverTime: stationObj.stopoverTime,
                             },
                             { transaction }
                         );
@@ -184,8 +194,10 @@ const createRoute = ({ routeName, ...body }) =>
 
                 const pointDetails = await Promise.all(
                     body.point.map(async (pointObj) => {
+                        index += 1;
                         const stationDetail = await db.RoutePointDetail.create(
                             {
+                                index: index,
                                 routeId: createRoute[0].dataValues.routeId,
                                 poiId: pointObj,
                             },

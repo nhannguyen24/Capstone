@@ -5,7 +5,7 @@ module.exports = {
             'Routes',
             'distance',
             {
-                type: Sequelize.DOUBLE,
+                type: Sequelize.DECIMAL(4,2),
                 allowNull: false
             },
         );
