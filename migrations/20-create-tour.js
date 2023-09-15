@@ -26,11 +26,11 @@ module.exports = {
         type: Sequelize.DATEONLY,
         allowNull: false,
       },
-      depatureDate: {
+      departureDate: {
         type: Sequelize.DATEONLY,
         allowNull: false,
       },
-      depatureTime: {
+      departureTime: {
         type: Sequelize.TIME,
         allowNull: false,
       },
@@ -45,7 +45,7 @@ module.exports = {
           key: 'routeId'
         }
       },
-      depatureStationId: {
+      departureStationId: {
         type: Sequelize.UUID,
         references: {
           model: 'stations',
@@ -54,7 +54,7 @@ module.exports = {
       },
       tourStatus: {
         type: Sequelize.ENUM,
-        values: ["Ontour", "Canceled", "Finished"],
+        values: ["NotStarted", "Ontour", "Canceled", "Finished"],
         defaultValue: 'Ontour',
       },
       status: {

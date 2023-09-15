@@ -14,13 +14,6 @@ module.exports = (sequelize, DataTypes) => {
       TicketType.hasMany(models.Price, { as: 'ticket_type_price', foreignKey: 'ticketTypeId'});
 
       TicketType.hasMany(models.Ticket, { as: 'type_ticket', foreignKey: 'ticketTypeId'});
-      
-      TicketType.belongsToMany(models.Booking, {
-        through: 'BookingDetail',
-        foreignKey: 'ticketTypeId',
-        otherKey: 'bookingId',
-        as: "ticket_type_booking",
-      });
     }
   }
   TicketType.init({

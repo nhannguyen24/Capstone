@@ -18,9 +18,9 @@ module.exports = (sequelize, DataTypes) => {
         as: 'detail_booking'
       });
       
-      BookingDetail.belongsTo(models.TicketType, {
-        foreignKey: 'ticketTypeId',
-        as: 'detail_booking_ticket_type'
+      BookingDetail.belongsTo(models.Ticket, {
+        foreignKey: 'ticketId',
+        as: 'booking_detail_ticket'
       });
     }
   }
@@ -34,7 +34,7 @@ module.exports = (sequelize, DataTypes) => {
     bookingId: {
       type: DataTypes.UUID
     },
-    ticketTypeId: {
+    ticketId: {
       type: DataTypes.UUID
     },
     status: {
