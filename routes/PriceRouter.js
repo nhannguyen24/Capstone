@@ -1,7 +1,7 @@
 const controllers = require('../controllers/PriceController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isAdmin} = require('../middlewares/VerifyRole');
+const {isAdminOrManager} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -22,7 +22,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isAdmin, controllers.getAllPrices);
+router.get("/", verifyToken, isAdminOrManager, controllers.getAllPrices);
 
 /**
  * @swagger
@@ -70,7 +70,7 @@ router.get("/", verifyToken, isAdmin, controllers.getAllPrices);
  *             schema:
  *               type: object
  */
-router.post("/", verifyToken, isAdmin, controllers.createPrice);
+router.post("/", verifyToken, isAdminOrManager, controllers.createPrice);
 
 /**
  * @swagger
@@ -145,7 +145,7 @@ router.get("/:priceId", verifyToken, isAdmin, controllers.getPriceById);
  *             schema:
  *               type: object
  */
-router.put("/:priceId", verifyToken, isAdmin, controllers.updatePrice);
+router.put("/:priceId", verifyToken, isAdminOrManager, controllers.updatePrice);
 
 /**
  * @swagger
@@ -176,6 +176,6 @@ router.put("/:priceId", verifyToken, isAdmin, controllers.updatePrice);
  *             schema:
  *               type: object
  */
-router.delete("/:priceId", verifyToken, isAdmin, controllers.deletePrice);
+router.delete("/:priceId", verifyToken, isAdminOrManager, controllers.deletePrice);
 
 module.exports = router;

@@ -20,25 +20,25 @@ module.exports = (sequelize, DataTypes) => {
       User.hasMany(models.Booking, { as: 'user_booking', foreignKey: 'userId'});
 
       User.belongsToMany(models.Bus, {
-        through: 'TourDetail',
+        through: 'Schedule',
         foreignKey: 'userId',
         otherKey: 'busId',
         as: "user_bus",
       });
       User.belongsToMany(models.Tour, {
-        through: 'TourDetail',
+        through: 'Schedule',
         foreignKey: 'userId',
         otherKey: 'tourId',
         as: "user_tour",
       });
       User.belongsToMany(models.User, {
-        through: 'TourDetail',
+        through: 'Schedule',
         foreignKey: 'userId',
         otherKey: 'tourguildId',
         as: "tourguild_driver",
       });
       User.belongsToMany(models.User, {
-        through: 'TourDetail',
+        through: 'Schedule',
         foreignKey: 'userId',
         otherKey: 'driverId',
         as: "driver_tourguild",

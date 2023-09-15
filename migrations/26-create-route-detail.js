@@ -22,13 +22,6 @@ module.exports = {
           key: 'stationId'
         }
       },
-      poiId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'pointofinterests',
-          key: 'poiId'
-        }
-      },
       status: {
         type: Sequelize.ENUM,
         values: ["Active", "Deactive"],

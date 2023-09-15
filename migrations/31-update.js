@@ -2,11 +2,11 @@ module.exports = {
     up: function (queryInterface, Sequelize) {
         // logic for transforming into the new state
         return queryInterface.addColumn(
-            'Tours',
-            'tourStatus',
+            'Buses',
+            'isDoubleDecker',
             {
-                type: Sequelize.ENUM('OnTour', 'Canceled', 'Completed'),
-                defaultValue: "OnTour"
+                type: Sequelize.BOOLEAN,
+                defaultValue: true
             },
         );
 
@@ -15,8 +15,8 @@ module.exports = {
     down: function (queryInterface, Sequelize) {
         // logic for reverting the changes
         return queryInterface.removeColumn(
-            'Tours',
-            'tourStatus'
+            'Buses',
+            'isDoubleDecker'
         );
     }
 }

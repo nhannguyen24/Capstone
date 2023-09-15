@@ -24,22 +24,28 @@ module.exports = (sequelize, DataTypes) => {
       Tour.hasMany(models.Ticket, { as: 'tour_ticket', foreignKey: 'tourId'});
       
       Tour.belongsToMany(models.Bus, {
-        through: 'TourDetail',
+        through: 'Schedule',
         foreignKey: 'tourId',
         otherKey: 'busId',
         as: "tour_bus",
       });
       Tour.belongsToMany(models.User, {
-        through: 'TourDetail',
+        through: 'Schedule',
         foreignKey: 'tourId',
         otherKey: 'tourguildId',
         as: "tour_tourguild",
       });
       Tour.belongsToMany(models.User, {
-        through: 'TourDetail',
+        through: 'Schedule',
         foreignKey: 'tourId',
         otherKey: 'driverId',
         as: "tour_driver",
+      });
+      Tour.belongsToMany(models.PointOfInterest, {
+        through: 'TourDetail',
+        foreignKey: 'tourId',
+        otherKey: 'poiId',
+        as: "tour_poi",
       });
       Tour.hasMany(models.Image, { as: 'tour_image', foreignKey: 'tourId'});
     }
@@ -63,6 +69,16 @@ module.exports = (sequelize, DataTypes) => {
     },
     depatureStationId: {
       type: DataTypes.UUID
+    },
+    tourStatus: {
+      type: DataTypes.ENUM,
+      values: ["Ontour", "Canceled", "Finished"],
+      validate: {
+        isIn: {
+          args: [["Ontour", "Canceled", "Finished"]],
+          msg: 'Invalid value for tour.status (Ontour, Canceled, Finished)'
+        }
+      }
     },
     status: {
       type: DataTypes.ENUM,

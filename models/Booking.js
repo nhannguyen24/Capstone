@@ -36,11 +36,19 @@ module.exports = (sequelize, DataTypes) => {
     bookingDate: DataTypes.DATE,
     bookingCode: DataTypes.STRING,
     totalPrice: DataTypes.DECIMAL(3,3),
-    numberAdult: DataTypes.INTEGER,
-    numberChild: DataTypes.INTEGER,
     customerId: {
       type: DataTypes.UUID
     },
+    bookingStatus: {
+      type: DataTypes.ENUM,
+      values: ["Ongoing", "Canceled", "Finished"],
+      validate: {
+        isIn: {
+          args: [["Ongoing", "Canceled", "Finished"]],
+          msg: 'Invalid value for booking.status (Ongoing, Canceled, Finished)'
+        }
+      }
+    }, 
     status: {
       type: DataTypes.ENUM,
       values: ["Active", "Deactive"],

@@ -24,6 +24,13 @@ module.exports = (sequelize, DataTypes) => {
         as: "poi_route",
       });
 
+      PointOfInterest.belongsToMany(models.Tour, {
+        through: 'TourDetail',
+        foreignKey: 'poiId',
+        otherKey: 'tourId',
+        as: "poi_tour",
+      });
+
       PointOfInterest.hasMany(models.Image, { as: 'poi_image', foreignKey: 'poiId'});
     }
   }

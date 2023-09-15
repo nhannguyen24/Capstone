@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class TourDetail extends Model {
+  class Schedule extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,28 +11,44 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      TourDetail.belongsTo(models.Tour, {
-        foreignKey: 'tourId',
-        as: 'tour_detail_tour'
-      });
-
-      TourDetail.belongsTo(models.PointOfInterest, {
-        foreignKey: 'poiId',
-        as: 'tour_detail_poi'
+      Schedule.belongsTo(models.Bus, {
+        foreignKey: 'busId',
+        as: 'schedule_bus'
       });
       
+      Schedule.belongsTo(models.Tour, {
+        foreignKey: 'tourId',
+        as: 'schedule_tour'
+      });
+
+      Schedule.belongsTo(models.User, {
+        foreignKey: 'tourguildId',
+        as: 'schedule_tourguild'
+      });
+      
+      Schedule.belongsTo(models.User, {
+        foreignKey: 'driverId',
+        as: 'schedule_driver'
+      });
     }
   }
-  TourDetail.init({
-    tourDetailId: {
+  Schedule.init({
+    scheduleId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
+    date: DataTypes.DATE,
+    busId: {
+      type: DataTypes.UUID
+    },
     tourId: {
       type: DataTypes.UUID
     },
-    poiId: {
+    tourguildId: {
+      type: DataTypes.UUID
+    },
+    driverId: {
       type: DataTypes.UUID
     },
     status: {
@@ -41,25 +57,25 @@ module.exports = (sequelize, DataTypes) => {
       validate: {
         isIn: {
           args: [["Active", "Deactive"]],
-          msg: 'Invalid value for tourDetail.status (Active, Deactive)'
+          msg: 'Invalid value for schedule.status (Active, Deactive)'
         }
       }
     },
   }, {
     sequelize,
-    modelName: 'TourDetail',
+    modelName: 'Schedule',
   });
-  TourDetail.beforeCreate((tourDetail, options) => {
+  Schedule.beforeCreate((tourDetail, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
     tourDetail.createdAt = currentDate;
     tourDetail.updatedAt = currentDate;
   });
 
-  TourDetail.beforeUpdate((tourDetail, options) => {
+  Schedule.beforeUpdate((tourDetail, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
     tourDetail.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
-  return TourDetail;
+  return Schedule;
 };

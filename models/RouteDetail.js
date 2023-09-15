@@ -20,11 +20,6 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'stationId',
         as: 'route_detail_station'
       });
-
-      RouteDetail.belongsTo(models.PointOfInterest, {
-        foreignKey: 'poiId',
-        as: 'route_detail_poi'
-      });
     }
   }
   RouteDetail.init({
@@ -37,9 +32,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.UUID
     },
     stationId: {
-      type: DataTypes.UUID
-    },
-    poiId: {
       type: DataTypes.UUID
     },
     status: {

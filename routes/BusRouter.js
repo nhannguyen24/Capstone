@@ -1,7 +1,7 @@
 const controllers = require('../controllers/BusController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isAdmin} = require('../middlewares/VerifyRole');
+const {isAdminOrManager} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -28,7 +28,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isAdmin, controllers.getBusByPlate);
+router.get("/", verifyToken, controllers.getBusByPlate);
 
 
 /**
@@ -78,7 +78,7 @@ router.get("/", verifyToken, isAdmin, controllers.getBusByPlate);
  *             schema:
  *               type: object
  */
-router.post("/", verifyToken, isAdmin, controllers.createBus);
+router.post("/", verifyToken, isAdminOrManager, controllers.createBus);
 
 /**
  * @swagger
@@ -161,7 +161,7 @@ router.get("/:busId", verifyToken, isAdmin, controllers.getBusById);
  *             schema:
  *               type: string
  */
-router.put("/:busId", verifyToken, isAdmin, controllers.updateBus);
+router.put("/:busId", verifyToken, isAdminOrManager, controllers.updateBus);
 
 /**
  * @swagger
@@ -198,6 +198,6 @@ router.put("/:busId", verifyToken, isAdmin, controllers.updateBus);
  *             schema:
  *               type: string
  */
-router.delete("/:busId", verifyToken, isAdmin, controllers.deleteBus);
+router.delete("/:busId", verifyToken, isAdminOrManager, controllers.deleteBus);
 
 module.exports = router;

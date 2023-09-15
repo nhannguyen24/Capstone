@@ -130,9 +130,7 @@ router.get("/:id", verifyToken, controllers.getPointOfInterestById);
  *                    address: 187 Phạm Ngũ Lão
  *                    latitude: 10.7688046
  *                    longitude: 106.6903351
- *                    images:
- *                          - image: string
- *                          - image: string
+ *                    images: [imgString, imgString]
  *     responses:
  *       200:
  *         description: Create new point successfully

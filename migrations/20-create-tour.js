@@ -52,6 +52,11 @@ module.exports = {
           key: 'stationId'
         }
       },
+      tourStatus: {
+        type: Sequelize.ENUM,
+        values: ["Ontour", "Canceled", "Finished"],
+        defaultValue: 'Ontour',
+      },
       status: {
         type: Sequelize.ENUM,
         values: ["Active", "Deactive"],

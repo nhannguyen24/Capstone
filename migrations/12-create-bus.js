@@ -2,40 +2,27 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Bookings', {
-      bookingId: {
+    await queryInterface.createTable('Buses', {
+      busId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      bookingDate: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
-      bookingCode: {
+      busPlate: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      numberAdult: {
+      numberSeat: {
         type: Sequelize.INTEGER,
-      },
-      numberChild: {
-        type: Sequelize.INTEGER,
-      },
-      totalPrice: {
-        type: Sequelize.DECIMAL(3,3),
         allowNull: false,
       },
-      customerId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'users',
-          key: 'userId'
-        }
+      isDoubleDecker: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: true
       },
       status: {
         type: Sequelize.ENUM,
-        values: ["Active", "Deactive"],
+        values: ["Active", "Deactive", "Maintain"],
         defaultValue: 'Active',
       },
       createdAt: {
@@ -51,6 +38,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Bookings');
+    await queryInterface.dropTable('Buses');
   }
 };
