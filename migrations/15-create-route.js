@@ -12,6 +12,10 @@ module.exports = {
         type: Sequelize.STRING,
 	      allowNull: false,
       },
+      distance: {
+        type: Sequelize.DOUBLE,
+	      allowNull: false,
+      },
       status: {
         type: Sequelize.ENUM,
         values: ["Active", "Deactive"],

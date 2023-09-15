@@ -124,7 +124,7 @@ const createPointOfInterest = ({ images, poiName, ...body }) =>
                 },
             });
 
-            const createImagePromises = images.map(async ({ image }) => {
+            const createImagePromises = images.map(async (image) => {
                 await db.Image.create({
                     image: image,
                     poiId: createPointOfInterest[0].poiId,

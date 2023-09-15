@@ -10,7 +10,7 @@ const verifyToken = require('../middlewares/VerifyToken');
  *     security: 
  *         - BearerAuth: []
  *     summary: Upload image
- *     tags: [firebase-controller]
+ *     tags: [Firebase]
  *     requestBody:
  *          required: true
  *          content:

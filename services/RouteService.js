@@ -53,7 +53,6 @@ const getAllRoute = (
                                             exclude: [
                                                 "routeId",
                                                 "stationId",
-                                                "poiId",
                                                 "createdAt",
                                                 "updatedAt",
                                                 "status",
@@ -70,10 +69,25 @@ const getAllRoute = (
                                                         "status",
                                                     ],
                                                 },
-                                            },
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        model: db.RoutePointDetail,
+                                        as: "route_poi_detail",
+                                        attributes: {
+                                            exclude: [
+                                                "routeId",
+                                                "poiId",
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                        include: [
                                             {
                                                 model: db.PointOfInterest,
-                                                as: "route_detail_poi",
+                                                as: "route_poi_detail_poi",
                                                 attributes: {
                                                     exclude: [
                                                         "createdAt",
@@ -81,7 +95,7 @@ const getAllRoute = (
                                                         "status",
                                                     ],
                                                 },
-                                            },
+                                            }
                                         ]
                                     },
                                 ],
@@ -155,33 +169,39 @@ const createRoute = ({ routeName, ...body }) =>
                     })
                 }
 
-                const combinedArray = body.station.map((stationObj, index) => ({
-                    stationId: stationObj.stationId,
-                    poiId: body.point[index].poiId,
-                }));
-
-                const createRouteDetail = await Promise.all(
-                    combinedArray.map(async (detailObj) => {
-                        const { stationId, poiId } = detailObj;
-                        const poiDetail = await db.RouteDetail.create(
+                const stationDetails = await Promise.all(
+                    body.station.map(async (stationObj) => {
+                        const stationDetail = await db.RouteDetail.create(
                             {
                                 routeId: createRoute[0].dataValues.routeId,
-                                stationId: stationId, // Set the stationId from the object
-                                poiId: poiId, // Set the poiId from the object
+                                stationId: stationObj,
                             },
                             { transaction }
                         );
-                        return poiDetail;
+                        return stationDetail;
+                    })
+                );
+
+                const pointDetails = await Promise.all(
+                    body.point.map(async (pointObj) => {
+                        const stationDetail = await db.RoutePointDetail.create(
+                            {
+                                routeId: createRoute[0].dataValues.routeId,
+                                poiId: pointObj,
+                            },
+                            { transaction }
+                        );
+                        return stationDetail;
                     })
                 );
 
                 resolve({
-                    status: createRouteDetail[0] ? 200 : 400,
+                    status: pointDetails[0] ? 200 : 400,
                     data: {
-                        msg: createRouteDetail[0]
+                        msg: pointDetails[0]
                             ? "Create new route successfully"
                             : "Cannot create new route",
-                        routeDetail: createRouteDetail[0] ? createRouteDetail[0].dataValues : null,
+                        routeDetail: pointDetails[0] ? createRoute[0].dataValues : null,
                     }
                 });
             })

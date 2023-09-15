@@ -63,7 +63,6 @@ router.get("/", verifyToken, controllers.getBusByPlate);
  *         schema:
  *           type: string
  *           example: string
- *         required: true
  *     responses:
  *       201:
  *         description: Created

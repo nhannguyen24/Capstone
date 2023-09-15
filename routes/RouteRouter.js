@@ -109,12 +109,13 @@ router.get("/:id", verifyToken, controllers.getRouteById);
  *            schema:                     
  *                  example:
  *                    routeName: Tuyến đường Nha Trang
+ *                    distance: 10.0
  *                    station:
- *                          - stationId: string
- *                          - stationId: string
+ *                          - string
+ *                          - string
  *                    point:
- *                          - poiId: string
- *                          - poiId: string
+ *                          - string
+ *                          - string
  *     responses:
  *       200:
  *         description: Create new route successfully

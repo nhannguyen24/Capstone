@@ -2,11 +2,11 @@ module.exports = {
     up: function (queryInterface, Sequelize) {
         // logic for transforming into the new state
         return queryInterface.addColumn(
-            'Buses',
-            'isDoubleDecker',
+            'Routes',
+            'distance',
             {
-                type: Sequelize.BOOLEAN,
-                defaultValue: true
+                type: Sequelize.DOUBLE,
+                allowNull: false
             },
         );
 
@@ -15,8 +15,8 @@ module.exports = {
     down: function (queryInterface, Sequelize) {
         // logic for reverting the changes
         return queryInterface.removeColumn(
-            'Buses',
-            'isDoubleDecker'
+            'Routes',
+            'distance'
         );
     }
 }

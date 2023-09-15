@@ -41,12 +41,7 @@ module.exports = (sequelize, DataTypes) => {
         otherKey: 'driverId',
         as: "tour_driver",
       });
-      Tour.belongsToMany(models.PointOfInterest, {
-        through: 'TourDetail',
-        foreignKey: 'tourId',
-        otherKey: 'poiId',
-        as: "tour_poi",
-      });
+      
       Tour.hasMany(models.Image, { as: 'tour_image', foreignKey: 'tourId'});
     }
   }

@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class TourDetail extends Model {
+  class RoutePointDetail extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,25 +11,24 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      TourDetail.belongsTo(models.Tour, {
-        foreignKey: 'tourId',
-        as: 'tour_detail_tour'
+      RoutePointDetail.belongsTo(models.Route, {
+        foreignKey: 'routeId',
+        as: 'route_poi_detail_route'
       });
 
-      TourDetail.belongsTo(models.PointOfInterest, {
+      RoutePointDetail.belongsTo(models.PointOfInterest, {
         foreignKey: 'poiId',
-        as: 'tour_detail_poi'
+        as: 'route_poi_detail_poi'
       });
-      
     }
   }
-  TourDetail.init({
-    tourDetailId: {
+  RoutePointDetail.init({
+    routepoiId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    tourId: {
+    routeId: {
       type: DataTypes.UUID
     },
     poiId: {
@@ -47,19 +46,19 @@ module.exports = (sequelize, DataTypes) => {
     },
   }, {
     sequelize,
-    modelName: 'TourDetail',
+    modelName: 'RoutePointDetail',
   });
-  TourDetail.beforeCreate((tourDetail, options) => {
+  RoutePointDetail.beforeCreate((routePointDetail, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    tourDetail.createdAt = currentDate;
-    tourDetail.updatedAt = currentDate;
+    routePointDetail.createdAt = currentDate;
+    routePointDetail.updatedAt = currentDate;
   });
 
-  TourDetail.beforeUpdate((tourDetail, options) => {
+  RoutePointDetail.beforeUpdate((routePointDetail, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    tourDetail.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
+    routePointDetail.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
-  return TourDetail;
+  return RoutePointDetail;
 };
