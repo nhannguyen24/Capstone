@@ -35,11 +35,7 @@ const refreshAccessToken = async (req, res) => {
 
 const logout = async (req, res) => {
     try {
-        // const { error } = joi.object({studentId}).validate(req.query);
-        // if (error) {
-        //     return res.status(400).json({msg: error.details[0].message});
-        // }
-        const {userId: userId} = req.params;
+        const {userId} = req.query;
         if(!userId) {
             throw new BadRequestError('Please provide userId');
         }

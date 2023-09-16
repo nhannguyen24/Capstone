@@ -46,8 +46,7 @@ const initRoutes = (app) => {
     app.use('/api/v1/points', point);
     app.use('/api/v1/routes', route);
 
-    app.use('/api/v1/upload-image', uploadImage);
-    
+    app.use('/api/v1/firebase', uploadImage);
     // app.use('/api/v1/ingredients', ingredient);
     // app.use('/api/v1/foods', food);
     // app.use('/api/v1/steps', step);

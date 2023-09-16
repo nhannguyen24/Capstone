@@ -254,6 +254,7 @@ const logout = (userId) =>
         },
         { where: { userId: user.userId } }
       );
+
       resolve({
         status: response ? 200 : 400,
         data: {
