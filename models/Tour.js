@@ -16,11 +16,13 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'routeId',
         as: "tour_route",
       });
+
       Tour.belongsTo(models.Station, {
         foreignKey: "departureStationId",
         targetKey: 'stationId',
-        as: "tour_station",
+        as: "departure_station",
       });
+      
       Tour.hasMany(models.Ticket, { as: 'tour_ticket', foreignKey: 'tourId'});
       
       Tour.belongsToMany(models.Bus, {

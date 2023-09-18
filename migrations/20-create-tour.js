@@ -55,7 +55,7 @@ module.exports = {
       tourStatus: {
         type: Sequelize.ENUM,
         values: ["NotStarted", "Ontour", "Canceled", "Finished"],
-        defaultValue: 'Ontour',
+        defaultValue: 'NotStarted',
       },
       status: {
         type: Sequelize.ENUM,

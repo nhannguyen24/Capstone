@@ -3,12 +3,12 @@ const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
 
 const getAllRoute = (
-    { page, limit, order, routeName, ...query },
+    { page, limit, order, routeName, status, ...query },
     roleName
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`routes_${page}_${limit}_${order}_${routeName}`, async (error, route) => {
+            redisClient.get(`routes_${page}_${limit}_${order}_${routeName}_${status}`, async (error, route) => {
                 if (error) console.error(error);
                 if (route != null && route != "" && roleName != 'Admin') {
                     resolve({
@@ -19,7 +19,7 @@ const getAllRoute = (
                         }
                     });
                 } else {
-                    redisClient.get(`admin_routes_${page}_${limit}_${order}_${routeName}`, async (error, adminRoute) => {
+                    redisClient.get(`admin_routes_${page}_${limit}_${order}_${routeName}_${status}`, async (error, adminRoute) => {
                         if (adminRoute != null && adminRoute != "") {
                             resolve({
                                 status: 200,
@@ -44,6 +44,7 @@ const getAllRoute = (
                                   ];
                             }
                             if (routeName) query.routeName = { [Op.substring]: routeName };
+                            if (status) query.status = { [Op.eq]: status };
                             if (roleName !== "Admin") {
                                 query.status = { [Op.notIn]: ['Deactive'] };
                             }
@@ -107,9 +108,9 @@ const getAllRoute = (
                             });
 
                             if (roleName !== "Admin") {
-                                redisClient.setEx(`routes_${page}_${limit}_${order}_${routeName}`, 3600, JSON.stringify(routes));
+                                redisClient.setEx(`routes_${page}_${limit}_${order}_${routeName}_${status}`, 3600, JSON.stringify(routes));
                             } else {
-                                redisClient.setEx(`admin_routes_${page}_${limit}_${order}_${routeName}`, 3600, JSON.stringify(routes));
+                                redisClient.setEx(`admin_routes_${page}_${limit}_${order}_${routeName}_${status}`, 3600, JSON.stringify(routes));
                             }
                             resolve({
                                 status: routes ? 200 : 404,

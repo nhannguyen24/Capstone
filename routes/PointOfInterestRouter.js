@@ -54,6 +54,12 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *         schema:
  *           type: string
  *         description: Find point by address
+ *       - name: status
+ *         in: query
+ *         schema:
+ *           type: string
+ *           enum: ["Active", "Deactive"]
+ *         description: Find point by status
  *       - name: page
  *         in: query
  *         schema:
@@ -130,7 +136,9 @@ router.get("/:id", verifyToken, controllers.getPointOfInterestById);
  *                    address: 187 Phạm Ngũ Lão
  *                    latitude: 10.7688046
  *                    longitude: 106.6903351
- *                    images: [imgString, imgString]
+ *                    images:
+ *                          - string
+ *                          - string
  *     responses:
  *       200:
  *         description: Create new point successfully
@@ -163,8 +171,8 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createPointOfInteres
  *                    latitude: 10.7688046
  *                    longitude: 106.6903351
  *                    images:
- *                          - image: string
- *                          - image: string
+ *                          - string
+ *                          - string
  *                    status: Active
  *     responses:
  *       200:

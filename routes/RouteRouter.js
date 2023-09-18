@@ -37,6 +37,12 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *         schema:
  *           type: string
  *         description: Find route by routeName
+ *       - name: status
+ *         in: query
+ *         schema:
+ *           type: string
+ *           enum: ["Active", "Deactive"]
+ *         description: Find route by status
  *       - name: page
  *         in: query
  *         schema:

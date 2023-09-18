@@ -6,10 +6,10 @@ const mailer = require('../utils/MailerUtil');
 
 const hashPassword = password => bcrypt.hashSync(password, bcrypt.genSaltSync(8));
 
-const getAllUsers = ({ page, limit, order, userName, email, ...query }) =>
+const getAllUsers = ({ page, limit, order, userName, email, status, ...query }) =>
   new Promise(async (resolve, reject) => {
     try {
-      redisClient.get(`user_paging_${page}_${limit}_${order}_${userName}_${email}`, async (error, user_paging) => {
+      redisClient.get(`user_paging_${page}_${limit}_${order}_${userName}_${email}_${status}`, async (error, user_paging) => {
         if (error) console.error(error);
         if (user_paging != null) {
           resolve({
@@ -29,6 +29,7 @@ const getAllUsers = ({ page, limit, order, userName, email, ...query }) =>
           else queries.order = [['updatedAt', 'DESC']];
           if (userName) query.userName = { [Op.substring]: userName };
           if (email) query.email = { [Op.substring]: email };
+          if (status) query.status = { [Op.eq]: status };
           // query.status = { [Op.ne]: "Deactive" };
 
           const users = await db.User.findAll({
@@ -51,7 +52,7 @@ const getAllUsers = ({ page, limit, order, userName, email, ...query }) =>
               },
             ],
           });
-          redisClient.setEx(`user_paging_${page}_${limit}_${order}_${userName}_${email}`, 3600, JSON.stringify(users));
+          redisClient.setEx(`user_paging_${page}_${limit}_${order}_${userName}_${email}_${status}`, 3600, JSON.stringify(users));
           
           resolve({
             status: users ? 200 : 404,
