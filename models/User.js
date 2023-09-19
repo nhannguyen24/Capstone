@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
       });
       User.hasMany(models.Ticket, { as: 'user_ticket', foreignKey: 'userId'});
       User.hasMany(models.Booking, { as: 'user_booking', foreignKey: 'userId'});
+      User.hasMany(models.Otp, { as: 'user_otp', foreignKey: 'userId'});
 
       User.belongsToMany(models.Bus, {
         through: 'Schedule',

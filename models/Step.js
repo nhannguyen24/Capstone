@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class RouteDetail extends Model {
+  class Step extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,31 +11,23 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      RouteDetail.belongsTo(models.Route, {
-        foreignKey: 'routeId',
-        as: 'route_detail_route'
+      Step.belongsTo(models.RouteDetail, {
+        foreignKey: "routeDetailId",
+        targetKey: 'routeDetailId',
+        as: "step_route_detail",
       });
-      
-      RouteDetail.belongsTo(models.Station, {
-        foreignKey: 'stationId',
-        as: 'route_detail_station'
-      });
-
-      RouteDetail.hasMany(models.Step, { as: 'route_detail_step', foreignKey: 'routeDetailId'});
     }
   }
-  RouteDetail.init({
-    routeDetailId: {
+  Step.init({
+    stepId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     index: DataTypes.INTEGER,
-    stopoverTime: DataTypes.TIME,
-    routeId: {
-      type: DataTypes.UUID
-    },
-    stationId: {
+    latitude: DataTypes.DECIMAL(8,6),
+    longitude: DataTypes.DECIMAL(9,6),
+    routeDetailId: {
       type: DataTypes.UUID
     },
     status: {
@@ -44,25 +36,26 @@ module.exports = (sequelize, DataTypes) => {
       validate: {
         isIn: {
           args: [["Active", "Deactive"]],
-          msg: 'Invalid value for routeDetail.status (Active, Deactive)'
+          msg: 'Invalid value for step.status (Active, Deactive)'
         }
       }
     },
   }, {
     sequelize,
-    modelName: 'RouteDetail',
+    modelName: 'Step',
   });
-  RouteDetail.beforeCreate((routeDetail, options) => {
+  Step.beforeCreate((step, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    routeDetail.createdAt = currentDate;
-    routeDetail.updatedAt = currentDate;
+    step.createdAt = currentDate;
+    step.updatedAt = currentDate;
   });
 
-  RouteDetail.beforeUpdate((routeDetail, options) => {
+  Step.beforeUpdate((step, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    routeDetail.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
+    step.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
-  return RouteDetail;
+
+  return Step;
 };

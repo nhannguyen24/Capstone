@@ -9,7 +9,7 @@ module.exports = {
         primaryKey: true,
       },
       TicketPrice: {
-        type: Sequelize.DECIMAL(3,3),
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
       bookingId: {

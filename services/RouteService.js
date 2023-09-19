@@ -36,12 +36,13 @@ const getAllRoute = (
                             queries.limit = flimit;
                             if (order) queries.order = [[order]]
                             else {
-                                queries.order = [['updatedAt', 'DESC']];
+                                // queries.order = [['updatedAt', 'DESC']];
                                 queries.order = [
                                     ['updatedAt', 'DESC'],
                                     [{ model: db.RouteDetail, as: 'route_detail' }, 'index', 'ASC'],
+                                    [{ model: db.RouteDetail, as: 'route_detail' }, { model: db.Step, as: 'route_detail_step' },'index', 'ASC'],
                                     [{ model: db.RoutePointDetail, as: 'route_poi_detail' }, 'index', 'ASC']
-                                  ];
+                                ];
                             }
                             if (routeName) query.routeName = { [Op.substring]: routeName };
                             if (status) query.status = { [Op.eq]: status };
@@ -75,7 +76,18 @@ const getAllRoute = (
                                                         "status",
                                                     ],
                                                 },
-                                            }
+                                            },
+                                            {
+                                                model: db.Step, 
+                                                as: "route_detail_step",
+                                                attributes: {
+                                                    exclude: [
+                                                        "createdAt",
+                                                        "updatedAt",
+                                                        "status",
+                                                    ],
+                                                },
+                                            },
                                         ]
                                     },
                                     {
@@ -175,30 +187,49 @@ const createRoute = ({ routeName, ...body }) =>
                         }
                     })
                 }
+                
                 let index = 0;
+                let pointIndex = 0;
+                let stepIndex = 0;
+
                 const stationDetails = await Promise.all(
                     body.station.map(async (stationObj) => {
                         index += 1;
-                        const stationDetail = await db.RouteDetail.create(
+                        const routeDetail = await db.RouteDetail.create(
                             {
                                 index: index,
                                 routeId: createRoute[0].dataValues.routeId,
                                 stationId: stationObj.stationId,
-                                arrivalTime: stationObj.arrivalTime,
                                 stopoverTime: stationObj.stopoverTime,
                             },
                             { transaction }
                         );
-                        return stationDetail;
+
+                        if (stationObj.step && Array.isArray(stationObj.step)) {
+                            stationObj.step.map(async (stepObj) => {
+                                stepIndex += 1;
+                                await db.Step.create(
+                                    {
+                                        index: stepIndex,
+                                        routeDetailId: routeDetail.dataValues.routeDetailId,
+                                        latitude: stepObj.latitude,
+                                        longitude: stepObj.longitude,
+                                    },
+                                    { transaction }
+                                );
+                            })
+                        }
+
+                        return routeDetail;
                     })
                 );
 
                 const pointDetails = await Promise.all(
                     body.point.map(async (pointObj) => {
-                        index += 1;
+                        pointIndex += 1;
                         const stationDetail = await db.RoutePointDetail.create(
                             {
-                                index: index,
+                                index: pointIndex,
                                 routeId: createRoute[0].dataValues.routeId,
                                 poiId: pointObj,
                             },

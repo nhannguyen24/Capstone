@@ -30,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    TicketPrice: DataTypes.DECIMAL(3,3),
+    TicketPrice: DataTypes.INTEGER,
     bookingId: {
       type: DataTypes.UUID
     },
