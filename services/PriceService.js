@@ -8,12 +8,9 @@ const getAllPrices = (req) => new Promise(async (resolve, reject) => {
 
         resolve({
             status: 200,
-            data: prices.length > 0 ? {
-                msg: `Prices found`,
+            data: {
+                msg: `Get list of the prices successfully`,
                 prices: prices
-            } : {
-                msg: `Prices not found`,
-                prices: []
             }
         });
 
@@ -32,13 +29,13 @@ const getPriceById = (req) => new Promise(async (resolve, reject) => {
         });
 
         resolve({
-            status: 200,
+            status: price ? 200 : 404,
             data: price ? {
                 msg: `Get price successfully`,
                 price: price
             } : {
                 msg: `Price not found`,
-                price: []
+                price: {}
             }
         });
 
@@ -61,7 +58,7 @@ const createPrice = (req) => new Promise(async (resolve, reject) => {
 
         if (!ticketType) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `TicketType not found with id ${ticketTypeId}`,
                 }
@@ -100,7 +97,7 @@ const updatePrice = (req) => new Promise(async (resolve, reject) => {
 
         if (!price) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Price not found with id ${priceId}`,
                 }
@@ -119,7 +116,7 @@ const updatePrice = (req) => new Promise(async (resolve, reject) => {
 
         if (!ticketType) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `TicketType not found with id ${ticketTypeId}`,
                 }
@@ -172,7 +169,7 @@ const deletePrice = (req) => new Promise(async (resolve, reject) => {
 
         if (!price) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Price not found with id ${priceId}`,
                 }

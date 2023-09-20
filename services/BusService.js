@@ -41,12 +41,9 @@ const getAllBuses = (req) => new Promise(async (resolve, reject) => {
 
         resolve({
             status: 200,
-            data: buses ? {
-                msg: `Get the list of the buses successfully`,
+            data: {
+                msg: `Get list of the buses successfully`,
                 buses: buses
-            } : {
-                msg: `Bus not found`,
-                buses: []
             }
         });
 
@@ -85,13 +82,13 @@ const getBusById = (req) => new Promise(async (resolve, reject) => {
 
 
         resolve({
-            status: 200,
+            status: bus ? 200 : 404,
             data: bus ? {
                 msg: `Get bus successfully`,
                 bus: bus
             } : {
                 msg: `Bus not found`,
-                bus: []
+                bus: {}
             }
         });
 
@@ -142,7 +139,7 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
 
         if (!bus) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Bus not found with id ${busId}`,
                 }
@@ -235,7 +232,7 @@ const deleteBus = (req) => new Promise(async (resolve, reject) => {
 
         if (!bus) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Bus not found with id ${busId}`,
                 }

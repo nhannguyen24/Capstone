@@ -1,7 +1,7 @@
 const controllers = require('../controllers/BookingController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isAdminOrManager} = require('../middlewares/VerifyRole');
+const {isAdminOrManager, isCustomer} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -11,19 +11,60 @@ const router = express.Router();
  *   get:
  *     security: 
  *         - BearerAuth: []
- *     summary: Get bookings for customer by bookingCode and cutomerId
+ *     summary: Get bookings by bookingCode and cutomerId for customer 
  *     tags: [Booking]
  *     parameters:
- *       - in: query
- *         name: bookingCode
- *         schema:
- *           type: string
- *           example: 23
  *       - in: query
  *         name: customerId
  *         schema:
  *           type: string
  *           example: 224e8a10-4933-486d-8df2-b799905cde83
+ *         required: true
+ *       - in: query
+ *         name: bookingCode
+ *         schema:
+ *           type: string
+ *           example: 23
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ */
+router.get("/", verifyToken, isCustomer, controllers.getBookingsForCustomer);
+
+/**
+ * @swagger
+ * /api/v1/bookings/manager:
+ *   get:
+ *     security: 
+ *         - BearerAuth: []
+ *     summary: Get bookings for manager
+ *     tags: [Booking]
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ */
+router.get("/manager", verifyToken,  isAdminOrManager, controllers.getBookingsForManager);
+
+/**
+ * @swagger
+ * /api/v1/bookings/email:
+ *   get:
+ *     summary: Get bookings by email for not logged in customer 
+ *     tags: [Booking]
+ *     parameters:
+ *       - in: query
+ *         name: email
+ *         schema:
+ *           type: string
+ *           example: dnhan2426@gmail.com
  *         required: true
  *     responses:
  *       200:
@@ -33,7 +74,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken,  isAdminOrManager, controllers.getBookingsForCustomer);
+router.get("/email", controllers.getBookingsByEmail);
 
 /**
  * @swagger
@@ -82,7 +123,6 @@ router.get("/", verifyToken,  isAdminOrManager, controllers.getBookingsForCustom
  *                  },
  *              ]
  *            }
- *                  
  *     responses:
  *       201:
  *         description: CREATED

@@ -17,7 +17,6 @@ module.exports = (sequelize, DataTypes) => {
         as: "user_role",
       });
 
-      User.hasMany(models.Booking, { as: 'user_booking', foreignKey: 'userId'});
       User.hasMany(models.Otp, { as: 'user_otp', foreignKey: 'userId'});
 
       User.belongsToMany(models.Bus, {

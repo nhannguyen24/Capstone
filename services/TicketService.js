@@ -2,47 +2,6 @@ const db = require('../models');
 const { Op } = require('sequelize');
 const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
-// const getAllTickets = (req) => new Promise(async (resolve, reject) => {
-//     try {
-//         const tickets = await db.Ticket.findAll(
-//             {
-//                 include: [
-//                     {
-//                         model: db.TicketType,
-//                         as: "ticket_type",
-//                     },
-//                 ],
-//                 attributes: {
-//                     exclude: ["ticketTypeId", "toudId", "customerId"]
-//                 }
-//             }
-//         );
-        
-//         const processedTickets = tickets.map(async (ticket) => {
-//             const prices = await db.Price.findAll({
-//                 where: {
-//                     ticketTypeId: ticket.ticket_type.ticketTypeId
-//                 }
-                
-//             });
-//             ticket.ticket_type.price = prices;
-//         });
-
-//         resolve({
-//             status: 200,
-//             data: processedTickets.length > 0 ? {
-//                 msg: `Get list of tickets successfully`,
-//                 tickets: processedTickets
-//             } : {
-//                 msg: `Ticket not found`,
-//                 tickets: []
-//             }
-//         });
-
-//     } catch (error) {
-//         reject(error);
-//     }
-// });
 
 const getAllTickets = (req) => new Promise(async (resolve, reject) => {
     try {
@@ -78,12 +37,9 @@ const getAllTickets = (req) => new Promise(async (resolve, reject) => {
 
         resolve({
             status: 200,
-            data: ticketsWithPrices.length > 0 ? {
+            data: {
                 msg: `Get list of tickets successfully`,
                 tickets: ticketsWithPrices
-            } : {
-                msg: `Ticket not found`,
-                tickets: []
             }
         });
         
@@ -101,7 +57,7 @@ const getTicketById = (req) => new Promise(async (resolve, reject) => {
             }
         });
         resolve({
-            status: 200,
+            status: ticket ? 200 : 404,
             data: ticket ? {
                 msg: `Get ticket successfully`,
                 ticket: ticket
@@ -127,7 +83,7 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
         })
         if (!ticketType) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Ticket type not found with id ${ticketTypeId}`,
                 }
@@ -150,7 +106,7 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
         })
         if (!tour) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Tour not found with id ${tourId}`,
                 }
@@ -198,7 +154,7 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
 
         if (!ticket) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Ticket not found with id ${ticketId}`,
                 }
@@ -218,7 +174,7 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
 
         if (!ticketType) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Ticket type not found with id ${ticketTypeId}`,
                 }
@@ -246,7 +202,7 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
         })
         if (!tourId) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Tour not found with id ${tourId}`,
                 }
@@ -274,10 +230,10 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
                 }
             })
 
-            const activeTickets = tickets.filter((ticket) => ticket.status === "Active")
+            const activeTickets = tickets.filter((ticket) => ticket.status === STATUS.ACTIVE)
             if (activeTickets.length < 2) {
                 resolve({
-                    status: 400,
+                    status: 409,
                     data: {
                         msg: `Cannot update ticket status to "Deactive" because tour ${tour.tourId} need to has atleast 1 available ticket`,
 
@@ -322,7 +278,7 @@ const deleteTicket = (req) => new Promise(async (resolve, reject) => {
         })
         if (!ticket) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Ticket not found with id ${ticketId}`,
                 }
@@ -335,10 +291,10 @@ const deleteTicket = (req) => new Promise(async (resolve, reject) => {
             }
         })
 
-        const activeTickets = tickets.filter((ticket) => ticket.status === "Active")
+        const activeTickets = tickets.filter((ticket) => ticket.status === STATUS.ACTIVE)
         if (activeTickets.length < 2) {
             resolve({
-                status: 400,
+                status: 409,
                 data: {
                     msg: `Cannot delete ticket because tour ${tour.tourId} need to has atleast 1 available ticket`,
                 }
