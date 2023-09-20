@@ -39,7 +39,7 @@ router.get("/", verifyToken, isAdminOrManager, controllers.getAllPrices);
  *            schema:
  *              type: object
  *              properties:
- *                  ammount:
+ *                  amount:
  *                      type: integer
  *                      minimum: 1000
  *                  ticketTypeId:
@@ -52,7 +52,7 @@ router.get("/", verifyToken, isAdminOrManager, controllers.getAllPrices);
  *                        - Normal
  *            example:
  *              {
- *                  ammount: 150000,
+ *                  amount: 150000,
  *                  ticketTypeId: d2dfa0b3-6b26-4a68-a093-05ca5f7f9cc6,
  *                  day: Normal|Weekend|Holiday
  *              }
@@ -95,7 +95,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createPrice);
  *             schema:
  *               type: object
  */
-router.get("/:priceId", verifyToken, isAdmin, controllers.getPriceById);
+router.get("/:priceId", verifyToken, isAdminOrManager, controllers.getPriceById);
 /**
  * @swagger
  * /api/v1/prices/{priceId}:
@@ -112,7 +112,7 @@ router.get("/:priceId", verifyToken, isAdmin, controllers.getPriceById);
  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
  *         required: true
  *       - in: query
- *         name: ammount
+ *         name: amount
  *         schema:
  *           type: integer
  *           example: 200000

@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
         as: "tour_route",
       });
       Tour.belongsTo(models.Station, {
-        foreignKey: "depatureStationId",
+        foreignKey: "departureStationId",
         targetKey: 'stationId',
         as: "tour_station",
       });
@@ -61,13 +61,13 @@ module.exports = (sequelize, DataTypes) => {
     note: DataTypes.STRING,
     beginBookingDate: DataTypes.DATEONLY,
     endBookingDate: DataTypes.DATEONLY,
-    depatureDate: DataTypes.DATEONLY,
-    depatureTime: DataTypes.TIME,
+    departureDate: DataTypes.DATEONLY,
+    departureTime: DataTypes.TIME,
     endTime: DataTypes.TIME,
     routeId: {
       type: DataTypes.UUID
     },
-    depatureStationId: {
+    departureStationId: {
       type: DataTypes.UUID
     },
     tourStatus: {

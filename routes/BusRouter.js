@@ -103,7 +103,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createBus);
  *             schema:
  *               type: object
  */
-router.get("/:busId", verifyToken, isAdmin, controllers.getBusById);
+router.get("/:busId", verifyToken, isAdminOrManager, controllers.getBusById);
 
 /**
  * @swagger
@@ -169,7 +169,7 @@ router.put("/:busId", verifyToken, isAdminOrManager, controllers.updateBus);
  *   delete:
  *     security: 
  *         - BearerAuth: []
- *     summary: Update bus status by id
+ *     summary: Delete bus by id
  *     tags: [Bus]
  *     parameters:
  *       - in: path

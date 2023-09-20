@@ -11,11 +11,6 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Ticket.belongsTo(models.User, {
-        foreignKey: "customerId",
-        targetKey: 'userId',
-        as: "ticket_user",
-      });
       Ticket.belongsTo(models.Tour, {
         foreignKey: "tourId",
         targetKey: 'tourId',
@@ -33,9 +28,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
-    },
-    customerId: {
-      type: DataTypes.UUID
     },
     tourId: {
       type: DataTypes.UUID

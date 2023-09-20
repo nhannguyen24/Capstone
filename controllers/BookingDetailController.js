@@ -1,26 +1,17 @@
-const services = require('../services/BookingService');
+const services = require('../services/BookingDetailService');
 const {BadRequestError, InternalServerError} = require('../errors/Index');
 
-const getBookingDetailByBookingId = async (req, res) => {
+const getAllBookings = async (req, res) => {
     try {
-        const response = await services.getBookingDetailByBookingId(req);
+        const response = await services.getAllBookings(req);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
     }
 };
-
-const getBookingsForCustomer = async (req, res) => {
+const getBookingById = async (req, res) => {
     try {
-        const response = await services.getBookingsForCustomer(req);
-        return res.status(response.status).json(response.data);
-    } catch (error) {
-        throw new InternalServerError(error);
-    }
-};
-const createBooking = async (req, res) => {
-    try {
-        const response = await services.createBooking(req);
+        const response = await services.getBookingById(req);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
@@ -44,4 +35,4 @@ const deleteBooking = async (req, res) => {
     }
 }
 
-module.exports = { getBookingDetailByBookingId, getBookingsForCustomer, createBooking, updateBooking, deleteBooking }
+module.exports = { getAllBookings, getBookingById, updateBooking, deleteBooking }

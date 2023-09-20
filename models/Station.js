@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Station.hasMany(models.Tour, { as: 'station_tour', foreignKey: 'stationId'});
+    
       
       Station.belongsToMany(models.Route, {
         through: 'RouteDetail',
