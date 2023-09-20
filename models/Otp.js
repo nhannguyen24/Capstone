@@ -26,8 +26,19 @@ module.exports = (sequelize, DataTypes) => {
     },
     otp: DataTypes.STRING,
     time_expired: DataTypes.DATE,
+    isAllow: DataTypes.BOOLEAN,
     userId: {
       type: DataTypes.UUID
+    },
+    type: {
+      type: DataTypes.ENUM,
+      values: ["ChangePassword", "GetBookingByEmail", "BookingTour"],
+      validate: {
+        isIn: {
+          args: [["ChangePassword", "GetBookingByEmail", "BookingTour"]],
+          msg: 'Invalid value for otp.type (ChangePassword, GetBookingByEmail, BookingTour)'
+        }
+      }
     },
     status: {
       type: DataTypes.ENUM,
