@@ -65,7 +65,7 @@ module.exports = (sequelize, DataTypes) => {
   Bus.beforeUpdate((bus, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    bus.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
+    bus.setDataValue("updatedAt", currentDate)
   });
   return Bus;
 };

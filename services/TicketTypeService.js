@@ -1,5 +1,6 @@
 const db = require('../models');
 const { Op } = require('sequelize');
+const STATUS = require("../enums/StatusEnum")
 
 const getAllTicketTypes = (req) => new Promise(async (resolve, reject) => {
     try {
@@ -121,7 +122,7 @@ const updateTicketType = (req) => new Promise(async (resolve, reject) => {
         }, {
             where: {
                 ticketTypeId: ticketType.ticketTypeId
-            }, transaction: t
+            }, individualHooks: true, transaction: t
         })
 
         await t.commit()
@@ -138,46 +139,5 @@ const updateTicketType = (req) => new Promise(async (resolve, reject) => {
         reject(error);
     }
 });
-
-// const deleteTicketType = (req) => new Promise(async (resolve, reject) => {
-//     try {
-//         const priceId = req.params.priceId
-//         const status = req.query.status
-//         const price = await db.Price.findOne({
-//             where: {
-//                 priceId: priceId
-//             }
-//         })
-
-//         if (!price) {
-//             resolve({
-//                 status: 400,
-//                 data: {
-//                     msg: `Price not found with id ${priceId}`,
-//                 }
-//             })
-//         }
-
-//         await db.Price.update({
-//             status: status
-//         }, {
-//             where: {
-//                 priceId: price.priceId
-//             }
-//         })
-
-//         resolve({
-//             status: 200,
-//             data: {
-//                 msg: "Update bus status successfully",
-//             }
-//         })
-
-
-//     } catch (error) {
-//         reject(error);
-//     }
-// });
-
 
 module.exports = { getAllTicketTypes, getTicketTypeById, createTicketType, updateTicketType };
