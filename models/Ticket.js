@@ -21,6 +21,13 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'ticketTypeId',
         as: "ticket_type",
       });
+
+      Ticket.belongsToMany(models.Booking, {
+        through: 'BookingDetail',
+        foreignKey: 'ticketId',
+        otherKey: 'bookingId',
+        as: "ticket_booking",
+      });
     }
   }
   Ticket.init({

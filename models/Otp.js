@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class TicketType extends Model {
+  class Otp extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,44 +11,51 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      TicketType.hasMany(models.Price, { as: 'ticket_type_price', foreignKey: 'ticketTypeId'});
-
-      TicketType.hasMany(models.Ticket, { as: 'type_ticket', foreignKey: 'ticketTypeId'});
+      Otp.belongsTo(models.User, {
+        foreignKey: "userId",
+        targetKey: 'userId',
+        as: "otp_user",
+      });
     }
   }
-  TicketType.init({
-    ticketTypeId: {
+  Otp.init({
+    otpId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    ticketTypeName: DataTypes.STRING,
-    description: DataTypes.STRING,
+    otp: DataTypes.STRING,
+    time_expired: DataTypes.DATE,
+    userId: {
+      type: DataTypes.UUID
+    },
     status: {
       type: DataTypes.ENUM,
       values: ["Active", "Deactive"],
       validate: {
         isIn: {
           args: [["Active", "Deactive"]],
-          msg: 'Invalid value for ticketType.status (Active, Deactive)'
+          msg: 'Invalid value for otp.status (Active, Deactive)'
         }
       }
     },
   }, {
     sequelize,
-    modelName: 'TicketType',
-  });
-  TicketType.beforeCreate((ticketType, options) => {
-    const currentDate = new Date();
-    currentDate.setHours(currentDate.getHours() + 7);
-    ticketType.createdAt = currentDate;
-    ticketType.updatedAt = currentDate;
+    modelName: 'Otp',
   });
 
-  TicketType.beforeUpdate((ticketType, options) => {
+  Otp.beforeCreate((otp, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    ticketType.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
+    otp.createdAt = currentDate;
+    otp.updatedAt = currentDate;
   });
-  return TicketType;
+
+  Otp.beforeUpdate((otp, options) => {
+    const currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() + 7);
+    otp.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
+  });
+
+  return Otp;
 };

@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class BookingDetail extends Model {
+  class RoutePointDetail extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,30 +11,28 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      BookingDetail.hasMany(models.ProductOrder, { as: 'booking_detail_product_order', foreignKey: 'bookingDetailId'});
-
-      BookingDetail.belongsTo(models.Booking, {
-        foreignKey: 'bookingId',
-        as: 'detail_booking'
+      RoutePointDetail.belongsTo(models.Route, {
+        foreignKey: 'routeId',
+        as: 'route_poi_detail_route'
       });
-      
-      BookingDetail.belongsTo(models.Ticket, {
-        foreignKey: 'ticketId',
-        as: 'booking_detail_ticket'
+
+      RoutePointDetail.belongsTo(models.PointOfInterest, {
+        foreignKey: 'poiId',
+        as: 'route_poi_detail_poi'
       });
     }
   }
-  BookingDetail.init({
-    bookingDetailId: {
+  RoutePointDetail.init({
+    routepoiId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    TicketPrice: DataTypes.INTEGER,
-    bookingId: {
+    index: DataTypes.INTEGER,
+    routeId: {
       type: DataTypes.UUID
     },
-    ticketId: {
+    poiId: {
       type: DataTypes.UUID
     },
     status: {
@@ -43,25 +41,25 @@ module.exports = (sequelize, DataTypes) => {
       validate: {
         isIn: {
           args: [["Active", "Deactive"]],
-          msg: 'Invalid value for bookingDetail.status (Active, Deactive)'
+          msg: 'Invalid value for tourDetail.status (Active, Deactive)'
         }
       }
     },
   }, {
     sequelize,
-    modelName: 'BookingDetail',
+    modelName: 'RoutePointDetail',
   });
-  BookingDetail.beforeCreate((bookingDetail, options) => {
+  RoutePointDetail.beforeCreate((routePointDetail, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    bookingDetail.createdAt = currentDate;
-    bookingDetail.updatedAt = currentDate;
+    routePointDetail.createdAt = currentDate;
+    routePointDetail.updatedAt = currentDate;
   });
 
-  BookingDetail.beforeUpdate((bookingDetail, options) => {
+  RoutePointDetail.beforeUpdate((routePointDetail, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    bookingDetail.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
+    routePointDetail.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
-  return BookingDetail;
+  return RoutePointDetail;
 };

@@ -37,6 +37,12 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *         schema:
  *           type: string
  *         description: Find route by routeName
+ *       - name: status
+ *         in: query
+ *         schema:
+ *           type: string
+ *           enum: ["Active", "Deactive"]
+ *         description: Find route by status
  *       - name: page
  *         in: query
  *         schema:
@@ -109,12 +115,21 @@ router.get("/:id", verifyToken, controllers.getRouteById);
  *            schema:                     
  *                  example:
  *                    routeName: Tuyến đường Nha Trang
+ *                    distance: 10.5
  *                    station:
  *                          - stationId: string
+ *                            stopoverTime: '00:05:00'
+ *                            step:
+ *                                   - latitude: 10.7688046
+ *                                     longitude: 106.6903351
+ *                                   - latitude: 10.7688046
+ *                                     longitude: 106.6903351
  *                          - stationId: string
+ *                            stopoverTime: '00:05:00'
+ *                            step: []
  *                    point:
- *                          - poiId: string
- *                          - poiId: string
+ *                          - string
+ *                          - string
  *     responses:
  *       200:
  *         description: Create new route successfully

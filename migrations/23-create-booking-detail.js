@@ -9,7 +9,7 @@ module.exports = {
         primaryKey: true,
       },
       TicketPrice: {
-        type: Sequelize.DECIMAL(3,3),
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
       bookingId: {
@@ -19,11 +19,11 @@ module.exports = {
           key: 'bookingId'
         }
       },
-      ticketTypeId: {
+      ticketId: {
         type: Sequelize.UUID,
         references: {
-          model: 'tickettypes',
-          key: 'ticketTypeId'
+          model: 'tickets',
+          key: 'ticketId'
         }
       },
       status: {

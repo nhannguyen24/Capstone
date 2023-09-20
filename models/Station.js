@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-    
+      // Station.hasMany(models.Tour, { as: 'station_tour', foreignKey: 'stationId'});
       
       Station.belongsToMany(models.Route, {
         through: 'RouteDetail',
@@ -19,12 +19,7 @@ module.exports = (sequelize, DataTypes) => {
         otherKey: 'routeId',
         as: "station_route",
       });
-      Station.belongsToMany(models.PointOfInterest, {
-        through: 'RouteDetail',
-        foreignKey: 'stationId',
-        otherKey: 'poiId',
-        as: "station_poi",
-      });
+      
     }
   }
   Station.init({

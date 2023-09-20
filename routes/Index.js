@@ -11,7 +11,7 @@ const ticket = require('./TicketRouter')
 const price = require('./PriceRouter')
 const point = require('./PointOfInterestRouter')
 const uploadImage = require('./UploadFileRouter')
-// const ingredient = require('./ingredient');
+const tour = require('./TourRouter');
 const route = require('./RouteRouter');
 
 // const food = require('./food');
@@ -48,9 +48,8 @@ const initRoutes = (app) => {
     app.use('/api/v1/points', point);
     app.use('/api/v1/routes', route);
 
-    app.use('/api/v1/upload-image', uploadImage);
-    
-    // app.use('/api/v1/ingredients', ingredient);
+    app.use('/api/v1/firebase', uploadImage);
+    app.use('/api/v1/tours', tour);
     // app.use('/api/v1/foods', food);
     // app.use('/api/v1/steps', step);
     // app.use('/api/v1/categories', category);

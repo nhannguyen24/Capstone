@@ -2,24 +2,28 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Tickets', {
-      ticketId: {
+    await queryInterface.createTable('RoutePointDetails', {
+      routepoiId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      tourId: {
+      index: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      routeId: {
         type: Sequelize.UUID,
         references: {
-          model: 'tours',
-          key: 'tourId'
+          model: 'routes',
+          key: 'routeId'
         }
       },
-      ticketTypeId: {
+      poiId: {
         type: Sequelize.UUID,
         references: {
-          model: 'tickettypes',
-          key: 'ticketTypeId'
+          model: 'pointofinterests',
+          key: 'poiId'
         }
       },
       status: {
@@ -40,6 +44,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Tickets');
+    await queryInterface.dropTable('RoutePointDetails');
   }
 };

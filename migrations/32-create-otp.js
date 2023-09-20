@@ -2,24 +2,25 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('TourDetails', {
-      tourDetailId: {
+    await queryInterface.createTable('Otps', {
+      otpId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      tourId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'tours',
-          key: 'tourId'
-        }
+      otp: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
-      poiId: {
+      timeExpired: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
+      userId: {
         type: Sequelize.UUID,
         references: {
-          model: 'pointofinterests',
-          key: 'poiId'
+          model: 'users',
+          key: 'userId'
         }
       },
       status: {
@@ -40,6 +41,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('TourDetails');
+    await queryInterface.dropTable('Otps');
   }
 };

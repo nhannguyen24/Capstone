@@ -82,11 +82,11 @@ const login = ({ email, password }) => new Promise(async (resolve, reject) => {
     })
 
     if (refreshToken) {
-      await db.Student.update(
+      await db.User.update(
         {
           refreshToken: refreshToken,
         },
-        { where: { studentId: response[0].studentId } }
+        { where: { userId: response[0].userId } }
       );
     }
   } catch (error) {
@@ -254,6 +254,7 @@ const logout = (userId) =>
         },
         { where: { userId: user.userId } }
       );
+
       resolve({
         status: response ? 200 : 400,
         data: {

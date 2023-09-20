@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     bookingDate: DataTypes.DATE,
     bookingCode: DataTypes.STRING,
-    totalPrice: DataTypes.DECIMAL(3,3),
+    totalPrice: DataTypes.INTEGER,
     customerId: {
       type: DataTypes.UUID
     },

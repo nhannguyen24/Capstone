@@ -17,7 +17,7 @@ module.exports = {
         allowNull: false,
       },
       totalPrice: {
-        type: Sequelize.DECIMAL(3,3),
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
       customerId: {

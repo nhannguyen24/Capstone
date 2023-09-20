@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class TicketType extends Model {
+  class Step extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,44 +11,51 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      TicketType.hasMany(models.Price, { as: 'ticket_type_price', foreignKey: 'ticketTypeId'});
-
-      TicketType.hasMany(models.Ticket, { as: 'type_ticket', foreignKey: 'ticketTypeId'});
+      Step.belongsTo(models.RouteDetail, {
+        foreignKey: "routeDetailId",
+        targetKey: 'routeDetailId',
+        as: "step_route_detail",
+      });
     }
   }
-  TicketType.init({
-    ticketTypeId: {
+  Step.init({
+    stepId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    ticketTypeName: DataTypes.STRING,
-    description: DataTypes.STRING,
+    index: DataTypes.INTEGER,
+    latitude: DataTypes.DECIMAL(8,6),
+    longitude: DataTypes.DECIMAL(9,6),
+    routeDetailId: {
+      type: DataTypes.UUID
+    },
     status: {
       type: DataTypes.ENUM,
       values: ["Active", "Deactive"],
       validate: {
         isIn: {
           args: [["Active", "Deactive"]],
-          msg: 'Invalid value for ticketType.status (Active, Deactive)'
+          msg: 'Invalid value for step.status (Active, Deactive)'
         }
       }
     },
   }, {
     sequelize,
-    modelName: 'TicketType',
+    modelName: 'Step',
   });
-  TicketType.beforeCreate((ticketType, options) => {
+  Step.beforeCreate((step, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    ticketType.createdAt = currentDate;
-    ticketType.updatedAt = currentDate;
+    step.createdAt = currentDate;
+    step.updatedAt = currentDate;
   });
 
-  TicketType.beforeUpdate((ticketType, options) => {
+  Step.beforeUpdate((step, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    ticketType.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
+    step.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
-  return TicketType;
+
+  return Step;
 };

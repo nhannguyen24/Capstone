@@ -20,6 +20,8 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'stationId',
         as: 'route_detail_station'
       });
+
+      RouteDetail.hasMany(models.Step, { as: 'route_detail_step', foreignKey: 'routeDetailId'});
     }
   }
   RouteDetail.init({
@@ -28,6 +30,8 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
+    index: DataTypes.INTEGER,
+    stopoverTime: DataTypes.TIME,
     routeId: {
       type: DataTypes.UUID
     },

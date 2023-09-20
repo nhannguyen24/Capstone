@@ -3,12 +3,12 @@ const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
 
 const getAllRoute = (
-    { page, limit, order, routeName, ...query },
+    { page, limit, order, routeName, status, ...query },
     roleName
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`routes_${page}_${limit}_${order}_${routeName}`, async (error, route) => {
+            redisClient.get(`routes_${page}_${limit}_${order}_${routeName}_${status}`, async (error, route) => {
                 if (error) console.error(error);
                 if (route != null && route != "" && roleName != 'Admin') {
                     resolve({
@@ -19,7 +19,7 @@ const getAllRoute = (
                         }
                     });
                 } else {
-                    redisClient.get(`admin_routes_${page}_${limit}_${order}_${routeName}`, async (error, adminRoute) => {
+                    redisClient.get(`admin_routes_${page}_${limit}_${order}_${routeName}_${status}`, async (error, adminRoute) => {
                         if (adminRoute != null && adminRoute != "") {
                             resolve({
                                 status: 200,
@@ -36,9 +36,16 @@ const getAllRoute = (
                             queries.limit = flimit;
                             if (order) queries.order = [[order]]
                             else {
-                                queries.order = [['updatedAt', 'DESC']];
+                                // queries.order = [['updatedAt', 'DESC']];
+                                queries.order = [
+                                    ['updatedAt', 'DESC'],
+                                    [{ model: db.RouteDetail, as: 'route_detail' }, 'index', 'ASC'],
+                                    [{ model: db.RouteDetail, as: 'route_detail' }, { model: db.Step, as: 'route_detail_step' },'index', 'ASC'],
+                                    [{ model: db.RoutePointDetail, as: 'route_poi_detail' }, 'index', 'ASC']
+                                ];
                             }
                             if (routeName) query.routeName = { [Op.substring]: routeName };
+                            if (status) query.status = { [Op.eq]: status };
                             if (roleName !== "Admin") {
                                 query.status = { [Op.notIn]: ['Deactive'] };
                             }
@@ -53,7 +60,6 @@ const getAllRoute = (
                                             exclude: [
                                                 "routeId",
                                                 "stationId",
-                                                "poiId",
                                                 "createdAt",
                                                 "updatedAt",
                                                 "status",
@@ -72,8 +78,8 @@ const getAllRoute = (
                                                 },
                                             },
                                             {
-                                                model: db.PointOfInterest,
-                                                as: "route_detail_poi",
+                                                model: db.Step, 
+                                                as: "route_detail_step",
                                                 attributes: {
                                                     exclude: [
                                                         "createdAt",
@@ -84,13 +90,39 @@ const getAllRoute = (
                                             },
                                         ]
                                     },
+                                    {
+                                        model: db.RoutePointDetail,
+                                        as: "route_poi_detail",
+                                        attributes: {
+                                            exclude: [
+                                                "routeId",
+                                                "poiId",
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                        include: [
+                                            {
+                                                model: db.PointOfInterest,
+                                                as: "route_poi_detail_poi",
+                                                attributes: {
+                                                    exclude: [
+                                                        "createdAt",
+                                                        "updatedAt",
+                                                        "status",
+                                                    ],
+                                                },
+                                            }
+                                        ]
+                                    },
                                 ],
                             });
 
                             if (roleName !== "Admin") {
-                                redisClient.setEx(`routes_${page}_${limit}_${order}_${routeName}`, 3600, JSON.stringify(routes));
+                                redisClient.setEx(`routes_${page}_${limit}_${order}_${routeName}_${status}`, 3600, JSON.stringify(routes));
                             } else {
-                                redisClient.setEx(`admin_routes_${page}_${limit}_${order}_${routeName}`, 3600, JSON.stringify(routes));
+                                redisClient.setEx(`admin_routes_${page}_${limit}_${order}_${routeName}_${status}`, 3600, JSON.stringify(routes));
                             }
                             resolve({
                                 status: routes ? 200 : 404,
@@ -141,7 +173,8 @@ const createRoute = ({ routeName, ...body }) =>
                         routeName: routeName
                     },
                     defaults: {
-                        routeName: routeName
+                        routeName: routeName,
+                        distance: body.distance
                     },
                     transaction,
                 });
@@ -154,34 +187,65 @@ const createRoute = ({ routeName, ...body }) =>
                         }
                     })
                 }
+                
+                let index = 0;
+                let pointIndex = 0;
+                let stepIndex = 0;
 
-                const combinedArray = body.station.map((stationObj, index) => ({
-                    stationId: stationObj.stationId,
-                    poiId: body.point[index].poiId,
-                }));
-
-                const createRouteDetail = await Promise.all(
-                    combinedArray.map(async (detailObj) => {
-                        const { stationId, poiId } = detailObj;
-                        const poiDetail = await db.RouteDetail.create(
+                const stationDetails = await Promise.all(
+                    body.station.map(async (stationObj) => {
+                        index += 1;
+                        const routeDetail = await db.RouteDetail.create(
                             {
+                                index: index,
                                 routeId: createRoute[0].dataValues.routeId,
-                                stationId: stationId, // Set the stationId from the object
-                                poiId: poiId, // Set the poiId from the object
+                                stationId: stationObj.stationId,
+                                stopoverTime: stationObj.stopoverTime,
                             },
                             { transaction }
                         );
-                        return poiDetail;
+
+                        if (stationObj.step && Array.isArray(stationObj.step)) {
+                            stationObj.step.map(async (stepObj) => {
+                                stepIndex += 1;
+                                await db.Step.create(
+                                    {
+                                        index: stepIndex,
+                                        routeDetailId: routeDetail.dataValues.routeDetailId,
+                                        latitude: stepObj.latitude,
+                                        longitude: stepObj.longitude,
+                                    },
+                                    { transaction }
+                                );
+                            })
+                        }
+
+                        return routeDetail;
+                    })
+                );
+
+                const pointDetails = await Promise.all(
+                    body.point.map(async (pointObj) => {
+                        pointIndex += 1;
+                        const stationDetail = await db.RoutePointDetail.create(
+                            {
+                                index: pointIndex,
+                                routeId: createRoute[0].dataValues.routeId,
+                                poiId: pointObj,
+                            },
+                            { transaction }
+                        );
+                        return stationDetail;
                     })
                 );
 
                 resolve({
-                    status: createRouteDetail[0] ? 200 : 400,
+                    status: pointDetails[0] ? 200 : 400,
                     data: {
-                        msg: createRouteDetail[0]
+                        msg: pointDetails[0]
                             ? "Create new route successfully"
                             : "Cannot create new route",
-                        routeDetail: createRouteDetail[0] ? createRouteDetail[0].dataValues : null,
+                        routeDetail: pointDetails[0] ? createRoute[0].dataValues : null,
                     }
                 });
             })

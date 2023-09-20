@@ -42,7 +42,39 @@ const uploadFile = async (req, res) => {
   });
 };
 
-module.exports =  {uploadFile};
+const pushNotification = (req, res) => {
+  // const { error } = joi
+  //   .object({ title, body, device_token })
+  //   .validate( req.body );
+  // if (error) throw new BadRequestError(error.details[0].message);
+  const message = {
+    notification: {
+      title: req.body.title,
+      body: req.body.content,
+    },
+    token: req.body.device_token,
+  };
+  
+  firebase.admin
+    .messaging()
+    .send(message)
+    .then((response) => {
+      console.log("Successfully sent message:", response);
+      // Handle success
+    })
+    .catch((error) => {
+      if (error.code === 'messaging/invalid-registration-token') {
+        console.error('Invalid registration token:', error.message);
+        // Handle invalid token error
+      } else {
+        console.error('Error sending message:', error);
+        // Handle other errors
+      }
+    });
+};
+
+
+module.exports =  {uploadFile, pushNotification};
 
 
 
@@ -50,28 +82,5 @@ module.exports =  {uploadFile};
 
 
 
-// const pushNotification = (req, res) => {
-//   const { error } = joi
-//     .object({ title, body, device_token })
-//     .validate( req.body );
-//   if (error) throw new BadRequestError(error.details[0].message);
-//   const message = {
-//     notification: {
-//       title: req.body.title,
-//       body: req.body.content,
-//     },
-//     token: req.body.device_token,
-//   };
-
-//   firebase
-//     .messaging()
-//     .send(message)
-//     .then((response) => {
-//       console.log("Successfully sent message:", response);
-//     })
-//     .catch((error) => {
-//       console.log("Error sending message:", error);
-//     });
-// };
 
 
