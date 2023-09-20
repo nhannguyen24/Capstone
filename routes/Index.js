@@ -13,9 +13,9 @@ const point = require('./PointOfInterestRouter')
 const uploadImage = require('./UploadFileRouter')
 const tour = require('./TourRouter');
 const route = require('./RouteRouter');
+const schedule = require('./ScheduleRouter');
+const productCate = require('./ProductCategoryRouter')
 
-// const food = require('./food');
-// const category = require('./category');
 // const step = require('./guild_step');
 // const category_detail = require('./category_detail');
 // const order_detail = require('./order_detail');
@@ -50,8 +50,9 @@ const initRoutes = (app) => {
 
     app.use('/api/v1/firebase', uploadImage);
     app.use('/api/v1/tours', tour);
-    // app.use('/api/v1/foods', food);
-    // app.use('/api/v1/steps', step);
+    app.use('/api/v1/schedules', schedule);
+    app.use('/api/v1/productCates', productCate);
+
     // app.use('/api/v1/categories', category);
     // app.use('/api/v1/categories-detail', category_detail);
     // app.use('/api/v1/order-detail', order_detail);

@@ -39,7 +39,7 @@ const getAllTour = (
                                 queries.order = [['updatedAt', 'DESC']];
                             }
                             if (tourName) query.tourName = { [Op.substring]: tourName };
-                            if (tourStatus) query.status = { [Op.eq]: tourStatus };
+                            if (tourStatus) query.tourStatus = { [Op.eq]: tourStatus };
                             if (status) query.status = { [Op.eq]: status };
                             if (roleName !== "Admin") {
                                 query.status = { [Op.notIn]: ['Deactive'] };
@@ -92,14 +92,23 @@ const getAllTour = (
                                                 "status",
                                             ],
                                         },
+                                    },
+                                    {
+                                        model: db.Ticket,
+                                        as: "tour_ticket",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
                                         include: [
                                             {
-                                                model: db.RouteDetail,
-                                                as: "route_detail",
+                                                model: db.TicketType,
+                                                as: "ticket_type",
                                                 attributes: {
                                                     exclude: [
-                                                        "routeId",
-                                                        "stationId",
                                                         "createdAt",
                                                         "updatedAt",
                                                         "status",
@@ -107,8 +116,8 @@ const getAllTour = (
                                                 },
                                                 include: [
                                                     {
-                                                        model: db.Station,
-                                                        as: "route_detail_station",
+                                                        model: db.Price,
+                                                        as: "ticket_type_price",
                                                         attributes: {
                                                             exclude: [
                                                                 "createdAt",
@@ -118,35 +127,9 @@ const getAllTour = (
                                                         },
                                                     }
                                                 ]
-                                            },
-                                            {
-                                                model: db.RoutePointDetail,
-                                                as: "route_poi_detail",
-                                                attributes: {
-                                                    exclude: [
-                                                        "routeId",
-                                                        "poiId",
-                                                        "createdAt",
-                                                        "updatedAt",
-                                                        "status",
-                                                    ],
-                                                },
-                                                include: [
-                                                    {
-                                                        model: db.PointOfInterest,
-                                                        as: "route_poi_detail_poi",
-                                                        attributes: {
-                                                            exclude: [
-                                                                "createdAt",
-                                                                "updatedAt",
-                                                                "status",
-                                                            ],
-                                                        },
-                                                    }
-                                                ]
-                                            },
+                                            }
                                         ]
-                                    }
+                                    },
                                 ]
                             });
 
@@ -179,7 +162,7 @@ const getTourById = (tourId) =>
                 where: { tourId: tourId },
                 nest: true,
                 attributes: {
-                    exclude: ["createdAt", "updatedAt"],
+                    exclude: ["routeId", "departureStationId", "createdAt", "updatedAt"],
                 },
                 include: [
                     {
@@ -220,60 +203,6 @@ const getTourById = (tourId) =>
                                 "status",
                             ],
                         },
-                        include: [
-                            {
-                                model: db.RouteDetail,
-                                as: "route_detail",
-                                attributes: {
-                                    exclude: [
-                                        "routeId",
-                                        "stationId",
-                                        "createdAt",
-                                        "updatedAt",
-                                        "status",
-                                    ],
-                                },
-                                include: [
-                                    {
-                                        model: db.Station,
-                                        as: "route_detail_station",
-                                        attributes: {
-                                            exclude: [
-                                                "createdAt",
-                                                "updatedAt",
-                                                "status",
-                                            ],
-                                        },
-                                    }
-                                ]
-                            },
-                            {
-                                model: db.RoutePointDetail,
-                                as: "route_poi_detail",
-                                attributes: {
-                                    exclude: [
-                                        "routeId",
-                                        "poiId",
-                                        "createdAt",
-                                        "updatedAt",
-                                        "status",
-                                    ],
-                                },
-                                include: [
-                                    {
-                                        model: db.PointOfInterest,
-                                        as: "route_poi_detail_poi",
-                                        attributes: {
-                                            exclude: [
-                                                "createdAt",
-                                                "updatedAt",
-                                                "status",
-                                            ],
-                                        },
-                                    }
-                                ]
-                            },
-                        ]
                     }
                 ]
             });
@@ -311,22 +240,13 @@ const createTour = ({ images, tourName, ...body }) =>
 
             await Promise.all(createImagePromises);
 
-            const tour = await db.Tour.findOne({
-                where: {
-                    tourId: createTour[0].tourId
-                },
-                attributes: {
-                    exclude: ["createdAt", "updatedAt"],
-                },
-            })
-
             resolve({
                 status: createTour[1] ? 200 : 400,
                 data: {
                     msg: createTour[1]
                         ? "Create new tour successfully"
-                        : "Cannot create new tour/Point name already exists",
-                    tour: createTour[1] ? tour : null,
+                        : "Cannot create new tour/Tour name already exists",
+                    tour: createTour[1] ? createTour[0].dataValues : null,
                 }
             });
             redisClient.keys('*tours_*', (error, keys) => {
@@ -382,7 +302,7 @@ const updateTour = ({ images, tourId, ...body }) =>
                     }
                 });
 
-                const createImagePromises = images.map(async ( image ) => {
+                const createImagePromises = images.map(async (image) => {
                     await db.Image.create({
                         image: image,
                         tourId: tourId,
@@ -437,7 +357,7 @@ const deleteTour = (tourIds) =>
                     resolve({
                         status: 400,
                         data: {
-                            msg: "The tournt of interest already deactive!",
+                            msg: "The tour already deactive!",
                         }
                     });
                 }

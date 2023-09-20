@@ -11,7 +11,6 @@ const getAllTour = async (req, res) => {
     }
 };
 
-
 const getTourById = async (req, res) => {
     try {
         const { id: tourId } = req.params;

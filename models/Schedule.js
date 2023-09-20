@@ -47,7 +47,7 @@ module.exports = (sequelize, DataTypes) => {
     tourId: {
       type: DataTypes.UUID
     },
-    tourguildId: {
+    tourGuildId: {
       type: DataTypes.UUID
     },
     driverId: {
