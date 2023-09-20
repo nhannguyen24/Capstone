@@ -18,6 +18,22 @@ const getBookingsForCustomer = async (req, res) => {
         throw new InternalServerError(error);
     }
 };
+const getBookingsForManager = async (req, res) => {
+    try {
+        const response = await services.getBookingsForManager(req);
+        return res.status(response.status).json(response.data);
+    } catch (error) {
+        throw new InternalServerError(error);
+    }
+};
+const getBookingsByEmail = async (req, res) => {
+    try {
+        const response = await services.getBookingsByEmail(req);
+        return res.status(response.status).json(response.data);
+    } catch (error) {
+        throw new InternalServerError(error);
+    }
+};
 const createBooking = async (req, res) => {
     try {
         const response = await services.createBooking(req);
@@ -44,4 +60,4 @@ const deleteBooking = async (req, res) => {
     }
 }
 
-module.exports = { getBookingDetailByBookingId, getBookingsForCustomer, createBooking, updateBooking, deleteBooking }
+module.exports = { getBookingDetailByBookingId, getBookingsForCustomer, getBookingsForManager, getBookingsByEmail, createBooking, updateBooking, deleteBooking }

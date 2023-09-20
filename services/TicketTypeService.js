@@ -7,12 +7,9 @@ const getAllTicketTypes = (req) => new Promise(async (resolve, reject) => {
         const ticketTypes = await db.TicketType.findAll();
             resolve({
                 status: 200,
-                data: ticketTypes.length > 0 ? {
-                    msg: `Get list of ticket type successfully`,
+                data: {
+                    msg: `Get list of ticket types successfully`,
                     ticketTypes: ticketTypes
-                }:{
-                    msg: `Ticket type not found`,
-                    ticketTypes: []
                 }
             });
         
@@ -30,13 +27,13 @@ const getTicketTypeById = (req) => new Promise(async (resolve, reject) => {
             }
         });
             resolve({
-                status: 200,
+                status: ticketType ? 200 : 404,
                 data: ticketType ? {
                     msg: `Get ticket type successfully`,
                     ticketType: ticketType
                 }:{
                     msg: `Ticket type not found`,
-                    ticketType: []
+                    ticketType: {}
                 }
             });
         
@@ -83,7 +80,7 @@ const updateTicketType = (req) => new Promise(async (resolve, reject) => {
 
         if (!ticketType) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `TicketType not found with id ${ticketTypeId}`,
                 }

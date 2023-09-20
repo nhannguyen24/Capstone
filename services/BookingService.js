@@ -24,9 +24,9 @@ const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject)
 
         if (!booking) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
-                    msg: `Booking not found with ID ${bookingId}`,
+                    msg: `Booking not found with ID: ${bookingId}`,
                     booking: {}
                 }
             });
@@ -39,10 +39,10 @@ const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject)
         });
 
         resolve({
-            status: bookingDetails ? 200 : 400,
+            status: 200 ,
             data: {
-                msg: bookingDetails ? 'Get Booking detail successfully' : 'Booking detail not found',
-                bookingDetails: bookingDetails || [],
+                msg: 'Get Booking detail successfully',
+                bookingDetails: bookingDetails,
             },
         });
     } catch (error) {
@@ -64,9 +64,9 @@ const getBookingsForCustomer = (req) => new Promise(async (resolve, reject) => {
 
             if (!user) {
                 resolve({
-                    status: 400,
+                    status: 404,
                     data: {
-                        msg: `Customer not found with ID ${customerId}`,
+                        msg: `Customer not found with ID: ${customerId}`,
                     }
                 });
             }
@@ -94,13 +94,90 @@ const getBookingsForCustomer = (req) => new Promise(async (resolve, reject) => {
                 msg: `Get Bookings successfully`,
                 bookings: bookings
             } : {
-                msg: `Bookings not found`,
+                msg: `No booking result`,
                 bookings: []
             }
         });
 
     } catch (error) {
-        console.log(error)
+        reject(error);
+    }
+});
+
+const getBookingsForManager = (req) => new Promise(async (resolve, reject) => {
+    try {
+        const bookings = await db.Booking.findAll({
+            order: [
+                ["bookingDate", "DESC"],
+                ["updatedAt", "DESC"],
+            ]
+        });
+
+        resolve({
+            status: 200,
+            data: bookings ? {
+                msg: `Get Bookings successfully`,
+                bookings: bookings
+            } : {
+                msg: `No booking result`,
+                bookings: []
+            }
+        });
+
+    } catch (error) {
+        reject(error);
+    }
+});
+
+const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
+    try {
+        let email = req.query.email
+        let user
+        if (email === undefined || email === null || email.trim().length < 1) {
+            resolve({
+                status: 400,
+                data: {
+                    msg: `Email required`,
+                }
+            })
+        } else {
+            user = await db.User.findOne({
+                where: {
+                    email: email
+                }
+            })
+
+            if (!user) {
+                resolve({
+                    status: 404,
+                    data: {
+                        msg: `Customer not found with email: ${email}`,
+                    }
+                });
+            }
+        }
+
+        const bookings = await db.Booking.findAll({
+            where: {
+                customerId: user.userId
+            },
+            order: [
+                ["bookingDate", "DESC"]
+            ]
+        });
+
+        resolve({
+            status: 200,
+            data: bookings ? {
+                msg: `Get bookings successfully`,
+                bookings: bookings
+            } : {
+                msg: `No booking results`,
+                bookings: []
+            }
+        });
+
+    } catch (error) {
         reject(error);
     }
 });
@@ -132,7 +209,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             })
             if (!ticket) {
                 resolve({
-                    status: 400,
+                    status: 404,
                     data: {
                         msg: `Ticket not found with id ${e.ticketId}`,
                     }
@@ -145,7 +222,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             })
             if (!price) {
                 resolve({
-                    status: 400,
+                    status: 404,
                     data: {
                         msg: `Price not found with id ${e.priceId}`,
                     }
@@ -183,7 +260,7 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
 
         if (!booking) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Booking not found with id ${bookingId}`,
                 }
@@ -239,7 +316,7 @@ const deleteBooking = (req) => new Promise(async (resolve, reject) => {
 
         if (!booking) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Booking not found with id ${bookingId}`,
                 }
@@ -269,4 +346,4 @@ const deleteBooking = (req) => new Promise(async (resolve, reject) => {
 });
 
 
-module.exports = { getBookingDetailByBookingId, getBookingsForCustomer, createBooking, updateBooking, deleteBooking };
+module.exports = { getBookingDetailByBookingId, getBookingsForCustomer, getBookingsForManager, getBookingsByEmail, createBooking, updateBooking, deleteBooking };
