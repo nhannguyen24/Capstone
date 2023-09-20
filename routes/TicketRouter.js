@@ -70,14 +70,14 @@ router.get("/:ticketId", verifyToken, isAdmin, controllers.getTicketById);
  *            schema:
  *              type: object
  *              properties:
- *                  ticketId:
+ *                  ticketTypeId:
  *                      type: string
  *                  tourId:
  *                      type: string
  *            example:
  *              {
- *                  ticketId: d406c07b-7f66-4a90-88d1-8c5cfdd34a42,
- *                  tourId: d406c07b-7f66-4a90-88d1-8c5cfdd34a42,
+ *                  ticketTypeId: d2dfa0b3-6b26-4a68-a093-05ca5f7f9cc6,
+ *                  tourId: 72102f7f-3b83-47ff-b5c7-ea5e75a20c80,
  *              }
  *     responses:
  *       201:

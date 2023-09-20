@@ -1,18 +1,16 @@
 const db = require('../models');
 const { Op } = require('sequelize');
-
+const STATUS = require("../enums/StatusEnum")
+const DAY = require("../enums/PriceDayEnum")
 const getAllPrices = (req) => new Promise(async (resolve, reject) => {
     try {
         const prices = await db.Price.findAll();
 
         resolve({
             status: 200,
-            data: prices.length > 0 ? {
-                msg: `Prices found`,
+            data: {
+                msg: `Get list of the prices successfully`,
                 prices: prices
-            } : {
-                msg: `Prices not found`,
-                prices: []
             }
         });
 
@@ -31,13 +29,13 @@ const getPriceById = (req) => new Promise(async (resolve, reject) => {
         });
 
         resolve({
-            status: 200,
+            status: price ? 200 : 404,
             data: price ? {
                 msg: `Get price successfully`,
                 price: price
             } : {
                 msg: `Price not found`,
-                price: []
+                price: {}
             }
         });
 
@@ -48,7 +46,7 @@ const getPriceById = (req) => new Promise(async (resolve, reject) => {
 
 const createPrice = (req) => new Promise(async (resolve, reject) => {
     try {
-        const ammount = req.body.ammount
+        const amount = req.body.amount
         const ticketTypeId = req.body.ticketTypeId
         const day = req.body.day
 
@@ -60,7 +58,7 @@ const createPrice = (req) => new Promise(async (resolve, reject) => {
 
         if (!ticketType) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `TicketType not found with id ${ticketTypeId}`,
                 }
@@ -72,14 +70,14 @@ const createPrice = (req) => new Promise(async (resolve, reject) => {
                 ticketTypeId: ticketTypeId,
                 day: day
             },
-            defaults: { ticketTypeId: ticketTypeId, ammount: ammount, day: day }
+            defaults: { ticketTypeId: ticketTypeId, amount: amount, day: day }
         });
 
         resolve({
             status: created ? 201 : 400,
             data: {
                 msg: created ? 'Create price successfully' : 'Price already exists',
-                price: price
+                price: created ? price : {}
             }
         });
     } catch (error) {
@@ -99,13 +97,17 @@ const updatePrice = (req) => new Promise(async (resolve, reject) => {
 
         if (!price) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Price not found with id ${priceId}`,
                 }
             })
         }
 
+        var ticketTypeId = req.query.ticketTypeId
+        if (ticketTypeId === undefined || ticketTypeId === null) {
+            ticketTypeId = price.ticketTypeId
+        }
         const ticketType = await db.TicketType.findOne({
             where: {
                 ticketTypeId: ticketTypeId
@@ -114,21 +116,16 @@ const updatePrice = (req) => new Promise(async (resolve, reject) => {
 
         if (!ticketType) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `TicketType not found with id ${ticketTypeId}`,
                 }
             })
         }
 
-        var ammount = req.query.ammount
-        if (ammount === undefined || ammount === null) {
-            ammount = price.ammount
-        }
-
-        var ticketTypeId = req.query.ticketTypeId
-        if (ticketTypeId === undefined || ticketTypeId === null) {
-            ticketTypeId = price.ticketTypeId
+        var amount = req.query.amount
+        if (amount === undefined || amount === null) {
+            amount = price.amount
         }
 
         var day = req.query.day
@@ -137,13 +134,13 @@ const updatePrice = (req) => new Promise(async (resolve, reject) => {
         }
 
         await db.Price.update({
-            ammount: ammount,
+            amount: amount,
             ticketTypeId: ticketType.ticketTypeId,
             day: day
         }, {
             where: {
                 priceId: price.priceId
-            }, transaction: t
+            }, individualHooks: true, transaction: t
         })
 
         await t.commit()
@@ -172,7 +169,7 @@ const deletePrice = (req) => new Promise(async (resolve, reject) => {
 
         if (!price) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Price not found with id ${priceId}`,
                 }
@@ -180,11 +177,11 @@ const deletePrice = (req) => new Promise(async (resolve, reject) => {
         }
 
         await db.Price.update({
-            status: "Deactive"
+            status: STATUS.DEACTIVE
         }, {
             where: {
                 priceId: price.priceId
-            }
+            }, individualHooks: true
         })
 
         resolve({

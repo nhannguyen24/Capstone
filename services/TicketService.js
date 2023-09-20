@@ -1,20 +1,48 @@
 const db = require('../models');
 const { Op } = require('sequelize');
+const STATUS = require("../enums/StatusEnum")
+const TOUR_STATUS = require("../enums/TourStatusEnum")
 
 const getAllTickets = (req) => new Promise(async (resolve, reject) => {
     try {
-        const tickets = await db.Ticket.findAll();
+        const tickets = await db.Ticket.findAll(
+            {
+                include: [
+                    {
+                        model: db.TicketType,
+                        as: "ticket_type",
+                    },
+                ],
+                attributes: {
+                    exclude: ["ticketTypeId", "toudId", "customerId"]
+                }
+            }
+        );
+
+
+        const pricePromises = tickets.map(async (element) => {
+            const prices = await db.Price.findAll({
+                where: {
+                    ticketTypeId: element.ticket_type.ticketTypeId
+                },
+                attributes: {
+                    exclude: ["ticketTypeId"]
+                }
+            })
+            element.dataValues.ticket_type.dataValues.prices = prices
+            return element
+        })
+
+        const ticketsWithPrices = await Promise.all(pricePromises)
+
         resolve({
             status: 200,
-            data: tickets.length > 0 ? {
+            data: {
                 msg: `Get list of tickets successfully`,
-                tickets: tickets
-            } : {
-                msg: `Ticket not found`,
-                tickets: []
+                tickets: ticketsWithPrices
             }
         });
-
+        
     } catch (error) {
         reject(error);
     }
@@ -29,7 +57,7 @@ const getTicketById = (req) => new Promise(async (resolve, reject) => {
             }
         });
         resolve({
-            status: 200,
+            status: ticket ? 200 : 404,
             data: ticket ? {
                 msg: `Get ticket successfully`,
                 ticket: ticket
@@ -48,7 +76,6 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
     try {
         const ticketTypeId = req.body.ticketTypeId
         const tourId = req.body.tourId
-
         const ticketType = await db.TicketType.findOne({
             where: {
                 ticketTypeId: ticketTypeId
@@ -56,13 +83,13 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
         })
         if (!ticketType) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Ticket type not found with id ${ticketTypeId}`,
                 }
             })
         } else {
-            if ("Deactive" == ticketType.status) {
+            if (STATUS.DEACTIVE == ticketType.status) {
                 resolve({
                     status: 409,
                     data: {
@@ -77,19 +104,19 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
                 tourId: tourId
             }
         })
-        if (!tourId) {
+        if (!tour) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Tour not found with id ${tourId}`,
                 }
             })
         } else {
-            if ("NotStarted" != tour.tourStatus || "Deactive" == tour.status) {
+            if (TOUR_STATUS.NOT_STARTED !== tour.tourStatus || STATUS.DEACTIVE === tour.status) {
                 resolve({
                     status: 409,
                     data: {
-                        msg: `Tour is already started or "Deactive"`,
+                        msg: `Tour is already started or Deactive`,
                     }
                 })
             }
@@ -107,7 +134,7 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
             status: created ? 201 : 400,
             data: {
                 msg: created ? `Create ticket successfully for tour: ${tourId}` : `Ticket already exists in tour: ${tourId}`,
-                ticket: ticket
+                ticket: created ? ticket : {}
             }
         });
     } catch (error) {
@@ -127,7 +154,7 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
 
         if (!ticket) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Ticket not found with id ${ticketId}`,
                 }
@@ -147,13 +174,13 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
 
         if (!ticketType) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Ticket type not found with id ${ticketTypeId}`,
                 }
             })
         } else {
-            if ("Deactive" == ticketType.status) {
+            if (STATUS.DEACTIVE == ticketType.status) {
                 resolve({
                     status: 409,
                     data: {
@@ -165,7 +192,7 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
 
         var tourId = req.query.tourId
         if (tourId === undefined || tourId === null) {
-            tourId = ticketType.tourId
+            tourId = ticket.tourId
         }
 
         const tour = await db.Tour.findOne({
@@ -175,13 +202,13 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
         })
         if (!tourId) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Tour not found with id ${tourId}`,
                 }
             })
         } else {
-            if ("NotStarted" != tour.tourStatus || "Deactive" == tour.status) {
+            if (TOUR_STATUS.NOT_STARTED != tour.tourStatus || STATUS.DEACTIVE == tour.status) {
                 resolve({
                     status: 409,
                     data: {
@@ -196,19 +223,20 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
             status = ticketType.status
         }
 
-        if ("Deactive" == status) {
+        if (STATUS.DEACTIVE == status) {
             const tickets = await db.Ticket.findAll({
                 where: {
                     tourId: tourId
                 }
             })
 
-            const activeTickets = tickets.filter((ticket) => ticket.status === "Active")
-            if (activeTickets.length() < 2) {
+            const activeTickets = tickets.filter((ticket) => ticket.status === STATUS.ACTIVE)
+            if (activeTickets.length < 2) {
                 resolve({
-                    status: 400,
+                    status: 409,
                     data: {
-                        msg: `Cannot update ticket status to "Deactive" because tour need to has atleast 1 available ticket`,
+                        msg: `Cannot update ticket status to "Deactive" because tour ${tour.tourId} need to has atleast 1 available ticket`,
+
                     }
                 })
             }
@@ -222,7 +250,7 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
         }, {
             where: {
                 ticketId: ticket.ticketId
-            }, transaction: t
+            }, individualHooks: true, transaction: t
         })
 
         await t.commit()
@@ -248,9 +276,9 @@ const deleteTicket = (req) => new Promise(async (resolve, reject) => {
                 ticketId: ticketId
             }
         })
-        if(!ticket){
+        if (!ticket) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `Ticket not found with id ${ticketId}`,
                 }
@@ -263,22 +291,23 @@ const deleteTicket = (req) => new Promise(async (resolve, reject) => {
             }
         })
 
-        const activeTickets = tickets.filter((ticket) => ticket.status === "Active")
-        if (activeTickets.length() < 2) {
+        const activeTickets = tickets.filter((ticket) => ticket.status === STATUS.ACTIVE)
+        if (activeTickets.length < 2) {
             resolve({
-                status: 400,
+                status: 409,
                 data: {
-                    msg: `Cannot delete ticket because tour need to has atleast 1 available ticket`,
+                    msg: `Cannot delete ticket because tour ${tour.tourId} need to has atleast 1 available ticket`,
                 }
             })
         }
 
         await db.Ticket.update({
-            status: "Deactive"
+            status: STATUS.DEACTIVE
         }, {
             where: {
                 ticketId: ticket.ticketId
-            }
+            },
+            individualHooks: true
         })
 
     } catch (error) {

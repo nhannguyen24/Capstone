@@ -168,7 +168,7 @@ router.put("/:busId", verifyToken, isAdminOrManager, controllers.updateBus);
  *   delete:
  *     security: 
  *         - BearerAuth: []
- *     summary: Update bus status by id
+ *     summary: Delete bus by id
  *     tags: [Bus]
  *     parameters:
  *       - in: path

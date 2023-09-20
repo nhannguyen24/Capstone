@@ -1,17 +1,15 @@
 const db = require('../models');
 const { Op } = require('sequelize');
+const STATUS = require("../enums/StatusEnum")
 
 const getAllTicketTypes = (req) => new Promise(async (resolve, reject) => {
     try {
         const ticketTypes = await db.TicketType.findAll();
             resolve({
                 status: 200,
-                data: ticketTypes.length > 0 ? {
-                    msg: `Get list of ticket type successfully`,
+                data: {
+                    msg: `Get list of ticket types successfully`,
                     ticketTypes: ticketTypes
-                }:{
-                    msg: `Ticket type not found`,
-                    ticketTypes: []
                 }
             });
         
@@ -29,13 +27,13 @@ const getTicketTypeById = (req) => new Promise(async (resolve, reject) => {
             }
         });
             resolve({
-                status: 200,
+                status: ticketType ? 200 : 404,
                 data: ticketType ? {
                     msg: `Get ticket type successfully`,
                     ticketType: ticketType
                 }:{
                     msg: `Ticket type not found`,
-                    ticketType: []
+                    ticketType: {}
                 }
             });
         
@@ -82,7 +80,7 @@ const updateTicketType = (req) => new Promise(async (resolve, reject) => {
 
         if (!ticketType) {
             resolve({
-                status: 400,
+                status: 404,
                 data: {
                     msg: `TicketType not found with id ${ticketTypeId}`,
                 }
@@ -121,7 +119,7 @@ const updateTicketType = (req) => new Promise(async (resolve, reject) => {
         }, {
             where: {
                 ticketTypeId: ticketType.ticketTypeId
-            }, transaction: t
+            }, individualHooks: true, transaction: t
         })
 
         await t.commit()
@@ -138,46 +136,5 @@ const updateTicketType = (req) => new Promise(async (resolve, reject) => {
         reject(error);
     }
 });
-
-// const deleteTicketType = (req) => new Promise(async (resolve, reject) => {
-//     try {
-//         const priceId = req.params.priceId
-//         const status = req.query.status
-//         const price = await db.Price.findOne({
-//             where: {
-//                 priceId: priceId
-//             }
-//         })
-
-//         if (!price) {
-//             resolve({
-//                 status: 400,
-//                 data: {
-//                     msg: `Price not found with id ${priceId}`,
-//                 }
-//             })
-//         }
-
-//         await db.Price.update({
-//             status: status
-//         }, {
-//             where: {
-//                 priceId: price.priceId
-//             }
-//         })
-
-//         resolve({
-//             status: 200,
-//             data: {
-//                 msg: "Update bus status successfully",
-//             }
-//         })
-
-
-//     } catch (error) {
-//         reject(error);
-//     }
-// });
-
 
 module.exports = { getAllTicketTypes, getTicketTypeById, createTicketType, updateTicketType };
