@@ -211,7 +211,6 @@ const createSchedule = ({ date, startTime, endTime, ...body }) =>
             const createSchedule = await db.Schedule.findOrCreate({
                 where: {
                     [Op.and]: {
-                        date: date,
                         startTime: startTime,
                         endTime: endTime
                     },

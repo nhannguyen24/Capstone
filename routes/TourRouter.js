@@ -149,12 +149,10 @@ router.get("/:id", verifyToken, controllers.getTourById);
  *                  example:
  *                    tourName: Chuyến đi tham quan buổi sáng
  *                    description: Một chuyến đi tuyệt vời
- *                    beginBookingDate: 2023-09-18 
- *                    endBookingDate: 2023-09-20  
- *                    departureDate: 2003-03-21 
- *                    departureTime: 09:00:00
- *                    endTime: 12:00:00
- *                    departureStationId: 8c382e13-8620-460a-bd95-96b1152c1368
+ *                    beginBookingDate: 2023-09-21T00:00:00Z
+ *                    endBookingDate: 2023-09-22T00:00:00Z
+ *                    departureDate: 2023-09-23T09:00:00Z
+ *                    endDate: 2023-09-23T12:00:00Z
  *                    routeId: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    images:
  *                          - string
@@ -187,12 +185,10 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createTour);
  *                    tourId: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    tourName: Chuyến đi tham quan buổi sáng
  *                    description: Một chuyến đi tuyệt vời
- *                    beginBookingDate: 2023-09-18 
- *                    endBookingDate: 2023-09-20  
- *                    departureDate: 2003-03-21 
- *                    departureTime: 09:00:00
- *                    endTime: 12:00:00
- *                    departureStationId: 8c382e13-8620-460a-bd95-96b1152c1368
+ *                    beginBookingDate: 2023-09-21T00:00:00Z
+ *                    endBookingDate: 2023-09-22T00:00:00Z
+ *                    departureDate: 2023-09-23T09:00:00Z
+ *                    endDate: 2023-09-23T12:00:00Z
  *                    routeId: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    tourStatus: Ontour
  *                    status: Active

@@ -147,9 +147,8 @@ router.get("/:id", verifyToken, controllers.getScheduleById);
  *          application/json:
  *            schema:                     
  *                  example:
- *                    date: 2023-09-18 
- *                    startTime: 09:00:00
- *                    endTime: 12:00:00
+ *                    startTime: 2023-09-21T09:00:00Z
+ *                    endTime: 2023-09-21T12:00:00Z
  *                    tourId: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    busId: 8c382e13-8620-460a-bd95-96b1152c1368 
  *                    tourGuildId: 8c382e13-8620-460a-bd95-96b1152c1368
@@ -180,9 +179,8 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createSchedule);
  *            schema:                     
  *                  example:
  *                    scheduleId: 8c382e13-8620-460a-bd95-96b1152c1368
- *                    date: 2023-09-18 
- *                    startTime: 09:00:00
- *                    endTime: 12:00:00
+ *                    startTime: 2023-09-23T09:00:00Z
+ *                    endTime: 2023-09-23T12:00:00Z
  *                    tourId: 8c382e13-8620-460a-bd95-96b1152c1368 
  *                    busId: 8c382e13-8620-460a-bd95-96b1152c1368 
  *                    tourGuildId: 8c382e13-8620-460a-bd95-96b1152c1368

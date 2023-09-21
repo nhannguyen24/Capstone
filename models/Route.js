@@ -35,7 +35,7 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
     },
     routeName: DataTypes.STRING,
-    distance: DataTypes.DECIMAL(4,2),
+    distance: DataTypes.FLOAT,
     status: {
       type: DataTypes.ENUM,
       values: ["Active", "Deactive"],

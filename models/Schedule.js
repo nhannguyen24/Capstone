@@ -38,9 +38,8 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    date: DataTypes.DATEONLY,
-    startTime: DataTypes.TIME,
-    endTime: DataTypes.TIME,
+    startTime: DataTypes.DATE,
+    endTime: DataTypes.DATE,
     busId: {
       type: DataTypes.UUID
     },
