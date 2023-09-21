@@ -1,5 +1,5 @@
 const db = require('../models');
-const { Op, DATE } = require('sequelize');
+const { Op } = require('sequelize');
 const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
 const DAY_ENUM = require("../enums/PriceDayEnum")
