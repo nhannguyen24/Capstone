@@ -19,23 +19,19 @@ module.exports = {
         type: Sequelize.STRING,
       },
       beginBookingDate: {
-        type: Sequelize.DATEONLY,
+        type: Sequelize.DATE,
         allowNull: false,
       },
       endBookingDate: {
-        type: Sequelize.DATEONLY,
+        type: Sequelize.DATE,
         allowNull: false,
       },
       departureDate: {
-        type: Sequelize.DATEONLY,
+        type: Sequelize.DATE,
         allowNull: false,
       },
-      departureTime: {
-        type: Sequelize.TIME,
-        allowNull: false,
-      },
-      endTime: {
-        type: Sequelize.TIME,
+      endDate: {
+        type: Sequelize.DATE,
         allowNull: false,
       },
       routeId: {

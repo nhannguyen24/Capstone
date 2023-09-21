@@ -7,8 +7,7 @@ module.exports = {
         "database": process.env.DB_DATABASE,
         "host": process.env.DB_HOST,
         "dialect": "mysql",
-        "logging": false,
-        "timezone": "+07:00"
+        "logging": false
     },
     "test": {
         "username": process.env.DB_USERNAME,
@@ -16,8 +15,7 @@ module.exports = {
         "database": process.env.DB_DATABASE,
         "host": process.env.DB_HOST,
         "dialect": "mysql",
-        "logging": false,
-        "timezone": "+07:00"
+        "logging": false
     },
     "production": {
         "username": process.env.DB_USERNAME,
@@ -25,7 +23,6 @@ module.exports = {
         "database": process.env.DB_DATABASE,
         "host": process.env.DB_HOST,
         "dialect": "mysql",
-        "logging": false,
-        "timezone": "+07:00"
+        "logging": false
     }
 };
