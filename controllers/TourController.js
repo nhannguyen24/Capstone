@@ -27,7 +27,7 @@ const getTourById = async (req, res) => {
 
 const createTour = async (req, res) => {
     try {
-        const {tourName} = req.body;
+        const {tourName} = req.body.tourName;
         if(!tourName) {
             throw new BadRequestError('Please provide tourName');
         }
