@@ -14,6 +14,7 @@ const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject)
                     booking: {}
                 }
             });
+            return
         }
 
         const booking = await db.Booking.findOne({
@@ -30,6 +31,7 @@ const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject)
                     booking: {}
                 }
             });
+            return
         }
 
         const bookingDetails = await db.BookingDetail.findAll({
@@ -69,6 +71,7 @@ const getBookingsForCustomer = (req) => new Promise(async (resolve, reject) => {
                         msg: `Customer not found with ID: ${customerId}`,
                     }
                 });
+                return
             }
         }
         let bookingCode = req.query.bookingCode
@@ -140,6 +143,7 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
                     msg: `Email required`,
                 }
             })
+            return
         } else {
             user = await db.User.findOne({
                 where: {
@@ -154,6 +158,7 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
                         msg: `Customer not found with email: ${email}`,
                     }
                 });
+                return
             }
         }
 
@@ -214,6 +219,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                         msg: `Ticket not found with id ${e.ticketId}`,
                     }
                 })
+                return
             }
             const price = await db.Price.findOne({
                 where: {
@@ -227,6 +233,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                         msg: `Price not found with id ${e.priceId}`,
                     }
                 })
+                return
             }
             const bookingDetail = {TicketPrice: price.amount, bookingId: booking.bookingId, ticketId: ticket.ticketId}
 
@@ -265,6 +272,7 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                     msg: `Booking not found with id ${bookingId}`,
                 }
             })
+            return
         }
 
         var bookingStatus = req.query.bookingStatus
@@ -321,6 +329,7 @@ const deleteBooking = (req) => new Promise(async (resolve, reject) => {
                     msg: `Booking not found with id ${bookingId}`,
                 }
             })
+            return
         }
 
         await db.Booking.update({

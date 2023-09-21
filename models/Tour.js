@@ -56,11 +56,10 @@ module.exports = (sequelize, DataTypes) => {
     tourName: DataTypes.STRING,
     description: DataTypes.STRING,
     note: DataTypes.STRING,
-    beginBookingDate: DataTypes.DATEONLY,
-    endBookingDate: DataTypes.DATEONLY,
-    departureDate: DataTypes.DATEONLY,
-    departureTime: DataTypes.TIME,
-    endTime: DataTypes.TIME,
+    beginBookingDate: DataTypes.DATE,
+    endBookingDate: DataTypes.DATE,
+    departureDate: DataTypes.DATE,
+    endDate: DataTypes.DATE,
     routeId: {
       type: DataTypes.UUID
     },

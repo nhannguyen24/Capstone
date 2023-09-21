@@ -25,15 +25,30 @@ const getAllTickets = (req) => new Promise(async (resolve, reject) => {
         );
 
         for (const e of tickets) {
-            const prices = await db.Price.findAll({
+            let day = DAY_ENUM.NORMAL
+
+            const tourDepartureDate = new Date(e.ticket_tour.departureDate)
+            const dayOfWeek = tourDepartureDate.getDay()
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                day = DAY_ENUM.WEEKEND
+            }
+            const date = tourDepartureDate.getDate()
+            const month = tourDepartureDate.getMonth()
+            const dateMonth = `${date}-${month}`
+            if (dateMonth.includes(SPECIAL_DAY)) {
+                day = DAY_ENUM.HOLIDAY
+            }
+
+            const price = await db.Price.findOne({
                 where: {
                     ticketTypeId: e.ticket_type.ticketTypeId,
+                    day: day
                 },
                 attributes: {
                     exclude: ["ticketTypeId"]
                 }
             })
-            e.dataValues.ticket_type.dataValues.prices = prices
+            e.dataValues.ticket_type.dataValues.price = price
         }
 
         resolve({
@@ -70,16 +85,29 @@ const getTicketById = (req) => new Promise(async (resolve, reject) => {
                 exclude: ["ticketTypeId", "tourId", "customerId"]
             }
         });
+        let day = DAY_ENUM.NORMAL
 
-        const prices = await db.Price.findAll({
+        const tourDepartureDate = new Date(ticket.ticket_tour.departureDate)
+        const dayOfWeek = tourDepartureDate.getDay()
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            day = DAY_ENUM.WEEKEND
+        }
+        const date = tourDepartureDate.getDate()
+        const month = tourDepartureDate.getMonth()
+        const dateMonth = `${date}-${month}`
+        if (dateMonth.includes(SPECIAL_DAY)) {
+            day = DAY_ENUM.HOLIDAY
+        }
+        const price = await db.Price.findOne({
             where: {
                 ticketTypeId: ticket.ticket_type.ticketTypeId,
+                day: day
             },
             attributes: {
                 exclude: ["ticketTypeId"]
             }
         })
-        ticket.dataValues.ticket_type.dataValues.prices = prices
+        ticket.dataValues.ticket_type.dataValues.price = price
 
         resolve({
             status: ticket ? 200 : 404,
@@ -114,6 +142,7 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
                     msg: `Tour not found with id ${tourId}`,
                 }
             })
+            return
         } else {
             if (TOUR_STATUS.NOT_STARTED !== tour.tourStatus || STATUS.DEACTIVE === tour.status) {
                 resolve({
@@ -122,6 +151,7 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
                         msg: `Tour is already started or Deactive`,
                     }
                 })
+                return
             }
         }
 
@@ -137,6 +167,7 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
                     msg: `Ticket type not found with id ${ticketTypeId}`,
                 }
             })
+            return
         }
         if (STATUS.DEACTIVE == ticketType.status) {
             resolve({
@@ -145,6 +176,7 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
                     msg: `Ticket type is "Deactive"`,
                 }
             })
+            return
         }
         let day = DAY_ENUM.NORMAL
 
@@ -160,19 +192,20 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
             day = DAY_ENUM.HOLIDAY
         }
 
-        const prices = await db.Price.findOne({
+        const price = await db.Price.findOne({
             where: {
                 ticketTypeId: ticketType.ticketTypeId,
                 day: day,
             }
         })
-        if (!prices) {
+        if (!price) {
             resolve({
                 status: 409,
                 data: {
                     msg: `Ticket type doesn't have a price for day: ${tour.departureDate}(${day})`,
                 }
             })
+            return
         } else {
             const [ticket, created] = await db.Ticket.findOrCreate({
                 where: {
@@ -198,11 +231,12 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
     const t = await db.sequelize.transaction();
     try {
         const ticketId = req.params.ticketId
+        var ticketTypeId = req.query.ticketTypeId
         const ticket = await db.Ticket.findOne({
             where: {
                 ticketId: ticketId
-            }
-        })
+            },
+        });
 
         if (!ticket) {
             resolve({
@@ -211,39 +245,11 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
                     msg: `Ticket not found with id ${ticketId}`,
                 }
             })
-        }
-
-        var ticketTypeId = req.query.ticketTypeId
-        if (ticketTypeId === undefined || ticketTypeId === null) {
-            ticketTypeId = ticket.ticketTypeId
-        }
-
-        const ticketType = await db.TicketType.findOne({
-            where: {
-                ticketTypeId: ticketTypeId
-            }
-        })
-
-        if (!ticketType) {
-            resolve({
-                status: 404,
-                data: {
-                    msg: `Ticket type not found with id ${ticketTypeId}`,
-                }
-            })
-        } else {
-            if (STATUS.DEACTIVE == ticketType.status) {
-                resolve({
-                    status: 409,
-                    data: {
-                        msg: `Ticket type is "Deactive"`,
-                    }
-                })
-            }
+            return
         }
 
         var tourId = req.query.tourId
-        if (tourId === undefined || tourId === null) {
+        if (tourId === undefined || tourId === null || tourId.trim().length < 1) {
             tourId = ticket.tourId
         }
 
@@ -259,6 +265,7 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
                     msg: `Tour not found with id ${tourId}`,
                 }
             })
+            return
         } else {
             if (TOUR_STATUS.NOT_STARTED != tour.tourStatus || STATUS.DEACTIVE == tour.status) {
                 resolve({
@@ -267,6 +274,83 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
                         msg: `Tour is already started or "Deactive"`,
                     }
                 })
+                return
+            }
+        }
+
+        if (ticketTypeId === undefined || ticketTypeId === null || ticketTypeId.trim().length < 1) {
+            ticketTypeId = ticket.ticketTypeId
+        }
+        const ticketType = await db.TicketType.findOne({
+            where: {
+                ticketTypeId: ticketTypeId
+            }
+        })
+
+        if (!ticketType) {
+            resolve({
+                status: 404,
+                data: {
+                    msg: `Ticket type not found with id ${ticketTypeId}`,
+                }
+            })
+            return
+        } else {
+            if (STATUS.DEACTIVE == ticketType.status) {
+                resolve({
+                    status: 409,
+                    data: {
+                        msg: `Ticket type is "Deactive"`,
+                    }
+                })
+                return
+            } else {
+                let day = DAY_ENUM.NORMAL
+
+                const tourDepartureDate = new Date(tour.departureDate)
+                const dayOfWeek = tourDepartureDate.getDay()
+                if (dayOfWeek === 0 || dayOfWeek === 6) {
+                    day = DAY_ENUM.WEEKEND
+                }
+                const date = tourDepartureDate.getDate()
+                const month = tourDepartureDate.getMonth()
+                const dateMonth = `${date}-${month}`
+                if (dateMonth.includes(SPECIAL_DAY)) {
+                    day = DAY_ENUM.HOLIDAY
+                }
+
+                const price = await db.Price.findOne({
+                    where: {
+                        ticketTypeId: ticketTypeId,
+                        day: day,
+                    }
+                })
+                if (!price) {
+                    resolve({
+                        status: 409,
+                        data: {
+                            msg: `Ticket type doesn't have a price for day: ${tour.departureDate}(${day})`,
+                        }
+                    })
+                    return
+                } else {
+                    //Check for duplicate ticket in the same tour with the inputted ticketTypeId
+                    const dupTicket = await db.Ticket.findOne({
+                        where: {
+                            tourId: tourId,
+                            ticketTypeId: ticketTypeId
+                        }
+                    })
+                    if (dupTicket) {
+                        resolve({
+                            status: 400,
+                            data: {
+                                msg: `Ticket already exists with ticketTypeId: ${ticketTypeId} within tour: ${tourId}`,
+                            }
+                        })
+                        return
+                    }
+                }
             }
         }
 
@@ -291,6 +375,7 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
 
                     }
                 })
+                return
             }
         }
 
@@ -335,6 +420,7 @@ const deleteTicket = (req) => new Promise(async (resolve, reject) => {
                     msg: `Ticket not found with id ${ticketId}`,
                 }
             })
+            return
         }
 
         const tickets = await db.Ticket.findAll({
@@ -351,6 +437,7 @@ const deleteTicket = (req) => new Promise(async (resolve, reject) => {
                     msg: `Cannot delete ticket because tour ${tour.tourId} need to has atleast 1 available ticket`,
                 }
             })
+            return
         }
 
         await db.Ticket.update({
@@ -360,6 +447,13 @@ const deleteTicket = (req) => new Promise(async (resolve, reject) => {
                 ticketId: ticket.ticketId
             },
             individualHooks: true
+        })
+
+        resolve({
+            status: 200,
+            data: {
+                msg: "Delete ticket successfully",
+            }
         })
 
     } catch (error) {

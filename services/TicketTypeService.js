@@ -82,7 +82,7 @@ const updateTicketType = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `TicketType not found with id ${ticketTypeId}`,
+                    msg: `TicketType not found with id "${ticketTypeId}"`,
                 }
             })
         }
@@ -106,6 +106,7 @@ const updateTicketType = (req) => new Promise(async (resolve, reject) => {
                         msg: `Ticket type name already exists`,
                     }
                 })
+                return
             }
 
         var description = req.query.description
