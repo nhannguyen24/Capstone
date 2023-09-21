@@ -310,7 +310,24 @@ const updateTour = ({ images, tourId, ...body }) =>
                     }
                 });
             } else {
-                const tours = await db.Tour.update(body, {
+                const station = await db.Route.findOne({
+                    raw: true,
+                    nest: true,
+                    where: {
+                        routeId: body.routeId
+                    },
+                    include: [
+                        {
+                            model: db.RouteDetail,
+                            as: "route_detail",
+                            where: {
+                                index: 1
+                            }
+                        },
+                    ]
+                });
+
+                const tours = await db.Tour.update({departureStationId: station.route_detail.stationId, ...body}, {
                     where: { tourId },
                     individualHooks: true,
                 });
