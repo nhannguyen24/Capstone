@@ -137,7 +137,7 @@ router.get("/email", controllers.getBookingsByEmail);
  *             schema:
  *               type: string
  */
-router.post("/", verifyToken,  isAdminOrManager, controllers.getBookingsForCustomer);
+router.post("/", verifyToken, isAdminOrManager, controllers.getBookingsForCustomer);
 
 /**
  * @swagger
