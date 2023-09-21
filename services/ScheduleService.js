@@ -205,19 +205,17 @@ const getScheduleById = (scheduleId) =>
         }
     });
 
-const createSchedule = ({ date, startTime, endTime, ...body }) =>
+const createSchedule = ({ startTime, endTime, ...body }) =>
     new Promise(async (resolve, reject) => {
         try {
             const createSchedule = await db.Schedule.findOrCreate({
                 where: {
                     [Op.and]: {
-                        date: date,
                         startTime: startTime,
                         endTime: endTime
                     },
                 },
                 defaults: {
-                    date: date,
                     startTime: startTime,
                     endTime: endTime,
                     ...body,

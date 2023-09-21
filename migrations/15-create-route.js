@@ -13,7 +13,7 @@ module.exports = {
 	      allowNull: false,
       },
       distance: {
-        type: Sequelize.DECIMAL(4,2),
+        type: Sequelize.FLOAT,
 	      allowNull: false,
       },
       status: {
