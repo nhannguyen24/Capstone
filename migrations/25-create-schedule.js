@@ -9,7 +9,15 @@ module.exports = {
         primaryKey: true,
       },
       date: {
-        type: Sequelize.DATE,
+        type: Sequelize.DATEONLY,
+        allowNull: false,
+      },
+      startTime: {
+        type: Sequelize.TIME,
+        allowNull: false,
+      },
+      endTime: {
+        type: Sequelize.TIME,
         allowNull: false,
       },
       busId: {
@@ -26,7 +34,7 @@ module.exports = {
           key: 'tourId'
         }
       },
-      tourguildId: {
+      tourGuildId: {
         type: Sequelize.UUID,
         references: {
           model: 'users',

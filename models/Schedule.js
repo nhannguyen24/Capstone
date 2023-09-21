@@ -38,14 +38,16 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    date: DataTypes.DATE,
+    date: DataTypes.DATEONLY,
+    startTime: DataTypes.TIME,
+    endTime: DataTypes.TIME,
     busId: {
       type: DataTypes.UUID
     },
     tourId: {
       type: DataTypes.UUID
     },
-    tourguildId: {
+    tourGuildId: {
       type: DataTypes.UUID
     },
     driverId: {

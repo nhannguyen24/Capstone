@@ -134,22 +134,13 @@ const createPointOfInterest = ({ images, poiName, ...body }) =>
 
             await Promise.all(createImagePromises);
 
-            const poi = await db.PointOfInterest.findOne({
-                where: {
-                    poiId: createPointOfInterest[0].poiId
-                },
-                attributes: {
-                    exclude: ["createdAt", "updatedAt"],
-                },
-            })
-
             resolve({
                 status: createPointOfInterest[1] ? 200 : 400,
                 data: {
                     msg: createPointOfInterest[1]
                         ? "Create new poi successfully"
                         : "Cannot create new poi/Point name already exists",
-                    poi: createPointOfInterest[1] ? poi : null,
+                    poi: createPointOfInterest[1] ? createPointOfInterest[0].dataValues : null,
                 }
             });
             redisClient.keys('*pois_*', (error, keys) => {

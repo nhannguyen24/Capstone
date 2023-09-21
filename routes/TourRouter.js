@@ -22,19 +22,19 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *           type: string
  *           description: The tour description
  *         beginBookingDate:
- *           type: date
+ *           type: string
  *           description: The tour begin booking date
  *         endBookingDate:
- *           type: date
+ *           type: string
  *           description: The tour end booking date
  *         departureDate:
- *           type: date
+ *           type: string
  *           description: The tour departure date
  *         departureTime:
- *           type: date
+ *           type: string
  *           description: The tour departure time
  *         endTime:
- *           type: date
+ *           type: string
  *           description: The tour end time
  *         departureStationId:
  *           type: string

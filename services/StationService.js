@@ -107,24 +107,13 @@ const createStation = ({ stationName, ...body }) =>
                 },
             });
 
-            const station = await db.Station.findOne({
-                where: {
-                    stationId: createStation[0].stationId
-                },
-                attributes: {
-                    exclude: ["createdAt", "updatedAt"],
-                },
-            })
-
-            // console.log(createStation[0].dataValues.stationId);
-
             resolve({
                 status: createStation[1] ? 200 : 400,
                 data: {
                     msg: createStation[1]
                         ? "Create new station successfully"
                         : "Cannot create new station/Station name already exists",
-                    station: createStation[1] ? station : null,
+                    station: createStation[1] ? createStation[0].dataValues : null,
                 }
             });
             redisClient.keys('*stations_*', (error, keys) => {

@@ -16,12 +16,20 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
       },
+      isAllow: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: 1,
+      },
       userId: {
         type: Sequelize.UUID,
         references: {
           model: 'users',
           key: 'userId'
         }
+      },
+      type: {
+        type: Sequelize.ENUM,
+        values: ["ChangePassword", "GetBookingByEmail", "BookingTour"],
       },
       status: {
         type: Sequelize.ENUM,

@@ -19,30 +19,30 @@ module.exports = (sequelize, DataTypes) => {
 
       User.hasMany(models.Otp, { as: 'user_otp', foreignKey: 'userId'});
 
-      User.belongsToMany(models.Bus, {
-        through: 'Schedule',
-        foreignKey: 'userId',
-        otherKey: 'busId',
-        as: "user_bus",
-      });
-      User.belongsToMany(models.Tour, {
-        through: 'Schedule',
-        foreignKey: 'userId',
-        otherKey: 'tourId',
-        as: "user_tour",
-      });
-      User.belongsToMany(models.User, {
-        through: 'Schedule',
-        foreignKey: 'userId',
-        otherKey: 'tourguildId',
-        as: "tourguild_driver",
-      });
-      User.belongsToMany(models.User, {
-        through: 'Schedule',
-        foreignKey: 'userId',
-        otherKey: 'driverId',
-        as: "driver_tourguild",
-      });
+      // User.belongsToMany(models.Bus, {
+      //   through: 'Schedule',
+      //   foreignKey: 'userId',
+      //   otherKey: 'busId',
+      //   as: "user_bus",
+      // });
+      // User.belongsToMany(models.Tour, {
+      //   through: 'Schedule',
+      //   foreignKey: 'userId',
+      //   otherKey: 'tourId',
+      //   as: "user_tour",
+      // });
+      // User.belongsToMany(models.User, {
+      //   through: 'Schedule',
+      //   foreignKey: 'userId',
+      //   otherKey: 'tourguildId',
+      //   as: "tourguild_driver",
+      // });
+      // User.belongsToMany(models.User, {
+      //   through: 'Schedule',
+      //   foreignKey: 'userId',
+      //   otherKey: 'driverId',
+      //   as: "driver_tourguild",
+      // });
     }
   }
   User.init({
