@@ -60,9 +60,10 @@ const createPrice = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `TicketType not found with id ${ticketTypeId}`,
+                    msg: `TicketType not found with id "${ticketTypeId}"`,
                 }
             })
+            return
         }
 
         const [price, created] = await db.Price.findOrCreate({
@@ -99,15 +100,16 @@ const updatePrice = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `Price not found with id ${priceId}`,
+                    msg: `Price not found with id "${priceId}"`,
                 }
             })
+            return
         }
 
         var ticketTypeId = req.query.ticketTypeId
-        if (ticketTypeId === undefined || ticketTypeId === null) {
+        if (ticketTypeId === undefined || ticketTypeId === null || ticketTypeId.trim().length < 1) {
             ticketTypeId = price.ticketTypeId
-        }
+        } 
         const ticketType = await db.TicketType.findOne({
             where: {
                 ticketTypeId: ticketTypeId
@@ -118,9 +120,10 @@ const updatePrice = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `TicketType not found with id ${ticketTypeId}`,
+                    msg: `TicketType not found with id "${ticketTypeId}"`,
                 }
             })
+            return
         }
 
         var amount = req.query.amount
@@ -171,9 +174,10 @@ const deletePrice = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `Price not found with id ${priceId}`,
+                    msg: `Price not found with id "${priceId}"`,
                 }
             })
+            return
         }
 
         await db.Price.update({

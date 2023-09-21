@@ -144,6 +144,7 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
                     msg: `Bus not found with id ${busId}`,
                 }
             })
+            return
         }
 
         var busPlate = req.query.busPlate
@@ -187,6 +188,7 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
                             tour: tour
                         }
                     })
+                    return
                 }
             }
         }
@@ -237,6 +239,7 @@ const deleteBus = (req) => new Promise(async (resolve, reject) => {
                     msg: `Bus not found with id ${busId}`,
                 }
             })
+            return
         }
 
         const schedule = await db.Schedule.findOne({
@@ -262,6 +265,7 @@ const deleteBus = (req) => new Promise(async (resolve, reject) => {
                         tour: tour
                     }
                 })
+                return
             }
         }
 
