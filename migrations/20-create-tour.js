@@ -30,10 +30,6 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
       },
-      endDate: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
       routeId: {
         type: Sequelize.UUID,
         references: {
