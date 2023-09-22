@@ -154,7 +154,7 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
                 return
             }
         }
-
+//
         const ticketType = await db.TicketType.findOne({
             where: {
                 ticketTypeId: ticketTypeId
