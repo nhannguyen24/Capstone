@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
       });
 
       Schedule.belongsTo(models.User, {
-        foreignKey: 'tourguildId',
+        foreignKey: 'tourGuideId',
         as: 'schedule_tourguild'
       });
       
@@ -46,7 +46,7 @@ module.exports = (sequelize, DataTypes) => {
     tourId: {
       type: DataTypes.UUID
     },
-    tourGuildId: {
+    tourGuideId: {
       type: DataTypes.UUID
     },
     driverId: {

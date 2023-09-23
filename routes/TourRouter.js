@@ -153,6 +153,9 @@ router.get("/:id", verifyToken, controllers.getTourById);
  *                    endBookingDate: 2023-09-22T00:00:00Z
  *                    departureDate: 2023-09-23T09:00:00Z
  *                    routeId: 8c382e13-8620-460a-bd95-96b1152c1368
+ *                    tickets:
+ *                          - ticketTypeId
+ *                          - ticketTypeId
  *                    images:
  *                          - string
  *                          - string

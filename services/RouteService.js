@@ -166,8 +166,9 @@ const getRouteById = (routeId) =>
 
 const createRoute = ({ routeName, ...body }) =>
     new Promise(async (resolve, reject) => {
+        let transaction;
         try {
-            await db.sequelize.transaction(async (transaction) => {
+            transaction = await db.sequelize.transaction(async (t) => {
                 const createRoute = await db.Route.findOrCreate({
                     where: {
                         routeName: routeName
@@ -176,7 +177,7 @@ const createRoute = ({ routeName, ...body }) =>
                         routeName: routeName,
                         distance: body.distance
                     },
-                    transaction,
+                    transaction: t,
                 });
 
                 if (!createRoute[1]) {
@@ -202,7 +203,7 @@ const createRoute = ({ routeName, ...body }) =>
                                 stationId: stationObj.stationId,
                                 stopoverTime: stationObj.stopoverTime,
                             },
-                            { transaction }
+                            { transaction: t }
                         );
 
                         if (stationObj.step && Array.isArray(stationObj.step)) {
@@ -215,7 +216,7 @@ const createRoute = ({ routeName, ...body }) =>
                                         latitude: stepObj.latitude,
                                         longitude: stepObj.longitude,
                                     },
-                                    { transaction }
+                                    { transaction: t }
                                 );
                             })
                         }
@@ -233,7 +234,7 @@ const createRoute = ({ routeName, ...body }) =>
                                 routeId: createRoute[0].dataValues.routeId,
                                 poiId: pointObj,
                             },
-                            { transaction }
+                            { transaction: t }
                         );
                         return stationDetail;
                     })
@@ -248,7 +249,7 @@ const createRoute = ({ routeName, ...body }) =>
                         routeDetail: pointDetails[0] ? createRoute[0].dataValues : null,
                     }
                 });
-            })
+            
 
             redisClient.keys('*routes_*', (error, keys) => {
                 if (error) {
@@ -266,8 +267,14 @@ const createRoute = ({ routeName, ...body }) =>
                     });
                 });
             });
-
+            await t.commit();
+        });
+        
         } catch (error) {
+            if (transaction) {
+                // Rollback the transaction in case of an error
+                await transaction.rollback();
+            }
             reject(error);
         }
     });
