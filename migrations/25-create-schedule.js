@@ -30,7 +30,7 @@ module.exports = {
           key: 'tourId'
         }
       },
-      tourGuildId: {
+      tourGuideId: {
         type: Sequelize.UUID,
         references: {
           model: 'users',

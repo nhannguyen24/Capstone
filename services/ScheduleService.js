@@ -68,6 +68,25 @@ const getAllSchedule = (
                                                 "status",
                                             ],
                                         },
+                                        include: [
+                                            {
+                                                model: db.Image,
+                                                as: "tour_image",
+                                                attributes: {
+                                                    exclude: [
+                                                        "tourId",
+                                                        "busId",
+                                                        "tourId",
+                                                        "poiId",
+                                                        "productId",
+                                                        "feedbackId",
+                                                        "createdAt",
+                                                        "updatedAt",
+                                                        "status",
+                                                    ],
+                                                },
+                                            },
+                                        ]
                                     },
                                     {
                                         model: db.Bus,

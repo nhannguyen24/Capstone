@@ -59,8 +59,9 @@ const pushNotification = (req, res) => {
     .messaging()
     .send(message)
     .then((response) => {
-      console.log("Successfully sent message:", response);
+      // console.log("Successfully sent message:", response);
       // Handle success
+      return res.status(200).json({ msg: "Successfully sent message" });
     })
     .catch((error) => {
       if (error.code === 'messaging/invalid-registration-token') {
