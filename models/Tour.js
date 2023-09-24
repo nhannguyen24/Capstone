@@ -34,8 +34,8 @@ module.exports = (sequelize, DataTypes) => {
       Tour.belongsToMany(models.User, {
         through: 'Schedule',
         foreignKey: 'tourId',
-        otherKey: 'tourguildId',
-        as: "tour_tourguild",
+        otherKey: 'tourGuideId',
+        as: "tour_tourguide",
       });
       Tour.belongsToMany(models.User, {
         through: 'Schedule',

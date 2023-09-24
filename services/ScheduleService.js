@@ -1,6 +1,7 @@
 const db = require("../models");
 const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
+const STATUS = require("../enums/StatusEnum")
 
 const getAllSchedule = (
     { page, limit, order, busId, tourId, tourGuildId, driverId, status, ...query },
@@ -101,7 +102,7 @@ const getAllSchedule = (
                                     },
                                     {
                                         model: db.User,
-                                        as: "schedule_tourguild",
+                                        as: "schedule_tourguide",
                                         attributes: {
                                             exclude: [
                                                 "password",
@@ -227,6 +228,17 @@ const getScheduleById = (scheduleId) =>
 const createSchedule = ({ startTime, endTime, ...body }) =>
     new Promise(async (resolve, reject) => {
         try {
+            // const findBusActive = await db.Bus.findAll({
+            //     raw: true,
+            //     nest: true,
+            //     where: {
+            //         status: STATUS.ACTIVE
+            //     },
+            //     attributes: ["busId", "status"],
+            // });
+
+            // console.log(findBusActive[0]);
+
             const createSchedule = await db.Schedule.findOrCreate({
                 where: {
                     [Op.and]: {
