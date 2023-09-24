@@ -70,15 +70,13 @@ module.exports = (sequelize, DataTypes) => {
     let uniqueBookingCode;
   
     while (!isUnique) {
-      const randomString = uuidv4().replace(/-/g, '').substring(0, 4);
-  
       const currentDate = new Date();
       currentDate.setHours(currentDate.getHours() + 7);
       const stringCurrentDay = currentDate.getDate().toString().padStart(2, '0');
       const stringCurrentMonth = (currentDate.getMonth() + 1).toString().padStart(2, '0');
       const stringCurrentYear = currentDate.getFullYear().toString();
   
-      const potentialBookingCode = stringCurrentYear + randomString + stringCurrentMonth + stringCurrentDay;
+      const potentialBookingCode = stringCurrentYear + stringCurrentMonth + stringCurrentDay;
   
       const existingBooking = await Booking.findOne({
         where: { bookingCode: potentialBookingCode },

@@ -240,6 +240,8 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             await db.BookingDetail.create(bookingDetail)
         }
 
+        
+
         await t.commit();
 
         resolve({
