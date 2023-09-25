@@ -4,12 +4,12 @@ const redisClient = require("../config/RedisConfig");
 const STATUS = require("../enums/StatusEnum")
 
 const getAllSchedule = (
-    { page, limit, order, busId, tourId, tourGuildId, driverId, status, ...query },
+    { page, limit, order, busId, tourId, tourGuideId, driverId, status, ...query },
     roleName
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuildId}_${driverId}_${status}`, async (error, schedule) => {
+            redisClient.get(`schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}`, async (error, schedule) => {
                 if (error) console.error(error);
                 if (schedule != null && schedule != "" && roleName != 'Admin') {
                     resolve({
@@ -20,7 +20,7 @@ const getAllSchedule = (
                         }
                     });
                 } else {
-                    redisClient.get(`admin_schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuildId}_${driverId}_${status}`, async (error, adminSchedule) => {
+                    redisClient.get(`admin_schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}`, async (error, adminSchedule) => {
                         if (adminSchedule != null && adminSchedule != "") {
                             resolve({
                                 status: 200,
@@ -41,7 +41,7 @@ const getAllSchedule = (
                             }
                             if (busId) query.busId = { [Op.eq]: busId };
                             if (tourId) query.tourId = { [Op.eq]: tourId };
-                            if (tourGuildId) query.tourGuildId = { [Op.eq]: tourGuildId };
+                            if (tourGuideId) query.tourGuideId = { [Op.eq]: tourGuideId };
                             if (driverId) query.driverId = { [Op.eq]: driverId };
                             if (status) query.status = { [Op.eq]: status };
                             if (roleName !== "Admin") {
@@ -54,7 +54,7 @@ const getAllSchedule = (
                                     exclude: [
                                         "busId",
                                         "tourId",
-                                        "tourguildId",
+                                        "tourGuideId",
                                         "driverId",
                                     ],
                                 },
@@ -136,9 +136,9 @@ const getAllSchedule = (
                             });
 
                             if (roleName !== "Admin") {
-                                redisClient.setEx(`schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuildId}_${driverId}_${status}`, 3600, JSON.stringify(schedules));
+                                redisClient.setEx(`schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}`, 3600, JSON.stringify(schedules));
                             } else {
-                                redisClient.setEx(`admin_schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuildId}_${driverId}_${status}`, 3600, JSON.stringify(schedules));
+                                redisClient.setEx(`admin_schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}`, 3600, JSON.stringify(schedules));
                             }
                             resolve({
                                 status: schedules ? 200 : 404,
@@ -164,7 +164,7 @@ const getScheduleById = (scheduleId) =>
                 where: { scheduleId: scheduleId },
                 nest: true,
                 attributes: {
-                    exclude: ["busId", "tourId", "tourguildId", "driverId", "createdAt", "updatedAt"],
+                    exclude: ["busId", "tourId", "tourGuideId", "driverId", "createdAt", "updatedAt"],
                 },
                 include: [
                     {
@@ -191,7 +191,7 @@ const getScheduleById = (scheduleId) =>
                     },
                     {
                         model: db.User,
-                        as: "schedule_tourguild",
+                        as: "schedule_tourguide",
                         attributes: {
                             exclude: [
                                 "createdAt",

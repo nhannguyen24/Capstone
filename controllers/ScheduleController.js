@@ -28,15 +28,15 @@ const getScheduleById = async (req, res) => {
 
 const createSchedule = async (req, res) => {
     try {
-        const {busId, tourId, tourGuildId, driverId} = req.body;
+        const {busId, tourId, tourGuideId, driverId} = req.body;
         if(!busId) {
             throw new BadRequestError('Please provide busId');
         }
         if(!tourId) {
             throw new BadRequestError('Please provide tourId');
         }
-        if(!tourGuildId) {
-            throw new BadRequestError('Please provide tourGuildId');
+        if(!tourGuideId) {
+            throw new BadRequestError('Please provide tourGuideId');
         }
         if(!driverId) {
             throw new BadRequestError('Please provide driverId');

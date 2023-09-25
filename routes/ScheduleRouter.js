@@ -30,7 +30,7 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *         tourId:
  *           type: string
  *           description: The tour of schedule
- *         tourGuildId:
+ *         tourGuideId:
  *           type: string
  *           description: The tour guild of schedule
  *         driverId:
@@ -60,11 +60,11 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *         schema:
  *           type: string
  *         description: Find schedule by tourId
- *       - name: tourGuildId
+ *       - name: tourGuideId
  *         in: query
  *         schema:
  *           type: string
- *         description: Find schedule by tourGuildId
+ *         description: Find schedule by tourGuideId
  *       - name: driverId
  *         in: query
  *         schema:
@@ -151,7 +151,7 @@ router.get("/:id", verifyToken, controllers.getScheduleById);
  *                    endTime: 2023-09-21T12:00:00Z
  *                    tourId: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    busId: 8c382e13-8620-460a-bd95-96b1152c1368 
- *                    tourGuildId: 8c382e13-8620-460a-bd95-96b1152c1368
+ *                    tourGuideId: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    driverId: 8c382e13-8620-460a-bd95-96b1152c1368
  *     responses:
  *       200:
@@ -183,7 +183,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createSchedule);
  *                    endTime: 2023-09-23T12:00:00Z
  *                    tourId: 8c382e13-8620-460a-bd95-96b1152c1368 
  *                    busId: 8c382e13-8620-460a-bd95-96b1152c1368 
- *                    tourGuildId: 8c382e13-8620-460a-bd95-96b1152c1368
+ *                    tourGuideId: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    driverId: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    status: Active
  *     responses:
