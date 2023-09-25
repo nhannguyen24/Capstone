@@ -30,6 +30,10 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
       },
+      duration: {
+        type: Sequelize.TIME,
+        allowNull: false,
+      },
       routeId: {
         type: Sequelize.UUID,
         references: {
