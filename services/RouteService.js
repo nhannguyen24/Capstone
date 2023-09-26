@@ -40,7 +40,7 @@ const getAllRoute = (
                                 queries.order = [
                                     ['updatedAt', 'DESC'],
                                     [{ model: db.RouteDetail, as: 'route_detail' }, 'index', 'ASC'],
-                                    [{ model: db.RouteDetail, as: 'route_detail' }, { model: db.Step, as: 'route_detail_step' },'index', 'ASC'],
+                                    [{ model: db.RouteDetail, as: 'route_detail' }, { model: db.Step, as: 'route_detail_step' }, 'index', 'ASC'],
                                     [{ model: db.RoutePointDetail, as: 'route_poi_detail' }, 'index', 'ASC']
                                 ];
                             }
@@ -78,7 +78,7 @@ const getAllRoute = (
                                                 },
                                             },
                                             {
-                                                model: db.Step, 
+                                                model: db.Step,
                                                 as: "route_detail_step",
                                                 attributes: {
                                                     exclude: [
@@ -144,13 +144,83 @@ const getAllRoute = (
 const getRouteById = (routeId) =>
     new Promise(async (resolve, reject) => {
         try {
-            const route = await db.Route.findOne({
+            const route = await db.Route.findAll({
                 where: { routeId: routeId },
-                raw: true,
                 nest: true,
                 attributes: {
                     exclude: ["createdAt", "updatedAt"],
-                }
+                },
+                order: [
+                    ['updatedAt', 'DESC'],
+                    [{ model: db.RouteDetail, as: 'route_detail' }, 'index', 'ASC'],
+                    [{ model: db.RouteDetail, as: 'route_detail' }, { model: db.Step, as: 'route_detail_step' }, 'index', 'ASC'],
+                    [{ model: db.RoutePointDetail, as: 'route_poi_detail' }, 'index', 'ASC']
+                ],
+                include: [
+                    {
+                        model: db.RouteDetail,
+                        as: "route_detail",
+                        attributes: {
+                            exclude: [
+                                "routeId",
+                                "stationId",
+                                "createdAt",
+                                "updatedAt",
+                                "status",
+                            ],
+                        },
+                        include: [
+                            {
+                                model: db.Station,
+                                as: "route_detail_station",
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                            },
+                            {
+                                model: db.Step,
+                                as: "route_detail_step",
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                            },
+                        ]
+                    },
+                    {
+                        model: db.RoutePointDetail,
+                        as: "route_poi_detail",
+                        attributes: {
+                            exclude: [
+                                "routeId",
+                                "poiId",
+                                "createdAt",
+                                "updatedAt",
+                                "status",
+                            ],
+                        },
+                        include: [
+                            {
+                                model: db.PointOfInterest,
+                                as: "route_poi_detail_poi",
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                            }
+                        ]
+                    },
+                ],
             });
             resolve({
                 status: route ? 200 : 404,
@@ -188,7 +258,7 @@ const createRoute = ({ routeName, ...body }) =>
                         }
                     })
                 }
-                
+
                 let index = 0;
                 let pointIndex = 0;
                 let stepIndex = 0;
@@ -249,27 +319,27 @@ const createRoute = ({ routeName, ...body }) =>
                         routeDetail: pointDetails[0] ? createRoute[0].dataValues : null,
                     }
                 });
-            
 
-            redisClient.keys('*routes_*', (error, keys) => {
-                if (error) {
-                    console.error('Error retrieving keys:', error);
-                    return;
-                }
-                // Delete each key individually
-                keys.forEach((key) => {
-                    redisClient.del(key, (deleteError, reply) => {
-                        if (deleteError) {
-                            console.error(`Error deleting key ${key}:`, deleteError);
-                        } else {
-                            console.log(`Key ${key} deleted successfully`);
-                        }
+
+                redisClient.keys('*routes_*', (error, keys) => {
+                    if (error) {
+                        console.error('Error retrieving keys:', error);
+                        return;
+                    }
+                    // Delete each key individually
+                    keys.forEach((key) => {
+                        redisClient.del(key, (deleteError, reply) => {
+                            if (deleteError) {
+                                console.error(`Error deleting key ${key}:`, deleteError);
+                            } else {
+                                console.log(`Key ${key} deleted successfully`);
+                            }
+                        });
                     });
                 });
+                await t.commit();
             });
-            await t.commit();
-        });
-        
+
         } catch (error) {
             if (transaction) {
                 // Rollback the transaction in case of an error
