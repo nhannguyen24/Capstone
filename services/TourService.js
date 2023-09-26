@@ -243,11 +243,20 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                     ]
                 });
                 // console.log(station.route_detail.routeDetailId);
+                const currentDate = new Date();
                 const tDepartureDate = new Date(body.departureDate);
                 const tourBeginBookingDate = new Date(body.beginBookingDate);
                 const tourEndBookingDate = new Date(body.endBookingDate);
 
-                if (tourBeginBookingDate.getTime() >= tourEndBookingDate.getTime()) {
+                if (currentDate > tourBeginBookingDate.getTime()) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: "Begin booking date can't be earlier than current date"
+                        }
+                    })
+                    return;
+                } else if (tourBeginBookingDate.getTime() >= tourEndBookingDate.getTime()) {
                     resolve({
                         status: 400,
                         data: {

@@ -225,30 +225,53 @@ const getScheduleById = (scheduleId) =>
         }
     });
 
-const createSchedule = ({ startTime, endTime, ...body }) =>
+const createSchedule = ( body ) =>
     new Promise(async (resolve, reject) => {
         try {
-            // const findBusActive = await db.Bus.findAll({
-            //     raw: true,
-            //     nest: true,
-            //     where: {
-            //         status: STATUS.ACTIVE
-            //     },
-            //     attributes: ["busId", "status"],
-            // });
-
+            const findBusActive = await db.Bus.findAll({
+                raw: true,
+                nest: true,
+                where: {
+                    status: STATUS.ACTIVE
+                },
+                attributes: ["busId", "status"],
+            });
             // console.log(findBusActive[0]);
+
+            const findTourTime = await db.Tour.findOne({
+                raw: true,
+                nest: true,
+                where: {
+                    tourId: body.tourId
+                },
+                attributes: ["tourId", "departureDate", "duration"],
+            });
+            // console.log(findTourTime);
+
+            const departureDate = new Date(findTourTime.departureDate);
+
+            // Split the duration string into hours, minutes, and seconds
+            const [hours, minutes, seconds] = findTourTime.duration.split(':').map(Number);
+
+            // Add the duration to the departureDate
+            departureDate.setHours(departureDate.getHours() + hours);
+            departureDate.setMinutes(departureDate.getMinutes() + minutes);
+            departureDate.setSeconds(departureDate.getSeconds() + seconds);
+
+            // Now, departureDate holds the endTime
+            const endDate = departureDate.toISOString();
 
             const createSchedule = await db.Schedule.findOrCreate({
                 where: {
                     [Op.and]: {
-                        startTime: startTime,
-                        endTime: endTime
+                        startTime: findTourTime.departureDate,
+                        endTime: endDate
                     },
                 },
                 defaults: {
-                    startTime: startTime,
-                    endTime: endTime,
+                    startTime: findTourTime.departureDate,
+                    endTime: endDate,
+                    busId: body.busId ? body.busId : findBusActive[0].busId,
                     ...body,
                 },
             });
@@ -287,37 +310,60 @@ const createSchedule = ({ startTime, endTime, ...body }) =>
 const updateSchedule = ({ scheduleId, ...body }) =>
     new Promise(async (resolve, reject) => {
         try {
-            const schedules = await db.Schedule.update(body, {
-                where: { scheduleId },
-                individualHooks: true,
-            });
+            const currentDate = new Date();
+            const startTime = new Date(body.startTime);
+            const endTime = new Date(body.endTime);
 
-            resolve({
-                status: schedules[0] > 0 ? 200 : 400,
-                data: {
-                    msg:
-                        schedules[0] > 0
-                            ? `${schedules[0]} schedule update`
-                            : "Cannot update schedule/ scheduleId not found",
-                }
-            });
-
-            redisClient.keys('*schedules_*', (error, keys) => {
-                if (error) {
-                    console.error('Error retrieving keys:', error);
-                    return;
-                }
-                // Delete each key individually
-                keys.forEach((key) => {
-                    redisClient.del(key, (deleteError, reply) => {
-                        if (deleteError) {
-                            console.error(`Error deleting key ${key}:`, deleteError);
-                        } else {
-                            console.log(`Key ${key} deleted successfully`);
-                        }
+            if (currentDate > startTime.getTime()) {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: "Start time can't be earlier than current date"
+                    }
+                })
+                return;
+            } else if (startTime.getTime() >= endTime.getTime()) {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: "Start time can't be later than End time",
+                    }
+                });
+                return;
+            } else {
+                const schedules = await db.Schedule.update(body, {
+                    where: { scheduleId },
+                    individualHooks: true,
+                });
+    
+                resolve({
+                    status: schedules[0] > 0 ? 200 : 400,
+                    data: {
+                        msg:
+                            schedules[0] > 0
+                                ? `${schedules[0]} schedule update`
+                                : "Cannot update schedule/ scheduleId not found",
+                    }
+                });
+    
+                redisClient.keys('*schedules_*', (error, keys) => {
+                    if (error) {
+                        console.error('Error retrieving keys:', error);
+                        return;
+                    }
+                    // Delete each key individually
+                    keys.forEach((key) => {
+                        redisClient.del(key, (deleteError, reply) => {
+                            if (deleteError) {
+                                console.error(`Error deleting key ${key}:`, deleteError);
+                            } else {
+                                console.log(`Key ${key} deleted successfully`);
+                            }
+                        });
                     });
                 });
-            });
+            }
+
         } catch (error) {
             reject(error.message);
         }
