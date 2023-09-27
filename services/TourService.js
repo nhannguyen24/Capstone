@@ -244,11 +244,12 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                 });
                 // console.log(station.route_detail.routeDetailId);
                 const currentDate = new Date();
+                currentDate.setHours(currentDate.getHours() + 7);
                 const tDepartureDate = new Date(body.departureDate);
                 const tourBeginBookingDate = new Date(body.beginBookingDate);
                 const tourEndBookingDate = new Date(body.endBookingDate);
 
-                if (currentDate > tourBeginBookingDate.getTime()) {
+                if (currentDate > tourBeginBookingDate || currentDate.getTime() > tourBeginBookingDate.getTime()) {
                     resolve({
                         status: 400,
                         data: {
@@ -256,7 +257,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                         }
                     })
                     return;
-                } else if (tourBeginBookingDate.getTime() >= tourEndBookingDate.getTime()) {
+                } else if (tourBeginBookingDate >= tourEndBookingDate || tourBeginBookingDate.getTime() >= tourEndBookingDate.getTime()) {
                     resolve({
                         status: 400,
                         data: {
@@ -264,7 +265,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                         }
                     });
                     return;
-                } else if (tDepartureDate.getTime() <= tourEndBookingDate.getTime() + 12 * 60 * 60 * 1000) {
+                } else if (tDepartureDate <= tourEndBookingDate || tDepartureDate.getTime() <= tourEndBookingDate.getTime() + 12 * 60 * 60 * 1000) {
                     resolve({
                         status: 400,
                         data: {
@@ -364,9 +365,9 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 tourId: createTour[0].tourId,
                             }, { transaction: t });
                         });
-    
+
                         await Promise.all(createImagePromises);
-    
+
                     }
                     resolve({
                         status: createTour[1] ? 200 : 400,
@@ -425,69 +426,101 @@ const updateTour = ({ images, tourId, ...body }) =>
                     }
                 });
             } else {
-                const station = await db.Route.findOne({
-                    raw: true,
-                    nest: true,
-                    where: {
-                        routeId: body.routeId
-                    },
-                    include: [
-                        {
-                            model: db.RouteDetail,
-                            as: "route_detail",
-                            where: {
-                                index: 1
-                            }
-                        },
-                    ]
-                });
+                const currentDate = new Date();
+                currentDate.setHours(currentDate.getHours() + 7);
+                const tDepartureDate = new Date(body.departureDate);
+                const tourBeginBookingDate = new Date(body.beginBookingDate);
+                const tourEndBookingDate = new Date(body.endBookingDate);
 
-                const tours = await db.Tour.update({ departureStationId: station.route_detail.stationId, ...body }, {
-                    where: { tourId },
-                    individualHooks: true,
-                });
-
-                await db.Image.destroy({
-                    where: {
-                        tourId: tourId,
-                    }
-                });
-
-                const createImagePromises = images.map(async (image) => {
-                    await db.Image.create({
-                        image: image,
-                        tourId: tourId,
+                if (currentDate > tourBeginBookingDate || currentDate.getTime() > tourBeginBookingDate.getTime()) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: "Begin booking date can't be earlier than current date"
+                        }
+                    })
+                    return;
+                } else if (tourBeginBookingDate >= tourEndBookingDate || tourBeginBookingDate.getTime() >= tourEndBookingDate.getTime()) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: "Begin booking date can't be later than End booking date",
+                        }
                     });
-                });
+                    return;
+                } else if (tDepartureDate <= tourEndBookingDate || tDepartureDate.getTime() <= tourEndBookingDate.getTime() + 12 * 60 * 60 * 1000) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: "End booking date must be 12 hours later than Departure date",
+                        }
+                    });
+                    return;
+                } else {
+                    const station = await db.Route.findOne({
+                        raw: true,
+                        nest: true,
+                        where: {
+                            routeId: body.routeId
+                        },
+                        include: [
+                            {
+                                model: db.RouteDetail,
+                                as: "route_detail",
+                                where: {
+                                    index: 1
+                                }
+                            },
+                        ]
+                    });
 
-                await Promise.all(createImagePromises);
+                    const tours = await db.Tour.update({ departureStationId: station.route_detail.stationId, ...body }, {
+                        where: { tourId },
+                        individualHooks: true,
+                    });
 
-                resolve({
-                    status: tours[0] > 0 ? 200 : 400,
-                    data: {
-                        msg:
-                            tours[0] > 0
-                                ? `${tours[0]} tour update`
-                                : "Cannot update tour/ tourId not found",
-                    }
-                });
+                    await db.Image.destroy({
+                        where: {
+                            tourId: tourId,
+                        }
+                    });
 
-                redisClient.keys('*tours_*', (error, keys) => {
-                    if (error) {
-                        console.error('Error retrieving keys:', error);
-                        return;
-                    }
-                    // Delete each key individually
-                    keys.forEach((key) => {
-                        redisClient.del(key, (deleteError, reply) => {
-                            if (deleteError) {
-                                console.error(`Error deleting key ${key}:`, deleteError);
-                            } else {
-                                console.log(`Key ${key} deleted successfully`);
-                            }
+                    const createImagePromises = images.map(async (image) => {
+                        await db.Image.create({
+                            image: image,
+                            tourId: tourId,
                         });
                     });
-                });
+
+                    await Promise.all(createImagePromises);
+
+                    resolve({
+                        status: tours[0] > 0 ? 200 : 400,
+                        data: {
+                            msg:
+                                tours[0] > 0
+                                    ? `${tours[0]} tour update`
+                                    : "Cannot update tour/ tourId not found",
+                        }
+                    });
+
+                    redisClient.keys('*tours_*', (error, keys) => {
+                        if (error) {
+                            console.error('Error retrieving keys:', error);
+                            return;
+                        }
+                        // Delete each key individually
+                        keys.forEach((key) => {
+                            redisClient.del(key, (deleteError, reply) => {
+                                if (deleteError) {
+                                    console.error(`Error deleting key ${key}:`, deleteError);
+                                } else {
+                                    console.log(`Key ${key} deleted successfully`);
+                                }
+                            });
+                        });
+                    });
+                }
             }
         } catch (error) {
             reject(error.message);
