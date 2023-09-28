@@ -24,19 +24,19 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    otp: DataTypes.STRING,
-    time_expired: DataTypes.DATE,
+    otpCode: DataTypes.STRING,
+    expiredDate: DataTypes.DATE,
     isAllow: DataTypes.BOOLEAN,
     userId: {
       type: DataTypes.UUID
     },
-    type: {
+    otpType: {
       type: DataTypes.ENUM,
-      values: ["ChangePassword", "GetBookingByEmail", "BookingTour"],
+      values: ["ChangePassword", "GetBookingEmail", "BookingTour"],
       validate: {
         isIn: {
-          args: [["ChangePassword", "GetBookingByEmail", "BookingTour"]],
-          msg: 'Invalid value for otp.type (ChangePassword, GetBookingByEmail, BookingTour)'
+          args: [["ChangePassword", "GetBookingEmail", "BookingTour"]],
+          msg: 'Invalid value for otp.type (ChangePassword, GetBookingEmail, BookingTour)'
         }
       }
     },
@@ -60,12 +60,13 @@ module.exports = (sequelize, DataTypes) => {
     currentDate.setHours(currentDate.getHours() + 7);
     otp.createdAt = currentDate;
     otp.updatedAt = currentDate;
+    otp.isAllow = false;
   });
 
   Otp.beforeUpdate((otp, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    otp.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
+    otp.setDataValue('updatedAt', currentDate);
   });
 
   return Otp;

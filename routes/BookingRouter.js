@@ -80,8 +80,6 @@ router.get("/email", controllers.getBookingsByEmail);
  * @swagger
  * /api/v1/bookings:
  *   post:
- *     security: 
- *         - BearerAuth: []
  *     summary: Create new booking
  *     tags: [Booking]
  *     requestBody:
@@ -102,9 +100,9 @@ router.get("/email", controllers.getBookingsByEmail);
  *              totalPrice: 250000,
  *              user: {
  *                  email: tminhquan999@gmail.com,
- *                  fullName: Trần Minh Quân,
+ *                  userName: Trần Minh Quân,
  *                  phone: 0123456789,
- *                  birthday: 25/08/2000
+ *                  birthday: 2000-09-11
  *              },
  *              tickets: [
  *                  {
@@ -137,7 +135,7 @@ router.get("/email", controllers.getBookingsByEmail);
  *             schema:
  *               type: string
  */
-router.post("/", verifyToken, isAdminOrManager, controllers.getBookingsForCustomer);
+router.post("/", controllers.createBooking);
 
 /**
  * @swagger

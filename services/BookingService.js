@@ -2,6 +2,10 @@ const db = require('../models');
 const { Op } = require('sequelize');
 const BOOKING_STATUS = require("../enums/BookingStatusEnum")
 const STATUS = require("../enums/StatusEnum")
+const OTP_TYPE = require("../enums/OtpTypeEnum")
+const mailer = require("../utils/MailerUtil")
+const OtpService = require("./OtpService")
+const qr = require('qrcode');
 
 const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject) => {
     try {
@@ -41,7 +45,7 @@ const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject)
         });
 
         resolve({
-            status: 200 ,
+            status: 200,
             data: {
                 msg: 'Get Booking detail successfully',
                 bookingDetails: bookingDetails,
@@ -135,31 +139,42 @@ const getBookingsForManager = (req) => new Promise(async (resolve, reject) => {
 const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
     try {
         let email = req.query.email
-        let user
-        if (email === undefined || email === null || email.trim().length < 1) {
-            resolve({
-                status: 400,
-                data: {
-                    msg: `Email required`,
-                }
-            })
-            return
-        } else {
-            user = await db.User.findOne({
-                where: {
-                    email: email
-                }
-            })
-
-            if (!user) {
-                resolve({
-                    status: 404,
-                    data: {
-                        msg: `Customer not found with email: ${email}`,
-                    }
-                });
-                return
+        const user = await db.User.findOne({
+            where: {
+                email: email
             }
+        })
+
+        if (!user) {
+            resolve({
+                status: 404,
+                data: {
+                    msg: `Customer not found with email: ${email}`,
+                }
+            });
+            return
+        }
+
+        const otp = await db.Otp.findOne({
+            where: {
+                otpType: OTP_TYPE.GET_BOOKING_EMAIL,
+                userId: user.userId
+            }
+        })
+
+        if (!otp) {
+            OtpService.sendOtpToEmail(user.email, user.userId, user.userName, OTP_TYPE.GET_BOOKING_EMAIL)
+            return
+        }
+
+        if (!otp.isAllow || !otp) {
+            resolve({
+                status: 403,
+                data: {
+                    msg: `Action not allow, Please validate OTP!`,
+                }
+            });
+            return
         }
 
         const bookings = await db.Booking.findAll({
@@ -189,61 +204,112 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
 
 
 const createBooking = (req) => new Promise(async (resolve, reject) => {
-    const t = await sequelize.transaction();
+
     try {
         const user = req.body.user
         const tickets = req.body.tickets
         const totalPrice = req.body.totalPrice
+        const birthday = new Date(user.birthday)
         const resultUser = await db.User.findOrCreate({
             where: {
                 email: user.email
             },
-            defaults: { email: user.email, fullName: user.fullName, phone: user.phone, birthday: user.birthday }
+            defaults: { email: user.email, userName: user.userName, phone: user.phone, birthday: birthday, roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3" }
         })
 
-        const booking = await db.Booking.create({
-            defaults: { totalPrice: totalPrice, customerId: resultUser.userId }
-        });
+        const otp = await db.Otp.findOne({
+            where: {
+                otpType: OTP_TYPE.BOOKING_TOUR,
+                userId: resultUser[0].dataValues.userId
+            }
+        })
 
-        for (const e of tickets) {
-            const ticket = await db.Ticket.findOne({
-                where: {
-                    ticketId: e.ticketId,
-                    tourId: e.tourId
+        console.log(otp)
+
+        if (!otp) {
+            OtpService.sendOtpToEmail(resultUser[0].dataValues.email, resultUser[0].dataValues.userId, resultUser[0].dataValues.userName, OTP_TYPE.BOOKING_TOUR)
+        } else if (!otp.isAllow) {
+            resolve({
+                status: 403,
+                data: {
+                    msg: `Action not allow, Please validate OTP!`,
+                }
+            });
+            return
+        }
+        if(otp.isAllow){
+            await db.sequelize.transaction(async (transaction) => {
+                const setUpBooking = { totalPrice: totalPrice, customerId: resultUser[0].dataValues.userId }
+                const booking = await db.Booking.create(setUpBooking);
+    
+                for (const e of tickets) {
+                    const ticket = await db.Ticket.findOne({
+                        where: {
+                            ticketId: e.ticketId,
+                            tourId: e.tourId
+                        }
+                    })
+                    if (!ticket) {
+                        resolve({
+                            status: 404,
+                            data: {
+                                msg: `Ticket not found with id ${e.ticketId}`,
+                            }
+                        })
+                        return
+                    }
+                    const price = await db.Price.findOne({
+                        where: {
+                            priceId: e.priceId,
+                        }
+                    })
+                    if (!price) {
+                        resolve({
+                            status: 404,
+                            data: {
+                                msg: `Price not found with id ${e.priceId}`,
+                            }
+                        })
+                        return
+                    }
+                    const bookingDetail = { TicketPrice: price.amount, bookingId: booking.bookingId, ticketId: ticket.ticketId }
+                    const setUpTransaction = { amount: price.amount, bookingId: booking.bookingId }
+                    await db.Transaction.create(setUpTransaction)
+                    await db.BookingDetail.create(bookingDetail)
                 }
             })
-            if (!ticket) {
-                resolve({
-                    status: 404,
-                    data: {
-                        msg: `Ticket not found with id ${e.ticketId}`,
-                    }
-                })
-                return
-            }
-            const price = await db.Price.findOne({
-                where: {
-                    priceId: e.priceId,
+    
+            const TourName = "Tour du lich"
+            const TourDate = "01/10/2023"
+            const TourDuration = "4 hours"
+            const userEmail = resultUser[0].dataValues.email;
+            const qrCodeDataURL = await qr.toDataURL(userEmail);
+    
+            const htmlContent = {
+                body: {
+                    name: resultUser[0].dataValues.userName,
+                    intro: `Thank you for choosing <b>NBTour</b> for your adventure! We look forward to sharing this incredible experience with you.`,
+                    action: {
+                        instructions: 'Here is your <b>tickets QR code</b> for the upcoming tour:',
+                        table: {
+                            headers: ['Tour Details'],
+                            rows: [
+                                ['Tour Name:', `${TourName}`],
+                                ['Tour Date:', `${TourDate}`],
+                                ['Tour Duration:', `${TourDuration}`],
+                                ['Total Amount Paid:', `${totalPrice}`],
+                                ['User QR Code:', `<img src="${qrCodeDataURL}" alt="User QR Code" />`],
+                            ]
+                        }
+                    },
+                    outro: `If you have any questions or need assistance, please don't hesitate to reach out to our customer support team at [Customer Support Email] or [Customer Support Phone Number].`,
+                    signature: 'Sincerely'
                 }
-            })
-            if (!price) {
-                resolve({
-                    status: 404,
-                    data: {
-                        msg: `Price not found with id ${e.priceId}`,
-                    }
-                })
-                return
-            }
-            const bookingDetail = {TicketPrice: price.amount, bookingId: booking.bookingId, ticketId: ticket.ticketId}
-
-            await db.BookingDetail.create(bookingDetail)
+            };
+            mailer.sendMail(resultUser[0].dataValues.email, "Tour booking tickets", htmlContent)
         }
 
-        
-
-        await t.commit();
-
+        await t.commit()
         resolve({
             status: 201,
             data: {
@@ -252,6 +318,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
         })
 
     } catch (error) {
+        console.log(error)
         reject(error);
     }
 });

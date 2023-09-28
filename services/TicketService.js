@@ -154,7 +154,6 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
                 return
             }
         }
-//
         const ticketType = await db.TicketType.findOne({
             where: {
                 ticketTypeId: ticketTypeId
@@ -359,7 +358,7 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
             status = ticketType.status
         }
 
-        if (STATUS.DEACTIVE == status) {
+        if (STATUS.DEACTIVE === status) {
             const tickets = await db.Ticket.findAll({
                 where: {
                     tourId: tourId

@@ -14,8 +14,8 @@ module.exports = (sequelize, DataTypes) => {
         as: "booking_user",
       });
 
-      Booking.hasMany(models.Transaction, { as: 'booking_transaction', foreignKey: 'bookingId'});
-      
+      Booking.hasMany(models.Transaction, { as: 'booking_transaction', foreignKey: 'bookingId' });
+
       Booking.belongsToMany(models.TicketType, {
         through: 'BookingDetail',
         foreignKey: 'bookingId',
@@ -45,7 +45,7 @@ module.exports = (sequelize, DataTypes) => {
           msg: 'Invalid value for booking.status (Ongoing, Canceled, Finished)'
         }
       }
-    }, 
+    },
     status: {
       type: DataTypes.ENUM,
       values: ["Active", "Deactive"],
@@ -62,36 +62,26 @@ module.exports = (sequelize, DataTypes) => {
   });
 
 
-  Booking.beforeCreate(async (booking, options) => {        
+  Booking.beforeCreate(async (booking, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
 
-    let isUnique = false;
-    let uniqueBookingCode;
-  
-    while (!isUnique) {
-      const currentDate = new Date();
-      currentDate.setHours(currentDate.getHours() + 7);
-      const stringCurrentDay = currentDate.getDate().toString().padStart(2, '0');
-      const stringCurrentMonth = (currentDate.getMonth() + 1).toString().padStart(2, '0');
-      const stringCurrentYear = currentDate.getFullYear().toString();
-  
-      const potentialBookingCode = stringCurrentYear + stringCurrentMonth + stringCurrentDay;
-  
-      const existingBooking = await Booking.findOne({
-        where: { bookingCode: potentialBookingCode },
-      });
-  
-      if (!existingBooking) {
-        isUnique = true;
-        uniqueBookingCode = potentialBookingCode;
-      }
-    }
+    let bookingCode;
+
+    const stringCurrentDay = currentDate.getDate().toString().padStart(2, '0');
+    const stringCurrentMonth = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+    const stringCurrentYear = currentDate.getFullYear().toString();
+    const stringCurrentHour = currentDate.getHours().toString();
+    const stringCurrentMinute = currentDate.getMinutes().toString();
+    const stringCurrentSecond = currentDate.getSeconds().toString();
+
+    bookingCode = `BO${stringCurrentYear}${stringCurrentMonth}${stringCurrentDay}${stringCurrentHour}${stringCurrentMinute}${stringCurrentSecond}`
+
     booking.bookingStatus = BOOKING_STATUS.ON_GOING;
     booking.bookingDate = currentDate;
     booking.createdAt = currentDate;
     booking.updatedAt = currentDate;
-    booking.bookingCode = uniqueBookingCode
+    booking.bookingCode = bookingCode
   });
 
   Booking.beforeUpdate((booking, options) => {

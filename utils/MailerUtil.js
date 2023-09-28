@@ -8,8 +8,8 @@ exports.sendMail = (to, subject, htmlContent) => {
     let MailGenerator = new Mailgen({
         theme: "default",
         product : {
-            name: "Mailgen",
-            link : 'https://mailgen.js/'
+            name: "<b>NBTour</b>",
+            link : 'https://youtube.com/'
         }
     })
 

@@ -28,5 +28,13 @@ const isAdminOrManager = (req, res, next) => {
     }
     next();
   };
+  
+const isLoggedIn = (req, res, next) => {
+    const { roleName } = req.user;
+    if (!roleName) {
+      throw new UnauthenticatedError('Authentication invalid');
+    }
+    next();
+  };
 
-module.exports = {isAdmin, isManager, isAdminOrManager, isCustomer};
+module.exports = {isAdmin, isManager, isAdminOrManager, isCustomer, isLoggedIn};
