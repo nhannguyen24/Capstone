@@ -6,14 +6,13 @@ const DAY_ENUM = require("../enums/PriceDayEnum")
 const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
 
 const getAllTour = (
-    { page, limit, order, tourName, address, tourStatus, status, ...query },
-    roleName
+    { page, limit, order, tourName, address, tourStatus, status, ...query }
 ) =>
     new Promise(async (resolve, reject) => {
         try {
             redisClient.get(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}`, async (error, tour) => {
                 if (error) console.error(error);
-                if (tour != null && tour != "" && roleName != 'Admin') {
+                if (tour != null && tour != "") {
                     resolve({
                         status: 200,
                         data: {
@@ -22,83 +21,84 @@ const getAllTour = (
                         }
                     });
                 } else {
-                    redisClient.get(`admin_tours_${page}_${limit}_${order}_${tourStatus}_${status}`, async (error, adminTour) => {
-                        if (adminTour != null && adminTour != "") {
-                            resolve({
-                                status: 200,
-                                data: {
-                                    msg: "Got tours",
-                                    tours: JSON.parse(adminTour),
-                                }
-                            });
-                        } else {
-                            const queries = { nest: true };
-                            const offset = !page || +page <= 1 ? 0 : +page - 1;
-                            const flimit = +limit || +process.env.LIMIT_POST;
-                            queries.offset = offset * flimit;
-                            queries.limit = flimit;
-                            if (order) queries.order = [[order]]
-                            else {
-                                queries.order = [['updatedAt', 'DESC']];
-                            }
-                            if (tourName) query.tourName = { [Op.substring]: tourName };
-                            if (tourStatus) query.tourStatus = { [Op.eq]: tourStatus };
-                            if (status) query.status = { [Op.eq]: status };
-                            if (roleName !== "Admin") {
-                                query.status = { [Op.notIn]: ['Deactive'] };
-                            }
-                            const tours = await db.Tour.findAll({
-                                where: query,
-                                ...queries,
+                    const queries = { nest: true };
+                    const offset = !page || +page <= 1 ? 0 : +page - 1;
+                    const flimit = +limit || +process.env.LIMIT_POST;
+                    queries.offset = offset * flimit;
+                    queries.limit = flimit;
+                    if (order) queries.order = [[order]]
+                    else {
+                        queries.order = [['updatedAt', 'DESC']];
+                    }
+                    if (tourName) query.tourName = { [Op.substring]: tourName };
+                    if (tourStatus) query.tourStatus = { [Op.eq]: tourStatus };
+                    if (status) query.status = { [Op.eq]: status };
+                    if (roleName !== "Admin") {
+                        query.status = { [Op.notIn]: ['Deactive'] };
+                    }
+                    const tours = await db.Tour.findAll({
+                        where: query,
+                        ...queries,
+                        attributes: {
+                            exclude: [
+                                "routeId",
+                                "departureStationId",
+                            ],
+                        },
+                        include: [
+                            {
+                                model: db.Image,
+                                as: "tour_image",
                                 attributes: {
                                     exclude: [
-                                        "routeId",
-                                        "departureStationId",
+                                        "tourId",
+                                        "busId",
+                                        "tourId",
+                                        "poiId",
+                                        "productId",
+                                        "feedbackId",
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                            },
+                            {
+                                model: db.Station,
+                                as: "departure_station",
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                            },
+                            {
+                                model: db.Route,
+                                as: "tour_route",
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                            },
+                            {
+                                model: db.Ticket,
+                                as: "tour_ticket",
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
                                     ],
                                 },
                                 include: [
                                     {
-                                        model: db.Image,
-                                        as: "tour_image",
-                                        attributes: {
-                                            exclude: [
-                                                "tourId",
-                                                "busId",
-                                                "tourId",
-                                                "poiId",
-                                                "productId",
-                                                "feedbackId",
-                                                "createdAt",
-                                                "updatedAt",
-                                                "status",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        model: db.Station,
-                                        as: "departure_station",
-                                        attributes: {
-                                            exclude: [
-                                                "createdAt",
-                                                "updatedAt",
-                                                "status",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        model: db.Route,
-                                        as: "tour_route",
-                                        attributes: {
-                                            exclude: [
-                                                "createdAt",
-                                                "updatedAt",
-                                                "status",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        model: db.Ticket,
-                                        as: "tour_ticket",
+                                        model: db.TicketType,
+                                        as: "ticket_type",
                                         attributes: {
                                             exclude: [
                                                 "createdAt",
@@ -108,8 +108,8 @@ const getAllTour = (
                                         },
                                         include: [
                                             {
-                                                model: db.TicketType,
-                                                as: "ticket_type",
+                                                model: db.Price,
+                                                as: "ticket_type_price",
                                                 attributes: {
                                                     exclude: [
                                                         "createdAt",
@@ -117,40 +117,25 @@ const getAllTour = (
                                                         "status",
                                                     ],
                                                 },
-                                                include: [
-                                                    {
-                                                        model: db.Price,
-                                                        as: "ticket_type_price",
-                                                        attributes: {
-                                                            exclude: [
-                                                                "createdAt",
-                                                                "updatedAt",
-                                                                "status",
-                                                            ],
-                                                        },
-                                                    }
-                                                ]
                                             }
                                         ]
-                                    },
+                                    }
                                 ]
-                            });
+                            },
+                        ]
+                    });
 
-                            if (roleName !== "Admin") {
-                                redisClient.setEx(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}`, 3600, JSON.stringify(tours));
-                            } else {
-                                redisClient.setEx(`admin_tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}`, 3600, JSON.stringify(tours));
-                            }
-                            resolve({
-                                status: tours ? 200 : 404,
-                                data: {
-                                    msg: tours ? "Got tours" : "Cannot find tours",
-                                    tours: tours,
-                                }
-                            });
+                    redisClient.setEx(`admin_tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}`, 3600, JSON.stringify(tours));
+
+                    resolve({
+                        status: tours ? 200 : 404,
+                        data: {
+                            msg: tours ? "Got tours" : "Cannot find tours",
+                            tours: tours,
                         }
-                    })
+                    });
                 }
+
             })
         } catch (error) {
             console.log(error);
