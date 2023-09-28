@@ -1,6 +1,6 @@
 class OtpTypeEnum{
-    static ACCESS_CHANGE_PASSWORD = 'ChangePassword';
-    static GET_BOOKING_BY_EMAIL = 'GetBookingByEmail';
+    static CHANGE_PASSWORD = 'ChangePassword';
+    static GET_BOOKING_EMAIL = 'GetBookingEmail';
     static BOOKING_TOUR = 'BookingTour';
 }
 

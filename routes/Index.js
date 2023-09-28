@@ -3,18 +3,21 @@ const auth = require('./AuthRouter');
 const role = require('./RoleRouter');
 const user = require('./UserRouter');
 const station = require('./StationRouter');
-
+const feedback = require('./FeedbackRouter');
 const bus = require('./BusRouter')
 const booking = require('./BookingRouter')
-const ticketType = require('./TicketTypeRoute')
+const ticketType = require('./TicketTypeRouter')
 const ticket = require('./TicketRouter')
 const price = require('./PriceRouter')
 const point = require('./PointOfInterestRouter')
 const uploadImage = require('./UploadFileRouter')
 const tour = require('./TourRouter');
+const Transaction = require('./TransactionRouter');
 const route = require('./RouteRouter');
 const schedule = require('./ScheduleRouter');
 const productCate = require('./ProductCategoryRouter')
+const otp = require("./OtpRouter")
+// const step = require('./guild_step');
 const announcement = require('./AnnouncementRouter');
 
 // const category_detail = require('./category_detail');
@@ -42,9 +45,12 @@ const initRoutes = (app) => {
     app.use('/api/v1/tickets', ticket);
     app.use('/api/v1/ticket-types', ticketType);
     app.use('/api/v1/stations', station);
+    app.use('/api/v1/feedbacks', feedback);
     app.use('/api/v1/roles', role);
+    app.use('/api/v1/transactions', Transaction);
     app.use('/api/v1/points', point);
     app.use('/api/v1/routes', route);
+    app.use('/api/v1/otp', otp);
     app.use('/api/v1/firebase', uploadImage);
     app.use('/api/v1/tours', tour);
     app.use('/api/v1/schedules', schedule);

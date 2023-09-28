@@ -38,7 +38,6 @@ const getAllBuses = (req) => new Promise(async (resolve, reject) => {
             ],
         });
 
-
         resolve({
             status: 200,
             data: {
@@ -103,7 +102,6 @@ const createBus = (req) => new Promise(async (resolve, reject) => {
         const seat = req.query.numberSeat
         const isDoubleDecker = req.query.isDoubleDecker
         const image = req.query.image
-
 
         const [bus, created] = await db.Bus.findOrCreate({
             where: { busPlate: busPlate },

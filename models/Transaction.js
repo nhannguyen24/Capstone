@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    date: DataTypes.DATE,
+    transactionCode: DataTypes.STRING,
     amount: DataTypes.DECIMAL(3,3),
     bookingId: {
       type: DataTypes.UUID
@@ -43,11 +43,22 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'Transaction',
   });
-  // Transaction.beforeCreate((transaction, options) => {
-  //   const currentDate = new Date();
-  //   currentDate.setHours(currentDate.getHours() + 7);
-  //   transaction.createdAt = currentDate;
-  //   transaction.updatedAt = currentDate;
-  // });
+  Transaction.beforeCreate((transaction, options) => {
+    const currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() + 7);
+    let transactionCode
+    
+    const stringCurrentDay = currentDate.getDate().toString().padStart(2, '0');
+    const stringCurrentMonth = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+    const stringCurrentYear = currentDate.getFullYear().toString();
+    const stringCurrentHour = currentDate.getHours().toString();
+    const stringCurrentMinute = currentDate.getMinutes().toString();
+    const stringCurrentSecond = currentDate.getSeconds().toString();
+
+    transactionCode = `TR${stringCurrentYear}${stringCurrentMonth}${stringCurrentDay}${stringCurrentHour}${stringCurrentMinute}${stringCurrentSecond}`
+    booking.transactionCode = transactionCode
+    transaction.createdAt = currentDate;
+    transaction.updatedAt = currentDate;
+  });
   return Transaction;
 };
