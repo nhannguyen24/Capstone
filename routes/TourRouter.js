@@ -106,7 +106,7 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *               items:
  *                 $ref: '#/components/schemas/Tour'
  */
-router.get("/", verifyToken, controllers.getAllTour);
+router.get("/", controllers.getAllTour);
 
 /**
  * @swagger
@@ -132,7 +132,7 @@ router.get("/", verifyToken, controllers.getAllTour);
  *               items:
  *                 $ref: '#/components/schemas/Station'
  */
-router.get("/:id", verifyToken, controllers.getTourById);
+router.get("/:id", controllers.getTourById);
 
 /**
  * @swagger
