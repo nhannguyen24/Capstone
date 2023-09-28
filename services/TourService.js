@@ -33,9 +33,7 @@ const getAllTour = (
                     if (tourName) query.tourName = { [Op.substring]: tourName };
                     if (tourStatus) query.tourStatus = { [Op.eq]: tourStatus };
                     if (status) query.status = { [Op.eq]: status };
-                    if (roleName !== "Admin") {
-                        query.status = { [Op.notIn]: ['Deactive'] };
-                    }
+                    
                     const tours = await db.Tour.findAll({
                         where: query,
                         ...queries,
