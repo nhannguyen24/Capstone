@@ -262,6 +262,9 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             tourName: tourName
                         },
                         defaults: {
+                            beginBookingDate: tourBeginBookingDate,
+                            endBookingDate: tourEndBookingDate,
+                            departureDate: tDepartureDate,
                             tourName: tourName,
                             departureStationId: station.route_detail.stationId,
                             ...body,
@@ -457,7 +460,13 @@ const updateTour = ({ images, tourId, ...body }) =>
                         ]
                     });
 
-                    const tours = await db.Tour.update({ departureStationId: station.route_detail.stationId, ...body }, {
+                    const tours = await db.Tour.update({ 
+                        departureStationId: station.route_detail.stationId, 
+                        beginBookingDate: tourBeginBookingDate,
+                        endBookingDate: tourEndBookingDate,
+                        departureDate: tDepartureDate,
+                         ...body 
+                        }, {
                         where: { tourId },
                         individualHooks: true,
                     });
