@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class Feedback extends Model {
+  class Report extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,31 +11,22 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Feedback.belongsTo(models.User, {
+      Report.belongsTo(models.User, {
         foreignKey: "customerId",
         targetKey: 'userId',
-        as: "feedback_user",
+        as: "report_user",
       });
-      Feedback.belongsTo(models.Tour, {
-        foreignKey: "tourId",
-        targetKey: 'tourId',
-        as: "feedback_tour",
-      });
-      Feedback.hasMany(models.Image, { as: 'feedback_image', foreignKey: 'feedbackId'});
     }
   }
-  Feedback.init({
-    feedbackId: {
+  Report.init({
+    reportId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    stars: DataTypes.INTEGER,
+    title: DataTypes.STRING,
     description: DataTypes.STRING,
     customerId: {
-      type: DataTypes.UUID
-    },
-    tourId: {
       type: DataTypes.UUID
     },
     status: {
@@ -44,25 +35,25 @@ module.exports = (sequelize, DataTypes) => {
       validate: {
         isIn: {
           args: [["Active", "Deactive"]],
-          msg: 'Invalid value for feedback.status (Active, Deactive)'
+          msg: 'Invalid value for report.status (Active, Deactive)'
         }
       }
     },
   }, {
     sequelize,
-    modelName: 'Feedback',
+    modelName: 'Report',
   });
-  Feedback.beforeCreate((feedback, options) => {
+  Report.beforeCreate((report, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    feedback.createdAt = currentDate;
-    feedback.updatedAt = currentDate;
+    report.createdAt = currentDate;
+    report.updatedAt = currentDate;
   });
 
-  Feedback.beforeUpdate((feedback, options) => {
+  Report.beforeUpdate((report, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    feedback.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
+    report.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
-  return Feedback;
+  return Report;
 };

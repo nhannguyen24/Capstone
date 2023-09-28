@@ -1,14 +1,15 @@
 const db = require("../models");
 const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
+const STATUS = require("../enums/StatusEnum")
 
 const getAllSchedule = (
-    { page, limit, order, busId, tourId, tourGuildId, driverId, status, ...query },
+    { page, limit, order, busId, tourId, tourGuideId, driverId, status, ...query },
     roleName
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuildId}_${driverId}_${status}`, async (error, schedule) => {
+            redisClient.get(`schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}`, async (error, schedule) => {
                 if (error) console.error(error);
                 if (schedule != null && schedule != "" && roleName != 'Admin') {
                     resolve({
@@ -19,7 +20,7 @@ const getAllSchedule = (
                         }
                     });
                 } else {
-                    redisClient.get(`admin_schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuildId}_${driverId}_${status}`, async (error, adminSchedule) => {
+                    redisClient.get(`admin_schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}`, async (error, adminSchedule) => {
                         if (adminSchedule != null && adminSchedule != "") {
                             resolve({
                                 status: 200,
@@ -40,7 +41,7 @@ const getAllSchedule = (
                             }
                             if (busId) query.busId = { [Op.eq]: busId };
                             if (tourId) query.tourId = { [Op.eq]: tourId };
-                            if (tourGuildId) query.tourGuildId = { [Op.eq]: tourGuildId };
+                            if (tourGuideId) query.tourGuideId = { [Op.eq]: tourGuideId };
                             if (driverId) query.driverId = { [Op.eq]: driverId };
                             if (status) query.status = { [Op.eq]: status };
                             if (roleName !== "Admin") {
@@ -53,7 +54,7 @@ const getAllSchedule = (
                                     exclude: [
                                         "busId",
                                         "tourId",
-                                        "tourguildId",
+                                        "tourGuideId",
                                         "driverId",
                                     ],
                                 },
@@ -101,7 +102,7 @@ const getAllSchedule = (
                                     },
                                     {
                                         model: db.User,
-                                        as: "schedule_tourguild",
+                                        as: "schedule_tourguide",
                                         attributes: {
                                             exclude: [
                                                 "password",
@@ -135,9 +136,9 @@ const getAllSchedule = (
                             });
 
                             if (roleName !== "Admin") {
-                                redisClient.setEx(`schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuildId}_${driverId}_${status}`, 3600, JSON.stringify(schedules));
+                                redisClient.setEx(`schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}`, 3600, JSON.stringify(schedules));
                             } else {
-                                redisClient.setEx(`admin_schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuildId}_${driverId}_${status}`, 3600, JSON.stringify(schedules));
+                                redisClient.setEx(`admin_schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}`, 3600, JSON.stringify(schedules));
                             }
                             resolve({
                                 status: schedules ? 200 : 404,
@@ -163,7 +164,7 @@ const getScheduleById = (scheduleId) =>
                 where: { scheduleId: scheduleId },
                 nest: true,
                 attributes: {
-                    exclude: ["busId", "tourId", "tourguildId", "driverId", "createdAt", "updatedAt"],
+                    exclude: ["busId", "tourId", "tourGuideId", "driverId", "createdAt", "updatedAt"],
                 },
                 include: [
                     {
@@ -190,7 +191,7 @@ const getScheduleById = (scheduleId) =>
                     },
                     {
                         model: db.User,
-                        as: "schedule_tourguild",
+                        as: "schedule_tourguide",
                         attributes: {
                             exclude: [
                                 "createdAt",
@@ -224,48 +225,123 @@ const getScheduleById = (scheduleId) =>
         }
     });
 
-const createSchedule = ({ startTime, endTime, ...body }) =>
+const createSchedule = (body) =>
     new Promise(async (resolve, reject) => {
         try {
-            const createSchedule = await db.Schedule.findOrCreate({
+            const findBusActive = await db.Bus.findAll({
+                raw: true,
+                nest: true,
                 where: {
-                    [Op.and]: {
-                        startTime: startTime,
-                        endTime: endTime
-                    },
+                    status: STATUS.ACTIVE
                 },
-                defaults: {
-                    startTime: startTime,
-                    endTime: endTime,
-                    ...body,
-                },
+                attributes: ["busId", "status"],
             });
+            // console.log(findBusActive[0]);
 
-            resolve({
-                status: createSchedule[1] ? 200 : 400,
-                data: {
-                    msg: createSchedule[1]
-                        ? "Create new schedule successfully"
-                        : "Cannot create new schedule/Schedule already exists",
-                    schedule: createSchedule[1] ? createSchedule[0].dataValues : null,
-                }
+            const findTourTime = await db.Tour.findOne({
+                raw: true,
+                nest: true,
+                where: {
+                    tourId: body.tourId
+                },
+                attributes: ["tourId", "departureDate", "duration"],
             });
-            redisClient.keys('*schedules_*', (error, keys) => {
-                if (error) {
-                    console.error('Error retrieving keys:', error);
+            // console.log(findTourTime);
+            const currentDate = new Date();
+            currentDate.setHours(currentDate.getHours() + 7);
+            const departureDateBefore = new Date(findTourTime.departureDate);
+            const departureDate = new Date(findTourTime.departureDate);
+
+            // Split the duration string into hours, minutes, and seconds
+            const [hours, minutes, seconds] = findTourTime.duration.split(':').map(Number);
+
+            // Add the duration to the departureDate
+            departureDate.setHours(departureDate.getHours() + hours);
+            departureDate.setMinutes(departureDate.getMinutes() + minutes);
+            departureDate.setSeconds(departureDate.getSeconds() + seconds);
+            // Now, departureDate holds the endTime
+            const endDate = departureDate.toISOString();
+
+            if (currentDate >= departureDateBefore || currentDate.getTime() >= departureDateBefore.getTime()) {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: "Start date can't be earlier than current date"
+                    }
+                })
+                return;
+            } else {
+                const findTourGuideTime = await db.Schedule.findOne({
+                    raw: true,
+                    nest: true,
+                    where: {
+                        startTime: findTourTime.departureDate,
+                        endTime: endDate,
+                        tourGuideId: body.tourGuideId,
+                    },
+                });
+
+                const findDriverTime = await db.Schedule.findOne({
+                    raw: true,
+                    nest: true,
+                    where: {
+                        startTime: findTourTime.departureDate,
+                        endTime: endDate,
+                        driverId: body.driverId,
+                    },
+                });
+
+                if (findTourGuideTime) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: "Duplicate schedules time for tour guide"
+                        }
+                    })
                     return;
-                }
-                // Delete each key individually
-                keys.forEach((key) => {
-                    redisClient.del(key, (deleteError, reply) => {
-                        if (deleteError) {
-                            console.error(`Error deleting key ${key}:`, deleteError);
-                        } else {
-                            console.log(`Key ${key} deleted successfully`);
+                } else if (findDriverTime) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: "Duplicate schedules time for driver"
+                        }
+                    })
+                    return;
+                } else {
+                    const createSchedule = await db.Schedule.create({
+                        startTime: findTourTime.departureDate,
+                        endTime: endDate,
+                        busId: body.busId ? body.busId : findBusActive[0].busId,
+                        ...body,
+                    });
+
+                    resolve({
+                        status: createSchedule ? 200 : 400,
+                        data: {
+                            msg: createSchedule
+                                ? "Create new schedule successfully"
+                                : "Cannot create new schedule",
+                            schedule: createSchedule ? createSchedule.dataValues : null,
                         }
                     });
-                });
-            });
+                    redisClient.keys('*schedules_*', (error, keys) => {
+                        if (error) {
+                            console.error('Error retrieving keys:', error);
+                            return;
+                        }
+                        // Delete each key individually
+                        keys.forEach((key) => {
+                            redisClient.del(key, (deleteError, reply) => {
+                                if (deleteError) {
+                                    console.error(`Error deleting key ${key}:`, deleteError);
+                                } else {
+                                    console.log(`Key ${key} deleted successfully`);
+                                }
+                            });
+                        });
+                    });
+                }
+            }
 
         } catch (error) {
             reject(error);
@@ -275,37 +351,61 @@ const createSchedule = ({ startTime, endTime, ...body }) =>
 const updateSchedule = ({ scheduleId, ...body }) =>
     new Promise(async (resolve, reject) => {
         try {
-            const schedules = await db.Schedule.update(body, {
-                where: { scheduleId },
-                individualHooks: true,
-            });
+            const currentDate = new Date();
+            currentDate.setHours(currentDate.getHours() + 7);
+            const startTime = new Date(body.startTime);
+            const endTime = new Date(body.endTime);
 
-            resolve({
-                status: schedules[0] > 0 ? 200 : 400,
-                data: {
-                    msg:
-                        schedules[0] > 0
-                            ? `${schedules[0]} schedule update`
-                            : "Cannot update schedule/ scheduleId not found",
-                }
-            });
+            if (currentDate >= startTime || currentDate.getTime() >= startTime.getTime()) {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: "Start time can't be earlier than current date"
+                    }
+                })
+                return;
+            } else if (startTime >= endTime || startTime.getTime() >= endTime.getTime()) {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: "Start time can't be later than End time",
+                    }
+                });
+                return;
+            } else {
+                const schedules = await db.Schedule.update(body, {
+                    where: { scheduleId },
+                    individualHooks: true,
+                });
 
-            redisClient.keys('*schedules_*', (error, keys) => {
-                if (error) {
-                    console.error('Error retrieving keys:', error);
-                    return;
-                }
-                // Delete each key individually
-                keys.forEach((key) => {
-                    redisClient.del(key, (deleteError, reply) => {
-                        if (deleteError) {
-                            console.error(`Error deleting key ${key}:`, deleteError);
-                        } else {
-                            console.log(`Key ${key} deleted successfully`);
-                        }
+                resolve({
+                    status: schedules[1].length !== 0 ? 200 : 400,
+                    data: {
+                        msg:
+                            schedules[1].length !== 0
+                                ? `Schedule update`
+                                : "Cannot update schedule/ scheduleId not found",
+                    }
+                });
+
+                redisClient.keys('*schedules_*', (error, keys) => {
+                    if (error) {
+                        console.error('Error retrieving keys:', error);
+                        return;
+                    }
+                    // Delete each key individually
+                    keys.forEach((key) => {
+                        redisClient.del(key, (deleteError, reply) => {
+                            if (deleteError) {
+                                console.error(`Error deleting key ${key}:`, deleteError);
+                            } else {
+                                console.log(`Key ${key} deleted successfully`);
+                            }
+                        });
                     });
                 });
-            });
+            }
+
         } catch (error) {
             reject(error.message);
         }

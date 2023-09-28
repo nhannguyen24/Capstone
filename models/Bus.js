@@ -20,8 +20,8 @@ module.exports = (sequelize, DataTypes) => {
       Bus.belongsToMany(models.User, {
         through: 'Schedule',
         foreignKey: 'busId',
-        otherKey: 'tourguildId', 
-        as: "bus_tourguild",
+        otherKey: 'tourGuideId', 
+        as: "bus_tourguide",
       });
       Bus.belongsToMany(models.User, {
         through: 'Schedule',

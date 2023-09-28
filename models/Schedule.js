@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
 
       Schedule.belongsTo(models.User, {
         foreignKey: 'tourGuideId',
-        as: 'schedule_tourguild'
+        as: 'schedule_tourguide'
       });
       
       Schedule.belongsTo(models.User, {

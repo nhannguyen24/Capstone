@@ -34,8 +34,8 @@ module.exports = (sequelize, DataTypes) => {
       Tour.belongsToMany(models.User, {
         through: 'Schedule',
         foreignKey: 'tourId',
-        otherKey: 'tourguildId',
-        as: "tour_tourguild",
+        otherKey: 'tourGuideId',
+        as: "tour_tourguide",
       });
       Tour.belongsToMany(models.User, {
         through: 'Schedule',
@@ -59,6 +59,7 @@ module.exports = (sequelize, DataTypes) => {
     beginBookingDate: DataTypes.DATE,
     endBookingDate: DataTypes.DATE,
     departureDate: DataTypes.DATE,
+    duration: DataTypes.TIME,
     routeId: {
       type: DataTypes.UUID
     },

@@ -2,30 +2,30 @@ const db = require("../models");
 const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
 
-const getAllStation = (
-    { page, limit, order, stationName, address, status, ...query },
+const getAllAnnouncement = (
+    { page, limit, order, title, status, ...query },
     roleName
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`stations_${page}_${limit}_${order}_${stationName}_${address}_${status}`, async (error, station) => {
+            redisClient.get(`announcements_${page}_${limit}_${order}_${title}_${status}`, async (error, announcement) => {
                 if (error) console.error(error);
-                if (station != null && station != "" && roleName != 'Admin') {
+                if (announcement != null && announcement != "" && roleName != 'Admin') {
                     resolve({
                         status: 200,
                         data: {
-                            msg: "Got stations",
-                            stations: JSON.parse(station),
+                            msg: "Got announcements",
+                            announcements: JSON.parse(announcement),
                         }
                     });
                 } else {
-                    redisClient.get(`admin_stations_${page}_${limit}_${order}_${stationName}_${address}_${status}`, async (error, adminStation) => {
-                        if (adminStation != null && adminStation != "") {
+                    redisClient.get(`admin_announcements_${page}_${limit}_${order}_${title}_${status}`, async (error, adminAnnouncement) => {
+                        if (adminAnnouncement != null && adminAnnouncement != "") {
                             resolve({
                                 status: 200,
                                 data: {
-                                    msg: "Got stations",
-                                    stations: JSON.parse(adminStation),
+                                    msg: "Got announcements",
+                                    announcements: JSON.parse(adminAnnouncement),
                                 }
                             });
                         } else {
@@ -38,27 +38,38 @@ const getAllStation = (
                             else {
                                 queries.order = [['updatedAt', 'DESC']];
                             }
-                            if (stationName) query.stationName = { [Op.substring]: stationName };
-                            if (address) query.address = { [Op.substring]: address };
+                            if (title) query.title = { [Op.substring]: title };
                             if (status) query.status = { [Op.eq]: status };
                             if (roleName !== "Admin") {
                                 query.status = { [Op.notIn]: ['Deactive'] };
                             }
-                            const stations = await db.Station.findAll({
+                            const announcements = await db.Announcement.findAll({
                                 where: query,
                                 ...queries,
+                                attributes: {
+                                    exclude: [
+                                        "managerId",
+                                    ],
+                                },
+                                include: [
+                                    {
+                                        model: db.User,
+                                        as: "announcement_user",
+                                        attributes: ["userId", "userName", "email"],
+                                    },
+                                ],
                             });
 
                             if (roleName !== "Admin") {
-                                redisClient.setEx(`stations_${page}_${limit}_${order}_${stationName}_${address}_${status}`, 3600, JSON.stringify(stations));
+                                redisClient.setEx(`announcements_${page}_${limit}_${order}_${title}_${status}`, 3600, JSON.stringify(announcements));
                             } else {
-                                redisClient.setEx(`admin_stations_${page}_${limit}_${order}_${stationName}_${address}_${status}`, 3600, JSON.stringify(stations));
+                                redisClient.setEx(`admin_announcements_${page}_${limit}_${order}_${title}_${status}`, 3600, JSON.stringify(announcements));
                             }
                             resolve({
-                                status: stations ? 200 : 404,
+                                status: announcements ? 200 : 404,
                                 data: {
-                                    msg: stations ? "Got stations" : "Cannot find stations",
-                                    stations: stations,
+                                    msg: announcements ? "Got announcements" : "Cannot find announcements",
+                                    announcements: announcements,
                                 }
                             });
                         }
@@ -71,22 +82,29 @@ const getAllStation = (
         }
     });
 
-const getStationById = (stationId) =>
+const getAnnouncementById = (announcementId) =>
     new Promise(async (resolve, reject) => {
         try {
-            const station = await db.Station.findOne({
-                where: { stationId: stationId },
+            const announcement = await db.Announcement.findOne({
+                where: { announcementId: announcementId },
                 raw: true,
                 nest: true,
                 attributes: {
-                    exclude: ["createdAt", "updatedAt"],
-                }
+                    exclude: ["managerId", "createdAt", "updatedAt"],
+                },
+                include: [
+                    {
+                        model: db.User,
+                        as: "announcement_user",
+                        attributes: ["userId", "userName", "email"],
+                    },
+                ],
             });
             resolve({
-                status: station ? 200 : 404,
+                status: announcement ? 200 : 404,
                 data: {
-                    msg: station ? "Got station" : `Cannot find station with id: ${stationId}`,
-                    station: station,
+                    msg: announcement ? "Got announcement" : `Cannot find announcement with id: ${announcementId}`,
+                    announcement: announcement,
                 }
             });
         } catch (error) {
@@ -94,29 +112,32 @@ const getStationById = (stationId) =>
         }
     });
 
-const createStation = ({ stationName, ...body }) =>
+const createAnnouncement = ({ title, ...body }, userId) =>
     new Promise(async (resolve, reject) => {
         try {
-            const createStation = await db.Station.findOrCreate({
+            console.log(title);
+            console.log(userId);
+            const createAnnouncement = await db.Announcement.findOrCreate({
                 where: {
-                    stationName: stationName
+                    title: title
                 },
                 defaults: {
-                    stationName: stationName,
+                    title: title,
+                    managerId: userId,
                     ...body,
                 },
             });
 
             resolve({
-                status: createStation[1] ? 200 : 400,
+                status: createAnnouncement[1] ? 200 : 400,
                 data: {
-                    msg: createStation[1]
-                        ? "Create new station successfully"
-                        : "Cannot create new station/Station name already exists",
-                    station: createStation[1] ? createStation[0].dataValues : null,
+                    msg: createAnnouncement[1]
+                        ? "Create new announcement successfully"
+                        : "Cannot create new announcement/Title already exists",
+                    announcement: createAnnouncement[1] ? createAnnouncement[0].dataValues : null,
                 }
             });
-            redisClient.keys('*stations_*', (error, keys) => {
+            redisClient.keys('*announcements_*', (error, keys) => {
                 if (error) {
                     console.error('Error retrieving keys:', error);
                     return;
@@ -138,42 +159,45 @@ const createStation = ({ stationName, ...body }) =>
         }
     });
 
-const updateStation = ({ stationId, ...body }) =>
+const updateAnnouncement = ({ announcementId, ...body }) =>
     new Promise(async (resolve, reject) => {
         try {
-            const station = await db.Station.findOne({
+            const announcement = await db.Announcement.findOne({
                 where: {
-                    stationName: body?.stationName,
-                    stationId: {
-                        [Op.ne]: stationId
+                    title: body?.title,
+                    announcementId: {
+                        [Op.ne]: announcementId
                     }
                 }
             })
 
-            if (station !== null) {
+            if (announcement !== null) {
                 resolve({
                     status: 409,
                     data: {
-                        msg: "Station name already exists"
+                        msg: "Title already exists"
                     }
                 });
+                return;
             } else {
-                const stations = await db.Station.update(body, {
-                    where: { stationId },
+                const announcements = await db.Announcement.update(body, {
+                    where: { announcementId },
                     individualHooks: true,
                 });
 
+                console.log(announcements);
+
                 resolve({
-                    status: stations[1].length !== 0 ? 200 : 400,
+                    status: announcements[1].length !== 0 ? 200 : 400,
                     data: {
                         msg:
-                            stations[1].length !== 0
-                                ? `Station update`
-                                : "Cannot update station/ stationId not found",
+                            announcements[1].length !== 0
+                                ? `Announcement update`
+                                : "Cannot update announcement/ announcementId not found",
                     }
                 });
 
-                redisClient.keys('*stations_*', (error, keys) => {
+                redisClient.keys('*announcements_*', (error, keys) => {
                     if (error) {
                         console.error('Error retrieving keys:', error);
                         return;
@@ -196,43 +220,43 @@ const updateStation = ({ stationId, ...body }) =>
     });
 
 
-const deleteStation = (stationIds) =>
+const deleteAnnouncement = (announcementIds) =>
     new Promise(async (resolve, reject) => {
         try {
-            const findStation = await db.Station.findAll({
+            const findAnnouncement = await db.Announcement.findAll({
                 raw: true, nest: true,
-                where: { stationId: stationIds },
+                where: { announcementId: announcementIds },
             });
 
-            for (const station of findStation) {
-                if (station.status === "Deactive") {
+            for (const announcement of findAnnouncement) {
+                if (announcement.status === "Deactive") {
                     resolve({
                         status: 400,
                         data: {
-                            msg: "The station already deactive!",
+                            msg: "The announcement already deactive!",
                         }
                     });
                 }
             }
 
-            const stations = await db.Station.update(
+            const announcements = await db.Announcement.update(
                 { status: "Deactive" },
                 {
-                    where: { stationId: stationIds },
+                    where: { announcementId: announcementIds },
                     individualHooks: true,
                 }
             );
             resolve({
-                status: stations[0] > 0 ? 200 : 400,
+                status: announcements[0] > 0 ? 200 : 400,
                 data: {
                     msg:
-                        stations[0] > 0
-                            ? `${stations[0]} station delete`
-                            : "Cannot delete station/ stationId not found",
+                        announcements[0] > 0
+                            ? `${announcements[0]} announcement delete`
+                            : "Cannot delete announcement/ announcementId not found",
                 }
             });
 
-            redisClient.keys('*stations_*', (error, keys) => {
+            redisClient.keys('*announcements_*', (error, keys) => {
                 if (error) {
                     console.error('Error retrieving keys:', error);
                     return;
@@ -255,10 +279,10 @@ const deleteStation = (stationIds) =>
     });
 
 module.exports = {
-    updateStation,
-    deleteStation,
-    createStation,
-    getAllStation,
-    getStationById
+    updateAnnouncement,
+    deleteAnnouncement,
+    createAnnouncement,
+    getAllAnnouncement,
+    getAnnouncementById
 };
 

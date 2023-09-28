@@ -106,7 +106,7 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *               items:
  *                 $ref: '#/components/schemas/Tour'
  */
-router.get("/", verifyToken, controllers.getAllTour);
+router.get("/", controllers.getAllTour);
 
 /**
  * @swagger
@@ -132,7 +132,7 @@ router.get("/", verifyToken, controllers.getAllTour);
  *               items:
  *                 $ref: '#/components/schemas/Station'
  */
-router.get("/:id", verifyToken, controllers.getTourById);
+router.get("/:id", controllers.getTourById);
 
 /**
  * @swagger
@@ -152,6 +152,7 @@ router.get("/:id", verifyToken, controllers.getTourById);
  *                    beginBookingDate: 2023-09-21T00:00:00Z
  *                    endBookingDate: 2023-09-22T00:00:00Z
  *                    departureDate: 2023-09-23T09:00:00Z
+ *                    duration: 03:00:00
  *                    routeId: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    tickets:
  *                          - ticketTypeId
@@ -190,6 +191,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createTour);
  *                    beginBookingDate: 2023-09-21T00:00:00Z
  *                    endBookingDate: 2023-09-22T00:00:00Z
  *                    departureDate: 2023-09-23T09:00:00Z
+ *                    duration: 03:00:00
  *                    routeId: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    tourStatus: Ontour
  *                    status: Active

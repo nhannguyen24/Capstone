@@ -1,40 +1,56 @@
-const {UnauthenticatedError} = require('../errors/Index');
+const { UnauthenticatedError } = require('../errors/Index');
 
 const isAdmin = (req, res, next) => {
-    const { roleName } = req.user;
-    if (roleName !== 'Admin') 
+  const { roleName } = req.user;
+  if (roleName !== 'Admin')
     throw new UnauthenticatedError('Require role Admin');
-    next();
+  next();
 };
 
 const isManager = (req, res, next) => {
-    const { roleName } = req.user;
-    if (roleName !== 'Manager') 
+  const { roleName } = req.user;
+  if (roleName !== 'Manager')
     throw new UnauthenticatedError('Require role Manager');
-    next();
+  next();
 };
 
 const isCustomer = (req, res, next) => {
-    const { roleName } = req.user;
-    if (roleName !== 'Customer') 
+  const { roleName } = req.user;
+  if (roleName !== 'Customer')
     throw new UnauthenticatedError('Require role Customer');
-    next();
+  next();
 };
 
 const isAdminOrManager = (req, res, next) => {
-    const { roleName } = req.user;
-    if (roleName !== 'Admin' && roleName !== 'Manager') {
-      throw new UnauthenticatedError('Require role Admin or Manager');
-    }
-    next();
-  };
-  
-const isLoggedIn = (req, res, next) => {
-    const { roleName } = req.user;
-    if (!roleName) {
-      throw new UnauthenticatedError('Authentication invalid');
-    }
-    next();
-  };
+  const { roleName } = req.user;
+  if (roleName !== 'Admin' && roleName !== 'Manager') {
+    throw new UnauthenticatedError('Require role Admin or Manager');
+  }
+  next();
+};
 
-module.exports = {isAdmin, isManager, isAdminOrManager, isCustomer, isLoggedIn};
+const isAdminOrManagerOrTourguideOrDriver = (req, res, next) => {
+  const { roleName } = req.user;
+  if (roleName !== 'TourGuide' && roleName !== 'Driver' && roleName !== 'Admin' && roleName !== 'Manager') {
+    throw new UnauthenticatedError('Require role Admin or Manager or TourGuide or Driver');
+  }
+  next();
+};
+
+const isAdminOrTourguideOrDriver = (req, res, next) => {
+  const { roleName } = req.user;
+  if (roleName !== 'TourGuide' && roleName !== 'Driver' && roleName !== 'Admin') {
+    throw new UnauthenticatedError('Require role Admin or TourGuide or Driver');
+  }
+  next();
+};
+
+const isLoggedIn = (req, res, next) => {
+  const { roleName } = req.user;
+  if (!roleName) {
+    throw new UnauthenticatedError('Authentication invalid');
+  }
+  next();
+};
+
+module.exports = { isAdmin, isManager, isAdminOrManager, isCustomer, isAdminOrTourguideOrDriver, isLoggedIn, isAdminOrManagerOrTourguideOrDriver };

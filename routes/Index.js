@@ -18,6 +18,8 @@ const schedule = require('./ScheduleRouter');
 const productCate = require('./ProductCategoryRouter')
 const otp = require("./OtpRouter")
 // const step = require('./guild_step');
+const announcement = require('./AnnouncementRouter');
+
 // const category_detail = require('./category_detail');
 // const order_detail = require('./order_detail');
 // const order = require('./order');
@@ -53,8 +55,8 @@ const initRoutes = (app) => {
     app.use('/api/v1/tours', tour);
     app.use('/api/v1/schedules', schedule);
     app.use('/api/v1/productCates', productCate);
+    app.use('/api/v1/announcements', announcement);
 
-    // app.use('/api/v1/categories', category);
     // app.use('/api/v1/categories-detail', category_detail);
     // app.use('/api/v1/order-detail', order_detail);
     // app.use('/api/v1/orders', order);

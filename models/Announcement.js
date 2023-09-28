@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class Feedback extends Model {
+  class Announcement extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,31 +11,22 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Feedback.belongsTo(models.User, {
-        foreignKey: "customerId",
+      Announcement.belongsTo(models.User, {
+        foreignKey: "managerId",
         targetKey: 'userId',
-        as: "feedback_user",
+        as: "announcement_user",
       });
-      Feedback.belongsTo(models.Tour, {
-        foreignKey: "tourId",
-        targetKey: 'tourId',
-        as: "feedback_tour",
-      });
-      Feedback.hasMany(models.Image, { as: 'feedback_image', foreignKey: 'feedbackId'});
     }
   }
-  Feedback.init({
-    feedbackId: {
+  Announcement.init({
+    announcementId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    stars: DataTypes.INTEGER,
+    title: DataTypes.STRING,
     description: DataTypes.STRING,
-    customerId: {
-      type: DataTypes.UUID
-    },
-    tourId: {
+    managerId: {
       type: DataTypes.UUID
     },
     status: {
@@ -44,25 +35,25 @@ module.exports = (sequelize, DataTypes) => {
       validate: {
         isIn: {
           args: [["Active", "Deactive"]],
-          msg: 'Invalid value for feedback.status (Active, Deactive)'
+          msg: 'Invalid value for announcement.status (Active, Deactive)'
         }
       }
     },
   }, {
     sequelize,
-    modelName: 'Feedback',
+    modelName: 'Announcement',
   });
-  Feedback.beforeCreate((feedback, options) => {
+  Announcement.beforeCreate((announcement, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    feedback.createdAt = currentDate;
-    feedback.updatedAt = currentDate;
+    announcement.createdAt = currentDate;
+    announcement.updatedAt = currentDate;
   });
 
-  Feedback.beforeUpdate((feedback, options) => {
+  Announcement.beforeUpdate((announcement, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    feedback.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
+    announcement.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
-  return Feedback;
+  return Announcement;
 };

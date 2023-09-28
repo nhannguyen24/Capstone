@@ -38,8 +38,6 @@ const getAllUsers = ({ page, limit, order, userName, email, status, ...query }) 
             attributes: {
               exclude: [
                 "roleId",
-                "createAt",
-                "updateAt",
                 "refreshToken",
                 "password"
               ],
@@ -172,11 +170,11 @@ const updateUser = ({ userId, ...body }) =>
         individualHooks: true,
       });
       resolve({
-        status: users[0] ? 200 : 400,
+        status: users[1].length !== 0 ? 200 : 400,
         data: {
           msg:
-            users[0] > 0
-              ? `${users[0]} user update`
+            users[1].length !== 0
+              ? `User update`
               : "Cannot update user/ userId not found",
         }
       });
