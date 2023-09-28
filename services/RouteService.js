@@ -375,11 +375,11 @@ const updateRoute = ({ routeId, ...body }) =>
                 });
 
                 resolve({
-                    status: routes[0] > 0 ? 200 : 400,
+                    status: routes[1].length !== 0 ? 200 : 400,
                     data: {
                         msg:
-                            routes[0] > 0
-                                ? `${routes[0]} route update`
+                            routes[1].length !== 0
+                                ? `Route update`
                                 : "Cannot update route/ routeId not found",
                     }
                 });

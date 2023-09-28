@@ -478,11 +478,11 @@ const updateTour = ({ images, tourId, ...body }) =>
                     await Promise.all(createImagePromises);
 
                     resolve({
-                        status: tours[0] > 0 ? 200 : 400,
+                        status: tours[1].length !== 0 ? 200 : 400,
                         data: {
                             msg:
-                                tours[0] > 0
-                                    ? `${tours[0]} tour update`
+                                tours[1].length !== 0
+                                    ? `Tour update`
                                     : "Cannot update tour/ tourId not found",
                         }
                     });

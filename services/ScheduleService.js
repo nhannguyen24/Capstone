@@ -379,11 +379,11 @@ const updateSchedule = ({ scheduleId, ...body }) =>
                 });
 
                 resolve({
-                    status: schedules[0] > 0 ? 200 : 400,
+                    status: schedules[1].length !== 0 ? 200 : 400,
                     data: {
                         msg:
-                            schedules[0] > 0
-                                ? `${schedules[0]} schedule update`
+                            schedules[1].length !== 0
+                                ? `Schedule update`
                                 : "Cannot update schedule/ scheduleId not found",
                     }
                 });

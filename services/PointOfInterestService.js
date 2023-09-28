@@ -206,12 +206,12 @@ const updatePointOfInterest = ({ images, poiId, ...body }) =>
                 await Promise.all(createImagePromises);
 
                 resolve({
-                    status: pois[0] > 0 ? 200 : 400,
+                    status: pois[1].length !== 0 ? 200 : 400,
                     data: {
                         msg:
-                            pois[0] > 0
-                                ? `${pois[0]} poi update`
-                                : "Cannot update poi/ poiId not found",
+                            pois[1].length !== 0
+                                ? `Point update`
+                                : "Cannot update point/ poiId not found",
                     }
                 });
 

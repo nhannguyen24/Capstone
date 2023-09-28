@@ -116,11 +116,11 @@ const updateProductCategory = ({ productCateId, ...body }) =>
                 });
 
                 resolve({
-                    status: productCates[0] > 0 ? 200 : 400,
+                    status: productCates[1].length !== 0 ? 200 : 400,
                     data: {
                         msg:
-                            productCates[0] > 0
-                                ? `${productCates[0]} productCate update`
+                            productCates[1].length !== 0
+                                ? `Product Cate update`
                                 : "Cannot update productCate/ productCateId not found",
                     }
                 });
