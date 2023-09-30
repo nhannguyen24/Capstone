@@ -51,9 +51,9 @@ module.exports = (sequelize, DataTypes) => {
     const stringCurrentDay = currentDate.getDate().toString().padStart(2, '0');
     const stringCurrentMonth = (currentDate.getMonth() + 1).toString().padStart(2, '0');
     const stringCurrentYear = currentDate.getFullYear().toString();
-    const stringCurrentHour = currentDate.getHours().toString();
-    const stringCurrentMinute = currentDate.getMinutes().toString();
-    const stringCurrentSecond = currentDate.getSeconds().toString();
+    const stringCurrentHour = currentDate.getHours().toString().toString().padStart(2, '0');
+    const stringCurrentMinute = currentDate.getMinutes().toString().toString().padStart(2, '0');
+    const stringCurrentSecond = currentDate.getSeconds().toString().toString().padStart(2, '0');
 
     transactionCode = `TR${stringCurrentYear}${stringCurrentMonth}${stringCurrentDay}${stringCurrentHour}${stringCurrentMinute}${stringCurrentSecond}`
     transaction.transactionCode = transactionCode
