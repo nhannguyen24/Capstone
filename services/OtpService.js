@@ -1,7 +1,7 @@
 const db = require('../models');
 const { Op } = require('sequelize');
 const OTP_TYPE = require("../enums/OtpTypeEnum")
-const mailer = require("../utils/MailerUtil") 
+const mailer = require("../utils/MailerUtil")
 const bcrypt = require('bcryptjs');
 const hashOtpCode = otpCode => bcrypt.hashSync(otpCode, bcrypt.genSaltSync(8));
 
@@ -72,11 +72,11 @@ const validateOtp = (req) => new Promise(async (resolve, reject) => {
     }
 });
 
-const sendOtpToEmail = (email, userId, fullName, otpType) => new Promise(async (resolve, reject) => {
+const sendOtpToEmail = async (email, userId, fullName, otpType) => {
     try {
         const otpCode = generateRandomOtpCode()
         let user
-        if(userId === null || userId === undefined){
+        if (userId === null || userId === undefined) {
             user = await db.User.findOne({
                 where: {
                     email: email
@@ -113,19 +113,18 @@ const sendOtpToEmail = (email, userId, fullName, otpType) => new Promise(async (
             otp = await db.Otp.create(setUpOtp)
         }
 
-        return resolve({
+        return {
             status: 200,
             data: {
                 msg: `Otp sent to email: ${email} `,
-                otpId: otp.otpId
+                otp: { otpId: otp.otpId, otpType: otpType }
             }
-        });
+        };
 
     } catch (error) {
         console.error("Error sending OTP:", error);
-        reject(error);
     }
-});
+};
 
 function generateRandomOtpCode() {
     return Math.floor(100000 + Math.random() * 899999).toString()
@@ -133,26 +132,26 @@ function generateRandomOtpCode() {
 
 function generateOtpContent(userName, otpType, otpCode) {
     const otpMessage =
-      otpType === OTP_TYPE.GET_BOOKING_EMAIL
-        ? "We noticed that you requested to view your booking history using this email. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>."
-        : "We noticed that you requested a tour booking using this email. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>"
-  
+        otpType === OTP_TYPE.GET_BOOKING_EMAIL
+            ? "We noticed that you requested to view your booking history using this email. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>."
+            : "We noticed that you requested a tour booking using this email. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>"
+
     return {
-      body: {
-        name: userName,
-        intro: otpMessage,
-        action: {
-          instructions: '<b>Here is your OTP code:</b>',
-          button: {
-            color: 'orange',
-            text: `<b>${otpCode}</b>`,
-            link: ''
-          }
-        },
-        outro: "If you did not request this OTP, no further action is required on your part.",
-        signature: 'Sincerely'
-      }
+        body: {
+            name: userName,
+            intro: otpMessage,
+            action: {
+                instructions: '<b>Here is your OTP code:</b>',
+                button: {
+                    color: 'orange',
+                    text: `<b>${otpCode}</b>`,
+                    link: ''
+                }
+            },
+            outro: "If you did not request this OTP, no further action is required on your part.",
+            signature: 'Sincerely'
+        }
     };
-  }
+}
 
 module.exports = { validateOtp, sendOtpToEmail };

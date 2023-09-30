@@ -37,6 +37,9 @@ module.exports = (sequelize, DataTypes) => {
     ticketId: {
       type: DataTypes.UUID
     },
+    quantity: {
+      type: DataTypes.INTEGER
+    },
     status: {
       type: DataTypes.ENUM,
       values: ["Active", "Deactive"],

@@ -1,5 +1,5 @@
 const db = require('../models');
-const { Op } = require('sequelize');
+const { Op, sequelize } = require('sequelize');
 const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
 
@@ -33,7 +33,7 @@ const getFeedbacksByTourId = (req) => new Promise(async (resolve, reject) => {
             },
 
             attributes: [
-                [db.fn('AVG', db.col('stars')), 'avgStars']
+                [sequelize.fn('AVG', sequelize.col('stars')), 'avgStars']
             ],
             include: [
                 {

@@ -3,13 +3,13 @@ const mailConfig = require('../config/MailConfig');
 const Mailgen = require('mailgen');
 require('dotenv').config();
 
-exports.sendMail = (to, subject, htmlContent) => {
+exports.sendMail = (to, subject, htmlContent, fileName) => {
 
     let MailGenerator = new Mailgen({
         theme: "default",
-        product : {
+        product: {
             name: "<b>NBTour</b>",
-            link : 'https://youtube.com/'
+            link: 'https://youtube.com/'
         }
     })
 
@@ -24,12 +24,30 @@ exports.sendMail = (to, subject, htmlContent) => {
             pass: mailConfig.PASSWORD,
         }
     })
+    let options
 
-    const options = {
-        from: mailConfig.FROM_ADDRESS,
-        to: to,
-        subject: subject,
-        html: mail
+    if (fileName) {
+        options = {
+            from: mailConfig.FROM_ADDRESS,
+            to: to,
+            subject: subject,
+            html: mail,
+            attachments: [
+                {
+                    filename: `${fileName}.png`,
+                    path: `./qrcode/${fileName}.png`,
+                    cid: `${fileName}`,
+                },
+            ],
+        }
+    } else {
+        options = {
+            from: mailConfig.FROM_ADDRESS,
+            to: to,
+            subject: subject,
+            html: mail,
+        }
     }
+
     return transport.sendMail(options);
 }

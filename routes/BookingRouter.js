@@ -55,16 +55,16 @@ router.get("/manager", verifyToken,  isAdminOrManager, controllers.getBookingsFo
 
 /**
  * @swagger
- * /api/v1/bookings/email:
+ * /api/v1/bookings/{email}:
  *   get:
  *     summary: Get bookings by email for not logged in customer 
  *     tags: [Booking]
  *     parameters:
- *       - in: query
+ *       - in: path
  *         name: email
  *         schema:
  *           type: string
- *           example: dnhan2426@gmail.com
+ *           example: abx@gmail.com
  *         required: true
  *     responses:
  *       200:
@@ -74,7 +74,7 @@ router.get("/manager", verifyToken,  isAdminOrManager, controllers.getBookingsFo
  *             schema:
  *               type: object
  */
-router.get("/email", controllers.getBookingsByEmail);
+router.get("/:email", controllers.getBookingsByEmail);
 
 /**
  * @swagger
@@ -97,26 +97,26 @@ router.get("/email", controllers.getBookingsByEmail);
  *                      type: array
  *                      minItems: 1
  *            example: {
- *              totalPrice: 250000,
+ *              totalPrice: 425000,
  *              user: {
- *                  email: tminhquan999@gmail.com,
+ *                  email: tminhquan@gmail.com,
  *                  userName: Trần Minh Quân,
  *                  phone: 0123456789,
  *                  birthday: 2000-09-11
  *              },
  *              tickets: [
  *                  {
- *                      ticketId: 8cf7a629-54b7-4ba5-8530-c921e71408f3,
- *                      ticketTypeId: d406c07b-7f66-4a90-88d1-8c5cfdd34a42,  
+ *                      ticketId: 074ed7f1-1d42-45c7-825e-37dc9ecf2e87,
+ *                      ticketTypeId: d2dfa0b3-6b26-4a68-a093-05ca5f7f9cc6,  
  *                      tourId: 72102f7f-3b83-47ff-b5c7-ea5e75a20c80,
- *                      priceId: 070cf314-0141-40cd-b2cc-8049770878f0,
+ *                      priceId: 2cd8ed5d-0108-4a81-b4a6-ddc8c9ee6586,
  *                      quantity: 1
  *                  },
  *                  {
  *                      ticketId: 8cf7a629-54b7-4ba5-8530-c921e71408f3,
  *                      ticketTypeId: d406c07b-7f66-4a90-88d1-8c5cfdd34a42,
  *                      tourId: 72102f7f-3b83-47ff-b5c7-ea5e75a20c80,
- *                      priceId: c03fb653-a04c-4a5d-a24a-c8ea02398bc0,
+ *                      priceId: 0ae1dd7a-4833-47c7-b99c-75755539245b,
  *                      quantity: 2
  *                  },
  *              ]

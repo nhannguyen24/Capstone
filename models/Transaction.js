@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
     },
     transactionCode: DataTypes.STRING,
-    amount: DataTypes.DECIMAL(3,3),
+    amount: DataTypes.INTEGER,
     bookingId: {
       type: DataTypes.UUID
     },
@@ -56,7 +56,7 @@ module.exports = (sequelize, DataTypes) => {
     const stringCurrentSecond = currentDate.getSeconds().toString();
 
     transactionCode = `TR${stringCurrentYear}${stringCurrentMonth}${stringCurrentDay}${stringCurrentHour}${stringCurrentMinute}${stringCurrentSecond}`
-    booking.transactionCode = transactionCode
+    transaction.transactionCode = transactionCode
     transaction.createdAt = currentDate;
     transaction.updatedAt = currentDate;
   });
