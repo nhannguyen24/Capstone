@@ -373,7 +373,11 @@ const updateSchedule = ({ scheduleId, ...body }) =>
                 });
                 return;
             } else {
-                const schedules = await db.Schedule.update(body, {
+                const schedules = await db.Schedule.update({
+                    startTime: startTime,
+                    endTime: endTime, 
+                    ...body
+                }, {
                     where: { scheduleId },
                     individualHooks: true,
                 });
@@ -410,7 +414,6 @@ const updateSchedule = ({ scheduleId, ...body }) =>
             reject(error.message);
         }
     });
-
 
 const deleteSchedule = (scheduleIds) =>
     new Promise(async (resolve, reject) => {
