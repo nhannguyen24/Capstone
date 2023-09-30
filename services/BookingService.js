@@ -399,7 +399,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
     
                 for (let index = 0; index < ticketList.length; index++) {
                     const e = ticketList[index];
-                    await db.BookingDetail.create({ TicketPrice: e.ticket_price.amount, bookingId: booking.bookingId, ticketId: e.ticketId, quantity: tickets[index].quantity }, { transaction: t });
+                    await db.BookingDetail.create({ TicketPrice: e.dataValues.ticket_price.amount, bookingId: booking.bookingId, ticketId: e.dataValues.ticketId, quantity: tickets[index].quantity }, { transaction: t });
                   }
             })
         } catch (error) {
