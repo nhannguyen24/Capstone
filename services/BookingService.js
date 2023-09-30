@@ -262,16 +262,6 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 return
             }
         }
-
-        if("Customer" !== req.user.roleName){
-            resolve({
-                status: 403,
-                data: {
-                    msg: `Role not allow to book tour`,
-                }
-            });
-            return
-        }
         
         if (!req.user) {
             const otp = await db.Otp.findOne({
