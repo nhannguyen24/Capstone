@@ -77,8 +77,6 @@ router.post("/", verifyToken, isCustomer, controllers.createFeedback);
  * @swagger
  * /api/v1/feedbacks/{tourId}:
  *   get:
- *     security: 
- *         - BearerAuth: []
  *     summary: Get feedback by tourId
  *     tags: [Feedback]
  *     parameters:
@@ -96,7 +94,7 @@ router.post("/", verifyToken, isCustomer, controllers.createFeedback);
  *             schema:
  *               type: object
  */
-router.get("/:tourId", verifyToken, isCustomer, controllers.getFeedbacksByTourId);
+router.get("/:tourId", controllers.getFeedbacksByTourId);
 
 /**
  * @swagger

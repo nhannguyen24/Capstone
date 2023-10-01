@@ -63,7 +63,6 @@ const validateOtp = (req) => new Promise(async (resolve, reject) => {
             status: 200,
             data: {
                 msg: `OTP valid`,
-                otpId: otp.otpId
             }
         });
 
@@ -91,7 +90,7 @@ const sendOtpToEmail = async (email, userId, fullName, otpType) => {
             }
         })
 
-        const htmlContent = generateOtpContent(fullName, otpType, otpCode)
+        const htmlContent = generateOtpContent(userId ? fullName : user.userName, otpType, otpCode)
         mailer.sendMail(email, "OTP Code Confirmation", htmlContent)
 
         let otp

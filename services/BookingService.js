@@ -396,11 +396,11 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 booking = await db.Booking.create({ setUpBooking }, { transaction: t });
     
                 await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId }, { transaction: t })
-    
+
                 for (let index = 0; index < ticketList.length; index++) {
                     const e = ticketList[index];
                     await db.BookingDetail.create({ TicketPrice: e.dataValues.ticket_price.amount, bookingId: booking.bookingId, ticketId: e.dataValues.ticketId, quantity: tickets[index].quantity }, { transaction: t });
-                  }
+                }
             })
         } catch (error) {
             console.log(error)
