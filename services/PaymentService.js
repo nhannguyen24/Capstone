@@ -69,7 +69,7 @@ const createMoMoPaymentRequest = () =>
                     // console.log('payUrl: ');
                     // console.log(JSON.parse(body).payUrl);
                     resolve({
-                        status: tour ? 200 : 404,
+                        status: 200,
                         data: {
                             msg: "Get success link payment",
                             url: JSON.parse(body).payUrl,
