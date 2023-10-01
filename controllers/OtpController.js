@@ -12,7 +12,7 @@ const validateOtp = async (req, res) => {
 
 const sendOtpToEmail = async (req, res) => {
     try {
-        const response = await services.sendOtpToEmail(req.query.email, req.query.otpType);
+        const response = await services.sendOtpToEmail(req.query.email, null, null, req.query.otpType);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);

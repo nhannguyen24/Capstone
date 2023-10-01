@@ -45,7 +45,7 @@ router.get("/", controllers.validateOtp);
  * @swagger
  * /api/v1/otp:
  *   post:
- *     summary: OTP create
+ *     summary: Resend OTP with email
  *     tags: [OTP]
  *     parameters:
  *       - in: query
