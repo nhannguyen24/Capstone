@@ -2,6 +2,7 @@ const db = require("../models");
 const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
 const STATUS = require("../enums/StatusEnum")
+const TOUR_STATUS = require("../enums/TourStatusEnum")
 const DAY_ENUM = require("../enums/PriceDayEnum")
 const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
 
@@ -28,12 +29,14 @@ const getAllTour = (
                     queries.limit = flimit;
                     if (order) queries.order = [[order]]
                     else {
-                        queries.order = [['updatedAt', 'DESC']];
+                        queries.order = [
+                            ['updatedAt', 'DESC'],
+                        ];
                     }
                     if (tourName) query.tourName = { [Op.substring]: tourName };
                     if (tourStatus) query.tourStatus = { [Op.eq]: tourStatus };
                     if (status) query.status = { [Op.eq]: status };
-                    
+
                     const tours = await db.Tour.findAll({
                         where: query,
                         ...queries,
@@ -88,6 +91,8 @@ const getAllTour = (
                                 as: "tour_ticket",
                                 attributes: {
                                     exclude: [
+                                        "tourId",
+                                        "ticketTypeId",
                                         "createdAt",
                                         "updatedAt",
                                         "status",
@@ -104,24 +109,45 @@ const getAllTour = (
                                                 "status",
                                             ],
                                         },
-                                        include: [
-                                            {
-                                                model: db.Price,
-                                                as: "ticket_type_price",
-                                                attributes: {
-                                                    exclude: [
-                                                        "createdAt",
-                                                        "updatedAt",
-                                                        "status",
-                                                    ],
-                                                },
-                                            }
-                                        ]
                                     }
                                 ]
                             },
                         ]
                     });
+
+                    for (const e of tours) {
+                        let day = DAY_ENUM.NORMAL
+
+                        const tourDepartureDate = new Date(e.departureDate)
+                        const dayOfWeek = tourDepartureDate.getDay()
+                        if (dayOfWeek === 0 || dayOfWeek === 6) {
+                            day = DAY_ENUM.WEEKEND
+                        }
+                        const date = tourDepartureDate.getDate()
+                        const month = tourDepartureDate.getMonth()
+                        const dateMonth = `${date}-${month}`
+                        if (dateMonth.includes(SPECIAL_DAY)) {
+                            day = DAY_ENUM.HOLIDAY
+                        }
+
+                        for (const ticket of e.tour_ticket) {
+                            const price = await db.Price.findOne({
+                                where: {
+                                    ticketTypeId: ticket.ticket_type.ticketTypeId,
+                                    day: day
+                                },
+                                attributes: {
+                                    exclude: [
+                                        "ticketTypeId",
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ]
+                                }
+                            })
+                            ticket.dataValues.ticket_type.dataValues.price = price
+                        }
+                    }
 
                     redisClient.setEx(`admin_tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}`, 3600, JSON.stringify(tours));
 
@@ -150,6 +176,12 @@ const getTourById = (tourId) =>
                 attributes: {
                     exclude: ["routeId", "departureStationId", "createdAt", "updatedAt"],
                 },
+                order: [
+                    ['updatedAt', 'DESC'],
+                    [{ model: db.Route, as: 'tour_route' }, { model: db.RouteDetail, as: 'route_detail' }, 'index', 'ASC'],
+                    [{ model: db.Route, as: 'tour_route' }, { model: db.RouteDetail, as: 'route_detail' }, { model: db.Step, as: 'route_detail_step' }, 'index', 'ASC'],
+                    [{ model: db.Route, as: 'tour_route' }, { model: db.RoutePointDetail, as: 'route_poi_detail' }, 'index', 'ASC']
+                ],
                 include: [
                     {
                         model: db.Image,
@@ -189,9 +221,135 @@ const getTourById = (tourId) =>
                                 "status",
                             ],
                         },
-                    }
+                        include: [
+                            {
+                                model: db.RouteDetail,
+                                as: "route_detail",
+                                attributes: {
+                                    exclude: [
+                                        "routeId",
+                                        "stationId",
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                                include: [
+                                    {
+                                        model: db.Station,
+                                        as: "route_detail_station",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        model: db.Step,
+                                        as: "route_detail_step",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                    },
+                                ]
+                            },
+                            {
+                                model: db.RoutePointDetail,
+                                as: "route_poi_detail",
+                                attributes: {
+                                    exclude: [
+                                        "routeId",
+                                        "poiId",
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                                include: [
+                                    {
+                                        model: db.PointOfInterest,
+                                        as: "route_poi_detail_poi",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                    }
+                                ]
+                            },
+                        ],
+                    },
+                    {
+                        model: db.Ticket,
+                        as: "tour_ticket",
+                        attributes: {
+                            exclude: [
+                                "tourId",
+                                "ticketTypeId",
+                                "createdAt",
+                                "updatedAt",
+                                "status",
+                            ],
+                        },
+                        include: [
+                            {
+                                model: db.TicketType,
+                                as: "ticket_type",
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                            }
+                        ]
+                    },
                 ]
             });
+
+            for (const e of tour) {
+                let day = DAY_ENUM.NORMAL
+
+                const tourDepartureDate = new Date(e.departureDate)
+                const dayOfWeek = tourDepartureDate.getDay()
+                if (dayOfWeek === 0 || dayOfWeek === 6) {
+                    day = DAY_ENUM.WEEKEND
+                }
+                const date = tourDepartureDate.getDate()
+                const month = tourDepartureDate.getMonth()
+                const dateMonth = `${date}-${month}`
+                if (dateMonth.includes(SPECIAL_DAY)) {
+                    day = DAY_ENUM.HOLIDAY
+                }
+
+                for (const ticket of e.tour_ticket) {
+                    const price = await db.Price.findOne({
+                        where: {
+                            ticketTypeId: ticket.ticket_type.ticketTypeId,
+                            day: day
+                        },
+                        attributes: {
+                            exclude: [
+                                "ticketTypeId",
+                                "createdAt",
+                                "updatedAt",
+                                "status",
+                            ]
+                        }
+                    })
+                    ticket.dataValues.ticket_type.dataValues.price = price
+                }
+            }
+
             resolve({
                 status: tour ? 200 : 404,
                 data: {
@@ -460,13 +618,13 @@ const updateTour = ({ images, tourId, ...body }) =>
                         ]
                     });
 
-                    const tours = await db.Tour.update({ 
-                        departureStationId: station.route_detail.stationId, 
+                    const tours = await db.Tour.update({
+                        departureStationId: station.route_detail.stationId,
                         beginBookingDate: tourBeginBookingDate,
                         endBookingDate: tourEndBookingDate,
                         departureDate: tDepartureDate,
-                         ...body 
-                        }, {
+                        ...body
+                    }, {
                         where: { tourId },
                         individualHooks: true,
                     });
