@@ -1,4 +1,4 @@
-const createMoMoPaymentRequest = () =>
+const createMoMoPaymentRequest = (amounts) =>
     new Promise(async (resolve, reject) => {
         try {
             //https://developers.momo.vn/#/docs/en/aiov2/?id=payment-method
@@ -9,12 +9,12 @@ const createMoMoPaymentRequest = () =>
             var requestId = partnerCode + new Date().getTime();
             var orderId = requestId;
             var orderInfo = "Pay with MoMo";
-            var redirectUrl = "https://www.google.com.vn/?hl=vi";
+            var redirectUrl = "https://nbtour-fc9f59891cf4.herokuapp.com/api-docs/#/";
             var ipnUrl = "https://callback.url/notify";
             // var ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8";
-            var amount = "30000";
+            var amount = amounts;
             var requestType = "captureWallet"
-            var extraData = "aa"; //pass empty value if your merchant does not have stores
+            var extraData = ""; //pass empty value if your merchant does not have stores
 
             //before sign HMAC SHA256 with format
             //accessKey=$accessKey&amount=$amount&extraData=$extraData&ipnUrl=$ipnUrl&orderId=$orderId&orderInfo=$orderInfo&partnerCode=$partnerCode&redirectUrl=$redirectUrl&requestId=$requestId&requestType=$requestType
@@ -71,7 +71,7 @@ const createMoMoPaymentRequest = () =>
                     resolve({
                         status: 200,
                         data: {
-                            msg: "Get success link payment",
+                            msg: "Get link payment successfully!",
                             url: JSON.parse(body).payUrl,
                         }
                     });
@@ -95,4 +95,3 @@ const createMoMoPaymentRequest = () =>
     });
 
 module.exports = {createMoMoPaymentRequest};
-
