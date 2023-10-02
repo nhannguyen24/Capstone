@@ -60,20 +60,6 @@ const tours = [
     }
   }
   
-  // Allow Employee 1 to reassign the first tour (if desired)
-  const employeeToReassign = employees.find((employee) => employee.id === 1);
-  if (employeeToReassign) {
-    const tourToReassign = employeeToReassign.assignedTours.shift(); // Remove the first assigned tour
-    const reassignedTour = schedule.find((assignment) => assignment.tour.id === tourToReassign);
-    if (reassignedTour) {
-      const newTour = tours.find((tour) => tour.id === 1); // Choose a different tour to reassign to
-      if (newTour) {
-        reassignedTour.tour = newTour;
-        employeeToReassign.assignedTours.push(newTour.id);
-      }
-    }
-  }
-  
   // Print the resulting schedule
   console.log("Shift Schedule:");
   for (const assignment of schedule) {
@@ -81,3 +67,35 @@ const tours = [
       `Tour ${assignment.tour.id} at ${assignment.tour.dateTime.toISOString()} assigned to ${assignment.employee.name} on Bus ${assignment.bus.id}`
     );
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Allow Employee 1 to reassign the first tour (if desired)
+  // const employeeToReassign = employees.find((employee) => employee.id === 1);
+  // if (employeeToReassign) {
+  //   const tourToReassign = employeeToReassign.assignedTours.shift(); // Remove the first assigned tour
+  //   const reassignedTour = schedule.find((assignment) => assignment.tour.id === tourToReassign);
+  //   if (reassignedTour) {
+  //     const newTour = tours.find((tour) => tour.id === 1); // Choose a different tour to reassign to
+  //     if (newTour) {
+  //       reassignedTour.tour = newTour;
+  //       employeeToReassign.assignedTours.push(newTour.id);
+  //     }
+  //   }
+  // }

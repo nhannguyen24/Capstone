@@ -13,7 +13,6 @@ const getAllPointOfInterest = async (req, res) => {
     }
 };
 
-
 const getPointOfInterestById = async (req, res) => {
     try {
         const { id: poiId } = req.params;

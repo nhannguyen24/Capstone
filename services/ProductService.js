@@ -2,30 +2,30 @@ const db = require("../models");
 const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
 
-const getAllPointOfInterest = (
-    { page, limit, order, poiName, address, status, ...query },
+const getAllProduct = (
+    { page, limit, order, productName, status, productCateId, ...query },
     roleName
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`pois_${page}_${limit}_${order}_${poiName}_${address}_${status}`, async (error, poi) => {
+            redisClient.get(`products_${page}_${limit}_${order}_${productName}_${status}_${productCateId}`, async (error, product) => {
                 if (error) console.error(error);
-                if (poi != null && poi != "" && roleName != 'Admin') {
+                if (product != null && product != "" && roleName != 'Admin') {
                     resolve({
                         status: 200,
                         data: {
-                            msg: "Got pois",
-                            pois: JSON.parse(poi),
+                            msg: "Got products",
+                            products: JSON.parse(product),
                         }
                     });
                 } else {
-                    redisClient.get(`admin_pois_${page}_${limit}_${order}_${poiName}_${address}_${status}`, async (error, adminPointOfInterest) => {
-                        if (adminPointOfInterest != null && adminPointOfInterest != "") {
+                    redisClient.get(`admin_products_${page}_${limit}_${order}_${productName}_${status}_${productCateId}`, async (error, adminProduct) => {
+                        if (adminProduct != null && adminProduct != "") {
                             resolve({
                                 status: 200,
                                 data: {
-                                    msg: "Got pois",
-                                    pois: JSON.parse(adminPointOfInterest),
+                                    msg: "Got products",
+                                    products: JSON.parse(adminProduct),
                                 }
                             });
                         } else {
@@ -38,25 +38,26 @@ const getAllPointOfInterest = (
                             else {
                                 queries.order = [['updatedAt', 'DESC']];
                             }
-                            if (poiName) query.poiName = { [Op.substring]: poiName };
-                            if (address) query.address = { [Op.substring]: address };
+                            if (productName) query.productName = { [Op.substring]: productName };
                             if (status) query.status = { [Op.eq]: status };
+                            if (productCateId) query.productCateId = { [Op.eq]: productCateId };
                             if (roleName !== "Admin") {
                                 query.status = { [Op.notIn]: ['Deactive'] };
                             }
-                            const pois = await db.PointOfInterest.findAll({
+                            const products = await db.Product.findAll({
                                 where: query,
                                 ...queries,
                                 include: [
                                     {
                                         model: db.Image,
-                                        as: "poi_image",
+                                        as: "product_image",
                                         attributes: {
                                             exclude: [
-                                                "poiId",
+                                                "productId",
                                                 "busId",
                                                 "tourId",
                                                 "productId",
+                                                "poiId",
                                                 "feedbackId",
                                                 "createdAt",
                                                 "updatedAt",
@@ -68,15 +69,15 @@ const getAllPointOfInterest = (
                             });
 
                             if (roleName !== "Admin") {
-                                redisClient.setEx(`pois_${page}_${limit}_${order}_${poiName}_${address}_${status}`, 3600, JSON.stringify(pois));
+                                redisClient.setEx(`products_${page}_${limit}_${order}_${productName}_${status}_${productCateId}`, 3600, JSON.stringify(products));
                             } else {
-                                redisClient.setEx(`admin_pois_${page}_${limit}_${order}_${poiName}_${address}_${status}`, 3600, JSON.stringify(pois));
+                                redisClient.setEx(`admin_products_${page}_${limit}_${order}_${productName}_${status}_${productCateId}`, 3600, JSON.stringify(products));
                             }
                             resolve({
-                                status: pois ? 200 : 404,
+                                status: products ? 200 : 404,
                                 data: {
-                                    msg: pois ? "Got pois" : "Cannot find pois",
-                                    pois: pois,
+                                    msg: products ? "Got products" : "Cannot find products",
+                                    products: products,
                                 }
                             });
                         }
@@ -89,11 +90,11 @@ const getAllPointOfInterest = (
         }
     });
 
-const getPointOfInterestById = (poiId) =>
+const getProductById = (productId) =>
     new Promise(async (resolve, reject) => {
         try {
-            const poi = await db.PointOfInterest.findOne({
-                where: { poiId: poiId },
+            const product = await db.Product.findOne({
+                where: { productId: productId },
                 raw: true,
                 nest: true,
                 attributes: {
@@ -108,6 +109,7 @@ const getPointOfInterestById = (poiId) =>
                                 "productId",
                                 "busId",
                                 "tourId",
+                                "poiId",
                                 "productId",
                                 "feedbackId",
                                 "createdAt",
@@ -119,10 +121,10 @@ const getPointOfInterestById = (poiId) =>
                 ]
             });
             resolve({
-                status: poi ? 200 : 404,
+                status: product ? 200 : 404,
                 data: {
-                    msg: poi ? "Got poi" : `Cannot find poi with id: ${poiId}`,
-                    poi: poi,
+                    msg: product ? "Got product" : `Cannot find product with id: ${{productId}}`,
+                    product: product,
                 }
             });
         } catch (error) {
@@ -130,38 +132,40 @@ const getPointOfInterestById = (poiId) =>
         }
     });
 
-const createPointOfInterest = ({ images, poiName, ...body }) =>
+const createProduct = ({ images, productName, ...body }) =>
     new Promise(async (resolve, reject) => {
         try {
-            const createPointOfInterest = await db.PointOfInterest.findOrCreate({
+            const createProduct = await db.Product.findOrCreate({
                 where: {
-                    poiName: poiName
+                    productName: productName
                 },
                 defaults: {
-                    poiName: poiName,
+                    productName: productName,
                     ...body,
                 },
             });
 
-            const createImagePromises = images.map(async (image) => {
-                await db.Image.create({
-                    image: image,
-                    poiId: createPointOfInterest[0].poiId,
+            if (images) {
+                const createImagePromises = images.map(async (image) => {
+                    await db.Image.create({
+                        image: image,
+                        productId: createProduct[0].productId,
+                    });
                 });
-            });
-
-            await Promise.all(createImagePromises);
+    
+                await Promise.all(createImagePromises);
+            }
 
             resolve({
-                status: createPointOfInterest[1] ? 200 : 400,
+                status: createProduct[1] ? 200 : 400,
                 data: {
-                    msg: createPointOfInterest[1]
-                        ? "Create new poi successfully"
-                        : "Cannot create new poi/Point name already exists",
-                    poi: createPointOfInterest[1] ? createPointOfInterest[0].dataValues : null,
+                    msg: createProduct[1]
+                        ? "Create new product successfully"
+                        : "Cannot create new product/Point name already exists",
+                    product: createProduct[1] ? createProduct[0].dataValues : null,
                 }
             });
-            redisClient.keys('*pois_*', (error, keys) => {
+            redisClient.keys('*products_*', (error, keys) => {
                 if (error) {
                     console.error('Error retrieving keys:', error);
                     return;
@@ -183,57 +187,59 @@ const createPointOfInterest = ({ images, poiName, ...body }) =>
         }
     });
 
-const updatePointOfInterest = ({ images, poiId, ...body }) =>
+const updateProduct = ({ images, productId, ...body }) =>
     new Promise(async (resolve, reject) => {
         try {
-            const poi = await db.PointOfInterest.findOne({
+            const product = await db.Product.findOne({
                 where: {
-                    poiName: body?.poiName,
-                    poiId: {
-                        [Op.ne]: poiId
+                    productName: body?.productName,
+                    productId: {
+                        [Op.ne]: productId
                     }
                 }
             })
 
-            if (poi !== null) {
+            if (product !== null) {
                 resolve({
                     status: 409,
                     data: {
-                        msg: "PointOfInterest name already exists"
+                        msg: "Product name already exists"
                     }
                 });
             } else {
-                const pois = await db.PointOfInterest.update(body, {
-                    where: { poiId },
+                const products = await db.Product.update(body, {
+                    where: { productId },
                     individualHooks: true,
                 });
 
-                await db.Image.destroy({
-                    where: {
-                        poiId: poiId,
-                    }
-                });
-
-                const createImagePromises = images.map(async ( image ) => {
-                    await db.Image.create({
-                        image: image,
-                        poiId: poiId,
+                if (images) {
+                    await db.Image.destroy({
+                        where: {
+                            productId: productId,
+                        }
                     });
-                });
-
-                await Promise.all(createImagePromises);
+    
+                    const createImagePromises = images.map(async ( image ) => {
+                        await db.Image.create({
+                            image: image,
+                            productId: productId,
+                        });
+                    });
+    
+                    await Promise.all(createImagePromises);
+                }
 
                 resolve({
-                    status: pois[1].length !== 0 ? 200 : 400,
+                    status: products[1].length !== 0 ? 200 : 400,
                     data: {
                         msg:
-                            pois[1].length !== 0
+                            products[1].length !== 0
                                 ? `Point update`
-                                : "Cannot update point/ poiId not found",
+                                : "Cannot update product/ productId not found",
                     }
                 });
 
-                redisClient.keys('*pois_*', (error, keys) => {
+                redisClient.keys('*products_*', (error, keys) => {
                     if (error) {
                         console.error('Error retrieving keys:', error);
                         return;
@@ -256,43 +262,43 @@ const updatePointOfInterest = ({ images, poiId, ...body }) =>
     });
 
 
-const deletePointOfInterest = (poiIds) =>
+const deleteProduct = (productIds) =>
     new Promise(async (resolve, reject) => {
         try {
-            const findPonit = await db.PointOfInterest.findAll({
+            const findPonit = await db.Product.findAll({
                 raw: true, nest: true,
-                where: { poiId: poiIds },
+                where: { productId: productIds },
             });
 
-            for (const point of findPonit) {
-                if (point.status === "Deactive") {
+            for (const product of findPonit) {
+                if (product.status === "Deactive") {
                     resolve({
                         status: 400,
                         data: {
-                            msg: "The point of interest already deactive!",
+                            msg: "The product already deactive!",
                         }
                     });
                 }
             }
 
-            const pois = await db.PointOfInterest.update(
+            const products = await db.Product.update(
                 { status: "Deactive" },
                 {
-                    where: { poiId: poiIds },
+                    where: { productId: productIds },
                     individualHooks: true,
                 }
             );
             resolve({
-                status: pois[0] > 0 ? 200 : 400,
+                status: products[0] > 0 ? 200 : 400,
                 data: {
                     msg:
-                        pois[0] > 0
-                            ? `${pois[0]} poi delete`
-                            : "Cannot delete poi/ poiId not found",
+                        products[0] > 0
+                            ? `${products[0]} product delete`
+                            : "Cannot delete product/ productId not found",
                 }
             });
 
-            redisClient.keys('*pois_*', (error, keys) => {
+            redisClient.keys('*products_*', (error, keys) => {
                 if (error) {
                     console.error('Error retrieving keys:', error);
                     return;
@@ -315,10 +321,10 @@ const deletePointOfInterest = (poiIds) =>
     });
 
 module.exports = {
-    updatePointOfInterest,
-    deletePointOfInterest,
-    createPointOfInterest,
-    getAllPointOfInterest,
-    getPointOfInterestById,
+    updateProduct,
+    deleteProduct,
+    createProduct,
+    getAllProduct,
+    getProductById,
 };
 
