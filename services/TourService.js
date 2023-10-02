@@ -410,7 +410,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                     resolve({
                         status: 400,
                         data: {
-                            msg: "End booking date must be 12 hours later than Departure date",
+                            msg: "End booking date must be 12 hours earlier than Departure date",
                         }
                     });
                     return;
@@ -596,7 +596,7 @@ const updateTour = ({ images, tourId, ...body }) =>
                     resolve({
                         status: 400,
                         data: {
-                            msg: "End booking date must be 12 hours later than Departure date",
+                            msg: "End booking date must be 12 hours earlier than Departure date",
                         }
                     });
                     return;

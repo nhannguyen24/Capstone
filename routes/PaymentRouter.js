@@ -9,8 +9,17 @@ const router = express.Router();
  * @swagger
  * /api/v1/payments:
  *   post:
+ *     security: 
+ *         - BearerAuth: []
  *     summary: Pay with Momo
  *     tags: [Payment]
+ *     parameters:
+ *       - in: query
+ *         name: amount
+ *         schema:
+ *           type: string
+ *           example: 30000
+ *         required: true
  *     responses:
  *       200:
  *         description: OK
@@ -19,6 +28,6 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.post("/", controllers.paymentMomo);
+router.post("/", verifyToken, controllers.paymentMomo);
 
 module.exports = router;
