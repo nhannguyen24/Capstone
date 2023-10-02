@@ -64,6 +64,11 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *         schema:
  *           type: string
  *         description: Find tour by tourName
+ *       - name: routeId
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Find tour by routeId
  *       - name: tourStatus
  *         in: query
  *         schema:

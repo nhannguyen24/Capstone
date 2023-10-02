@@ -7,11 +7,11 @@ const DAY_ENUM = require("../enums/PriceDayEnum")
 const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
 
 const getAllTour = (
-    { page, limit, order, tourName, address, tourStatus, status, ...query }
+    { page, limit, order, tourName, address, tourStatus, status, routeId, ...query }
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}`, async (error, tour) => {
+            redisClient.get(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}`, async (error, tour) => {
                 if (error) console.error(error);
                 if (tour != null && tour != "") {
                     resolve({
@@ -35,6 +35,7 @@ const getAllTour = (
                     }
                     if (tourName) query.tourName = { [Op.substring]: tourName };
                     if (tourStatus) query.tourStatus = { [Op.eq]: tourStatus };
+                    if (routeId) query.routeId = { [Op.eq]: routeId };
                     if (status) query.status = { [Op.eq]: status };
 
                     const tours = await db.Tour.findAll({
@@ -149,7 +150,7 @@ const getAllTour = (
                         }
                     }
 
-                    redisClient.setEx(`admin_tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}`, 3600, JSON.stringify(tours));
+                    redisClient.setEx(`admin_tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}`, 3600, JSON.stringify(tours));
 
                     resolve({
                         status: tours ? 200 : 404,
