@@ -353,6 +353,15 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             },
             attributes: ["scheduleId", "busId", "tourId"]
         })
+        if(!schedule){
+            resolve({
+                status: 404,
+                data: {
+                    msg: `Schedule not found with tourId: ${tickets[0].tourId}`,
+                }
+            });
+            return
+        }
 
         let totalBookedSeat = 0
         const bookingDetails = await db.BookingDetail.findAll({
