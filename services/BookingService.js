@@ -401,8 +401,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
         let booking
         try {
             await db.sequelize.transaction(async (t) => {
-                const setUpBooking = { totalPrice: totalPrice, customerId: resultUser[0].dataValues.userId }
-                booking = await db.Booking.create({ setUpBooking }, { transaction: t });
+                booking = await db.Booking.create({ totalPrice: totalPrice, customerId: resultUser[0].dataValues.userId } , { transaction: t });
     
                 await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId }, { transaction: t })
 
