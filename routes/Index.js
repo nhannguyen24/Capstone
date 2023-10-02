@@ -19,8 +19,8 @@ const productCate = require('./ProductCategoryRouter')
 const otp = require("./OtpRouter")
 const payment = require('./PaymentRouter');
 const announcement = require('./AnnouncementRouter');
+const product = require('./ProductRouter');
 
-// const category_detail = require('./category_detail');
 // const order_detail = require('./order_detail');
 // const order = require('./order');
 
@@ -57,6 +57,7 @@ const initRoutes = (app) => {
     app.use('/api/v1/productCates', productCate);
     app.use('/api/v1/announcements', announcement);
     app.use('/api/v1/payments', payment);
+    app.use('/api/v1/products', product);
 
     // app.use('/api/v1/categories-detail', category_detail);
     // app.use('/api/v1/order-detail', order_detail);

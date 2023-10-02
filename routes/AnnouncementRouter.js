@@ -80,15 +80,15 @@ router.get("/", verifyToken, isAdminOrManagerOrTourguideOrDriver, controllers.ge
 
 /**
  * @swagger
- * /api/v1/announcements/{id}:
+ * /api/v1/announcements/{announcementId}:
  *   get:
  *     security: 
  *         - BearerAuth: []
  *     summary: Returns the the announcements by id
  *     tags: [Announcement]
  *     parameters:
- *       - name: id
- *         in: path
+ *       - in: path
+ *         name: announcementId
  *         schema:
  *           type: string
  *         description: Find announcement by announcementId

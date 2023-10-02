@@ -14,6 +14,7 @@ const getAllAnnouncement = async (req, res) => {
 const getAnnouncementById = async (req, res) => {
     try {
         const { id: announcementId } = req.params;
+        console.log(req.params);
         if(!announcementId) {
             throw new BadRequestError('Please provide announcementId');
         }
