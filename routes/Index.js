@@ -1,4 +1,6 @@
 require('express-async-errors');
+const crypto = require('crypto');
+
 const auth = require('./AuthRouter');
 const role = require('./RoleRouter');
 const user = require('./UserRouter');
