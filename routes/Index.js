@@ -59,6 +59,34 @@ const initRoutes = (app) => {
     app.use('/api/v1/payments', payment);
     app.use('/api/v1/products', product);
 
+    app.post('/api/v1/payments/momo-ipn', (req, res) => {
+        try {
+          console.log('aaa');
+          // Parse the JSON data from MoMo IPN
+          const ipnData = req.body;
+      
+          // Verify the signature
+          const expectedSignature = crypto
+            .createHmac('sha256', secretkey)
+            .update(rawSignature) // Recreate the raw signature as you did before
+            .digest('hex');
+      
+          if (ipnData.signature === expectedSignature) {
+            // Signature is valid
+            // Process the payment status and update your database
+            // Send a response with status 200 to acknowledge receipt
+            console.log(res);
+            res.status(200).send('IPN received and processed successfully');
+          } else {
+            // Invalid signature, do not trust the IPN
+            res.status(400).send('Invalid signature');
+          }
+        } catch (error) {
+          console.error(error);
+          res.status(500).send('Error processing IPN');
+        }
+      });
+
     // app.use('/api/v1/categories-detail', category_detail);
     // app.use('/api/v1/order-detail', order_detail);
     // app.use('/api/v1/orders', order);

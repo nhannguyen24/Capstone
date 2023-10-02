@@ -67,7 +67,7 @@ const createMoMoPaymentRequest = (amounts) =>
                     // console.log('Body: ');
                     // console.log(body);
                     // console.log('payUrl: ');
-                    // console.log(JSON.parse(body).payUrl);
+                    console.log(JSON.parse(body));
                     resolve({
                         status: 200,
                         data: {

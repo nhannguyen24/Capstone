@@ -136,6 +136,7 @@ router.get("/:id", verifyToken, controllers.getPointOfInterestById);
  *                    address: 187 Phạm Ngũ Lão
  *                    latitude: 10.7688046
  *                    longitude: 106.6903351
+ *                    file: string
  *                    images:
  *                          - string
  *                          - string
@@ -170,6 +171,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createPointOfInteres
  *                    address: 187 Phạm Ngũ Lão
  *                    latitude: 10.7688046
  *                    longitude: 106.6903351
+ *                    file: string
  *                    images:
  *                          - string
  *                          - string

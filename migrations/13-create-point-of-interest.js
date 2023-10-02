@@ -27,6 +27,9 @@ module.exports = {
         type: Sequelize.DECIMAL(9,6),
         allowNull: false,
       },
+      file: {
+        type: Sequelize.STRING(1000),
+      },
       status: {
         type: Sequelize.ENUM,
         values: ["Active", "Deactive"],
