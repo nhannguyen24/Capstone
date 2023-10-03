@@ -15,6 +15,12 @@ const router = express.Router();
  *     tags: [Payment]
  *     parameters:
  *       - in: query
+ *         name: redirect
+ *         schema:
+ *           type: string
+ *           example: https://walletfpt.com
+ *         required: true
+ *       - in: query
  *         name: amount
  *         schema:
  *           type: string
