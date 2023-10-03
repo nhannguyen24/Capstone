@@ -3,9 +3,8 @@ const {BadRequestError, InternalServerError} = require('../errors/Index');
 
 const paymentMomo = async (req, res) => {
     try {
-        const { amount } = req.query;
-        console.log(amount);
-        const response = await services.createMoMoPaymentRequest(amount);
+        const { amount, redirect } = req.query;
+        const response = await services.createMoMoPaymentRequest(amount, redirect);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);

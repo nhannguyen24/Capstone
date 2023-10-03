@@ -143,14 +143,16 @@ const createPointOfInterest = ({ images, poiName, ...body }) =>
                 },
             });
 
-            const createImagePromises = images.map(async (image) => {
-                await db.Image.create({
-                    image: image,
-                    poiId: createPointOfInterest[0].poiId,
+            if (images) {
+                const createImagePromises = images.map(async (image) => {
+                    await db.Image.create({
+                        image: image,
+                        poiId: createPointOfInterest[0].poiId,
+                    });
                 });
-            });
 
-            await Promise.all(createImagePromises);
+                await Promise.all(createImagePromises);
+            }
 
             resolve({
                 status: createPointOfInterest[1] ? 200 : 400,
@@ -208,21 +210,22 @@ const updatePointOfInterest = ({ images, poiId, ...body }) =>
                     individualHooks: true,
                 });
 
-                await db.Image.destroy({
-                    where: {
-                        poiId: poiId,
-                    }
-                });
-
-                const createImagePromises = images.map(async ( image ) => {
-                    await db.Image.create({
-                        image: image,
-                        poiId: poiId,
+                if (images) {
+                    await db.Image.destroy({
+                        where: {
+                            poiId: poiId,
+                        }
                     });
-                });
 
-                await Promise.all(createImagePromises);
+                    const createImagePromises = images.map(async (image) => {
+                        await db.Image.create({
+                            image: image,
+                            poiId: poiId,
+                        });
+                    });
 
+                    await Promise.all(createImagePromises);
+                }
                 resolve({
                     status: pois[1].length !== 0 ? 200 : 400,
                     data: {

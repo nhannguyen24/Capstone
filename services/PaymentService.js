@@ -3,6 +3,8 @@ const crypto = require('crypto');
 const createMoMoPaymentRequest = (amounts, redirect) =>
     new Promise(async (resolve, reject) => {
         try {
+            console.log(amounts);
+            console.log(redirect);
             //https://developers.momo.vn/#/docs/en/aiov2/?id=payment-method
             //parameters
             var partnerCode = "MOMO";

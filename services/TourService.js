@@ -504,15 +504,16 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                     await Promise.all(createTicketPromises);
 
                     if (createTour[1]) {
-                        const createImagePromises = images.map(async (image) => {
-                            await db.Image.create({
-                                image: image,
-                                tourId: createTour[0].tourId,
-                            }, { transaction: t });
-                        });
-
-                        await Promise.all(createImagePromises);
-
+                        if (images) {
+                            const createImagePromises = images.map(async (image) => {
+                                await db.Image.create({
+                                    image: image,
+                                    tourId: createTour[0].tourId,
+                                }, { transaction: t });
+                            });
+    
+                            await Promise.all(createImagePromises);
+                        } 
                     }
                     resolve({
                         status: createTour[1] ? 200 : 400,
@@ -630,20 +631,22 @@ const updateTour = ({ images, tourId, ...body }) =>
                         individualHooks: true,
                     });
 
-                    await db.Image.destroy({
-                        where: {
-                            tourId: tourId,
-                        }
-                    });
-
-                    const createImagePromises = images.map(async (image) => {
-                        await db.Image.create({
-                            image: image,
-                            tourId: tourId,
+                    if (images) {
+                        await db.Image.destroy({
+                            where: {
+                                tourId: tourId,
+                            }
                         });
-                    });
-
-                    await Promise.all(createImagePromises);
+    
+                        const createImagePromises = images.map(async (image) => {
+                            await db.Image.create({
+                                image: image,
+                                tourId: tourId,
+                            });
+                        });
+    
+                        await Promise.all(createImagePromises);
+                    } 
 
                     resolve({
                         status: tours[1].length !== 0 ? 200 : 400,
