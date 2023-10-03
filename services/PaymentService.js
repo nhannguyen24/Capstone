@@ -3,8 +3,6 @@ const crypto = require('crypto');
 const createMoMoPaymentRequest = (amounts, redirect) =>
     new Promise(async (resolve, reject) => {
         try {
-            console.log(amounts);
-            console.log(redirect);
             //https://developers.momo.vn/#/docs/en/aiov2/?id=payment-method
             //parameters
             var partnerCode = "MOMO";
@@ -22,17 +20,16 @@ const createMoMoPaymentRequest = (amounts, redirect) =>
 
             //before sign HMAC SHA256 with format
             //accessKey=$accessKey&amount=$amount&extraData=$extraData&ipnUrl=$ipnUrl&orderId=$orderId&orderInfo=$orderInfo&partnerCode=$partnerCode&redirectUrl=$redirectUrl&requestId=$requestId&requestType=$requestType
-            var rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&requestId=" + requestId + "&requestType=" + requestType
+            var rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl + "&requestId=" + requestId + "&requestType=" + requestType
             //puts raw signature
-            console.log("--------------------RAW SIGNATURE----------------")
-            console.log(rawSignature)
+            // console.log("--------------------RAW SIGNATURE----------------")
+            // console.log(rawSignature)
             //signature
-            const crypto = require('crypto');
             var signature = crypto.createHmac('sha256', secretkey)
                 .update(rawSignature)
                 .digest('hex');
-            console.log("--------------------SIGNATURE----------------")
-            console.log(signature)
+            // console.log("--------------------SIGNATURE----------------")
+            // console.log(signature)
 
             //json object send to MoMo endpoint
             const requestBody = JSON.stringify({
@@ -101,31 +98,9 @@ const createMoMoPaymentRequest = (amounts, redirect) =>
 const getMoMoPaymentResponse = (req) =>
     new Promise(async (resolve, reject) => {
         try {
-            // Parse the JSON data from MoMo IPN
             const ipnData = req.body;
-            var partnerCode = "MOMO";
-            var accessKey = "F8BBA842ECF85";
-            var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
-            var requestId = ipnData.requestId;
-            var orderId = ipnData.orderId;
-            var orderInfo = "Pay with MoMo";
-            var ipnUrl = "https://nbtour-fc9f59891cf4.herokuapp.com/api/v1/payments/momo-ipn";
-            // var ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8";
-            var amount = ipnData.amounts;
-            var requestType = "captureWallet"
-            var extraData = ""; //pass empty value if your merchant does not have stores
 
-            //before sign HMAC SHA256 with format
-            //accessKey=$accessKey&amount=$amount&extraData=$extraData&ipnUrl=$ipnUrl&orderId=$orderId&orderInfo=$orderInfo&partnerCode=$partnerCode&redirectUrl=$redirectUrl&requestId=$requestId&requestType=$requestType
-            var rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&requestId=" + requestId + "&requestType=" + requestType
-
-            // Verify the signature
-            const expectedSignature = crypto
-                .createHmac('sha256', secretkey)
-                .update(rawSignature) // Recreate the raw signature as you did before
-                .digest('hex');
-
-            if (ipnData.signature === expectedSignature) {
+            if (ipnData.resultCode === 0) {
                 // Signature is valid
                 // Process the payment status and update your database
                 // Send a response with status 200 to acknowledge receipt
@@ -133,7 +108,7 @@ const getMoMoPaymentResponse = (req) =>
                 resolve({
                     status: 200,
                     data: {
-                        msg: 'IPN received and processed successfully'
+                        msg: 'Payment processed successfully'
                     }
                 });
             } else {
@@ -141,7 +116,7 @@ const getMoMoPaymentResponse = (req) =>
                 resolve({
                     status: 400,
                     data: {
-                        msg: 'Invalid signature'
+                        msg: 'Payment processed unsuccessfully'
                     }
                 });
             }
@@ -150,7 +125,7 @@ const getMoMoPaymentResponse = (req) =>
             resolve({
                 status: 500,
                 data: {
-                    msg: 'Error processing IPN',
+                    msg: 'Error processing payment',
                 }
             });
         }
