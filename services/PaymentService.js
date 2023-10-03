@@ -1,4 +1,6 @@
-const createMoMoPaymentRequest = (amounts) =>
+const crypto = require('crypto');
+
+const createMoMoPaymentRequest = (amounts, redirect) =>
     new Promise(async (resolve, reject) => {
         try {
             //https://developers.momo.vn/#/docs/en/aiov2/?id=payment-method
@@ -9,7 +11,7 @@ const createMoMoPaymentRequest = (amounts) =>
             var requestId = partnerCode + new Date().getTime();
             var orderId = requestId;
             var orderInfo = "Pay with MoMo";
-            var redirectUrl = "https://www.google.com.vn/?hl=vi";
+            var redirectUrl = redirect;
             var ipnUrl = "https://nbtour-fc9f59891cf4.herokuapp.com/api/v1/payments/momo-ipn";
             // var ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8";
             var amount = amounts;
@@ -94,7 +96,51 @@ const createMoMoPaymentRequest = (amounts) =>
         }
     });
 
-module.exports = {createMoMoPaymentRequest};
+const getMoMoPaymentResponse = (req) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            console.log('aaa', req);
+            // Parse the JSON data from MoMo IPN
+            const ipnData = req.body;
+
+            // Verify the signature
+            const expectedSignature = crypto
+                .createHmac('sha256', secretkey)
+                .update(rawSignature) // Recreate the raw signature as you did before
+                .digest('hex');
+
+            if (ipnData.signature === expectedSignature) {
+                // Signature is valid
+                // Process the payment status and update your database
+                // Send a response with status 200 to acknowledge receipt
+                console.log('cccc', req);
+                resolve({
+                    status: 200,
+                    data: {
+                        msg: 'IPN received and processed successfully'
+                    }
+                });
+            } else {
+                // Invalid signature, do not trust the IPN
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: 'Invalid signature'
+                    }
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            resolve({
+                status: 500,
+                data: {
+                    msg: 'Error processing IPN',
+                }
+            });
+        }
+    });
+
+module.exports = { createMoMoPaymentRequest, getMoMoPaymentResponse };
 
 
 

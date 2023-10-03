@@ -30,4 +30,7 @@ const router = express.Router();
  */
 router.post("/", verifyToken, controllers.paymentMomo);
 
+
+router.post("/momo-ipn", controllers.getPaymentMomo);
+
 module.exports = router;

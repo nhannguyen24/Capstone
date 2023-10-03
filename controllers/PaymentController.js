@@ -12,4 +12,13 @@ const paymentMomo = async (req, res) => {
     }
 }
 
-module.exports = { paymentMomo }
+const getPaymentMomo = async (req, res) => {
+    try {
+        const response = await services.getMoMoPaymentResponse(req);
+        return res.status(response.status).json(response.data);
+    } catch (error) {
+        throw new InternalServerError(error);
+    }
+}
+
+module.exports = { paymentMomo, getPaymentMomo }
