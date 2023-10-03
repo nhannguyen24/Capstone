@@ -61,7 +61,7 @@ const initRoutes = (app) => {
     app.use('/api/v1/payments', payment);
     app.use('/api/v1/products', product);
 
-    app.post('/api/v1/payments/momo-ipn', (req, res) => {
+    app.post('/momo-ipn', (req, res) => {
         try {
           console.log('aaa');
           // Parse the JSON data from MoMo IPN
