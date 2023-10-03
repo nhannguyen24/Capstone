@@ -10,7 +10,7 @@ const createMoMoPaymentRequest = (amounts) =>
             var orderId = requestId;
             var orderInfo = "Pay with MoMo";
             var redirectUrl = "https://nbtour-fc9f59891cf4.herokuapp.com/api-docs/#/";
-            var ipnUrl = "https://nbtour-fc9f59891cf4.herokuapp.com/api/v1/payments";
+            var ipnUrl = "https://www.google.com.vn/?hl=vi/momo-ipn";
             // var ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8";
             var amount = amounts;
             var requestType = "captureWallet"
