@@ -22,7 +22,7 @@ const createMoMoPaymentRequest = (amounts, redirect) =>
 
             //before sign HMAC SHA256 with format
             //accessKey=$accessKey&amount=$amount&extraData=$extraData&ipnUrl=$ipnUrl&orderId=$orderId&orderInfo=$orderInfo&partnerCode=$partnerCode&redirectUrl=$redirectUrl&requestId=$requestId&requestType=$requestType
-            var rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl + "&requestId=" + requestId + "&requestType=" + requestType
+            var rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&requestId=" + requestId + "&requestType=" + requestType
             //puts raw signature
             console.log("--------------------RAW SIGNATURE----------------")
             console.log(rawSignature)
@@ -101,9 +101,23 @@ const createMoMoPaymentRequest = (amounts, redirect) =>
 const getMoMoPaymentResponse = (req) =>
     new Promise(async (resolve, reject) => {
         try {
-            console.log('aaa', req);
             // Parse the JSON data from MoMo IPN
             const ipnData = req.body;
+            var partnerCode = "MOMO";
+            var accessKey = "F8BBA842ECF85";
+            var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
+            var requestId = ipnData.requestId;
+            var orderId = ipnData.orderId;
+            var orderInfo = "Pay with MoMo";
+            var ipnUrl = "https://nbtour-fc9f59891cf4.herokuapp.com/api/v1/payments/momo-ipn";
+            // var ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8";
+            var amount = ipnData.amounts;
+            var requestType = "captureWallet"
+            var extraData = ""; //pass empty value if your merchant does not have stores
+
+            //before sign HMAC SHA256 with format
+            //accessKey=$accessKey&amount=$amount&extraData=$extraData&ipnUrl=$ipnUrl&orderId=$orderId&orderInfo=$orderInfo&partnerCode=$partnerCode&redirectUrl=$redirectUrl&requestId=$requestId&requestType=$requestType
+            var rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&requestId=" + requestId + "&requestType=" + requestType
 
             // Verify the signature
             const expectedSignature = crypto
@@ -115,7 +129,7 @@ const getMoMoPaymentResponse = (req) =>
                 // Signature is valid
                 // Process the payment status and update your database
                 // Send a response with status 200 to acknowledge receipt
-                console.log('cccc', req);
+                console.log('cccc', ipnData);
                 resolve({
                     status: 200,
                     data: {
