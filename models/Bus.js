@@ -43,11 +43,11 @@ module.exports = (sequelize, DataTypes) => {
     isDoubleDecker: DataTypes.BOOLEAN,
     status: {
       type: DataTypes.ENUM,
-      values: ["Active", "Deactive", "Maintain"],
+      values: ["Active", "Deactive", "Scheduled", "Maintain"],
       validate: {
         isIn: {
-          args: [["Active", "Deactive", "Maintain"]],
-          msg: 'Invalid value for bus.status (Active, Deactive, Maintain)'
+          args: [["Active", "Deactive", "Scheduled", "Maintain"]],
+          msg: 'Invalid value for bus.status (Active, Deactive, Scheduled, Maintain)'
         }
       }
     },
