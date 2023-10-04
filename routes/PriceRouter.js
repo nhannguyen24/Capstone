@@ -74,7 +74,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createPrice);
 
 /**
  * @swagger
- * /api/v1/prices/{priceId}:
+ * /api/v1/prices/{id}:
  *   get:
  *     security: 
  *         - BearerAuth: []
@@ -82,7 +82,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createPrice);
  *     tags: [Price]
  *     parameters:
  *       - in: path
- *         name: priceId
+ *         name: id
  *         schema:
  *           type: string
  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
@@ -95,10 +95,10 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createPrice);
  *             schema:
  *               type: object
  */
-router.get("/:priceId", verifyToken, isAdminOrManager, controllers.getPriceById);
+router.get("/:id", verifyToken, isAdminOrManager, controllers.getPriceById);
 /**
  * @swagger
- * /api/v1/prices/{priceId}:
+ * /api/v1/prices/{id}:
  *   put:
  *     security: 
  *         - BearerAuth: []
@@ -106,7 +106,7 @@ router.get("/:priceId", verifyToken, isAdminOrManager, controllers.getPriceById)
  *     tags: [Price]
  *     parameters:
  *       - in: path
- *         name: priceId
+ *         name: id
  *         schema:
  *           type: string
  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
@@ -145,11 +145,11 @@ router.get("/:priceId", verifyToken, isAdminOrManager, controllers.getPriceById)
  *             schema:
  *               type: object
  */
-router.put("/:priceId", verifyToken, isAdminOrManager, controllers.updatePrice);
+router.put("/:id", verifyToken, isAdminOrManager, controllers.updatePrice);
 
 /**
  * @swagger
- * /api/v1/prices/{priceId}:
+ * /api/v1/prices/{id}:
  *   delete:
  *     security: 
  *         - BearerAuth: []
@@ -157,7 +157,7 @@ router.put("/:priceId", verifyToken, isAdminOrManager, controllers.updatePrice);
  *     tags: [Price]
  *     parameters:
  *       - in: path
- *         name: priceId
+ *         name: id
  *         schema:
  *           type: string
  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
@@ -176,6 +176,6 @@ router.put("/:priceId", verifyToken, isAdminOrManager, controllers.updatePrice);
  *             schema:
  *               type: object
  */
-router.delete("/:priceId", verifyToken, isAdminOrManager, controllers.deletePrice);
+router.delete("/:id", verifyToken, isAdminOrManager, controllers.deletePrice);
 
 module.exports = router;

@@ -1,7 +1,7 @@
 const controllers = require('../controllers/BookingController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isAdminOrManager, isCustomer} = require('../middlewares/VerifyRole');
+const {isAdminOrManager, isCustomer, isLoggedIn} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -91,6 +91,8 @@ router.get("/:email", controllers.getBookingsByEmail);
  *              properties:
  *                  totalPrice:
  *                      type: integer
+ *                  departureStationId:
+ *                      type: string
  *                  user:
  *                      type: object
  *                  tickets:
@@ -98,6 +100,7 @@ router.get("/:email", controllers.getBookingsByEmail);
  *                      minItems: 1
  *            example: {
  *              totalPrice: 425000,
+ *              departureStationId: a1685c29-7e2e-409f-8a12-e935b2a34b01,
  *              user: {
  *                  email: tminhquan@gmail.com,
  *                  userName: Trần Minh Quân,
@@ -139,15 +142,13 @@ router.post("/", controllers.createBooking);
 
 /**
  * @swagger
- * /api/v1/bookings/{bookingId}:
+ * /api/v1/bookings/{id}:
  *   get:
- *     security: 
- *         - BearerAuth: []
- *     summary: Get booking detail by bookingId
+ *     summary: Get booking detail by id
  *     tags: [Booking]
  *     parameters:
  *       - in: path
- *         name: bookingId
+ *         name: id
  *         schema:
  *           type: string
  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
@@ -166,30 +167,32 @@ router.post("/", controllers.createBooking);
  *             schema:
  *               type: string
  */
-router.get("/:bookingId", verifyToken, isAdminOrManager, controllers.getBookingDetailByBookingId);
+router.get("/:id", controllers.getBookingDetailByBookingId);
 
 
 /**
  * @swagger
- * /api/v1/bookings/{bookingId}:
+ * /api/v1/bookings/{id}:
  *   put:
- *     security: 
- *         - BearerAuth: []
  *     summary: Update booking by id
  *     tags: [Booking]
  *     parameters:
  *       - in: path
- *         name: bookingId
+ *         name: id
  *         schema:
  *           type: string
- *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
+ *           example: 77ff7316-581e-448e-86c3-436263b277d1
  *         required: true
+ *       - in: query
+ *         name: isAttended
+ *         schema:
+ *           type: boolean
  *       - in: query
  *         name: bookingStatus
  *         schema:
  *           type: string
  *           enum:
- *              - OnGoing
+ *              - Ongoing
  *              - Canceled
  *              - Finished
  *       - in: query
@@ -219,11 +222,11 @@ router.get("/:bookingId", verifyToken, isAdminOrManager, controllers.getBookingD
  *             schema:
  *               type: string
  */
-router.put("/:bookingId", verifyToken, isAdminOrManager, controllers.updateBooking);
+router.put("/:id", controllers.updateBooking);
 
 /**
  * @swagger
- * /api/v1/bookings/{bookingId}:
+ * /api/v1/bookings/{id}:
  *   delete:
  *     security: 
  *         - BearerAuth: []
@@ -231,7 +234,7 @@ router.put("/:bookingId", verifyToken, isAdminOrManager, controllers.updateBooki
  *     tags: [Booking]
  *     parameters:
  *       - in: path
- *         name: bookingId
+ *         name: id
  *         schema:
  *           type: string
  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
@@ -256,6 +259,6 @@ router.put("/:bookingId", verifyToken, isAdminOrManager, controllers.updateBooki
  *             schema:
  *               type: string
  */
-router.delete("/:bookingId", verifyToken, isAdminOrManager, controllers.deleteBooking);
+router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteBooking);
 
 module.exports = router;

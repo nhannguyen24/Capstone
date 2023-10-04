@@ -1,18 +1,23 @@
-const controllers = require('../controllers/TicketTypeController');
+const controllers = require('../controllers/ReportController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isAdmin} = require('../middlewares/VerifyRole');
+const {isCustomer, isAdminOrManager, isLoggedIn} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
 /**
  * @swagger
- * /api/v1/ticket-types:
+ * /api/v1/reports:
  *   get:
  *     security: 
  *         - BearerAuth: []
- *     summary: get ticket-types 
- *     tags: [Ticket Type]
+ *     summary: Get list reports
+ *     tags: [Report]
+ *     parameters:
+ *       - in: query
+ *         name: customerId
+ *         schema:
+ *           type: string
  * 
  *     responses:
  *       200:
@@ -22,22 +27,22 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isAdmin, controllers.getAllTicketTypes);
+router.get("/", verifyToken, isLoggedIn, controllers.getReports);
 
 /**
  * @swagger
- * /api/v1/ticket-types/{id}:
+ * /api/v1/reports/{id}:
  *   get:
  *     security: 
  *         - BearerAuth: []
- *     summary: Get ticket-type by id
- *     tags: [Ticket Type]
+ *     summary: Get report by Id
+ *     tags: [Report]
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
- *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
+ *           example: 5fc762ee-0c43-45f6-affa-e4d7e340256d
  *         required: true
  *     responses:
  *       200:
@@ -47,17 +52,16 @@ router.get("/", verifyToken, isAdmin, controllers.getAllTicketTypes);
  *             schema:
  *               type: object
  */
-router.get("/:id", verifyToken, isAdmin, controllers.getTicketTypeById);
-
+router.get("/:id", verifyToken, isLoggedIn, controllers.getReportsById);
 
 /**
  * @swagger
- * /api/v1/ticket-types:
+ * /api/v1/reports:
  *   post:
  *     security: 
  *         - BearerAuth: []
- *     summary: Create a new ticket-type
- *     tags: [Ticket Type]
+ *     summary: Create a new report
+ *     tags: [Report]
  *     requestBody:
  *        required: true
  *        content:
@@ -65,14 +69,17 @@ router.get("/:id", verifyToken, isAdmin, controllers.getTicketTypeById);
  *            schema:
  *              type: object
  *              properties:
- *                  ticketTypeName:
+ *                  customerId:
+ *                      type: string
+ *                  title:
  *                      type: string
  *                  description:
  *                      type: string
  *            example:
  *              {
- *                  ticketTypeName: Vé người lớn,
- *                  description: Vé dành cho người lớn trên 15 tuổi,
+ *                  customerId: 224e8a10-4933-486d-8df2-b799905cde83,
+ *                  title: Viết tiêu đề ngắn gọn,
+ *                  description: Mô tả,
  *              }
  *     responses:
  *       201:
@@ -88,34 +95,38 @@ router.get("/:id", verifyToken, isAdmin, controllers.getTicketTypeById);
  *             schema:
  *               type: object
  */
-router.post("/", verifyToken, isAdmin, controllers.createTicketType);
+router.post("/", verifyToken, isLoggedIn, controllers.createReport);
 
 /**
  * @swagger
- * /api/v1/ticket-types/{id}:
+ * /api/v1/reports/{id}:
  *   put:
  *     security: 
  *         - BearerAuth: []
- *     summary: Update ticket-type by id
- *     tags: [Ticket Type]
+ *     summary: Update report by id
+ *     tags: [Report]
  *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
- *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
+ *           example: 5fc762ee-0c43-45f6-affa-e4d7e340256d
  *         required: true
  *       - in: query
- *         name: ticketTypeName
+ *         name: response
  *         schema:
  *           type: string
- *           example: Vé người lớn 
+ *           example: Reponse trả về cho người report khi thay đổi trạng thái report
+ *         required: true
  *       - in: query
- *         name: description
+ *         name: reportStatus
  *         schema:
  *           type: string
- *           example: Vé dành cho người lớn trên 15 tuổi
- *        
+ *           enum:  
+ *              - Approved
+ *              - Pending
+ *              - Rejected
+ *              - Completed
  *     responses:
  *       200:
  *         description: OK
@@ -129,32 +140,13 @@ router.post("/", verifyToken, isAdmin, controllers.createTicketType);
  *           application/json:
  *             schema:
  *               type: string
+ *       409:
+ *         description: Conflict
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
  */
-router.put("/:id", verifyToken, isAdmin, controllers.updateTicketType);
-
-// /**
-//  * @swagger
-//  * /api/v1/ticket-types/{id}:
-//  *   delete:
-//  *     security: 
-//  *         - BearerAuth: []
-//  *     summary: Update ticket-type status by id
-//  *     tags: [Ticket Type]
-//  *     parameters:
-//  *       - in: path
-//  *         name: id
-//  *         schema:
-//  *           type: string
-//  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
-//  *         required: true
-//  *     responses:
-//  *       200:
-//  *         description: OK
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: object
-//  */
-// router.delete("/:id", verifyToken, isAdmin, controllers.deleteTicketType);
+router.put("/:id", verifyToken, isAdminOrManager, controllers.updateReport);
 
 module.exports = router;

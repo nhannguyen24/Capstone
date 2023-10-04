@@ -29,11 +29,11 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isAdminOrManager, controllers.getTransactions);
+router.get("/", verifyToken, isLoggedIn, controllers.getTransactions);
 
 /**
  * @swagger
- * /api/v1/transactions/{transactionId}:
+ * /api/v1/transactions/{id}:
  *   get:
  *     security: 
  *         - BearerAuth: []
@@ -41,7 +41,7 @@ router.get("/", verifyToken, isAdminOrManager, controllers.getTransactions);
  *     tags: [Transaction]
  *     parameters:
  *       - in: path
- *         name: transactionId
+ *         name: id
  *         schema:
  *           type: string
  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
@@ -55,7 +55,7 @@ router.get("/", verifyToken, isAdminOrManager, controllers.getTransactions);
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isLoggedIn, controllers.getTransactionById);
+router.get("/:id", verifyToken, isLoggedIn, controllers.getTransactionById);
 
 
 module.exports = router;

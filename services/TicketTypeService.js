@@ -20,7 +20,7 @@ const getAllTicketTypes = (req) => new Promise(async (resolve, reject) => {
 
 const getTicketTypeById = (req) => new Promise(async (resolve, reject) => {
     try {
-        const ticketTypeId = req.params.ticketTypeId
+        const ticketTypeId = req.params.id
         const ticketType = await db.TicketType.findOne({
             where: {
                 ticketTypeId: ticketTypeId
@@ -71,7 +71,7 @@ const createTicketType = (req) => new Promise(async (resolve, reject) => {
 const updateTicketType = (req) => new Promise(async (resolve, reject) => {
     const t = await db.sequelize.transaction();
     try {
-        const ticketTypeId = req.params.ticketTypeId
+        const ticketTypeId = req.params.id
         const ticketType = await db.TicketType.findOne({
             where: {
                 ticketTypeId: ticketTypeId
