@@ -1,4 +1,5 @@
 require('express-async-errors');
+
 const auth = require('./AuthRouter');
 const role = require('./RoleRouter');
 const user = require('./UserRouter');
@@ -20,8 +21,8 @@ const otp = require("./OtpRouter")
 const payment = require('./PaymentRouter');
 const announcement = require('./AnnouncementRouter');
 const report = require('./ReportRouter');
+const product = require('./ProductRouter');
 
-// const category_detail = require('./category_detail');
 // const order_detail = require('./order_detail');
 // const order = require('./order');
 
@@ -59,6 +60,9 @@ const initRoutes = (app) => {
     app.use('/api/v1/announcements', announcement);
     app.use('/api/v1/payments', payment);
     app.use('/api/v1/reports', report);
+    app.use('/api/v1/products', product);
+
+    // app.post('/api/v1/payments/momo-ipn');
 
     // app.use('/api/v1/categories-detail', category_detail);
     // app.use('/api/v1/order-detail', order_detail);

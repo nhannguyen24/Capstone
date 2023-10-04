@@ -1,4 +1,6 @@
-const createMoMoPaymentRequest = () =>
+const crypto = require('crypto');
+
+const createMoMoPaymentRequest = (amounts, redirect) =>
     new Promise(async (resolve, reject) => {
         try {
             //https://developers.momo.vn/#/docs/en/aiov2/?id=payment-method
@@ -9,26 +11,25 @@ const createMoMoPaymentRequest = () =>
             var requestId = partnerCode + new Date().getTime();
             var orderId = requestId;
             var orderInfo = "Pay with MoMo";
-            var redirectUrl = "https://www.google.com.vn/?hl=vi";
-            var ipnUrl = "https://callback.url/notify";
+            var redirectUrl = redirect;
+            var ipnUrl = "https://nbtour-fc9f59891cf4.herokuapp.com/api/v1/payments/momo-ipn";
             // var ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8";
-            var amount = "30000";
+            var amount = amounts;
             var requestType = "captureWallet"
-            var extraData = "aa"; //pass empty value if your merchant does not have stores
+            var extraData = ""; //pass empty value if your merchant does not have stores
 
             //before sign HMAC SHA256 with format
             //accessKey=$accessKey&amount=$amount&extraData=$extraData&ipnUrl=$ipnUrl&orderId=$orderId&orderInfo=$orderInfo&partnerCode=$partnerCode&redirectUrl=$redirectUrl&requestId=$requestId&requestType=$requestType
             var rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl + "&requestId=" + requestId + "&requestType=" + requestType
             //puts raw signature
-            console.log("--------------------RAW SIGNATURE----------------")
-            console.log(rawSignature)
+            // console.log("--------------------RAW SIGNATURE----------------")
+            // console.log(rawSignature)
             //signature
-            const crypto = require('crypto');
             var signature = crypto.createHmac('sha256', secretkey)
                 .update(rawSignature)
                 .digest('hex');
-            console.log("--------------------SIGNATURE----------------")
-            console.log(signature)
+            // console.log("--------------------SIGNATURE----------------")
+            // console.log(signature)
 
             //json object send to MoMo endpoint
             const requestBody = JSON.stringify({
@@ -43,7 +44,7 @@ const createMoMoPaymentRequest = () =>
                 extraData: extraData,
                 requestType: requestType,
                 signature: signature,
-                lang: 'en'
+                lang: 'vi'
             });
             //Create the HTTPS objects
             const https = require('https');
@@ -67,11 +68,11 @@ const createMoMoPaymentRequest = () =>
                     // console.log('Body: ');
                     // console.log(body);
                     // console.log('payUrl: ');
-                    // console.log(JSON.parse(body).payUrl);
+                    console.log(JSON.parse(body));
                     resolve({
                         status: 200,
                         data: {
-                            msg: "Get success link payment",
+                            msg: "Get link payment successfully!",
                             url: JSON.parse(body).payUrl,
                         }
                     });
@@ -94,5 +95,56 @@ const createMoMoPaymentRequest = () =>
         }
     });
 
-module.exports = {createMoMoPaymentRequest};
+const getMoMoPaymentResponse = (req) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            const ipnData = req.body;
 
+            if (ipnData.resultCode === 0) {
+                // Signature is valid
+                // Process the payment status and update your database
+                // Send a response with status 200 to acknowledge receipt
+                console.log('cccc', ipnData);
+                resolve({
+                    status: 200,
+                    data: {
+                        msg: 'Payment processed successfully'
+                    }
+                });
+            } else {
+                // Invalid signature, do not trust the IPN
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: 'Payment processed unsuccessfully'
+                    }
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            resolve({
+                status: 500,
+                data: {
+                    msg: 'Error processing payment',
+                }
+            });
+        }
+    });
+
+module.exports = { createMoMoPaymentRequest, getMoMoPaymentResponse };
+
+
+
+// partnerCode%3DMOMO%26
+// orderId%3DMOMO1696253817889%26
+// requestId%3DMOMO1696253817889%26
+// amount%3D10000%26
+// orderInfo%3DPay%2Bwith%2BMoMo%26
+// orderType%3Dmomo_wallet%26
+// transId%3D1696253830305%26
+// resultCode%3D1006%26
+// message%3DTransaction%2Bdenied%2Bby%2Buser.%26
+// payType%3D%26
+// responseTime%3D1696253830348%26
+// extraData%3D%26
+// signature%3D6259114550a9d17d8286c05102b7a1b90cdf7c693dbbdb863e1840a7c88b2d23

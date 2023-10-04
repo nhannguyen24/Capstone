@@ -388,7 +388,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             },
             attributes: ["scheduleId", "busId", "tourId"]
         })
-        if (!schedule) {
+        if(!schedule){
             resolve({
                 status: 404,
                 data: {

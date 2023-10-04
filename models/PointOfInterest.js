@@ -32,6 +32,7 @@ module.exports = (sequelize, DataTypes) => {
     address: DataTypes.STRING,
     latitude: DataTypes.DECIMAL(8,6),
     longitude: DataTypes.DECIMAL(9,6),
+    file: DataTypes.STRING(1000),
     status: {
       type: DataTypes.ENUM,
       values: ["Active", "Deactive"],

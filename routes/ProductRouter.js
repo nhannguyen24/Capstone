@@ -1,4 +1,4 @@
-const controllers = require('../controllers/PointOfInterestController');
+const controllers = require('../controllers/ProductController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
 const router = express.Router();
@@ -8,58 +8,52 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  * @swagger
  * components:
  *   schemas:
- *     PointOfInterest:
+ *     Product:
  *       type: object
  *       required:
  *       properties:
- *         poiId:
+ *         productId:
  *           type: string
- *           description: The auto-generated id of the poi
- *         poiName:
+ *           description: The auto-generated id of the product
+ *         productName:
  *           type: string
- *           description: The point name
- *         description:
+ *           description: The product name
+ *         price:
+ *           type: number
+ *           description: The product price
+ *         productCateId:
  *           type: string
- *           description: The point description
- *         address:
- *           type: number
- *           description: The point address
- *         latitude:
- *           type: number
- *           description: The point latitude
- *         longitude:
- *           type: number
- *           description: The point longitude
+ *           description: The product category id
  *         status:
  *           type: string
- *           description: The point status('Active', 'Deactive')
+ *           description: The product status('Active', 'Deactive')
  */
 
 /**
  * @swagger
- * /api/v1/points:
+ * /api/v1/products:
  *   get:
  *     security: 
  *         - BearerAuth: []
- *     summary: Returns the list of all the points
- *     tags: [Point Of Interest]
+ *     summary: Returns the list of all the products
+ *     tags: [Product]
  *     parameters:
- *       - name: poiName
+ *       - name: productName
  *         in: query
  *         schema:
  *           type: string
- *         description: Find point by poiName
- *       - name: address
+ *         description: Find product by productName
+ *       - name: productCateId
  *         in: query
  *         schema:
  *           type: string
- *         description: Find point by address
+ *         description: Find product by productCateId
  *       - name: status
  *         in: query
  *         schema:
  *           type: string
  *           enum: ["Active", "Deactive"]
- *         description: Find point by status
+ *         description: Find product by status
  *       - name: page
  *         in: query
  *         schema:
@@ -74,7 +68,7 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *         in: query
  *         schema:
  *           type: string
- *         description: Sort by (poiName/createdAt)
+ *         description: Sort by (productName/createdAt)
  *       - name: order[1]
  *         in: query
  *         schema:
@@ -82,33 +76,33 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *         description: Sort ASC/DESC
  *     responses:
  *       200:
- *         description: Get the list of the points successfully
+ *         description: Get the list of the products successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/PointOfInterest'
+ *                 $ref: '#/components/schemas/Product'
  */
-router.get("/", verifyToken, controllers.getAllPointOfInterest);
+router.get("/", verifyToken, controllers.getAllProduct);
 
 /**
  * @swagger
- * /api/v1/points/{id}:
+ * /api/v1/products/{productId}:
  *   get:
  *     security: 
  *         - BearerAuth: []
- *     summary: Returns the the points by id
- *     tags: [Point Of Interest]
+ *     summary: Returns the the products by id
+ *     tags: [Product]
  *     parameters:
- *       - name: id
+ *       - name: productId
  *         in: path
  *         schema:
  *           type: string
- *         description: Find point by poiId
+ *         description: Find product by productId
  *     responses:
  *       200:
- *         description: Get the point by id successfully
+ *         description: Get the product by id successfully
  *         content:
  *           application/json:
  *             schema:
@@ -116,102 +110,96 @@ router.get("/", verifyToken, controllers.getAllPointOfInterest);
  *               items:
  *                 $ref: '#/components/schemas/Station'
  */
-router.get("/:id", verifyToken, controllers.getPointOfInterestById);
+router.get("/:id", verifyToken, controllers.getProductById);
 
 /**
  * @swagger
- * /api/v1/points:
+ * /api/v1/products:
  *   post:
  *     security:
  *       - BearerAuth: []
- *     summary: Create new point
- *     tags: [Point Of Interest]
+ *     summary: Create new product
+ *     tags: [Product]
  *     requestBody:
  *       content:
  *          application/json:
  *            schema:                     
  *                  example:
- *                    poiName: Trạm xe buýt Công viên 23/9
- *                    description: Một trạm tuyệt vời
- *                    address: 187 Phạm Ngũ Lão
- *                    latitude: 10.7688046
- *                    longitude: 106.6903351
- *                    file: string
+ *                    productName: Bánh mì
+ *                    price: 10000
+ *                    productCateId: 1aaaeb7d-8671-4987-aa0b-7fdc8c9d192e
  *                    images:
  *                          - string
  *                          - string
  *     responses:
  *       200:
- *         description: Create new point successfully
+ *         description: Create new product successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/PointOfInterest'
+ *                 $ref: '#/components/schemas/Product'
  */
-router.post("/", verifyToken, isAdminOrManager, controllers.createPointOfInterest);
+router.post("/", verifyToken, isAdminOrManager, controllers.createProduct);
 
 /**
  * @swagger
- * /api/v1/points:
+ * /api/v1/products:
  *   put:
  *     security: 
  *         - BearerAuth: []
- *     summary: Update the point by id
- *     tags: [Point Of Interest]
+ *     summary: Update the product by id
+ *     tags: [Product]
  *     requestBody:
  *       content:
  *          application/json:
  *            schema:                     
  *                  example:
- *                    poiId: 8c382e13-8620-460a-bd95-96b1152c1368
- *                    poiName: Trạm xe buýt Công viên 23/9
- *                    description: Một trạm tuyệt vời
- *                    address: 187 Phạm Ngũ Lão
- *                    latitude: 10.7688046
- *                    longitude: 106.6903351
- *                    file: string
+ *                    productId: 8c382e13-8620-460a-bd95-96b1152c1368
+ *                    productName: Bánh mì
+ *                    price: 10000
+ *                    productCateId: 1aaaeb7d-8671-4987-aa0b-7fdc8c9d192e
  *                    images:
  *                          - string
  *                          - string
  *                    status: Active
  *     responses:
  *       200:
- *         description: Update the point successfully
+ *         description: Update the product successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/PointOfInterest'
+ *                 $ref: '#/components/schemas/Product'
  */
-router.put("/", verifyToken, isAdminOrManager, controllers.updatePointOfInterest);
+router.put("/", verifyToken, isAdminOrManager, controllers.updateProduct);
 
 /**
  * @swagger
- * /api/v1/points:
+ * /api/v1/products:
  *   delete:
  *     security: 
  *         - BearerAuth: []
- *     summary: Delete the pois by id
- *     tags: [Point Of Interest]
+ *     summary: Delete the products by id
+ *     tags: [Product]
  *     parameters:
- *       - name: poiIds[0]
+ *       - name: productIds[0]
  *         in: query
  *         schema:
  *           type: string
- *         description: Input poiId to delete
+ *         description: Input productId to delete
  *     responses:
  *       200:
- *         description: Delete the points by id successfully
+ *         description: Delete the products by id successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/PointOfInterest'
+ *                 $ref: '#/components/schemas/Product'
  */
-router.delete("/", verifyToken, isAdminOrManager, controllers.deletePointOfInterest);
+router.delete("/", verifyToken, isAdminOrManager, controllers.deleteProduct);
 
 module.exports = router;

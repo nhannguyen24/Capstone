@@ -7,11 +7,11 @@ const DAY_ENUM = require("../enums/PriceDayEnum")
 const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
 
 const getAllTour = (
-    { page, limit, order, tourName, address, tourStatus, status, ...query }
+    { page, limit, order, tourName, address, tourStatus, status, routeId, ...query }
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}`, async (error, tour) => {
+            redisClient.get(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}`, async (error, tour) => {
                 if (error) console.error(error);
                 if (tour != null && tour != "") {
                     resolve({
@@ -35,6 +35,7 @@ const getAllTour = (
                     }
                     if (tourName) query.tourName = { [Op.substring]: tourName };
                     if (tourStatus) query.tourStatus = { [Op.eq]: tourStatus };
+                    if (routeId) query.routeId = { [Op.eq]: routeId };
                     if (status) query.status = { [Op.eq]: status };
 
                     const tours = await db.Tour.findAll({
@@ -149,7 +150,7 @@ const getAllTour = (
                         }
                     }
 
-                    redisClient.setEx(`admin_tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}`, 3600, JSON.stringify(tours));
+                    redisClient.setEx(`admin_tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}`, 3600, JSON.stringify(tours));
 
                     resolve({
                         status: tours ? 200 : 404,
@@ -410,7 +411,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                     resolve({
                         status: 400,
                         data: {
-                            msg: "End booking date must be 12 hours later than Departure date",
+                            msg: "End booking date must be 12 hours earlier than Departure date",
                         }
                     });
                     return;
@@ -503,15 +504,16 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                     await Promise.all(createTicketPromises);
 
                     if (createTour[1]) {
-                        const createImagePromises = images.map(async (image) => {
-                            await db.Image.create({
-                                image: image,
-                                tourId: createTour[0].tourId,
-                            }, { transaction: t });
-                        });
+                        if (images) {
+                            const createImagePromises = images.map(async (image) => {
+                                await db.Image.create({
+                                    image: image,
+                                    tourId: createTour[0].tourId,
+                                }, { transaction: t });
+                            });
 
-                        await Promise.all(createImagePromises);
-
+                            await Promise.all(createImagePromises);
+                        }
                     }
                     resolve({
                         status: createTour[1] ? 200 : 400,
@@ -538,8 +540,8 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             });
                         });
                     });
-                    await t.commit();
                 }
+                await t.commit();
             });
         } catch (error) {
             if (transaction) {
@@ -553,126 +555,135 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
 const updateTour = ({ images, tourId, ...body }) =>
     new Promise(async (resolve, reject) => {
         try {
-            const tour = await db.Tour.findOne({
-                where: {
-                    tourName: body?.tourName,
-                    tourId: {
-                        [Op.ne]: tourId
-                    }
-                }
-            })
-
-            if (tour !== null) {
-                resolve({
-                    status: 409,
-                    data: {
-                        msg: "Tour name already exists"
-                    }
-                });
-            } else {
-                const currentDate = new Date();
-                currentDate.setHours(currentDate.getHours() + 7);
-                const tDepartureDate = new Date(body.departureDate);
-                const tourBeginBookingDate = new Date(body.beginBookingDate);
-                const tourEndBookingDate = new Date(body.endBookingDate);
-
-                if (currentDate > tourBeginBookingDate || currentDate.getTime() > tourBeginBookingDate.getTime()) {
-                    resolve({
-                        status: 400,
-                        data: {
-                            msg: "Begin booking date can't be earlier than current date"
+            transaction = await db.sequelize.transaction(async (t) => {
+                const tour = await db.Tour.findOne({
+                    where: {
+                        tourName: body?.tourName,
+                        tourId: {
+                            [Op.ne]: tourId
                         }
-                    })
-                    return;
-                } else if (tourBeginBookingDate >= tourEndBookingDate || tourBeginBookingDate.getTime() >= tourEndBookingDate.getTime()) {
+                    }
+                })
+
+                if (tour !== null) {
                     resolve({
-                        status: 400,
+                        status: 409,
                         data: {
-                            msg: "Begin booking date can't be later than End booking date",
+                            msg: "Tour name already exists"
                         }
                     });
-                    return;
-                } else if (tDepartureDate <= tourEndBookingDate || tDepartureDate.getTime() <= tourEndBookingDate.getTime() + 12 * 60 * 60 * 1000) {
-                    resolve({
-                        status: 400,
-                        data: {
-                            msg: "End booking date must be 12 hours later than Departure date",
-                        }
-                    });
-                    return;
                 } else {
-                    const station = await db.Route.findOne({
-                        raw: true,
-                        nest: true,
-                        where: {
-                            routeId: body.routeId
-                        },
-                        include: [
-                            {
-                                model: db.RouteDetail,
-                                as: "route_detail",
-                                where: {
-                                    index: 1
-                                }
-                            },
-                        ]
-                    });
+                    const currentDate = new Date();
+                    currentDate.setHours(currentDate.getHours() + 7);
+                    const tDepartureDate = new Date(body.departureDate);
+                    const tourBeginBookingDate = new Date(body.beginBookingDate);
+                    const tourEndBookingDate = new Date(body.endBookingDate);
 
-                    const tours = await db.Tour.update({
-                        departureStationId: station.route_detail.stationId,
-                        beginBookingDate: tourBeginBookingDate,
-                        endBookingDate: tourEndBookingDate,
-                        departureDate: tDepartureDate,
-                        ...body
-                    }, {
-                        where: { tourId },
-                        individualHooks: true,
-                    });
-
-                    await db.Image.destroy({
-                        where: {
-                            tourId: tourId,
-                        }
-                    });
-
-                    const createImagePromises = images.map(async (image) => {
-                        await db.Image.create({
-                            image: image,
-                            tourId: tourId,
+                    if (currentDate > tourBeginBookingDate || currentDate.getTime() > tourBeginBookingDate.getTime()) {
+                        resolve({
+                            status: 400,
+                            data: {
+                                msg: "Begin booking date can't be earlier than current date"
+                            }
+                        })
+                        return;
+                    } else if (tourBeginBookingDate >= tourEndBookingDate || tourBeginBookingDate.getTime() >= tourEndBookingDate.getTime()) {
+                        resolve({
+                            status: 400,
+                            data: {
+                                msg: "Begin booking date can't be later than End booking date",
+                            }
                         });
-                    });
+                        return;
+                    } else if (tDepartureDate <= tourEndBookingDate || tDepartureDate.getTime() <= tourEndBookingDate.getTime() + 12 * 60 * 60 * 1000) {
+                        resolve({
+                            status: 400,
+                            data: {
+                                msg: "End booking date must be 12 hours earlier than Departure date",
+                            }
+                        });
+                        return;
+                    } else {
+                        const station = await db.Route.findOne({
+                            raw: true,
+                            nest: true,
+                            where: {
+                                routeId: body.routeId
+                            },
+                            include: [
+                                {
+                                    model: db.RouteDetail,
+                                    as: "route_detail",
+                                    where: {
+                                        index: 1
+                                    }
+                                },
+                            ]
+                        });
 
-                    await Promise.all(createImagePromises);
+                        const tours = await db.Tour.update({
+                            departureStationId: station.route_detail.stationId,
+                            beginBookingDate: tourBeginBookingDate,
+                            endBookingDate: tourEndBookingDate,
+                            departureDate: tDepartureDate,
+                            ...body
+                        }, {
+                            where: { tourId },
+                            individualHooks: true,
+                        }, { transaction: t });
 
-                    resolve({
-                        status: tours[1].length !== 0 ? 200 : 400,
-                        data: {
-                            msg:
-                                tours[1].length !== 0
-                                    ? `Tour update`
-                                    : "Cannot update tour/ tourId not found",
-                        }
-                    });
-
-                    redisClient.keys('*tours_*', (error, keys) => {
-                        if (error) {
-                            console.error('Error retrieving keys:', error);
-                            return;
-                        }
-                        // Delete each key individually
-                        keys.forEach((key) => {
-                            redisClient.del(key, (deleteError, reply) => {
-                                if (deleteError) {
-                                    console.error(`Error deleting key ${key}:`, deleteError);
-                                } else {
-                                    console.log(`Key ${key} deleted successfully`);
+                        if (images) {
+                            await db.Image.destroy({
+                                where: {
+                                    tourId: tourId,
                                 }
                             });
+
+                            const createImagePromises = images.map(async (image) => {
+                                await db.Image.create({
+                                    image: image,
+                                    tourId: tourId,
+                                }, { transaction: t });
+                            });
+
+                            await Promise.all(createImagePromises);
+                        }
+
+                        resolve({
+                            status: tours[1].length !== 0 ? 200 : 400,
+                            data: {
+                                msg:
+                                    tours[1].length !== 0
+                                        ? `Tour update`
+                                        : "Cannot update tour/ tourId not found",
+                            }
                         });
-                    });
+
+                        redisClient.keys('*tours_*', (error, keys) => {
+                            if (error) {
+                                console.error('Error retrieving keys:', error);
+                                return;
+                            }
+                            // Delete each key individually
+                            keys.forEach((key) => {
+                                redisClient.del(key, (deleteError, reply) => {
+                                    if (deleteError) {
+                                        console.error(`Error deleting key ${key}:`, deleteError);
+                                    } else {
+                                        console.log(`Key ${key} deleted successfully`);
+                                    }
+                                });
+                            });
+                        });
+                    }
                 }
-            }
+                await t.commit();
+            })
         } catch (error) {
+            if (transaction) {
+                // Rollback the transaction in case of an error
+                await transaction.rollback();
+            }
             reject(error.message);
         }
     });
