@@ -78,11 +78,11 @@ module.exports = (sequelize, DataTypes) => {
     },
     status: {
       type: DataTypes.ENUM,
-      values: ["Active", "Deactive"],
+      values: ["Active", "Scheduled", "Deactive"],
       validate: {
         isIn: {
-          args: [["Active", "Deactive"]],
-          msg: 'Invalid value for tour.status (Active, Deactive)'
+          args: [["Active", "Scheduled", "Deactive"]],
+          msg: 'Invalid value for tour.status (Active, Scheduled, Deactive)'
         }
       }
     },

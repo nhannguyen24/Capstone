@@ -402,7 +402,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
         try {
             await db.sequelize.transaction(async (t) => {
                 booking = await db.Booking.create({ totalPrice: totalPrice, customerId: resultUser[0].dataValues.userId } , { transaction: t });
-    
+
                 await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId }, { transaction: t })
 
                 for (let index = 0; index < ticketList.length; index++) {

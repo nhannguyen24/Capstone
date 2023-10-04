@@ -105,14 +105,14 @@ router.get("/", verifyToken, isAdmin, controllers.getAllUsers);
 
 /**
  * @swagger
- * /api/v1/users/{id}:
+ * /api/v1/users/{userId}:
  *   get:
  *     security: 
  *         - BearerAuth: []
  *     summary: Returns the the users by id
  *     tags: [User]
  *     parameters:
- *       - name: id
+ *       - name: userId
  *         in: path
  *         schema:
  *           type: string

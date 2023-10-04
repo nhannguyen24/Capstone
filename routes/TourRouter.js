@@ -115,14 +115,14 @@ router.get("/", controllers.getAllTour);
 
 /**
  * @swagger
- * /api/v1/tours/{id}:
+ * /api/v1/tours/{tourId}:
  *   get:
  *     security: 
  *         - BearerAuth: []
  *     summary: Returns the the tours by id
  *     tags: [Tour]
  *     parameters:
- *       - name: id
+ *       - name: tourId
  *         in: path
  *         schema:
  *           type: string

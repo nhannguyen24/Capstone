@@ -94,14 +94,14 @@ router.get("/", verifyToken, controllers.getAllPointOfInterest);
 
 /**
  * @swagger
- * /api/v1/points/{id}:
+ * /api/v1/points/{poiId}:
  *   get:
  *     security: 
  *         - BearerAuth: []
  *     summary: Returns the the points by id
  *     tags: [Point Of Interest]
  *     parameters:
- *       - name: id
+ *       - name: poiId
  *         in: path
  *         schema:
  *           type: string

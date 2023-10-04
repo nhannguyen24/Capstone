@@ -77,14 +77,14 @@ router.get("/", verifyToken, controllers.getAllRoute);
 
 /**
  * @swagger
- * /api/v1/routes/{id}:
+ * /api/v1/routes/{routeId}:
  *   get:
  *     security: 
  *         - BearerAuth: []
  *     summary: Returns the the routes by id
  *     tags: [Route]
  *     parameters:
- *       - name: id
+ *       - name: routeId
  *         in: path
  *         schema:
  *           type: string

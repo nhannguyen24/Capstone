@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 
-const createMoMoPaymentRequest = (amounts, redirect) =>
+const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
     new Promise(async (resolve, reject) => {
         try {
             //https://developers.momo.vn/#/docs/en/aiov2/?id=payment-method
@@ -104,7 +104,7 @@ const getMoMoPaymentResponse = (req) =>
                 // Signature is valid
                 // Process the payment status and update your database
                 // Send a response with status 200 to acknowledge receipt
-                console.log('cccc', ipnData);
+                // console.log(ipnData);
                 resolve({
                     status: 200,
                     data: {

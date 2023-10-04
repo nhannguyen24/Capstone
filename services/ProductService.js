@@ -123,7 +123,7 @@ const getProductById = (productId) =>
             resolve({
                 status: product ? 200 : 404,
                 data: {
-                    msg: product ? "Got product" : `Cannot find product with id: ${{productId}}`,
+                    msg: product ? "Got product" : `Cannot find product with id: ${productId}`,
                     product: product,
                 }
             });

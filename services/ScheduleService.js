@@ -214,9 +214,9 @@ const getScheduleById = (scheduleId) =>
                 ]
             });
             resolve({
-                status: schedule ? 200 : 404,
+                status: schedule.length > 0 ? 200 : 404,
                 data: {
-                    msg: schedule ? "Got schedule" : `Cannot find schedule with id: ${scheduleId}`,
+                    msg: schedule.length > 0 ? "Got schedule" : `Cannot find schedule with id: ${scheduleId}`,
                     schedule: schedule,
                 }
             });
@@ -227,7 +227,9 @@ const getScheduleById = (scheduleId) =>
 
 const createSchedule = (body) =>
     new Promise(async (resolve, reject) => {
+        let transaction;
         try {
+            transaction = await db.sequelize.transaction(async (t) => {
             const findBusActive = await db.Bus.findAll({
                 raw: true,
                 nest: true,
@@ -275,8 +277,18 @@ const createSchedule = (body) =>
                     raw: true,
                     nest: true,
                     where: {
-                        startTime: findTourTime.departureDate,
-                        endTime: endDate,
+                        startTime: {
+                            [Op.and]: {
+                              [Op.gte]: findTourTime.departureDate,
+                              [Op.lte]: endDate
+                            }
+                          },
+                          endTime: {
+                            [Op.and]: {
+                              [Op.gte]: findTourTime.departureDate,
+                              [Op.lte]: endDate
+                            }
+                          },
                         tourGuideId: body.tourGuideId,
                     },
                 });
@@ -285,8 +297,18 @@ const createSchedule = (body) =>
                     raw: true,
                     nest: true,
                     where: {
-                        startTime: findTourTime.departureDate,
-                        endTime: endDate,
+                        startTime: {
+                            [Op.and]: {
+                              [Op.gte]: findTourTime.departureDate,
+                              [Op.lte]: endDate
+                            }
+                          },
+                          endTime: {
+                            [Op.and]: {
+                              [Op.gte]: findTourTime.departureDate,
+                              [Op.lte]: endDate
+                            }
+                          },
                         driverId: body.driverId,
                     },
                 });
@@ -313,6 +335,16 @@ const createSchedule = (body) =>
                         endTime: endDate,
                         busId: body.busId ? body.busId : findBusActive[0].busId,
                         ...body,
+                    }, { transaction: t });
+
+                    console.log(createSchedule.tourId);
+
+                    await db.Tour.update({
+                        status: STATUS.SCHEDULED
+                    }, {
+                        where: { tourId: createSchedule.tourId },
+                        individualHooks: true,
+                        transaction: t
                     });
 
                     resolve({
@@ -342,8 +374,14 @@ const createSchedule = (body) =>
                     });
                 }
             }
+            await t.commit();
+        })
 
         } catch (error) {
+            if (transaction) {
+                // Rollback the transaction in case of an error
+                await transaction.rollback();
+            }
             reject(error);
         }
     });
@@ -375,7 +413,7 @@ const updateSchedule = ({ scheduleId, ...body }) =>
             } else {
                 const schedules = await db.Schedule.update({
                     startTime: startTime,
-                    endTime: endTime, 
+                    endTime: endTime,
                     ...body
                 }, {
                     where: { scheduleId },
