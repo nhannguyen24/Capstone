@@ -32,11 +32,11 @@ module.exports = (sequelize, DataTypes) => {
     },
     otpType: {
       type: DataTypes.ENUM,
-      values: ["ChangePassword", "GetBookingEmail", "BookingTour"],
+      values: ["ChangePassword", "GetBookingEmail", "BookingTour", "CancelBooking"],
       validate: {
         isIn: {
-          args: [["ChangePassword", "GetBookingEmail", "BookingTour"]],
-          msg: 'Invalid value for otp.type (ChangePassword, GetBookingEmail, BookingTour)'
+          args: [["ChangePassword", "GetBookingEmail", "BookingTour", "CancelBooking"]],
+          msg: 'Invalid value for otp.type (ChangePassword, GetBookingEmail, BookingTour, CancelBooking)'
         }
       }
     },

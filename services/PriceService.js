@@ -21,7 +21,7 @@ const getAllPrices = (req) => new Promise(async (resolve, reject) => {
 
 const getPriceById = (req) => new Promise(async (resolve, reject) => {
     try {
-        const priceId = req.params.priceId
+        const priceId = req.params.id
         const price = await db.Price.findOne({
             where: {
                 priceId: priceId
@@ -89,7 +89,7 @@ const createPrice = (req) => new Promise(async (resolve, reject) => {
 const updatePrice = (req) => new Promise(async (resolve, reject) => {
     const t = await db.sequelize.transaction();
     try {
-        const priceId = req.params.priceId
+        const priceId = req.params.id
         const price = await db.Price.findOne({
             where: {
                 priceId: priceId
@@ -163,7 +163,7 @@ const updatePrice = (req) => new Promise(async (resolve, reject) => {
 
 const deletePrice = (req) => new Promise(async (resolve, reject) => {
     try {
-        const priceId = req.params.priceId
+        const priceId = req.params.id
         const price = await db.Price.findOne({
             where: {
                 priceId: priceId

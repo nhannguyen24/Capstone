@@ -130,10 +130,24 @@ function generateRandomOtpCode() {
 }
 
 function generateOtpContent(userName, otpType, otpCode) {
-    const otpMessage =
-        otpType === OTP_TYPE.GET_BOOKING_EMAIL
-            ? "We noticed that you requested to view your booking history using this email. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>."
-            : "We noticed that you requested a tour booking using this email. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>"
+    let otpMessage;
+
+    switch (otpType) {
+        case OTP_TYPE.GET_BOOKING_EMAIL:
+            otpMessage =
+                "We noticed that you requested to <b>View Your Booking History</b> using this email. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>.";
+            break;
+        case OTP_TYPE.BOOKING_TOUR:
+            otpMessage =
+                "We noticed that you requested a <b>Tour Booking</b> using this email. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>";
+            break;
+        case OTP_TYPE.CANCEL_BOOKING:
+            otpMessage =
+                "We noticed that you requested to <b>Cancel Booking</b> using this email. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>";
+            break;
+        default:
+            otpMessage = "Default message for unknown OTP type.";
+    }
 
     return {
         body: {

@@ -26,8 +26,19 @@ module.exports = (sequelize, DataTypes) => {
     },
     title: DataTypes.STRING,
     description: DataTypes.STRING,
+    response: DataTypes.STRING,
     customerId: {
       type: DataTypes.UUID
+    },
+    reportStatus: {
+      type: DataTypes.ENUM,
+      values: ["Submitted", "Approved", "Pending", "Rejected", "Completed"],
+      validate: {
+        isIn: {
+          args: [["Submitted", "Approved", "Pending", "Rejected", "Completed"]],
+          msg: 'Invalid value for report.status (Submitted, Approved, Pending, Rejected, Completed)'
+        }
+      }
     },
     status: {
       type: DataTypes.ENUM,

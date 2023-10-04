@@ -26,7 +26,7 @@ router.get("/", verifyToken, isAdmin, controllers.getAllTickets);
 
 /**
  * @swagger
- * /api/v1/tickets/{ticketId}:
+ * /api/v1/tickets/{id}:
  *   get:
  *     security: 
  *         - BearerAuth: []
@@ -34,7 +34,7 @@ router.get("/", verifyToken, isAdmin, controllers.getAllTickets);
  *     tags: [Ticket]
  *     parameters:
  *       - in: path
- *         name: ticketId
+ *         name: id
  *         schema:
  *           type: string
  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
@@ -53,7 +53,7 @@ router.get("/", verifyToken, isAdmin, controllers.getAllTickets);
  *             schema:
  *               type: string
  */
-router.get("/:ticketId", verifyToken, isAdmin, controllers.getTicketById);
+router.get("/:id", verifyToken, isAdmin, controllers.getTicketById);
 
 /**
  * @swagger
@@ -103,7 +103,7 @@ router.post("/", verifyToken, isAdmin, controllers.createTicket);
 
 /**
  * @swagger
- * /api/v1/tickets/{ticketId}:
+ * /api/v1/tickets/{id}:
  *   put:
  *     security: 
  *         - BearerAuth: []
@@ -111,7 +111,7 @@ router.post("/", verifyToken, isAdmin, controllers.createTicket);
  *     tags: [Ticket]
  *     parameters:
  *       - in: path
- *         name: ticketId
+ *         name: id
  *         schema:
  *           type: string
  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
@@ -154,11 +154,11 @@ router.post("/", verifyToken, isAdmin, controllers.createTicket);
  *             schema:
  *               type: object
  */
-router.put("/:ticketId", verifyToken, isAdmin, controllers.updateTicket);
+router.put("/:id", verifyToken, isAdmin, controllers.updateTicket);
 
 /**
  * @swagger
- * /api/v1/tickets/{ticketId}:
+ * /api/v1/tickets/{id}:
  *   delete:
  *     security: 
  *         - BearerAuth: []
@@ -166,7 +166,7 @@ router.put("/:ticketId", verifyToken, isAdmin, controllers.updateTicket);
  *     tags: [Ticket]
  *     parameters:
  *       - in: path
- *         name: ticketId
+ *         name: id
  *         schema:
  *           type: string
  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
@@ -191,6 +191,6 @@ router.put("/:ticketId", verifyToken, isAdmin, controllers.updateTicket);
  *             schema:
  *               type: object
  */
-router.delete("/:ticketId", verifyToken, isAdmin, controllers.deleteTicket);
+router.delete("/:id", verifyToken, isAdmin, controllers.deleteTicket);
 
 module.exports = router;

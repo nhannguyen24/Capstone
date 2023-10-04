@@ -34,7 +34,7 @@ const getTransactions = (req) => new Promise(async (resolve, reject) => {
 });
 const getTransactionById = (req) => new Promise(async (resolve, reject) => {
     try {
-        const transactionId = req.params.transactionId
+        const transactionId = req.params.id
         const transactions = await db.Transaction.findOne({
             where: {
                 transtionId: transactionId

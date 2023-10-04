@@ -10,7 +10,7 @@ const qr = require('qrcode');
 
 const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject) => {
     try {
-        const bookingId = req.params.bookingId
+        const bookingId = req.params.id
         if (bookingId === undefined || bookingId === null || bookingId.trim().length < 1) {
             resolve({
                 status: 400,
@@ -221,14 +221,16 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
         const totalPrice = req.body.totalPrice
         const birthday = new Date(user.birthday)
 
+        /**
+         * Checking if Admin or Manager not allow to book
+         */
         const resultUser = await db.User.findOrCreate({
             where: {
                 email: user.email
             },
             defaults: { email: user.email, userName: user.userName, phone: user.phone, birthday: birthday, roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3" }
         })
-
-        if("58c10546-5d71-47a6-842e-84f5d2f72ec3" !== resultUser[0].dataValues.roleId){
+        if ("58c10546-5d71-47a6-842e-84f5d2f72ec3" !== resultUser[0].dataValues.roleId) {
             resolve({
                 status: 403,
                 data: {
@@ -237,10 +239,13 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             });
             return
         }
-
+        /**
+         * Checking if tour, departure station exist
+         */
+        let station
         const tour = await db.Tour.findOne({
             where: {
-                tourId: tickets[0].tourId, 
+                tourId: tickets[0].tourId,
             },
         })
         if (!tour) {
@@ -252,7 +257,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             });
             return
         } else {
-            if(TOUR_STATUS.NOT_STARTED !== tour.tourStatus || STATUS.DEACTIVE === tour.status){
+            if (TOUR_STATUS.NOT_STARTED !== tour.tourStatus || STATUS.DEACTIVE === tour.status) {
                 resolve({
                     status: 403,
                     data: {
@@ -261,8 +266,40 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 });
                 return
             }
+            const departureStationId = req.body.departureStationId
+            station = await db.Station.findOne({
+                where: {
+                    stationId: departureStationId
+                }
+            })
+            if (!station) {
+                resolve({
+                    status: 404,
+                    data: {
+                        msg: `Station not found with id: ${departureStationId}`,
+                    }
+                });
+                return
+            }
+            const routeDetail = await db.RouteDetail.findOne({
+                where: {
+                    routeId: tour.routeId,
+                    stationId: station.stationId
+                }
+            })
+            if (!routeDetail) {
+                resolve({
+                    status: 404,
+                    data: {
+                        msg: `Station not found within the tour route`,
+                    }
+                });
+                return
+            }
         }
-        
+        /**
+         * Sending OTP if user not logged in
+         */
         if (!req.user) {
             const otp = await db.Otp.findOne({
                 where: {
@@ -297,7 +334,6 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 return
             }
         }
-
 
         /**
          * Checking tourId, ticketId and priceId and calculate booked ticket quantity
@@ -338,7 +374,6 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             ticket.dataValues.ticket_price = price
             ticketList.push(ticket)
         }
-
         /**
          * Begin checking available seat of a Bus
         */
@@ -369,7 +404,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 model: db.Ticket,
                 as: "booking_detail_ticket",
                 where: {
-                    tourId: schedule.tourId
+                    tourId: schedule.tourId,
                 },
                 attributes: {
                     exclude: ["ticketTypeId", "updatedAt", "createdAt", "status"]
@@ -378,6 +413,9 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             attributes: [
                 "bookingDetailId", "quantity",
             ],
+            where: {
+                status: STATUS.ACTIVE
+            }
         })
 
         for (const e of bookingDetails) {
@@ -401,7 +439,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
         let booking
         try {
             await db.sequelize.transaction(async (t) => {
-                booking = await db.Booking.create({ totalPrice: totalPrice, customerId: resultUser[0].dataValues.userId } , { transaction: t });
+                booking = await db.Booking.create({ totalPrice: totalPrice, customerId: resultUser[0].dataValues.userId, departureStationId: station.stationId }, { transaction: t });
 
                 await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId }, { transaction: t })
 
@@ -413,7 +451,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
         } catch (error) {
             console.log(error)
         }
-        
+
         /**
          * Starting Send QR To Customer through Email
          */
@@ -460,7 +498,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             body: {
                 name: resultUser[0].dataValues.userName,
                 intro: [`Thank you for choosing <b>NBTour</b> booking system. Here is your <b>QR code<b> attachment for upcomming tour tickets`,
-                    `<b>Tour Information:</b>`, `  - Tour Name: <b>${tourName}</b>`, `  - Tour Departure Date: <b>${formatDepartureDate}</b>`,
+                    `<b>Tour Information:</b>`, `  - Tour Name: <b>${tourName}</b>`, `  - Tour Departure Date: <b>${formatDepartureDate}</b>`, `  - Departure Station: <b>${station.stationName}</b>`,
                     `  - Tour Duration: <b>${tourDuration}</b>`, `  - Tour Total Price: <b>${totalPrice}</b>`],
                 outro: [`If you have any questions or need assistance, please to reach out to our customer support team at [nbtour@gmail.com].`],
                 signature: 'Sincerely'
@@ -484,11 +522,18 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
 const updateBooking = (req) => new Promise(async (resolve, reject) => {
     const t = await db.sequelize.transaction();
     try {
-        const bookingId = req.params.bookingId
-
+        /**
+         * Checking bookingId exists
+         */
+        const bookingId = req.params.id
         const booking = await db.Booking.findOne({
             where: {
                 bookingId: bookingId
+            },
+            include: {
+                model: db.User,
+                as: "booking_user",
+                attributes: ["userId", "userName", "email"]
             }
         })
 
@@ -502,11 +547,123 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
             return
         }
 
+        const bookingDetail = await db.BookingDetail.findOne({
+            where: {
+                bookingId: booking.bookingId
+            },
+            attributes: ["bookingDetailId"],
+            include: {
+                model: db.Ticket,
+                as: "booking_detail_ticket",
+                attributes: ["ticketId"],
+                include: {
+                    model: db.Tour,
+                    as: "ticket_tour",
+                    attributes: ["tourId", "departureDate", "tourStatus"]
+                }
+            }
+        })
+
+        /**
+         * Validate Booking Status
+         */
         var bookingStatus = req.query.bookingStatus
         if (bookingStatus === undefined || bookingStatus === null) {
             bookingStatus = booking.bookingStatus
+        } else {
+            //Check if booking is already finished
+            if (TOUR_STATUS.FINISHED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: `Cannot update booking status because tour is finished`,
+                    }
+                })
+                return
+            }
+            const currentDate = new Date()
+            currentDate.setHours(currentDate.getHours() + 7)
+            const departureDate = new Date(bookingDetail.booking_detail_ticket.ticket_tour.departureDate)
+
+            //Need to update the time when the tour is finished
+            if (BOOKING_STATUS.ON_GOING === bookingStatus) {
+                if (currentDate > departureDate) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: `Cannot update booking status ${bookingStatus} because tour started`,
+                        }
+                    })
+                    return
+                }
+            }
+
+            if (BOOKING_STATUS.CANCELED === bookingStatus) {
+                /**
+                * Sending OTP if user not logged in
+                */
+
+                const otp = await db.Otp.findOne({
+                    where: {
+                        otpType: OTP_TYPE.CANCEL_BOOKING,
+                        userId: booking.customerId
+                    }
+                })
+
+                if (!otp) {
+                    const data = await OtpService.sendOtpToEmail(booking.booking_user.email, booking.booking_user.userId, booking.booking_user.userName, OTP_TYPE.CANCEL_BOOKING)
+                    if (data) {
+                        resolve(data);
+                        return
+                    } else {
+                        resolve({
+                            status: 409,
+                            data: {
+                                msg: `Mail sent failed`,
+                            }
+                        });
+                        return
+                    }
+                }
+
+                if (!otp.isAllow) {
+                    resolve({
+                        status: 403,
+                        data: {
+                            msg: `Action not allow, Please validate OTP!`,
+                        }
+                    });
+                    return
+                }
+
+                if (currentDate > departureDate) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: `Cannot update booking status ${bookingStatus} because tour started`,
+                        }
+                    })
+                    return
+                }
+            }
+
+            if (BOOKING_STATUS.FINISHED === bookingStatus) {
+                if (currentDate < departureDate) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: `Cannot update booking status ${bookingStatus} because tour not started`,
+                        }
+                    })
+                    return
+                }
+            }
         }
-        //Check booking Status
+
+        var isAttended = req.query.isAttended
+        if (isAttended === undefined || isAttended === null) {
+            isAttended = booking.isAttended
+        }
 
         var status = req.query.status
         if (status === undefined || status === null) {
@@ -514,7 +671,18 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
         }
 
         await db.Booking.update({
+            isAttended: isAttended,
             bookingStatus: bookingStatus,
+            status: status,
+        }, {
+            where: {
+                bookingId: booking.bookingId
+            },
+            individualHooks: true,
+            transaction: t
+        })
+
+        await db.BookingDetail.update({
             status: status,
         }, {
             where: {
@@ -535,13 +703,14 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
 
     } catch (error) {
         await t.rollback()
+        console.log(error)
         reject(error);
     }
 });
 
 const deleteBooking = (req) => new Promise(async (resolve, reject) => {
     try {
-        const bookingId = req.params.bookingId
+        const bookingId = req.params.id
 
         const booking = await db.Booking.findOne({
             where: {
@@ -560,6 +729,15 @@ const deleteBooking = (req) => new Promise(async (resolve, reject) => {
         }
 
         await db.Booking.update({
+            status: STATUS.DEACTIVE
+        }, {
+            where: {
+                bookingId: booking.bookingId
+            },
+            individualHooks: true,
+        })
+
+        await db.BookingDetail.update({
             status: STATUS.DEACTIVE
         }, {
             where: {
