@@ -81,7 +81,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createBus);
 
 /**
  * @swagger
- * /api/v1/buses/{busId}:
+ * /api/v1/buses/{id}:
  *   get:
  *     security: 
  *         - BearerAuth: []
@@ -89,7 +89,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createBus);
  *     tags: [Bus]
  *     parameters:
  *       - in: path
- *         name: busId
+ *         name: id
  *         schema:
  *           type: string
  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
@@ -102,11 +102,11 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createBus);
  *             schema:
  *               type: object
  */
-router.get("/:busId", verifyToken, isAdminOrManager, controllers.getBusById);
+router.get("/:id", verifyToken, isAdminOrManager, controllers.getBusById);
 
 /**
  * @swagger
- * /api/v1/buses/{busId}:
+ * /api/v1/buses/{id}:
  *   put:
  *     security: 
  *         - BearerAuth: []
@@ -114,7 +114,7 @@ router.get("/:busId", verifyToken, isAdminOrManager, controllers.getBusById);
  *     tags: [Bus]
  *     parameters:
  *       - in: path
- *         name: busId
+ *         name: id
  *         schema:
  *           type: string
  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
@@ -160,11 +160,11 @@ router.get("/:busId", verifyToken, isAdminOrManager, controllers.getBusById);
  *             schema:
  *               type: string
  */
-router.put("/:busId", verifyToken, isAdminOrManager, controllers.updateBus);
+router.put("/:id", verifyToken, isAdminOrManager, controllers.updateBus);
 
 /**
  * @swagger
- * /api/v1/buses/{busId}:
+ * /api/v1/buses/{id}:
  *   delete:
  *     security: 
  *         - BearerAuth: []
@@ -172,7 +172,7 @@ router.put("/:busId", verifyToken, isAdminOrManager, controllers.updateBus);
  *     tags: [Bus]
  *     parameters:
  *       - in: path
- *         name: busId
+ *         name: id
  *         schema:
  *           type: string
  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
@@ -197,6 +197,6 @@ router.put("/:busId", verifyToken, isAdminOrManager, controllers.updateBus);
  *             schema:
  *               type: string
  */
-router.delete("/:busId", verifyToken, isAdminOrManager, controllers.deleteBus);
+router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteBus);
 
 module.exports = router;

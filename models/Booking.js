@@ -14,6 +14,12 @@ module.exports = (sequelize, DataTypes) => {
         as: "booking_user",
       });
 
+      Booking.belongsTo(models.Station, {
+        foreignKey: "departureStationId",
+        targetKey: 'stationId',
+        as: "booking_departure_station",
+      });
+
       Booking.hasMany(models.Transaction, { as: 'booking_transaction', foreignKey: 'bookingId' });
 
       Booking.belongsToMany(models.TicketType, {
@@ -36,6 +42,10 @@ module.exports = (sequelize, DataTypes) => {
     customerId: {
       type: DataTypes.UUID
     },
+    departureStationId: {
+      type: DataTypes.UUID
+    },
+    isAttended: DataTypes.BOOLEAN,
     bookingStatus: {
       type: DataTypes.ENUM,
       values: ["Ongoing", "Canceled", "Finished"],

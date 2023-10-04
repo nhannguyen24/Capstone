@@ -3,7 +3,7 @@ const auth = require('./AuthRouter');
 const role = require('./RoleRouter');
 const user = require('./UserRouter');
 const station = require('./StationRouter');
-const feedback = require('./FeedbackRouter');
+//const feedback = require('./FeedbackRouter');
 const bus = require('./BusRouter')
 const booking = require('./BookingRouter')
 const ticketType = require('./TicketTypeRouter')
@@ -19,6 +19,7 @@ const productCate = require('./ProductCategoryRouter')
 const otp = require("./OtpRouter")
 const payment = require('./PaymentRouter');
 const announcement = require('./AnnouncementRouter');
+const report = require('./ReportRouter');
 
 // const category_detail = require('./category_detail');
 // const order_detail = require('./order_detail');
@@ -45,7 +46,7 @@ const initRoutes = (app) => {
     app.use('/api/v1/tickets', ticket);
     app.use('/api/v1/ticket-types', ticketType);
     app.use('/api/v1/stations', station);
-    app.use('/api/v1/feedbacks', feedback);
+    //app.use('/api/v1/feedbacks', feedback);
     app.use('/api/v1/roles', role);
     app.use('/api/v1/transactions', Transaction);
     app.use('/api/v1/points', point);
@@ -57,6 +58,7 @@ const initRoutes = (app) => {
     app.use('/api/v1/productCates', productCate);
     app.use('/api/v1/announcements', announcement);
     app.use('/api/v1/payments', payment);
+    app.use('/api/v1/reports', report);
 
     // app.use('/api/v1/categories-detail', category_detail);
     // app.use('/api/v1/order-detail', order_detail);

@@ -30,6 +30,7 @@ const router = express.Router();
  *           enum:
  *              - GetBookingEmail
  *              - BookingTour
+ *              - CancelBooking
  *         required: true
  *     responses:
  *       200:
@@ -60,6 +61,7 @@ router.get("/", controllers.validateOtp);
  *           enum:
  *              - GetBookingEmail
  *              - BookingTour
+ *              - CancelBooking
  *         required: true
  *     responses:
  *       200:

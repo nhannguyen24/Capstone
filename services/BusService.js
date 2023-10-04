@@ -53,7 +53,7 @@ const getAllBuses = (req) => new Promise(async (resolve, reject) => {
 
 const getBusById = (req) => new Promise(async (resolve, reject) => {
     try {
-        const busId = req.params.busId
+        const busId = req.params.id
 
         const bus = await db.Bus.findOne({
             where: {
@@ -128,7 +128,7 @@ const createBus = (req) => new Promise(async (resolve, reject) => {
 const updateBus = (req) => new Promise(async (resolve, reject) => {
     const t = await db.sequelize.transaction();
     try {
-        const busId = req.params.busId
+        const busId = req.params.id
         const bus = await db.Bus.findOne({
             where: {
                 busId: busId
@@ -222,7 +222,7 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
 
 const deleteBus = (req) => new Promise(async (resolve, reject) => {
     try {
-        const busId = req.params.busId
+        const busId = req.params.id
 
         const bus = await db.Bus.findOne({
             where: {
