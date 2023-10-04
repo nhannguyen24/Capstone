@@ -76,6 +76,16 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *           type: string
  *           enum: ["Active", "Deactive"]
  *         description: Find schedule by status
+ *       - name: startTime
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Find schedule by status
+ *       - name: endTime
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Find schedule by status
  *       - name: page
  *         in: query
  *         schema:

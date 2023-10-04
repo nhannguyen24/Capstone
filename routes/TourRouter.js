@@ -79,7 +79,7 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *         in: query
  *         schema:
  *           type: string
- *           enum: ["Active", "Deactive"]
+ *           enum: ["Active", "Scheduled", "Deactive"]
  *         description: Find tour by status
  *       - name: page
  *         in: query

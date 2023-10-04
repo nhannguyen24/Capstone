@@ -4,12 +4,12 @@ const redisClient = require("../config/RedisConfig");
 const STATUS = require("../enums/StatusEnum")
 
 const getAllSchedule = (
-    { page, limit, order, busId, tourId, tourGuideId, driverId, status, ...query },
+    { page, limit, order, busId, tourId, tourGuideId, driverId, status, startTime, endTime, ...query },
     roleName
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}`, async (error, schedule) => {
+            redisClient.get(`schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}_${startTime}_${endTime}`, async (error, schedule) => {
                 if (error) console.error(error);
                 if (schedule != null && schedule != "" && roleName != 'Admin') {
                     resolve({
@@ -20,7 +20,7 @@ const getAllSchedule = (
                         }
                     });
                 } else {
-                    redisClient.get(`admin_schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}`, async (error, adminSchedule) => {
+                    redisClient.get(`admin_schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}_${startTime}_${endTime}`, async (error, adminSchedule) => {
                         if (adminSchedule != null && adminSchedule != "") {
                             resolve({
                                 status: 200,
@@ -44,6 +44,14 @@ const getAllSchedule = (
                             if (tourGuideId) query.tourGuideId = { [Op.eq]: tourGuideId };
                             if (driverId) query.driverId = { [Op.eq]: driverId };
                             if (status) query.status = { [Op.eq]: status };
+                            if (startTime) {
+                                const startTimeConvert = new Date(startTime);
+                                query.startTime = { [Op.gte]: startTimeConvert };
+                            }
+                            if (endTime) {
+                                const endTimeConvert = new Date(endTime);
+                                query.endTime = { [Op.lte]: endTimeConvert };
+                            }
                             if (roleName !== "Admin") {
                                 query.status = { [Op.notIn]: ['Deactive'] };
                             }
@@ -136,9 +144,9 @@ const getAllSchedule = (
                             });
 
                             if (roleName !== "Admin") {
-                                redisClient.setEx(`schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}`, 3600, JSON.stringify(schedules));
+                                redisClient.setEx(`schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}_${startTime}_${endTime}`, 3600, JSON.stringify(schedules));
                             } else {
-                                redisClient.setEx(`admin_schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}`, 3600, JSON.stringify(schedules));
+                                redisClient.setEx(`admin_schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}_${startTime}_${endTime}`, 3600, JSON.stringify(schedules));
                             }
                             resolve({
                                 status: schedules ? 200 : 404,
