@@ -110,14 +110,14 @@ router.get("/", verifyToken, controllers.getAllSchedule);
 
 /**
  * @swagger
- * /api/v1/schedules/{scheduleId}:
+ * /api/v1/schedules/{id}:
  *   get:
  *     security: 
  *         - BearerAuth: []
  *     summary: Returns the the schedules by id
  *     tags: [Schedule]
  *     parameters:
- *       - name: scheduleId
+ *       - name: id
  *         in: path
  *         schema:
  *           type: string

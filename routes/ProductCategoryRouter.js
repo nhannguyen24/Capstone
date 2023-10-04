@@ -77,14 +77,14 @@ router.get("/", verifyToken, controllers.getAllProductCategory);
 
 /**
  * @swagger
- * /api/v1/productCates/{productCateId}:
+ * /api/v1/productCates/{id}:
  *   get:
  *     security: 
  *         - BearerAuth: []
  *     summary: Returns the the productCates by id
  *     tags: [ProductCategory]
  *     parameters:
- *       - name: productCateId
+ *       - name: id
  *         in: path
  *         schema:
  *           type: string

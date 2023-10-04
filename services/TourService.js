@@ -351,8 +351,6 @@ const getTourById = (tourId) =>
                 }
             }
 
-            console.log(tour.length);
-
             resolve({
                 status: tour.length > 0 ? 200 : 404,
                 data: {

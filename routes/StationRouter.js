@@ -94,14 +94,14 @@ router.get("/", verifyToken, controllers.getAllStation);
 
 /**
  * @swagger
- * /api/v1/stations/{stationId}:
+ * /api/v1/stations/{id}:
  *   get:
  *     security: 
  *         - BearerAuth: []
  *     summary: Returns the the stations by id
  *     tags: [Station]
  *     parameters:
- *       - name: stationId
+ *       - name: id
  *         in: path
  *         schema:
  *           type: string
