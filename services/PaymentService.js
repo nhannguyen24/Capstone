@@ -193,6 +193,7 @@ const getMoMoPaymentResponse = (req) =>
 
 
                 console.log('cccc', ipnData);
+                // console.log(ipnData);
                 resolve({
                     status: 200,
                     data: {

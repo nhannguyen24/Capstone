@@ -88,14 +88,14 @@ router.get("/", verifyToken, controllers.getAllProduct);
 
 /**
  * @swagger
- * /api/v1/products/{productId}:
+ * /api/v1/products/{id}:
  *   get:
  *     security: 
  *         - BearerAuth: []
  *     summary: Returns the the products by id
  *     tags: [Product]
  *     parameters:
- *       - name: productId
+ *       - name: id
  *         in: path
  *         schema:
  *           type: string

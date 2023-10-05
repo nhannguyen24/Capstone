@@ -65,6 +65,12 @@ const router = express.Router();
  *         schema:
  *           type: string
  *         description: Find user by email
+ *       - name: roleName
+ *         in: query
+ *         schema:
+ *           type: string
+ *           enum: ["Admin", "Customer", "Manager", "TourGuide", "Driver"]
+ *         description: Find user by roleName
  *       - name: status
  *         in: query
  *         schema:

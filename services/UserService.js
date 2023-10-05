@@ -6,10 +6,10 @@ const mailer = require('../utils/MailerUtil');
 
 const hashPassword = password => bcrypt.hashSync(password, bcrypt.genSaltSync(8));
 
-const getAllUsers = ({ page, limit, order, userName, email, status, ...query }) =>
+const getAllUsers = ({ page, limit, order, userName, email, status, roleName, ...query }) =>
   new Promise(async (resolve, reject) => {
     try {
-      redisClient.get(`user_paging_${page}_${limit}_${order}_${userName}_${email}_${status}`, async (error, user_paging) => {
+      redisClient.get(`user_paging_${page}_${limit}_${order}_${userName}_${email}_${status}_${roleName}`, async (error, user_paging) => {
         if (error) console.error(error);
         if (user_paging != null) {
           resolve({
@@ -21,6 +21,7 @@ const getAllUsers = ({ page, limit, order, userName, email, status, ...query }) 
           });
         } else {
           const queries = { raw: true, nest: true };
+          const queryRole = {};
           const offset = !page || +page <= 1 ? 0 : +page - 1;
           const flimit = +limit || +process.env.LIMIT_POST;
           queries.offset = offset * flimit;
@@ -30,6 +31,7 @@ const getAllUsers = ({ page, limit, order, userName, email, status, ...query }) 
           if (userName) query.userName = { [Op.substring]: userName };
           if (email) query.email = { [Op.substring]: email };
           if (status) query.status = { [Op.eq]: status };
+          if (roleName) queryRole.roleName = { [Op.eq]: roleName };
           // query.status = { [Op.ne]: "Deactive" };
 
           const users = await db.User.findAll({
@@ -46,11 +48,12 @@ const getAllUsers = ({ page, limit, order, userName, email, status, ...query }) 
               {
                 model: db.Role,
                 as: "user_role",
+                where: queryRole,
                 attributes: ["roleId", "roleName"],
               },
             ],
           });
-          redisClient.setEx(`user_paging_${page}_${limit}_${order}_${userName}_${email}_${status}`, 3600, JSON.stringify(users));
+          redisClient.setEx(`user_paging_${page}_${limit}_${order}_${userName}_${email}_${status}_${roleName}`, 3600, JSON.stringify(users));
           
           resolve({
             status: users ? 200 : 404,

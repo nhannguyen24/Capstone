@@ -352,9 +352,9 @@ const getTourById = (tourId) =>
             }
 
             resolve({
-                status: tour ? 200 : 404,
+                status: tour.length > 0 ? 200 : 404,
                 data: {
-                    msg: tour ? "Got tour" : `Cannot find tour with id: ${tourId}`,
+                    msg: tour.length > 0 ? "Got tour" : `Cannot find tour with id: ${tourId}`,
                     tour: tour,
                 }
             });
@@ -554,6 +554,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
 
 const updateTour = ({ images, tourId, ...body }) =>
     new Promise(async (resolve, reject) => {
+        let transaction;
         try {
             transaction = await db.sequelize.transaction(async (t) => {
                 const tour = await db.Tour.findOne({
@@ -630,7 +631,8 @@ const updateTour = ({ images, tourId, ...body }) =>
                         }, {
                             where: { tourId },
                             individualHooks: true,
-                        }, { transaction: t });
+                            transaction: t
+                        });
 
                         if (images) {
                             await db.Image.destroy({
