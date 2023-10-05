@@ -99,8 +99,9 @@ const getMoMoPaymentResponse = (req) =>
     new Promise(async (resolve, reject) => {
         try {
             const ipnData = req.body;
-
+console.log("1")
             if (ipnData.resultCode === 0) {
+                console.log("2")
                 // Signature is valid
                 // Process the payment status and update your database
                 // Send a response with status 200 to acknowledge receipt
@@ -123,7 +124,7 @@ const getMoMoPaymentResponse = (req) =>
                         },
                     ]
                 })
-
+                console.log(booking)
                 resolve({
                     status: 200,
                     data: {
