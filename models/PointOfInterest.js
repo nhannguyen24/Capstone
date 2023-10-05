@@ -11,11 +11,11 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      PointOfInterest.belongsToMany(models.Route, {
+      PointOfInterest.belongsToMany(models.RouteSegment, {
         through: 'RoutePointDetail',
         foreignKey: 'poiId',
-        otherKey: 'routeId',
-        as: "poi_route_point_detail",
+        otherKey: 'routeSegmentId',
+        as: "poi_segment",
       });
 
       PointOfInterest.hasMany(models.Image, { as: 'poi_image', foreignKey: 'poiId'});
@@ -32,7 +32,6 @@ module.exports = (sequelize, DataTypes) => {
     address: DataTypes.STRING,
     latitude: DataTypes.DECIMAL(8,6),
     longitude: DataTypes.DECIMAL(9,6),
-    file: DataTypes.STRING(1000),
     status: {
       type: DataTypes.ENUM,
       values: ["Active", "Deactive"],

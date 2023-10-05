@@ -2,46 +2,28 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Schedules', {
-      scheduleId: {
+    await queryInterface.createTable('RoutePointDetails', {
+      routePoiId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      startTime: {
-        type: Sequelize.DATE,
+      index: {
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
-      endTime: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
-      busId: {
+      routeSegmentId: {
         type: Sequelize.UUID,
         references: {
-          model: 'buses',
-          key: 'busId'
+          model: 'routeSegments',
+          key: 'routeSegmentId'
         }
       },
-      tourId: {
+      poiId: {
         type: Sequelize.UUID,
         references: {
-          model: 'tours',
-          key: 'tourId'
-        }
-      },
-      tourGuideId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'users',
-          key: 'userId'
-        }
-      },
-      driverId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'users',
-          key: 'userId'
+          model: 'pointofinterests',
+          key: 'poiId'
         }
       },
       status: {
@@ -62,6 +44,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Schedules');
+    await queryInterface.dropTable('RoutePointDetails');
   }
 };

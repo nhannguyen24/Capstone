@@ -17,15 +17,8 @@ module.exports = (sequelize, DataTypes) => {
         otherKey: 'stationId',
         as: "route_station",
       });
-      Route.belongsToMany(models.PointOfInterest, {
-        through: 'RoutePointDetail',
-        foreignKey: 'routeId',
-        otherKey: 'poiId',
-        as: "route_poi",
-      });
 
-      Route.hasMany(models.RouteDetail, { as: 'route_detail', foreignKey: 'routeId'});
-      Route.hasMany(models.RoutePointDetail, { as: 'route_poi_detail', foreignKey: 'routeId'});
+      Route.hasMany(models.RouteSegment, { as: 'route_segment', foreignKey: 'routeId'});
     }
   }
   Route.init({

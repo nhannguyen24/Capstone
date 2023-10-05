@@ -48,6 +48,27 @@ module.exports = {
           key: 'stationId'
         }
       },
+      tourGuideId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'users',
+          key: 'userId'
+        }
+      },
+      driverId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'users',
+          key: 'userId'
+        }
+      },
+      busId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'buses',
+          key: 'busId'
+        }
+      },
       tourStatus: {
         type: Sequelize.ENUM,
         values: ["NotStarted", "Ontour", "Canceled", "Finished"],

@@ -2,14 +2,21 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Steps', {
-      stepId: {
+    await queryInterface.createTable('PointOfInterests', {
+      poiId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      index: {
-        type: Sequelize.INTEGER,
+      poiName: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      description: {
+        type: Sequelize.STRING,
+      },
+      address: {
+        type: Sequelize.STRING,
         allowNull: false,
       },
       latitude: {
@@ -19,13 +26,6 @@ module.exports = {
       longitude: {
         type: Sequelize.DECIMAL(9,6),
         allowNull: false,
-      },
-      routeDetailId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'routedetails',
-          key: 'routeDetailId'
-        }
       },
       status: {
         type: Sequelize.ENUM,
@@ -45,6 +45,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Steps');
+    await queryInterface.dropTable('PointOfInterests');
   }
 };

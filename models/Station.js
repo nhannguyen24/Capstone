@@ -13,12 +13,12 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       // Station.hasMany(models.Booking, { as: 'station_booking', foreignKey: 'stationId'});
       
-      Station.belongsToMany(models.Route, {
-        through: 'RouteDetail',
-        foreignKey: 'stationId',
-        otherKey: 'routeId',
-        as: "station_route",
-      });
+      // Station.belongsToMany(models.Route, {
+      //   through: 'RouteDetail',
+      //   foreignKey: 'stationId',
+      //   otherKey: 'routeId',
+      //   as: "station_route",
+      // });
       
     }
   }

@@ -25,23 +25,19 @@ module.exports = (sequelize, DataTypes) => {
       
       Tour.hasMany(models.Ticket, { as: 'tour_ticket', foreignKey: 'tourId'});
       
-      Tour.belongsToMany(models.Bus, {
-        through: 'Schedule',
-        foreignKey: 'tourId',
-        otherKey: 'busId',
-        as: "tour_bus",
+      Tour.belongsTo(models.Bus, {
+        foreignKey: 'busId',
+        as: 'tour_bus'
       });
-      Tour.belongsToMany(models.User, {
-        through: 'Schedule',
-        foreignKey: 'tourId',
-        otherKey: 'tourGuideId',
-        as: "tour_tourguide",
+      
+      Tour.belongsTo(models.User, {
+        foreignKey: 'tourGuideId',
+        as: 'tour_tourguide'
       });
-      Tour.belongsToMany(models.User, {
-        through: 'Schedule',
-        foreignKey: 'tourId',
-        otherKey: 'driverId',
-        as: "tour_driver",
+      
+      Tour.belongsTo(models.User, {
+        foreignKey: 'driverId',
+        as: 'tour_driver'
       });
       
       Tour.hasMany(models.Image, { as: 'tour_image', foreignKey: 'tourId'});
@@ -64,6 +60,15 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.UUID
     },
     departureStationId: {
+      type: DataTypes.UUID
+    },
+    tourGuideId: {
+      type: DataTypes.UUID
+    },
+    driverId: {
+      type: DataTypes.UUID
+    },
+    busId: {
       type: DataTypes.UUID
     },
     tourStatus: {

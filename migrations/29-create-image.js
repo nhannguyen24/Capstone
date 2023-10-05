@@ -3,7 +3,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Images', {
-      image_id: {
+      imageId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
@@ -37,13 +37,6 @@ module.exports = {
         references: {
           model: 'products',
           key: 'productId'
-        }
-      },
-      feedbackId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'feedbacks',
-          key: 'feedbackId'
         }
       },
       status: {

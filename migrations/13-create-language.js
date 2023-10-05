@@ -2,33 +2,15 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Feedbacks', {
-      feedbackId: {
+    await queryInterface.createTable('Languages', {
+      languageId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      stars: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-      description: {
+      language: {
         type: Sequelize.STRING,
         allowNull: false,
-      },
-      customerId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'users',
-          key: 'userId'
-        }
-      },
-      tourId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'tours',
-          key: 'tourId'
-        }
       },
       status: {
         type: Sequelize.ENUM,
@@ -48,6 +30,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Feedbacks');
+    await queryInterface.dropTable('Languages');
   }
 };

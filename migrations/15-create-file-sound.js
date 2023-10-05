@@ -2,37 +2,32 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('PointOfInterests', {
-      poiId: {
+    await queryInterface.createTable('FileSounds', {
+      soundId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      poiName: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      description: {
-        type: Sequelize.STRING,
-      },
-      address: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      latitude: {
-        type: Sequelize.DECIMAL(8,6),
-        allowNull: false,
-      },
-      longitude: {
-        type: Sequelize.DECIMAL(9,6),
-        allowNull: false,
-      },
       file: {
         type: Sequelize.STRING(1000),
       },
+      languageId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'languages',
+          key: 'languageId'
+        }
+      },
+      poiId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'pointofinterests',
+          key: 'poiId'
+        }
+      },
       status: {
         type: Sequelize.ENUM,
-        values: ["Active", "Deactive"],
+        values: ['Active', 'Deactive'],
         defaultValue: 'Active',
       },
       createdAt: {
@@ -48,6 +43,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('PointOfInterests');
+    await queryInterface.dropTable('FileSounds');
   }
 };

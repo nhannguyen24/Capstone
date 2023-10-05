@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class RouteDetail extends Model {
+  class RouteSegment extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,31 +11,48 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      RouteDetail.belongsTo(models.Route, {
+      RouteSegment.belongsTo(models.Route, {
         foreignKey: 'routeId',
-        as: 'route_detail_route'
+        as: 'segment_route'
       });
       
-      RouteDetail.belongsTo(models.Station, {
-        foreignKey: 'stationId',
-        as: 'route_detail_station'
+      RouteSegment.belongsTo(models.Station, {
+        foreignKey: 'departureStationId',
+        as: 'segment_departure_station'
       });
 
-      RouteDetail.hasMany(models.Step, { as: 'route_detail_step', foreignKey: 'routeDetailId'});
+      RouteSegment.belongsTo(models.Station, {
+        foreignKey: 'endStationId',
+        as: 'segment_end_station'
+      });
+
+      // RouteSegment.belongsToMany(models.PointOfInterest, {
+      //   through: 'RoutePointDetail',
+      //   foreignKey: 'poiId',
+      //   otherKey: 'routeSegmentId',
+      //   as: "poi_segment",
+      // });
+
+      RouteSegment.hasMany(models.RoutePointDetail, { as: 'segment_route_poi_detail', foreignKey: 'routeSegmentId'});
     }
   }
-  RouteDetail.init({
-    routeDetailId: {
+  RouteSegment.init({
+    routeSegmentId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     index: DataTypes.INTEGER,
-    stopoverTime: DataTypes.TIME,
+    // stopoverTime: DataTypes.TIME,
+    latitude: DataTypes.DECIMAL(8,6),
+    longitude: DataTypes.DECIMAL(9,6),
     routeId: {
       type: DataTypes.UUID
     },
-    stationId: {
+    departureStationId: {
+      type: DataTypes.UUID
+    },
+    endStationId: {
       type: DataTypes.UUID
     },
     status: {
@@ -50,19 +67,19 @@ module.exports = (sequelize, DataTypes) => {
     },
   }, {
     sequelize,
-    modelName: 'RouteDetail',
+    modelName: 'RouteSegment',
   });
-  RouteDetail.beforeCreate((routeDetail, options) => {
+  RouteSegment.beforeCreate((routeDetail, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
     routeDetail.createdAt = currentDate;
     routeDetail.updatedAt = currentDate;
   });
 
-  RouteDetail.beforeUpdate((routeDetail, options) => {
+  RouteSegment.beforeUpdate((routeDetail, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
     routeDetail.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
-  return RouteDetail;
+  return RouteSegment;
 };
