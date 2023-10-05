@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 const db = require('../models');
 const STATUS = require("../enums/StatusEnum")
+const mailer = require("../utils/MailerUtil")
+const qr = require('qrcode');
 const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
     new Promise(async (resolve, reject) => {
         try {
