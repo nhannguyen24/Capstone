@@ -145,7 +145,7 @@ const getMoMoPaymentResponse = (req) =>
                 const formatDepartureDate = `${tourDepartureDate.getDate().toString().padStart(2, '0')}/${(tourDepartureDate.getMonth() + 1).toString().padStart(2, '0')}/${tourDepartureDate.getFullYear()}  |  ${tourDepartureDate.getHours().toString().padStart(2, '0')}:${tourDepartureDate.getMinutes().toString().padStart(2, '0')}`
                 const tourDuration = bookingDetail.booking_detail_ticket.ticket_tour.duration
                 const totalPrice = bookingDetail.detail_booking.totalPrice
-                const stationName = bookingDetail.detail_booking.booking_station.stationName
+                const stationName = bookingDetail.detail_booking.booking_departure_station.stationName
                 // const getBookedTickets = await db.BookingDetail.findAll({
                 //     where: {
                 //         bookingId: bookingDetail.detail_booking.bookingId
