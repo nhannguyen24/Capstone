@@ -91,6 +91,8 @@ router.get("/:email", controllers.getBookingsByEmail);
  *              properties:
  *                  totalPrice:
  *                      type: integer
+ *                  redirectLink:
+ *                      type: string
  *                  departureStationId:
  *                      type: string
  *                  user:
@@ -100,6 +102,7 @@ router.get("/:email", controllers.getBookingsByEmail);
  *                      minItems: 1
  *            example: {
  *              totalPrice: 425000,
+ *              redirectLink: https://walletfpt.com,
  *              departureStationId: a1685c29-7e2e-409f-8a12-e935b2a34b01,
  *              user: {
  *                  email: tminhquan@gmail.com,
@@ -144,7 +147,7 @@ router.post("/", controllers.createBooking);
  * @swagger
  * /api/v1/bookings/{id}:
  *   get:
- *     summary: Get booking detail by id
+ *     summary: Get booking by id
  *     tags: [Booking]
  *     parameters:
  *       - in: path

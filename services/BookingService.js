@@ -4,9 +4,10 @@ const BOOKING_STATUS = require("../enums/BookingStatusEnum")
 const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
 const OTP_TYPE = require("../enums/OtpTypeEnum")
-const mailer = require("../utils/MailerUtil")
+
 const OtpService = require("./OtpService")
-const qr = require('qrcode');
+
+const paymentService = require("./PaymentService")
 
 const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject) => {
     try {
@@ -239,6 +240,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             });
             return
         }
+
         /**
          * Checking if tour, departure station exist
          */
@@ -441,7 +443,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             await db.sequelize.transaction(async (t) => {
                 booking = await db.Booking.create({ totalPrice: totalPrice, customerId: resultUser[0].dataValues.userId, departureStationId: station.stationId }, { transaction: t });
 
-                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId }, { transaction: t })
+                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, isSuccess: false }, { transaction: t })
 
                 for (let index = 0; index < ticketList.length; index++) {
                     const e = ticketList[index];
@@ -452,64 +454,11 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             console.log(error)
         }
 
-        /**
-         * Starting Send QR To Customer through Email
-         */
-        const tourName = tour.tourName
-        const tourDepartureDate = new Date(tour.departureDate)
-        const formatDepartureDate = `${tourDepartureDate.getDate().toString().padStart(2, '0')}/${(tourDepartureDate.getMonth() + 1).toString().padStart(2, '0')}/${tourDepartureDate.getFullYear()}  |  ${tourDepartureDate.getHours().toString().padStart(2, '0')}:${tourDepartureDate.getMinutes().toString().padStart(2, '0')}`
-        const tourDuration = tour.duration
-        const getBookedTickets = await db.BookingDetail.findAll({
-            where: {
-                bookingId: booking.bookingId
-            },
-            include:
-            {
-                model: db.Ticket,
-                as: "booking_detail_ticket",
-                include: [
-                    {
-                        model: db.TicketType,
-                        as: "ticket_type",
-                        attributes: ["ticketTypeName", "description"]
-                    },
-                    {
-                        model: db.Tour,
-                        as: "ticket_tour",
-                        attributes: ["tourName", "departureDate", "duration", "status"]
-                    },
-                ],
-                attributes: {
-                    exclude: ["tourid", "ticketTypeId", "updatedAt", "createdAt"]
-                }
-            },
-            attributes: {
-                exclude: ["ticketId", "updatedAt", "createdAt"]
-            }
-        })
-
-        const bookedTickets = JSON.stringify(getBookedTickets)
-
-        qr.toFile(`./qrcode/${booking.bookingId}.png`, bookedTickets, function (err) {
-            if (err) { console.log(err) }
-        })
-
-        const htmlContent = {
-            body: {
-                name: resultUser[0].dataValues.userName,
-                intro: [`Thank you for choosing <b>NBTour</b> booking system. Here is your <b>QR code<b> attachment for upcomming tour tickets`,
-                    `<b>Tour Information:</b>`, `  - Tour Name: <b>${tourName}</b>`, `  - Tour Departure Date: <b>${formatDepartureDate}</b>`, `  - Departure Station: <b>${station.stationName}</b>`,
-                    `  - Tour Duration: <b>${tourDuration}</b>`, `  - Tour Total Price: <b>${totalPrice}</b>`],
-                outro: [`If you have any questions or need assistance, please to reach out to our customer support team at [nbtour@gmail.com].`],
-                signature: 'Sincerely'
-            }
-        };
-        mailer.sendMail(resultUser[0].dataValues.email, "Tour booking tickets", htmlContent, booking.bookingId)
-
         resolve({
             status: 201,
             data: {
-                msg: "Booking Tour Successfully. Check your Email for tikets QR code",
+                msg: "Booking Tour Created. Please Pay booking",
+                bookingId: booking.bookingId
             }
         })
 
@@ -602,7 +551,6 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                 /**
                 * Sending OTP if user not logged in
                 */
-
                 const otp = await db.Otp.findOne({
                     where: {
                         otpType: OTP_TYPE.CANCEL_BOOKING,

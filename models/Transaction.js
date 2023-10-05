@@ -26,6 +26,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     transactionCode: DataTypes.STRING,
     amount: DataTypes.INTEGER,
+    isSuccess: DataTypes.BOOLEAN,
     bookingId: {
       type: DataTypes.UUID
     },
