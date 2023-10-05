@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 
-const createMoMoPaymentRequest = (amounts, redirect) =>
+const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
     new Promise(async (resolve, reject) => {
         try {
             //https://developers.momo.vn/#/docs/en/aiov2/?id=payment-method
@@ -16,7 +16,7 @@ const createMoMoPaymentRequest = (amounts, redirect) =>
             // var ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8";
             var amount = amounts;
             var requestType = "captureWallet"
-            var extraData = ""; //pass empty value if your merchant does not have stores
+            var extraData = bookingId; //pass empty value if your merchant does not have stores
 
             //before sign HMAC SHA256 with format
             //accessKey=$accessKey&amount=$amount&extraData=$extraData&ipnUrl=$ipnUrl&orderId=$orderId&orderInfo=$orderInfo&partnerCode=$partnerCode&redirectUrl=$redirectUrl&requestId=$requestId&requestType=$requestType
@@ -104,6 +104,94 @@ const getMoMoPaymentResponse = (req) =>
                 // Signature is valid
                 // Process the payment status and update your database
                 // Send a response with status 200 to acknowledge receipt
+                const bookingId = ipnData.extraData
+
+                const booking = await db.Booking.findOne({
+                    where: {
+                        bookingId: bookingId
+                    },
+                    include: [
+                        {
+                            model: db.User,
+                            as: "booking_user",
+                            attributes: ["userName", "email"]
+                        },
+                        {
+                            model: db.Station,
+                            as: "booking_departure_station",
+                            attributes: ["stationName"]
+                        },
+                    ]
+                })
+
+                resolve({
+                    status: 200,
+                    data: {
+                        msg: 'Payment processed unsuccessfully',
+                        data: booking
+                    }
+                });
+                return
+
+
+
+
+                const tourName = tour.tourName
+                const tourDepartureDate = new Date(tour.departureDate)
+                const formatDepartureDate = `${tourDepartureDate.getDate().toString().padStart(2, '0')}/${(tourDepartureDate.getMonth() + 1).toString().padStart(2, '0')}/${tourDepartureDate.getFullYear()}  |  ${tourDepartureDate.getHours().toString().padStart(2, '0')}:${tourDepartureDate.getMinutes().toString().padStart(2, '0')}`
+                const tourDuration = tour.duration
+                const getBookedTickets = await db.BookingDetail.findAll({
+                    where: {
+                        bookingId: booking.bookingId
+                    },
+                    include:
+                    {
+                        model: db.Ticket,
+                        as: "booking_detail_ticket",
+                        include: [
+                            {
+                                model: db.TicketType,
+                                as: "ticket_type",
+                                attributes: ["ticketTypeName", "description"]
+                            },
+                            {
+                                model: db.Tour,
+                                as: "ticket_tour",
+                                attributes: ["tourName", "departureDate", "duration", "status"]
+                            },
+                        ],
+                        attributes: {
+                            exclude: ["tourid", "ticketTypeId", "updatedAt", "createdAt"]
+                        }
+                    },
+                    attributes: {
+                        exclude: ["ticketId", "updatedAt", "createdAt"]
+                    }
+                })
+
+                const bookedTickets = JSON.stringify(getBookedTickets)
+
+                qr.toFile(`./qrcode/${booking.bookingId}.png`, bookedTickets, function (err) {
+                    if (err) { console.log(err) }
+                })
+
+                const htmlContent = {
+                    body: {
+                        name: resultUser[0].dataValues.userName,
+                        intro: [`Thank you for choosing <b>NBTour</b> booking system. Here is your <b>QR code<b> attachment for upcomming tour tickets`,
+                            `<b>Tour Information:</b>`, `  - Tour Name: <b>${tourName}</b>`, `  - Tour Departure Date: <b>${formatDepartureDate}</b>`, `  - Departure Station: <b>${station.stationName}</b>`,
+                            `  - Tour Duration: <b>${tourDuration}</b>`, `  - Tour Total Price: <b>${totalPrice}</b>`],
+                        outro: [`If you have any questions or need assistance, please to reach out to our customer support team at [nbtour@gmail.com].`],
+                        signature: 'Sincerely'
+                    }
+                };
+                mailer.sendMail(resultUser[0].dataValues.email, "Tour booking tickets", htmlContent, booking.bookingId)
+
+
+
+
+
+
                 console.log('cccc', ipnData);
                 resolve({
                     status: 200,
