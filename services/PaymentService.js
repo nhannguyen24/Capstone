@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-
+const db = require('../models');
 const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
     new Promise(async (resolve, reject) => {
         try {
