@@ -8,20 +8,16 @@ module.exports = {
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      index: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
       // stopoverTime: {
       //   type: Sequelize.TIME,
       //   allowNull: false,
       // },
-      latitude: {
-        type: Sequelize.DECIMAL(8,6),
+      index: {
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
-      longitude: {
-        type: Sequelize.DECIMAL(9,6),
+      geoJson: {
+        type: Sequelize.JSON,
         allowNull: false,
       },
       routeId: {

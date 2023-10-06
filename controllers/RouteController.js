@@ -36,7 +36,7 @@ const createRoute = async (req, res) => {
         const response = await services.createRoute(req.body);
         return res.status(response.status).json(response.data);
     } catch (error) {
-        console.log(error);
+        console.log('aa', error);
         throw new InternalServerError(error);
     }
 };

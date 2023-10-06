@@ -12,8 +12,9 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       RoutePointDetail.belongsTo(models.RouteSegment, {
-        foreignKey: 'routeSegmentId',
-        as: 'route_poi_detail_segment'
+        foreignKey: "routeSegmentId",
+        targetKey: 'routeSegmentId',
+        as: "route_poi_detail_segment",
       });
 
       RoutePointDetail.belongsTo(models.PointOfInterest, {

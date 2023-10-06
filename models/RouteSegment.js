@@ -42,10 +42,9 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    index: DataTypes.INTEGER,
     // stopoverTime: DataTypes.TIME,
-    latitude: DataTypes.DECIMAL(8,6),
-    longitude: DataTypes.DECIMAL(9,6),
+    index: DataTypes.INTEGER,
+    geoJson: DataTypes.JSON,
     routeId: {
       type: DataTypes.UUID
     },

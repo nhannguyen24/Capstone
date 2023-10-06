@@ -30,15 +30,6 @@ const createTour = async (req, res) => {
         if(!tourName) {
             throw new BadRequestError('Please provide tourName');
         }
-        // if(!address) {
-        //     throw new BadRequestError('Please provide address');
-        // }
-        // if(!latitude) {
-        //     throw new BadRequestError('Please provide latitude');
-        // }
-        // if(!longitude) {
-        //     throw new BadRequestError('Please provide longitude');
-        // }
         const response = await services.createTour(req.body);
         return res.status(response.status).json(response.data);
     } catch (error) {
