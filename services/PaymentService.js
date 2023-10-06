@@ -149,36 +149,36 @@ const getMoMoPaymentResponse = (req) =>
                 const totalPrice = bookingDetail.detail_booking.totalPrice
                 const stationName = bookingDetail.detail_booking.booking_departure_station.stationName
                 console.log(bookingDetail.detail_booking.booking_user.email)
-                // const getBookedTickets = await db.BookingDetail.findAll({
-                //     where: {
-                //         bookingId: bookingDetail.detail_booking.bookingId
-                //     },
-                //     include:
-                //     {
-                //         model: db.Ticket,
-                //         as: "booking_detail_ticket",
-                //         include: [
-                //             {
-                //                 model: db.TicketType,
-                //                 as: "ticket_type",
-                //                 attributes: ["ticketTypeName", "description"]
-                //             },
-                //             {
-                //                 model: db.Tour,
-                //                 as: "ticket_tour",
-                //                 attributes: ["tourName", "departureDate", "duration", "status"]
-                //             },
-                //         ],
-                //         attributes: {
-                //             exclude: ["tourid", "ticketTypeId", "updatedAt", "createdAt"]
-                //         }
-                //     },
-                //     attributes: {
-                //         exclude: ["ticketId", "updatedAt", "createdAt"]
-                //     }
-                // })
+                const getBookedTickets = await db.BookingDetail.findAll({
+                    where: {
+                        bookingId: bookingDetail.detail_booking.bookingId
+                    },
+                    include:
+                    {
+                        model: db.Ticket,
+                        as: "booking_detail_ticket",
+                        include: [
+                            {
+                                model: db.TicketType,
+                                as: "ticket_type",
+                                attributes: ["ticketTypeName", "description"]
+                            },
+                            {
+                                model: db.Tour,
+                                as: "ticket_tour",
+                                attributes: ["tourName", "departureDate", "duration", "status"]
+                            },
+                        ],
+                        attributes: {
+                            exclude: ["tourid", "ticketTypeId", "updatedAt", "createdAt"]
+                        }
+                    },
+                    attributes: {
+                        exclude: ["ticketId", "updatedAt", "createdAt"]
+                    }
+                })
 
-                const bookedTickets = JSON.stringify("tminhquan")
+                const bookedTickets = JSON.stringify(getBookedTickets)
 
                 qr.toFile(`./qrcode/${bookingId}.png`, bookedTickets, function (err) {
                     if (err) { console.log(err) }
@@ -190,7 +190,7 @@ const getMoMoPaymentResponse = (req) =>
                         intro: [`Thank you for choosing <b>NBTour</b> booking system. Here is your <b>QR code<b> attachment for upcomming tour tickets`,
                             `<b>Tour Information:</b>`, `  - Tour Name: <b>${tourName}</b>`, `  - Tour Departure Date: <b>${formatDepartureDate}</b>`, `  - Departure Station: <b>${stationName}</b>`,
                             `  - Tour Duration: <b>${tourDuration}</b>`, `  - Tour Total Price: <b>${totalPrice}</b>`],
-                        outro: [`If you have any questions or need assistance, please to reach out to our customer support team at [nbtour@gmail.com].`],
+                        outro: [`If you have any questions or need assistance, please to reach out to our customer support team at nbtour@gmail.com.`],
                         signature: 'Sincerely'
                     }
                 };
@@ -229,7 +229,7 @@ const getMoMoPaymentResponse = (req) =>
                 resolve({
                     status: 400,
                     data: {
-                        msg: 'Payment processed unsuccessfully'
+                        msg: 'Payment process failed'
                     }
                 });
             }
