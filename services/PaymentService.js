@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 const db = require('../models');
 const STATUS = require("../enums/StatusEnum")
+const mailer = require("../utils/MailerUtil")
+const qr = require('qrcode');
 const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
     new Promise(async (resolve, reject) => {
         try {
@@ -146,6 +148,7 @@ const getMoMoPaymentResponse = (req) =>
                 const tourDuration = bookingDetail.booking_detail_ticket.ticket_tour.duration
                 const totalPrice = bookingDetail.detail_booking.totalPrice
                 const stationName = bookingDetail.detail_booking.booking_departure_station.stationName
+                console.log(bookingDetail.detail_booking.booking_user.email)
                 const getBookedTickets = await db.BookingDetail.findAll({
                     where: {
                         bookingId: bookingDetail.detail_booking.bookingId
