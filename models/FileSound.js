@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class Step extends Model {
+  class FileSound extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,24 +11,30 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Step.belongsTo(models.RouteDetail, {
-        foreignKey: "routeDetailId",
-        targetKey: 'routeDetailId',
-        as: "step_route_detail",
+      FileSound.belongsTo(models.PointOfInterest, {
+        foreignKey: "poiId",
+        targetKey: 'poiId',
+        as: "sound_point",
+      });
+      FileSound.belongsTo(models.Language, {
+        foreignKey: "languageId",
+        targetKey: 'languageId',
+        as: "sound_language",
       });
     }
   }
-  Step.init({
-    stepId: {
+  FileSound.init({
+    soundId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    index: DataTypes.INTEGER,
-    latitude: DataTypes.DECIMAL(8,6),
-    longitude: DataTypes.DECIMAL(9,6),
-    routeDetailId: {
-      type: DataTypes.UUID
+    file: DataTypes.STRING(1000),
+    poiId: {
+      type: DataTypes.UUID,
+    },
+    languageId: {
+      type: DataTypes.UUID,
     },
     status: {
       type: DataTypes.ENUM,
@@ -36,26 +42,25 @@ module.exports = (sequelize, DataTypes) => {
       validate: {
         isIn: {
           args: [["Active", "Deactive"]],
-          msg: 'Invalid value for step.status (Active, Deactive)'
+          msg: 'Invalid value for sound.status (Active, Deactive)'
         }
       }
     },
   }, {
     sequelize,
-    modelName: 'Step',
+    modelName: 'FileSound',
   });
-  Step.beforeCreate((step, options) => {
+  FileSound.beforeCreate((sound, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    step.createdAt = currentDate;
-    step.updatedAt = currentDate;
+    sound.createdAt = currentDate;
+    sound.updatedAt = currentDate;
   });
 
-  Step.beforeUpdate((step, options) => {
+  FileSound.beforeUpdate((sound, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    step.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
+    sound.setDataValue("updatedAt", currentDate)
   });
-
-  return Step;
+  return FileSound;
 };

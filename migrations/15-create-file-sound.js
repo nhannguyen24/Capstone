@@ -2,51 +2,32 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Schedules', {
-      scheduleId: {
+    await queryInterface.createTable('FileSounds', {
+      soundId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      startTime: {
-        type: Sequelize.DATE,
-        allowNull: false,
+      file: {
+        type: Sequelize.STRING(1000),
       },
-      endTime: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
-      busId: {
+      languageId: {
         type: Sequelize.UUID,
         references: {
-          model: 'buses',
-          key: 'busId'
+          model: 'languages',
+          key: 'languageId'
         }
       },
-      tourId: {
+      poiId: {
         type: Sequelize.UUID,
         references: {
-          model: 'tours',
-          key: 'tourId'
-        }
-      },
-      tourGuideId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'users',
-          key: 'userId'
-        }
-      },
-      driverId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'users',
-          key: 'userId'
+          model: 'pointofinterests',
+          key: 'poiId'
         }
       },
       status: {
         type: Sequelize.ENUM,
-        values: ["Active", "Deactive"],
+        values: ['Active', 'Deactive'],
         defaultValue: 'Active',
       },
       createdAt: {
@@ -62,6 +43,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Schedules');
+    await queryInterface.dropTable('FileSounds');
   }
 };

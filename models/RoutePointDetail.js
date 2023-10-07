@@ -11,9 +11,10 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      RoutePointDetail.belongsTo(models.Route, {
-        foreignKey: 'routeId',
-        as: 'route_poi_detail_route'
+      RoutePointDetail.belongsTo(models.RouteSegment, {
+        foreignKey: "routeSegmentId",
+        targetKey: 'routeSegmentId',
+        as: "route_poi_detail_segment",
       });
 
       RoutePointDetail.belongsTo(models.PointOfInterest, {
@@ -23,13 +24,13 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   RoutePointDetail.init({
-    routepoiId: {
+    routePoiId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     index: DataTypes.INTEGER,
-    routeId: {
+    routeSegmentId: {
       type: DataTypes.UUID
     },
     poiId: {

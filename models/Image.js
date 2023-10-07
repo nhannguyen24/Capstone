@@ -31,15 +31,10 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'productId',
         as: "image_product",
       });
-      Image.belongsTo(models.Feedback, {
-        foreignKey: "feedbackId",
-        targetKey: 'feedbackId',
-        as: "image_feedback",
-      });
     }
   }
   Image.init({
-    image_id: {
+    imageId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
@@ -55,9 +50,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.UUID,
     },
     productId: {
-      type: DataTypes.UUID,
-    },
-    feedbackId: {
       type: DataTypes.UUID,
     },
     status: {

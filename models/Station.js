@@ -11,15 +11,23 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      // Station.hasMany(models.Booking, { as: 'station_booking', foreignKey: 'stationId'});
+
+      // Station.hasMany(models.RouteSegment, { as: 'departure_station_segment', foreignKey: 'stationId'});
+      // Station.hasMany(models.RouteSegment, { as: 'end_station_segment', foreignKey: 'stationId'});
       
       Station.belongsToMany(models.Route, {
-        through: 'RouteDetail',
-        foreignKey: 'stationId',
+        through: 'RouteSegment',
+        foreignKey: 'departureStationId',
         otherKey: 'routeId',
-        as: "station_route",
+        as: "departure_station_segment",
       });
-      
+
+      Station.belongsToMany(models.Route, {
+        through: 'RouteSegment',
+        foreignKey: 'endStationId',
+        otherKey: 'routeId',
+        as: "end_station_segment",
+      });
     }
   }
   Station.init({

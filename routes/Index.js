@@ -55,7 +55,7 @@ const initRoutes = (app) => {
     app.use('/api/v1/otp', otp);
     app.use('/api/v1/firebase', uploadImage);
     app.use('/api/v1/tours', tour);
-    app.use('/api/v1/schedules', schedule);
+    // app.use('/api/v1/schedules', schedule);
     app.use('/api/v1/productCates', productCate);
     app.use('/api/v1/announcements', announcement);
     app.use('/api/v1/payments', payment);

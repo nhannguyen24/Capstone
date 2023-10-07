@@ -13,7 +13,7 @@ module.exports = {
 	      allowNull: false,
       },
       price: {
-        type: Sequelize.DECIMAL(3,3),
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
       productCateId: {

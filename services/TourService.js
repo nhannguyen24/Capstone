@@ -45,6 +45,9 @@ const getAllTour = (
                             exclude: [
                                 "routeId",
                                 "departureStationId",
+                                "busId",
+                                "tourGuideId",
+                                "driverId",
                             ],
                         },
                         include: [
@@ -68,6 +71,39 @@ const getAllTour = (
                             {
                                 model: db.Station,
                                 as: "departure_station",
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                            },
+                            {
+                                model: db.Bus,
+                                as: "tour_bus",
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                            },
+                            {
+                                model: db.User,
+                                as: "tour_tourguide",
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                            },
+                            {
+                                model: db.User,
+                                as: "tour_driver",
                                 attributes: {
                                     exclude: [
                                         "createdAt",
@@ -150,7 +186,7 @@ const getAllTour = (
                         }
                     }
 
-                    redisClient.setEx(`admin_tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}`, 3600, JSON.stringify(tours));
+                    redisClient.setEx(`admin_tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}`, 900, JSON.stringify(tours));
 
                     resolve({
                         status: tours ? 200 : 404,
@@ -175,7 +211,7 @@ const getTourById = (tourId) =>
                 where: { tourId: tourId },
                 nest: true,
                 attributes: {
-                    exclude: ["routeId", "departureStationId", "createdAt", "updatedAt"],
+                    exclude: ["routeId", "departureStationId", "busId", "tourGuideId", "driverId", "createdAt", "updatedAt"],
                 },
                 order: [
                     ['updatedAt', 'DESC'],
@@ -204,6 +240,39 @@ const getTourById = (tourId) =>
                     {
                         model: db.Station,
                         as: "departure_station",
+                        attributes: {
+                            exclude: [
+                                "createdAt",
+                                "updatedAt",
+                                "status",
+                            ],
+                        },
+                    },
+                    {
+                        model: db.Bus,
+                        as: "tour_bus",
+                        attributes: {
+                            exclude: [
+                                "createdAt",
+                                "updatedAt",
+                                "status",
+                            ],
+                        },
+                    },
+                    {
+                        model: db.User,
+                        as: "tour_tourguide",
+                        attributes: {
+                            exclude: [
+                                "createdAt",
+                                "updatedAt",
+                                "status",
+                            ],
+                        },
+                    },
+                    {
+                        model: db.User,
+                        as: "tour_driver",
                         attributes: {
                             exclude: [
                                 "createdAt",
@@ -376,14 +445,24 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                     },
                     include: [
                         {
-                            model: db.RouteDetail,
-                            as: "route_detail",
+                            model: db.RouteSegment,
+                            as: "route_segment",
                             where: {
                                 index: 1
                             }
                         },
                     ]
                 });
+
+                if (!station) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: "Route Id not found"
+                        }
+                    })
+                    return;
+                }
                 // console.log(station.route_detail.routeDetailId);
                 const currentDate = new Date();
                 currentDate.setHours(currentDate.getHours() + 7);
@@ -425,7 +504,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             endBookingDate: tourEndBookingDate,
                             departureDate: tDepartureDate,
                             tourName: tourName,
-                            departureStationId: station.route_detail.stationId,
+                            departureStationId: station.route_segment.stationId,
                             ...body,
                         },
                         transaction: t,
@@ -480,7 +559,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             resolve({
                                 status: 409,
                                 data: {
-                                    msg: `Ticket type doesn't have a price for day: ${tour.departureDate}(${day})`,
+                                    msg: `Ticket type doesn't have a price for day`,
                                 }
                             })
                         } else {

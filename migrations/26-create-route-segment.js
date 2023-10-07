@@ -2,33 +2,44 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('PointOfInterests', {
-      poiId: {
+    await queryInterface.createTable('RouteSegments', {
+      routeSegmentId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      poiName: {
-        type: Sequelize.STRING,
+      // stopoverTime: {
+      //   type: Sequelize.TIME,
+      //   allowNull: false,
+      // },
+      index: {
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
-      description: {
-        type: Sequelize.STRING,
-      },
-      address: {
-        type: Sequelize.STRING,
+      geoJson: {
+        type: Sequelize.JSON,
         allowNull: false,
       },
-      latitude: {
-        type: Sequelize.DECIMAL(8,6),
-        allowNull: false,
+      routeId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'routes',
+          key: 'routeId'
+        }
       },
-      longitude: {
-        type: Sequelize.DECIMAL(9,6),
-        allowNull: false,
+      departureStationId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'stations',
+          key: 'stationId'
+        }
       },
-      file: {
-        type: Sequelize.STRING(1000),
+      endStationId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'stations',
+          key: 'stationId'
+        }
       },
       status: {
         type: Sequelize.ENUM,
@@ -48,6 +59,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('PointOfInterests');
+    await queryInterface.dropTable('RouteSegments');
   }
 };

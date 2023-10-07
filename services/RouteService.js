@@ -39,9 +39,7 @@ const getAllRoute = (
                                 // queries.order = [['updatedAt', 'DESC']];
                                 queries.order = [
                                     ['updatedAt', 'DESC'],
-                                    [{ model: db.RouteDetail, as: 'route_detail' }, 'index', 'ASC'],
-                                    [{ model: db.RouteDetail, as: 'route_detail' }, { model: db.Step, as: 'route_detail_step' }, 'index', 'ASC'],
-                                    [{ model: db.RoutePointDetail, as: 'route_poi_detail' }, 'index', 'ASC']
+                                    [{ model: db.RouteSegment, as: 'route_segment' }, { model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
                                 ];
                             }
                             if (routeName) query.routeName = { [Op.substring]: routeName };
@@ -54,12 +52,13 @@ const getAllRoute = (
                                 ...queries,
                                 include: [
                                     {
-                                        model: db.RouteDetail,
-                                        as: "route_detail",
+                                        model: db.RouteSegment,
+                                        as: "route_segment",
                                         attributes: {
                                             exclude: [
                                                 "routeId",
-                                                "stationId",
+                                                "departureStationId",
+                                                "endStationId",
                                                 "createdAt",
                                                 "updatedAt",
                                                 "status",
@@ -68,7 +67,7 @@ const getAllRoute = (
                                         include: [
                                             {
                                                 model: db.Station,
-                                                as: "route_detail_station",
+                                                as: "segment_departure_station",
                                                 attributes: {
                                                     exclude: [
                                                         "createdAt",
@@ -78,8 +77,8 @@ const getAllRoute = (
                                                 },
                                             },
                                             {
-                                                model: db.Step,
-                                                as: "route_detail_step",
+                                                model: db.Station,
+                                                as: "segment_end_station",
                                                 attributes: {
                                                     exclude: [
                                                         "createdAt",
@@ -88,32 +87,32 @@ const getAllRoute = (
                                                     ],
                                                 },
                                             },
-                                        ]
-                                    },
-                                    {
-                                        model: db.RoutePointDetail,
-                                        as: "route_poi_detail",
-                                        attributes: {
-                                            exclude: [
-                                                "routeId",
-                                                "poiId",
-                                                "createdAt",
-                                                "updatedAt",
-                                                "status",
-                                            ],
-                                        },
-                                        include: [
                                             {
-                                                model: db.PointOfInterest,
-                                                as: "route_poi_detail_poi",
+                                                model: db.RoutePointDetail,
+                                                as: "segment_route_poi_detail",
                                                 attributes: {
                                                     exclude: [
+                                                        "routeId",
+                                                        "poiId",
                                                         "createdAt",
                                                         "updatedAt",
                                                         "status",
                                                     ],
                                                 },
-                                            }
+                                                include: [
+                                                    {
+                                                        model: db.PointOfInterest,
+                                                        as: "route_poi_detail_poi",
+                                                        attributes: {
+                                                            exclude: [
+                                                                "createdAt",
+                                                                "updatedAt",
+                                                                "status",
+                                                            ],
+                                                        },
+                                                    }
+                                                ]
+                                            },
                                         ]
                                     },
                                 ],
@@ -152,18 +151,17 @@ const getRouteById = (routeId) =>
                 },
                 order: [
                     ['updatedAt', 'DESC'],
-                    [{ model: db.RouteDetail, as: 'route_detail' }, 'index', 'ASC'],
-                    [{ model: db.RouteDetail, as: 'route_detail' }, { model: db.Step, as: 'route_detail_step' }, 'index', 'ASC'],
-                    [{ model: db.RoutePointDetail, as: 'route_poi_detail' }, 'index', 'ASC']
+                    [{ model: db.RouteSegment, as: 'route_segment' }, { model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
                 ],
                 include: [
                     {
-                        model: db.RouteDetail,
-                        as: "route_detail",
+                        model: db.RouteSegment,
+                        as: "route_segment",
                         attributes: {
                             exclude: [
                                 "routeId",
-                                "stationId",
+                                "departureStationId",
+                                "endStationId",
                                 "createdAt",
                                 "updatedAt",
                                 "status",
@@ -172,7 +170,7 @@ const getRouteById = (routeId) =>
                         include: [
                             {
                                 model: db.Station,
-                                as: "route_detail_station",
+                                as: "segment_departure_station",
                                 attributes: {
                                     exclude: [
                                         "createdAt",
@@ -182,8 +180,8 @@ const getRouteById = (routeId) =>
                                 },
                             },
                             {
-                                model: db.Step,
-                                as: "route_detail_step",
+                                model: db.Station,
+                                as: "segment_end_station",
                                 attributes: {
                                     exclude: [
                                         "createdAt",
@@ -192,32 +190,32 @@ const getRouteById = (routeId) =>
                                     ],
                                 },
                             },
-                        ]
-                    },
-                    {
-                        model: db.RoutePointDetail,
-                        as: "route_poi_detail",
-                        attributes: {
-                            exclude: [
-                                "routeId",
-                                "poiId",
-                                "createdAt",
-                                "updatedAt",
-                                "status",
-                            ],
-                        },
-                        include: [
                             {
-                                model: db.PointOfInterest,
-                                as: "route_poi_detail_poi",
+                                model: db.RoutePointDetail,
+                                as: "route_poi_detail",
                                 attributes: {
                                     exclude: [
+                                        "routeId",
+                                        "poiId",
                                         "createdAt",
                                         "updatedAt",
                                         "status",
                                     ],
                                 },
-                            }
+                                include: [
+                                    {
+                                        model: db.PointOfInterest,
+                                        as: "route_poi_detail_poi",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                    }
+                                ]
+                            },
                         ]
                     },
                 ],
@@ -239,6 +237,57 @@ const createRoute = ({ routeName, ...body }) =>
         let transaction;
         try {
             transaction = await db.sequelize.transaction(async (t) => {
+                for (const segmentObj of body.segments) {
+                    const findDepartureStation = await db.Station.findOne({
+                        where: {
+                            stationId: segmentObj.departureStationId,
+                        },
+                    });
+
+                    if (!findDepartureStation) {
+                        return resolve({
+                            status: 400,
+                            data: {
+                                msg: "Departure station Id not found!",
+                            },
+                        });
+                    }
+
+                    const findEndStation = await db.Station.findOne({
+                        where: {
+                            stationId: segmentObj.endStationId,
+                        },
+                    });
+
+                    if (!findEndStation) {
+                        return resolve({
+                            status: 400,
+                            data: {
+                                msg: "End station Id not found!",
+                            },
+                        });
+                    }
+
+                    if (segmentObj.points && Array.isArray(segmentObj.points)) {
+                        for (const pointObj of segmentObj.points) {
+                            const findPoint = await db.PointOfInterest.findOne({
+                                where: {
+                                    poiId: pointObj,
+                                },
+                            });
+
+                            if (!findPoint) {
+                                return resolve({
+                                    status: 400,
+                                    data: {
+                                        msg: "Point of interest Id not found!",
+                                    },
+                                });
+                            }
+                        }
+                    }
+                }
+
                 const createRoute = await db.Route.findOrCreate({
                     where: {
                         routeName: routeName
@@ -259,67 +308,44 @@ const createRoute = ({ routeName, ...body }) =>
                     })
                 }
 
-                let index = 0;
-                let pointIndex = 0;
-                let stepIndex = 0;
+                let segmentIndex = 0;
+                for (const segmentObj of body.segments) {
+                    let pointIndex = 0;
+                    segmentIndex += 1;
+                    const routeSegment = await db.RouteSegment.create(
+                        {
+                            index: segmentIndex,
+                            routeId: createRoute[0].dataValues.routeId,
+                            departureStationId: segmentObj.departureStationId,
+                            endStationId: segmentObj.endStationId,
+                            geoJson: segmentObj.geoJson,
+                        },
+                        { transaction: t }
+                    );
 
-                const stationDetails = await Promise.all(
-                    body.station.map(async (stationObj) => {
-                        index += 1;
-                        const routeDetail = await db.RouteDetail.create(
-                            {
-                                index: index,
-                                routeId: createRoute[0].dataValues.routeId,
-                                stationId: stationObj.stationId,
-                                stopoverTime: stationObj.stopoverTime,
-                            },
-                            { transaction: t }
-                        );
-
-                        if (stationObj.step && Array.isArray(stationObj.step)) {
-                            stationObj.step.map(async (stepObj) => {
-                                stepIndex += 1;
-                                await db.Step.create(
-                                    {
-                                        index: stepIndex,
-                                        routeDetailId: routeDetail.dataValues.routeDetailId,
-                                        latitude: stepObj.latitude,
-                                        longitude: stepObj.longitude,
-                                    },
-                                    { transaction: t }
-                                );
-                            })
+                    // console.log('oooo', routeSegment);
+                    if (segmentObj.points && Array.isArray(segmentObj.points)) {
+                        for (const pointObj of segmentObj.points) {
+                            pointIndex += 1;
+                            await db.RoutePointDetail.create(
+                                {
+                                    index: pointIndex,
+                                    poiId: pointObj,
+                                    routeSegmentId: routeSegment.routeSegmentId,
+                                },
+                                { transaction: t }
+                            );
                         }
-
-                        return routeDetail;
-                    })
-                );
-
-                const pointDetails = await Promise.all(
-                    body.point.map(async (pointObj) => {
-                        pointIndex += 1;
-                        const stationDetail = await db.RoutePointDetail.create(
-                            {
-                                index: pointIndex,
-                                routeId: createRoute[0].dataValues.routeId,
-                                poiId: pointObj,
-                            },
-                            { transaction: t }
-                        );
-                        return stationDetail;
-                    })
-                );
+                    }
+                }
 
                 resolve({
-                    status: pointDetails[0] ? 200 : 400,
+                    status: 200,
                     data: {
-                        msg: pointDetails[0]
-                            ? "Create new route successfully"
-                            : "Cannot create new route",
-                        routeDetail: pointDetails[0] ? createRoute[0].dataValues : null,
+                        msg: "Create new route successfully",
+                        routeDetail: createRoute[0].dataValues,
                     }
                 });
-
 
                 redisClient.keys('*routes_*', (error, keys) => {
                     if (error) {
@@ -337,15 +363,18 @@ const createRoute = ({ routeName, ...body }) =>
                         });
                     });
                 });
-                await t.commit();
+
             });
 
         } catch (error) {
             if (transaction) {
-                // Rollback the transaction in case of an error
-                await transaction.rollback();
+                try {
+                    await transaction.rollback(); // Attempt to roll back the transaction if an error occurs
+                } catch (rollbackError) {
+                    console.error('Error rolling back transaction:', rollbackError);
+                }
             }
-            reject(error);
+            reject(error); // Reject the promise with the error
         }
     });
 

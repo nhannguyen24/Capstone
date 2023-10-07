@@ -52,7 +52,7 @@ const tours = [
     if (availableEmployees.length > 0 && availableBuses.length > 0) {
       const chosenEmployee = availableEmployees[0];
       chosenEmployee.maxTours--;
-      console.log(chosenEmployee.maxTours);
+      // console.log(chosenEmployee.maxTours);
       chosenEmployee.assignedTours.push(tour.id);
       const chosenBus = availableBuses[0];
       schedule.push({ tour, employee: chosenEmployee, bus: chosenBus });

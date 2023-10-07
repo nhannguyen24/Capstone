@@ -28,7 +28,7 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
     },
     productName: DataTypes.STRING,
-    price: DataTypes.DECIMAL(3,3),
+    price: DataTypes.INTEGER,
     productCateId: {
       type: DataTypes.UUID
     },

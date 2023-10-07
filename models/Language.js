@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class Bus extends Model {
+  class Language extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,45 +11,40 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Bus.hasMany(models.Tour, { as: 'bus_tour', foreignKey: 'busId'});
-
-      Bus.hasMany(models.Image, { as: 'bus_image', foreignKey: 'busId'});
     }
   }
-  Bus.init({
-    busId: {
+  Language.init({
+    languageId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    busPlate: DataTypes.STRING,
-    numberSeat: DataTypes.INTEGER,
-    isDoubleDecker: DataTypes.BOOLEAN,
+    language: DataTypes.STRING,
     status: {
       type: DataTypes.ENUM,
-      values: ["Active", "Deactive", "Ongoing", "Maintain"],
+      values: ["Active", "Deactive"],
       validate: {
         isIn: {
-          args: [["Active", "Deactive", "Ongoing", "Maintain"]],
-          msg: 'Invalid value for bus.status (Active, Deactive, Ongoing, Maintain)'
+          args: [["Active", "Deactive"]],
+          msg: 'Invalid value for language.status (Active, Deactive)'
         }
       }
     },
   }, {
     sequelize,
-    modelName: 'Bus',
+    modelName: 'Language',
   });
-  Bus.beforeCreate((bus, options) => {
+  Language.beforeCreate((language, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    bus.createdAt = currentDate;
-    bus.updatedAt = currentDate;
+    language.createdAt = currentDate;
+    language.updatedAt = currentDate;
   });
 
-  Bus.beforeUpdate((bus, options) => {
+  Language.beforeUpdate((language, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    bus.setDataValue("updatedAt", currentDate)
+    language.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
-  return Bus;
+  return Language;
 };

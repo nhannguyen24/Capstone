@@ -198,6 +198,9 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createTour);
  *                    departureDate: 2023-09-23T09:00:00Z
  *                    duration: 03:00:00
  *                    routeId: 8c382e13-8620-460a-bd95-96b1152c1368
+ *                    busId: 8c382e13-8620-460a-bd95-96b1152c1368
+ *                    tourGuideId: 8c382e13-8620-460a-bd95-96b1152c1368
+ *                    driverId: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    tourStatus: Ontour
  *                    status: Active
  *                    images:
