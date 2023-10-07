@@ -58,6 +58,7 @@ module.exports = (sequelize, DataTypes) => {
     avatar: DataTypes.STRING,
     address: DataTypes.STRING,
     phone: DataTypes.STRING(10),
+    maxTour: DataTypes.INTEGER,
     roleId: {
       type: DataTypes.UUID
     },

@@ -26,14 +26,29 @@ const getTourById = async (req, res) => {
 
 const createTour = async (req, res) => {
     try {
-        const {tourName} = req.body;
+        const {tourName, routeId, departureStationId} = req.body;
         if(!tourName) {
             throw new BadRequestError('Please provide tourName');
+        }
+        if(!routeId) {
+            throw new BadRequestError('Please provide routeId');
+        }
+        if(!departureStationId) {
+            throw new BadRequestError('Please provide departureStationId');
         }
         const response = await services.createTour(req.body);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);
+        throw new InternalServerError(error);
+    }
+};
+
+const assignTour = async (req, res) => {
+    try {
+        const response = await services.assignTour();
+        return res.status(response.status).json(response.data);
+    } catch (error) {
         throw new InternalServerError(error);
     }
 };
@@ -65,4 +80,4 @@ const deleteTour = async (req, res) => {
     }
 };
 
-module.exports = {getAllTour, createTour, updateTour, deleteTour, getTourById};
+module.exports = {getAllTour, createTour, updateTour, deleteTour, getTourById, assignTour};

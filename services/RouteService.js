@@ -452,6 +452,7 @@ const deleteRoute = (routeIds) =>
                             msg: "The route already deactive!",
                         }
                     });
+                    return;
                 }
             }
 

@@ -117,8 +117,8 @@ router.get("/:id", verifyToken, controllers.getRouteById);
  *                    routeName: Tuyến đường Nha Trang
  *                    distance: 10.5
  *                    segments:
- *                          - departureStationId: string
- *                            endStationId: string
+ *                          - departureStationId: stationId
+ *                            endStationId: stationId
  *                            geoJson:
  *                                   type: Feature
  *                                   geometry: 
@@ -131,10 +131,10 @@ router.get("/:id", verifyToken, controllers.getRouteById);
  *                                   properties: 
  *                                          name: Route between Stations
  *                            points:
- *                                  - string
- *                                  - string
- *                          - departureStationId: string
- *                            endStationId: string
+ *                                  - poiId
+ *                                  - poiId
+ *                          - departureStationId: stationId
+ *                            endStationId: stationId
  *                            geoJson:
  *                                   type: Feature
  *                                   geometry: 
@@ -147,8 +147,8 @@ router.get("/:id", verifyToken, controllers.getRouteById);
  *                                   properties: 
  *                                          name: Route between Stations
  *                            points:
- *                                  - string
- *                                  - string
+ *                                  - poiId
+ *                                  - poiId
  *     responses:
  *       200:
  *         description: Create new route successfully

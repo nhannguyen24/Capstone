@@ -104,7 +104,7 @@ const getMoMoPaymentResponse = (req) =>
             const ipnData = req.body;
 
             if (ipnData.resultCode === 0) {
-                const bookingId = ipnData.extraData
+                const bookingId = ipnData.extraData;
                 const bookingDetail = await db.BookingDetail.findOne({
                     where: {
                         bookingId: bookingId
@@ -225,7 +225,7 @@ const getMoMoPaymentResponse = (req) =>
                     }
                 });
             } else {
-                // Invalid signature, do not trust the IPN
+                // Payment fail
                 resolve({
                     status: 400,
                     data: {
@@ -245,19 +245,3 @@ const getMoMoPaymentResponse = (req) =>
     });
 
 module.exports = { createMoMoPaymentRequest, getMoMoPaymentResponse };
-
-
-
-// partnerCode%3DMOMO%26
-// orderId%3DMOMO1696253817889%26
-// requestId%3DMOMO1696253817889%26
-// amount%3D10000%26
-// orderInfo%3DPay%2Bwith%2BMoMo%26
-// orderType%3Dmomo_wallet%26
-// transId%3D1696253830305%26
-// resultCode%3D1006%26
-// message%3DTransaction%2Bdenied%2Bby%2Buser.%26
-// payType%3D%26
-// responseTime%3D1696253830348%26
-// extraData%3D%26
-// signature%3D6259114550a9d17d8286c05102b7a1b90cdf7c693dbbdb863e1840a7c88b2d23

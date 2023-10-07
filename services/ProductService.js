@@ -278,6 +278,7 @@ const deleteProduct = (productIds) =>
                             msg: "The product already deactive!",
                         }
                     });
+                    return;
                 }
             }
 
