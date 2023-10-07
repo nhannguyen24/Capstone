@@ -59,18 +59,18 @@ const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject)
 
 const getBookings = (req) => new Promise(async (resolve, reject) => {
     try {
-        const page = req.query.page
-        const limit = req.query.limit
-        const offset = (page - 1) * limit
-        const customerId = req.query.customerId.trim() || "";
-        const bookingCode = req.query.bookingCode.trim() || "";
+        const page = parseInt(req.query.page)
+        const limit = parseInt(req.query.limit)
+        const offset = parseInt((page - 1) * limit)   
+        const customerId = req.query.customerId || "";
+        const bookingCode = req.query.bookingCode || "";
         const bookingStatus = req.query.bookingStatus || "";
         const status = req.query.status || "";
         const orderDate = req.query.orderDate || DESC;
 
         const whereClause = {};
 
-        if (customerId !== "") {
+        if (customerId.trim() !== "") {
             const user = await db.User.findOne({
                 where: {
                     userId: customerId
@@ -89,7 +89,7 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
             whereClause.customerId = customerId;
         }
 
-        if (bookingCode !== "") {
+        if (bookingCode.trim() !== "") {
             whereClause.bookingCode = {
                 [Op.substring]: bookingCode
             }
@@ -132,15 +132,15 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
 const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
     try {
         const email = req.query.email
-        const page = req.query.page
-        const limit = req.query.limit
-        const offset = (page - 1) * limit
+        const page = parseInt(req.query.page)
+        const limit = parseInt(req.query.limit)
+        const offset = parseInt((page - 1) * limit)   
         const bookingCode = req.query.bookingCode.trim() || "";
         const bookingStatus = req.query.bookingStatus || "";
         const status = req.query.status || "";
         const orderDate = req.query.orderDate || DESC;
 
-        const whereClause = {};
+        let whereClause = {};
 
         const user = await db.User.findOne({
             where: {
@@ -265,6 +265,11 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             where: {
                 tourId: tickets[0].tourId,
             },
+            include: {
+                model: db.Bus,
+                as: "tour_bus",
+                attributes: ["busId", "numberSeat"]
+            }
         })
         if (!tour) {
             resolve({
@@ -299,13 +304,13 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 });
                 return
             }
-            const routeDetail = await db.RouteDetail.findOne({
+            const routeSegment = await db.RouteSegment.findOne({
                 where: {
                     routeId: tour.routeId,
-                    stationId: station.stationId
+                    departureStationId: station.stationId
                 }
             })
-            if (!routeDetail) {
+            if (!routeSegment) {
                 resolve({
                     status: 404,
                     data: {
@@ -395,34 +400,13 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
         /**
          * Begin checking available seat of a Bus
         */
-        const schedule = await db.Schedule.findOne({
-            where: {
-                tourId: tickets[0].tourId
-            },
-            include: {
-                model: db.Bus,
-                as: "schedule_bus",
-                attributes: ["busId", "numberSeat"]
-            },
-            attributes: ["scheduleId", "busId", "tourId"]
-        })
-        if (!schedule) {
-            resolve({
-                status: 404,
-                data: {
-                    msg: `Schedule not found with tourId: ${tickets[0].tourId}`,
-                }
-            });
-            return
-        }
-
         let totalBookedSeat = 0
         const bookingDetails = await db.BookingDetail.findAll({
             include: {
                 model: db.Ticket,
                 as: "booking_detail_ticket",
                 where: {
-                    tourId: schedule.tourId,
+                    tourId: tour.tourId,
                 },
                 attributes: {
                     exclude: ["ticketTypeId", "updatedAt", "createdAt", "status"]
@@ -440,8 +424,8 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             totalBookedSeat += e.quantity
         }
 
-        if (seatBookingQuantity + totalBookedSeat > schedule.schedule_bus.numberSeat) {
-            const availableSeats = schedule.schedule_bus.numberSeat - totalBookedSeat;
+        if (seatBookingQuantity + totalBookedSeat > tour.tour_bus.numberSeat) {
+            const availableSeats = tour.tour_bus.numberSeat - totalBookedSeat;
             resolve({
                 status: 400,
                 data: {

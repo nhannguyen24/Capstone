@@ -1,71 +1,45 @@
 const db = require('../models');
 const { Op, sequelize } = require('sequelize');
-const STATUS = require("../enums/StatusEnum")
 const REPORT_STATUS = require("../enums/ReportStatusEnum")
 
 const getReports = (req) => new Promise(async (resolve, reject) => {
     try {
-        let customerId = req.query.customerId;
+        const page = parseInt(req.query.page)
+        const limit = parseInt(req.query.limit)
+        const offset = parseInt((page - 1) * limit)
+        const reportStatus = req.query.reportStatus || ""
 
-        if (customerId === null || customerId === undefined || customerId.trim().length < 1) {
-            const reports = await db.Report.findAll({
-                order: [["CreatedAt", "DESC"]],
-                include: [
-                    {
-                        model: db.User,
-                        as: "report_user",
-                        attributes: ["userId", "userName"],
-                    },
-                ],
-            });
-
-            resolve({
-                status: 200,
-                data: {
-                    msg: `Get list of all reports successfully`,
-                    reports: reports,
-                },
-            });
-        } else {
-            // If customerId is provided, filter reports by customerId
-            const user = await db.User.findOne({
-                where: {
-                    userId: customerId,
-                },
-            });
-
-            if (!user) {
-                resolve({
-                    status: 404,
-                    data: {
-                        msg: `Customer not found with id: ${customerId}`,
-                    },
-                });
-                return;
-            }
-
-            const reports = await db.Report.findAll({
-                order: [["CreatedAt", "DESC"]],
-                where: {
-                    customerId: customerId,
-                },
-                include: [
-                    {
-                        model: db.User,
-                        as: "report_user",
-                        attributes: ["userId", "userName"],
-                    },
-                ],
-            });
-
-            resolve({
-                status: 200,
-                data: {
-                    msg: `Get list of reports for customer ${user.userName} successfully`,
-                    reports: reports,
-                },
-            });
+        let whereClause = {}
+        if (reportStatus !== "") {
+            whereClause.reportStatus = reportStatus
         }
+
+        const reports = await db.Report.findAll({
+            order: [["updatedAt", "DESC"]],
+            where: whereClause,
+            include: [
+                {
+                    model: db.User,
+                    as: "report_user",
+                    attributes: ["userId", "userName"],
+                },
+            ],
+            limit: limit,
+            offset: offset
+        });
+
+        resolve({
+            status: 200,
+            data: {
+                msg: `Get reports successfully`,
+                paging: {
+                    page: page,
+                    limit: limit
+                },
+                reports: reports,
+            },
+        });
+
     } catch (error) {
         reject(error);
     }
@@ -125,7 +99,7 @@ const createReport = (req) => new Promise(async (resolve, reject) => {
             return
         }
 
-        const setUpReport = {customerId: user.userId, title: title, description: description, reportStatus: REPORT_STATUS.SUBMITTED}
+        const setUpReport = { customerId: user.userId, title: title, description: description, reportStatus: REPORT_STATUS.SUBMITTED }
         const report = await db.Report.create(setUpReport);
 
         resolve({

@@ -15,10 +15,39 @@ const router = express.Router();
  *     tags: [Bus]
  *     parameters:
  *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           example: 1
+ *         required: true
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           example: 10
+ *         required: true
+ *         description: Maximum items per page
+ *       - in: query
  *         name: busPlate
  *         schema:
  *           type: string
- *           example: 79B
+ *         description: Search by bus plate
+ *       - in: query
+ *         name: isDoubleDecker
+ *         schema:
+ *           type: boolean
+ *         description: Filter bus double decker
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum:
+ *              - Active
+ *              - Deactive
+ *         description: Filter bus status
  * 
  *     responses:
  *       200:

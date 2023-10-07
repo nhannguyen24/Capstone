@@ -4,20 +4,38 @@ const STATUS = require("../enums/StatusEnum")
 
 const getAllBuses = (req) => new Promise(async (resolve, reject) => {
     try {
-        var busPlate = req.query.busPlate
-        if (busPlate === undefined || busPlate === null) {
-            busPlate = ""
+        const page = parseInt(req.query.page)
+        const limit = parseInt(req.query.limit)
+        const offset = parseInt((page - 1) * limit)   
+        const busPlate = req.query.busPlate || ""
+        let isDoubleDecker = req.query.isDoubleDecker || ""
+        const status = req.query.status || ""
+
+        let whereClause = {}
+
+        if(busPlate.trim() !== ""){
+            whereClause.busPlate = {
+                [Op.substring]: busPlate
+            }
+        }
+
+        if(isDoubleDecker !== ""){
+            if(isDoubleDecker === "true") {
+                isDoubleDecker = 1
+            } else if(isDoubleDecker === "false"){
+                isDoubleDecker = 0
+            }
+            whereClause.isDoubleDecker = isDoubleDecker
+        }
+        
+        if(status !== ""){
+            whereClause.status = status
         }
 
         const buses = await db.Bus.findAll({
-            where: {
-                busPlate: {
-                    [Op.substring]: busPlate
-                }
-            },
-            attributes: {
-                exclude: []
-            },
+            offset: offset,
+            limit: limit,
+            where: whereClause,
             include: [
                 {
                     model: db.Image,
@@ -28,7 +46,6 @@ const getAllBuses = (req) => new Promise(async (resolve, reject) => {
                             "busId",
                             "tourId",
                             "productId",
-                            "feedbackId",
                             "createdAt",
                             "updatedAt",
                             "status",
@@ -41,7 +58,11 @@ const getAllBuses = (req) => new Promise(async (resolve, reject) => {
         resolve({
             status: 200,
             data: {
-                msg: `Get list of the buses successfully`,
+                msg: `Get buses successfully`,
+                paging: {
+                    page: page,
+                    limit: limit,
+                },
                 buses: buses
             }
         });
@@ -163,31 +184,25 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
         }
 
         if (STATUS.DEACTIVE == status) {
-            const schedule = await db.Schedule.findOne({
+            const tour = await db.Tour.findOne({
                 where: {
                     busId: busId,
-                    status: {
-                        [Op.like]: STATUS.ACTIVE
-                    }
+                    status: STATUS.ACTIVE,
+                    tourStatus: {
+                        [Op.in]: ['NotStarted', 'OnTour'],
+                    },
                 },
-                order: [
-                    ["date", "DESC"]
-                ]
             })
-
-            if (schedule) {
-                const scheduleDate = new Date(schedule.date)
-                const currentDate = new Date()
-                if (scheduleDate > currentDate) {
-                    resolve({
-                        status: 409,
-                        data: {
-                            msg: `Cannot update bus status to Deactive because it currently has ongoing tour`,
-                            tour: tour
-                        }
-                    })
-                    return
-                }
+    
+            if (tour) {
+                resolve({
+                    status: 409,
+                    data: {
+                        msg: `Cannot update bus status to Deactive because it currently has ongoing tour`,
+                        tour: tour
+                    }
+                })
+                return
             }
         }
 
@@ -240,31 +255,25 @@ const deleteBus = (req) => new Promise(async (resolve, reject) => {
             return
         }
 
-        const schedule = await db.Schedule.findOne({
+        const tour = await db.Tour.findOne({
             where: {
                 busId: busId,
-                status: {
-                    [Op.like]: STATUS.ACTIVE
-                }
+                status: STATUS.ACTIVE,
+                tourStatus: {
+                    [Op.in]: ['NotStarted', 'OnTour'],
+                },
             },
-            order: [
-                ["date", "DESC"]
-            ]
         })
 
-        if (schedule) {
-            const scheduleDate = new Date(schedule.date)
-            const currentDate = new Date()
-            if (scheduleDate > currentDate) {
-                resolve({
-                    status: 409,
-                    data: {
-                        msg: `Cannot update bus status to Deactive because it currently has ongoing tour`,
-                        tour: tour
-                    }
-                })
-                return
-            }
+        if (tour) {
+            resolve({
+                status: 409,
+                data: {
+                    msg: `Cannot update bus status to Deactive because it currently has ongoing tour`,
+                    tour: tour
+                }
+            })
+            return
         }
 
         await db.Bus.update({
@@ -272,7 +281,7 @@ const deleteBus = (req) => new Promise(async (resolve, reject) => {
         }, {
             where: {
                 busId: bus.busId
-            },             
+            },
             individualHooks: true,
         })
 

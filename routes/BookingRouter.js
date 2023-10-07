@@ -18,14 +18,18 @@ const router = express.Router();
  *         name: page
  *         schema:
  *           type: integer
+ *           minimum: 1
+ *           example: 1
  *         required: true
- *         description: page number
+ *         description: Page number
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
- *         description: Maximum bookings per page
+ *           minimum: 1
+ *           example: 10
  *         required: true
+ *         description: Maximum items per page
  *       - in: query
  *         name: customerId
  *         schema:
@@ -87,16 +91,18 @@ router.get("/", verifyToken, isLoggedIn, controllers.getBookings);
  *         name: page
  *         schema:
  *           type: integer
- *           example: 0
+ *           minimum: 1
+ *           example: 1
  *         required: true
- *         description: page number
+ *         description: Page number
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
+ *           minimum: 1
  *           example: 10
- *         description: Maximum bookings per page
  *         required: true
+ *         description: Maximum items per page
  *       - in: query
  *         name: bookingCode
  *         schema:

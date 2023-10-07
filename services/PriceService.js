@@ -4,12 +4,40 @@ const STATUS = require("../enums/StatusEnum")
 const DAY = require("../enums/PriceDayEnum")
 const getAllPrices = (req) => new Promise(async (resolve, reject) => {
     try {
-        const prices = await db.Price.findAll();
+        const page = parseInt(req.query.page)
+        const limit = parseInt(req.query.limit)
+        const offset = parseInt((page - 1) * limit)
+        const day = req.query.day || ""
+        const status = req.query.status || ""
+
+        const whereClause = {}
+
+        if (day !== "") {
+            whereClause.day = day
+        }
+
+        if (status !== "") {
+            whereClause.status = status
+        }
+
+        const prices = await db.Price.findAll(
+            {
+                where: whereClause,
+                order: [["updatedAt", "DESC"]],
+                offset: offset,
+                limit: limit
+            }
+        );
+
 
         resolve({
             status: 200,
             data: {
-                msg: `Get list of the prices successfully`,
+                msg: `Get prices successfully`,
+                paging: {
+                    page: page,
+                    limit: limit
+                },
                 prices: prices
             }
         });
@@ -66,19 +94,13 @@ const createPrice = (req) => new Promise(async (resolve, reject) => {
             return
         }
 
-        const [price, created] = await db.Price.findOrCreate({
-            where: {
-                ticketTypeId: ticketTypeId,
-                day: day
-            },
-            defaults: { ticketTypeId: ticketTypeId, amount: amount, day: day }
-        });
+        const price = await db.Price.create({ticketTypeId: ticketTypeId, amount: amount, day: day});
 
         resolve({
-            status: created ? 201 : 400,
+            status: 201,
             data: {
-                msg: created ? 'Create price successfully' : 'Price already exists',
-                price: created ? price : {}
+                msg: 'Create price successfully',
+                price: price
             }
         });
     } catch (error) {
@@ -109,7 +131,7 @@ const updatePrice = (req) => new Promise(async (resolve, reject) => {
         var ticketTypeId = req.query.ticketTypeId
         if (ticketTypeId === undefined || ticketTypeId === null || ticketTypeId.trim().length < 1) {
             ticketTypeId = price.ticketTypeId
-        } 
+        }
         const ticketType = await db.TicketType.findOne({
             where: {
                 ticketTypeId: ticketTypeId

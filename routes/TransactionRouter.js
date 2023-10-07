@@ -9,17 +9,44 @@ const router = express.Router();
  * @swagger
  * /api/v1/transactions:
  *   get:
- *     security: 
- *         - BearerAuth: []
  *     summary: Get list transactions
  *     description: Get list transaction for admin or with customerId for customer
  *     tags: [Transaction]
  *     parameters:
- *       - in: path
- *         name: customerId
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           example: 1
+ *         required: true
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           example: 10
+ *         required: true
+ *         description: Maximum items per page
+ *       - in: query
+ *         name: transactionCode
  *         schema:
  *           type: string
- *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
+ *         description: Search by transaction code
+ *       - in: query
+ *         name: isSuccess
+ *         schema:
+ *           type: boolean
+ *         description: Filter by success status
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum:
+ *              - Active
+ *              - Deactive
+ *         description: Filter by status
  * 
  *     responses:
  *       200:
@@ -29,7 +56,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isLoggedIn, controllers.getTransactions);
+router.get("/", controllers.getTransactions);
 
 /**
  * @swagger
