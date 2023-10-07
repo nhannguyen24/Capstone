@@ -31,7 +31,7 @@ const validateOtp = (req) => new Promise(async (resolve, reject) => {
         const currentDate = new Date()
         currentDate.setHours(currentDate.getHours() + 7)
 
-        if (otp.expiredDate < currentDate) {
+        if (otp.timeExpired < currentDate) {
             resolve({
                 status: 410,
                 data: {
@@ -96,19 +96,19 @@ const sendOtpToEmail = async (email, userId, fullName, otpType) => {
         let otp
         const currentDate = new Date()
         currentDate.setHours(currentDate.getHours() + 7)
-        const newExpiredDate = currentDate.setMinutes(currentDate.getMinutes() + 15)
+        const newTimeExpired = currentDate.setMinutes(currentDate.getMinutes() + 15)
         if (resultOtp) {
             otp = resultOtp
 
             await db.Otp.update({
-                otpCode: hashOtpCode(otpCode), expiredDate: newExpiredDate, isAllow: false
+                otpCode: hashOtpCode(otpCode), timeExpired: newTimeExpired, isAllow: false
             }, {
                 where: {
                     otpId: resultOtp.otpId
                 }, individualHooks: true
             })
         } else {
-            const setUpOtp = { otpCode: hashOtpCode(otpCode), otpType: otpType, userId: userId ? userId : user.userId, expiredDate: newExpiredDate }
+            const setUpOtp = { otpCode: hashOtpCode(otpCode), otpType: otpType, userId: userId ? userId : user.userId, timeExpired: newTimeExpired }
             otp = await db.Otp.create(setUpOtp)
         }
 
