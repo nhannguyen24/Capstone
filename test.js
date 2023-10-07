@@ -76,7 +76,40 @@ const tours = [
 
 
 
+//   const tours = [
+//     { tourId: 1, departureDate: new Date("2023-10-02T08:00:00"), duration: "03:00:00" },
+//     { tourId: 2, departureDate: new Date("2023-10-02T08:00:00"), duration: "03:00:00" },
+//     { tourId: 3, departureDate: new Date("2023-10-03T08:00:00"), duration: "03:00:00" },
+//     { tourId: 4, departureDate: new Date("2023-10-03T12:00:00"), duration: "03:00:00" },
+//     { tourId: 5, departureDate: new Date("2023-10-03T09:00:00"), duration: "03:00:00" },
+//     { tourId: 6, departureDate: new Date("2023-10-02T11:00:00"), duration: "03:00:00" },
+//     { tourId: 7, departureDate: new Date("2023-10-02T09:00:00"), duration: "03:00:00" },
+//     { tourId: 8, departureDate: new Date("2023-10-03T14:00:00"), duration: "03:00:00" },
+// ];
 
+// tours.sort((a, b) => a.departureDate - b.departureDate);
+
+// const findTourguide = [
+//     { tourGuideId: 1, name: "Tourguide 1", maxTours: 3 },
+//     { tourGuideId: 2, name: "Tourguide 2", maxTours: 3 },
+//     { tourGuideId: 3, name: "Tourguide 3", maxTours: 3 },
+// ];
+
+// const findDriver = [
+//     { driverId: 1, name: "Driver 1", maxTours: 3 },
+//     { driverId: 2, name: "Driver 2", maxTours: 3 },
+// ];
+
+// const buses = [
+//     { busId: 1, numberSeat: 20 },
+//     { busId: 2, numberSeat: 20 },
+//     { busId: 3, numberSeat: 20 },
+//     { busId: 4, numberSeat: 20 },
+//     { busId: 5, numberSeat: 20 },
+//     { busId: 6, numberSeat: 20 },
+//     { busId: 7, numberSeat: 20 },
+//     { busId: 8, numberSeat: 20 },
+// ];
 
 
 

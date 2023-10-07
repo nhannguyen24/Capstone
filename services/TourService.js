@@ -631,6 +631,278 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
         }
     });
 
+const assignTour = () =>
+    new Promise(async (resolve, reject) => {
+        let transaction;
+        try {
+            transaction = await db.sequelize.transaction(async (t) => {
+                const currentDate = new Date();
+                currentDate.setHours(currentDate.getHours() + 7);
+
+                const findTourActive = await db.Tour.findAll({
+                    raw: true, nest: true,
+                    order: [['departureDate', 'ASC']],
+                    where: {
+                        departureDate: {
+                            [Op.gte]: currentDate,
+                        },
+                        status: STATUS.ACTIVE
+                    }
+                })
+
+                if (findTourActive.length == 0) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: 'There are not tours active'
+                        }
+                    })
+                    return;
+                }
+
+                const findBusActive = await db.Bus.findAll({
+                    raw: true, nest: true,
+                    where: {
+                        status: STATUS.ACTIVE
+                    }
+                })
+
+                if (findBusActive.length == 0) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: 'There are not buses active'
+                        }
+                    })
+                    return;
+                }
+
+                const findTourguide = await db.User.findAll({
+                    raw: true, nest: true,
+                    include: [
+                        {
+                            model: db.Role,
+                            as: "user_role",
+                            where: {
+                                roleName: 'TourGuide',
+                                status: STATUS.ACTIVE,
+                            }
+                        }
+                    ]
+                })
+
+                const findDriver = await db.User.findAll({
+                    raw: true, nest: true,
+                    include: [
+                        {
+                            model: db.Role,
+                            as: "user_role",
+                            where: {
+                                roleName: 'Driver',
+                                status: STATUS.ACTIVE,
+                            }
+                        }
+                    ]
+                })
+
+                if (findTourguide.length == 0) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: 'There are not tour guide available'
+                        }
+                    })
+                    return;
+                }
+
+                if (findDriver.length == 0) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: 'There are not buses available'
+                        }
+                    })
+                    return;
+                }
+
+                // Initialize the schedule
+                const findSchedule = await db.Tour.findAll({
+                    raw: true, nest: true,
+                    where: {
+                        status: STATUS.SCHEDULED,
+                        tourStatus: TOUR_STATUS.NOT_STARTED
+                    },
+                    attributes: [
+                        "tourId",
+                        "tourName",
+                        "beginBookingDate",
+                        "endBookingDate",
+                        "departureDate",
+                        "duration",
+                        "tourStatus",
+                        "status",
+                    ],
+                    include: [
+                        {
+                            model: db.Bus,
+                            as: "tour_bus",
+                            attributes: [
+                                "busId"
+                            ]
+                        },
+                        {
+                            model: db.User,
+                            as: "tour_tourguide",
+                            attributes: [
+                                "userId"
+                            ]
+                        },
+                        {
+                            model: db.User,
+                            as: "tour_driver",
+                            attributes: [
+                                "userId"
+                            ]
+                        },
+                    ]
+                })
+
+                const schedule = [];
+                if (findSchedule.length > 0) {
+                    for (const tour of findSchedule) {
+                        const tourGuide = tour.tour_tourguide;
+                        const driver = tour.tour_driver;
+                        const bus = tour.tour_bus;
+
+                        schedule.push({ tour, tourGuide, driver, bus });
+                    }
+                }
+                for (const tour of findTourActive) {
+                    // Find an available employee for the tour
+                    const availableTourGuide = findTourguide.filter(
+                        (employee) =>
+                            employee.maxTour > 0 &&
+                            !schedule.some((assignment) => {
+                                const departureDate = new Date(assignment.tour.departureDate);
+                                // Split the duration string into hours, minutes, and seconds
+                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number);
+
+                                // Add the duration to the departureDate
+                                departureDate.setHours(departureDate.getHours() + hours);
+                                departureDate.setMinutes(departureDate.getMinutes() + minutes);
+                                departureDate.setSeconds(departureDate.getSeconds() + seconds);
+                                const endDate = departureDate;
+
+                                // Check if the tour guide is available
+                                return endDate >= tour.departureDate && assignment.tourGuide.userId == employee.userId
+                            })
+                    );
+
+                    const availableDriver = findDriver.filter(
+                        (employee) =>
+                            employee.maxTour > 0
+                            // && !employee.driverId == tour.driverId
+                            && !schedule.some((assignment) => {
+                                const departureDate = new Date(assignment.tour.departureDate);
+
+                                // Split the duration string into hours, minutes, and seconds
+                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number);
+
+                                // Add the duration to the departureDate
+                                departureDate.setHours(departureDate.getHours() + hours);
+                                departureDate.setMinutes(departureDate.getMinutes() + minutes);
+                                departureDate.setSeconds(departureDate.getSeconds() + seconds);
+                                const endDate = departureDate;
+                                return endDate >= tour.departureDate && assignment.driver.userId == employee.userId
+                            })
+                    );
+
+                    const availableBuses = findBusActive.filter(
+                        (bus) =>
+                            bus.numberSeat >= 2
+                            && !schedule.some((assignment) => {
+                                const departureDate = new Date(assignment.tour.departureDate);
+
+                                // Split the duration string into hours, minutes, and seconds
+                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number);
+
+                                // Add the duration to the departureDate
+                                departureDate.setHours(departureDate.getHours() + hours);
+                                departureDate.setMinutes(departureDate.getMinutes() + minutes);
+                                departureDate.setSeconds(departureDate.getSeconds() + seconds);
+                                const endDate = departureDate;
+                                return endDate >= tour.departureDate && assignment.bus.busId == bus.busId
+                            })
+                    );
+
+                    if (availableTourGuide.length > 0 && availableDriver.length > 0 && availableBuses.length > 0) {
+                        const chosenTourGuide = availableTourGuide[0];
+                        const chosenDriver = availableDriver[0];
+                        chosenTourGuide.maxTours--;
+                        chosenDriver.maxTours--;
+
+                        // console.log(chosenEmployee.maxTours);
+                        // chosenEmployee.assignedTours.push(tour.id);
+                        const chosenBus = availableBuses[0];
+                        schedule.push({ tour, tourGuide: chosenTourGuide, driver: chosenDriver, bus: chosenBus });
+                    }
+                }
+
+                const findTourNotScheduled = findTourActive.filter(itemA => !schedule.some(itemB => itemB.tour.tourId === itemA.tourId));
+
+                for (const assignment of schedule) {
+                    // console.log(
+                    //     `Tour ${assignment.tour.tourId} at ${assignment.tour.departureDate.toISOString()} assigned to ${assignment.tourGuide.userId}, ${assignment.driver.userId} on Bus ${assignment.bus.busId}`
+                    // );
+
+                    await db.Tour.update({
+                        tourGuideId: assignment.tourGuide.userId,
+                        driverId: assignment.driver.userId,
+                        busId: assignment.bus.busId,
+                        status: STATUS.SCHEDULED,
+                    }, {
+                        where: { tourId: assignment.tour.tourId },
+                        individualHooks: true,
+                        transaction: t
+                    });
+
+                    await db.User.update({
+                        maxTour: assignment.tourGuide.maxTour,
+                    }, {
+                        where: { userId: assignment.tourGuide.userId },
+                        individualHooks: true,
+                        transaction: t
+                    });
+
+                    await db.User.update({
+                        maxTour: assignment.driver.maxTour,
+                    }, {
+                        where: { userId: assignment.driver.userId },
+                        individualHooks: true,
+                        transaction: t
+                    });
+
+                    resolve({
+                        status: 200,
+                        data: {
+                            msg:
+                                findTourNotScheduled.length == 0
+                                    ? 'Tours have been scheduled'
+                                    : 'Tour name ' + findTourNotScheduled.map(tour => `'${tour.tourName}'`).join(', ') + ' cannot be scheduled'
+                        }
+                    });
+                }
+                await t.commit();
+            });
+        } catch (error) {
+            if (transaction) {
+                // Rollback the transaction in case of an error
+                await transaction.rollback();
+            }
+            reject(error);
+        }
+    });
+
 const updateTour = ({ images, tourId, ...body }) =>
     new Promise(async (resolve, reject) => {
         let transaction;
@@ -786,6 +1058,7 @@ const deleteTour = (tourIds) =>
                             msg: "The tour already deactive!",
                         }
                     });
+                    return;
                 }
             }
 
@@ -834,5 +1107,6 @@ module.exports = {
     createTour,
     getAllTour,
     getTourById,
+    assignTour,
 };
 

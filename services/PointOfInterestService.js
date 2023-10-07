@@ -275,6 +275,7 @@ const deletePointOfInterest = (poiIds) =>
                             msg: "The point of interest already deactive!",
                         }
                     });
+                    return;
                 }
             }
 

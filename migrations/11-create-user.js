@@ -39,6 +39,9 @@ module.exports = {
       refreshToken: {
         type: Sequelize.STRING,
       },
+      maxTour: {
+        type: Sequelize.INTEGER,
+      },
       roleId: {
         type: Sequelize.UUID,
         references: {

@@ -212,6 +212,7 @@ const deleteStation = (stationIds) =>
                             msg: "The station already deactive!",
                         }
                     });
+                    return;
                 }
             }
 
