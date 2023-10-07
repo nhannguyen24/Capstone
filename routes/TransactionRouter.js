@@ -9,6 +9,8 @@ const router = express.Router();
  * @swagger
  * /api/v1/transactions:
  *   get:
+ *     security: 
+ *         - BearerAuth: []
  *     summary: Get list transactions
  *     description: Get list transaction for admin or with customerId for customer
  *     tags: [Transaction]
@@ -56,7 +58,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", controllers.getTransactions);
+router.get("/", verifyToken, isLoggedIn, controllers.getTransactions);
 
 /**
  * @swagger
