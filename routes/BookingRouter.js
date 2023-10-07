@@ -194,8 +194,8 @@ router.get("/:id", controllers.getBookingDetailByBookingId);
  *                      type: array
  *                      minItems: 1
  *            example: {
- *              totalPrice: 425000,
- *              departureStationId: a1685c29-7e2e-409f-8a12-e935b2a34b01,
+ *              totalPrice: 60000,
+ *              departureStationId: 47098476-08c5-42d0-a04e-0878494d54d8,
  *              user: {
  *                  email: tminhquan@gmail.com,
  *                  userName: Trần Minh Quân,
@@ -204,19 +204,12 @@ router.get("/:id", controllers.getBookingDetailByBookingId);
  *              },
  *              tickets: [
  *                  {
- *                      ticketId: 074ed7f1-1d42-45c7-825e-37dc9ecf2e87,
- *                      ticketTypeId: d2dfa0b3-6b26-4a68-a093-05ca5f7f9cc6,  
- *                      tourId: 72102f7f-3b83-47ff-b5c7-ea5e75a20c80,
- *                      priceId: 2cd8ed5d-0108-4a81-b4a6-ddc8c9ee6586,
+ *                      ticketId: 06bec4fd-d3aa-418d-af37-c5037dc313aa,
+ *                      ticketTypeId: 3355c24a-741c-4e3b-9d2a-fa43c4c950c5,  
+ *                      tourId: d16d6812-3772-4f72-a3fb-c7a617397c3c,
+ *                      priceId: cfa845b9-3182-4322-932d-05a6284e6928,
  *                      quantity: 1
- *                  },
- *                  {
- *                      ticketId: 8cf7a629-54b7-4ba5-8530-c921e71408f3,
- *                      ticketTypeId: d406c07b-7f66-4a90-88d1-8c5cfdd34a42,
- *                      tourId: 72102f7f-3b83-47ff-b5c7-ea5e75a20c80,
- *                      priceId: 0ae1dd7a-4833-47c7-b99c-75755539245b,
- *                      quantity: 2
- *                  },
+ *                  }
  *              ]
  *            }
  *     responses:

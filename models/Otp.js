@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
     },
     otpCode: DataTypes.STRING,
-    expiredDate: DataTypes.DATE,
+    timeExpired: DataTypes.DATE,
     isAllow: DataTypes.BOOLEAN,
     userId: {
       type: DataTypes.UUID
