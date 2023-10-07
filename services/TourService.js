@@ -838,11 +838,9 @@ const assignTour = () =>
                     if (availableTourGuide.length > 0 && availableDriver.length > 0 && availableBuses.length > 0) {
                         const chosenTourGuide = availableTourGuide[0];
                         const chosenDriver = availableDriver[0];
-                        chosenTourGuide.maxTours--;
-                        chosenDriver.maxTours--;
+                        chosenTourGuide.maxTour --;
+                        chosenDriver.maxTour --;
 
-                        // console.log(chosenEmployee.maxTours);
-                        // chosenEmployee.assignedTours.push(tour.id);
                         const chosenBus = availableBuses[0];
                         schedule.push({ tour, tourGuide: chosenTourGuide, driver: chosenDriver, bus: chosenBus });
                     }

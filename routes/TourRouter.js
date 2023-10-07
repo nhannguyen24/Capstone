@@ -237,7 +237,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateTour);
  *               items:
  *                 $ref: '#/components/schemas/Tour'
  */
-router.put("/assigned-tours", controllers.assignTour);
+router.put("/assigned-tours", verifyToken, isAdminOrManager, controllers.assignTour);
 
 /**
  * @swagger
