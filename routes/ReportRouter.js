@@ -15,9 +15,31 @@ const router = express.Router();
  *     tags: [Report]
  *     parameters:
  *       - in: query
- *         name: customerId
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           example: 1
+ *         required: true
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           example: 10
+ *         required: true
+ *         description: Maximum items per page
+ *       - in: query
+ *         name: reportStatus
  *         schema:
  *           type: string
+ *           enum:
+ *              - Submitted
+ *              - Approved
+ *              - Pending
+ *              - Rejected
+ *              - Completed
  * 
  *     responses:
  *       200:

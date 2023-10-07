@@ -6,21 +6,44 @@ const DAY_ENUM = require("../enums/PriceDayEnum")
 const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
 const getAllTickets = (req) => new Promise(async (resolve, reject) => {
     try {
+        const page = parseInt(req.query.page)
+        const limit = parseInt(req.query.limit)
+        const offset = parseInt((page - 1) * limit)
+        const tourId = req.query.tourId || ""
+        const ticketTypeId = req.query.ticketTypeId || ""
+
+        let whereClause = {}
+
+        if(tourId !== ""){
+            whereClause.tourId = tourId
+        }
+
+        if(ticketTypeId !== ""){
+            whereClause.ticketTypeId = ticketTypeId
+        }
+
         const tickets = await db.Ticket.findAll(
             {
+                where: whereClause,
                 include: [
                     {
                         model: db.TicketType,
                         as: "ticket_type",
+                        attributes: ["ticketTypeId", "ticketTypeName", "description"]
                     },
                     {
                         model: db.Tour,
                         as: "ticket_tour",
+                        attributes: {
+                            exclude: ["createdAt", "updatedAt"]
+                        }
                     }
                 ],
                 attributes: {
-                    exclude: ["ticketTypeId", "tourId", "customerId"]
-                }
+                    exclude: ["ticketTypeId", "tourId"]
+                },
+                limit: limit,
+                offset: offset
             }
         );
 
@@ -44,9 +67,7 @@ const getAllTickets = (req) => new Promise(async (resolve, reject) => {
                     ticketTypeId: e.ticket_type.ticketTypeId,
                     day: day
                 },
-                attributes: {
-                    exclude: ["ticketTypeId"]
-                }
+                attributes: ["priceId", "amount", "day"]
             })
             e.dataValues.ticket_type.dataValues.price = price
         }
@@ -55,6 +76,10 @@ const getAllTickets = (req) => new Promise(async (resolve, reject) => {
             status: 200,
             data: {
                 msg: `Get list of tickets successfully`,
+                paging: {
+                    page: page,
+                    limit: limit
+                },
                 tickets: tickets
             }
         });
@@ -75,14 +100,18 @@ const getTicketById = (req) => new Promise(async (resolve, reject) => {
                 {
                     model: db.TicketType,
                     as: "ticket_type",
+                    attributes: ["ticketTypeId", "ticketTypeName", "description"]
                 },
                 {
                     model: db.Tour,
                     as: "ticket_tour",
+                    attributes: {
+                        exclude: ["createdAt", "updatedAt"]
+                    }
                 }
             ],
             attributes: {
-                exclude: ["ticketTypeId", "tourId", "customerId"]
+                exclude: ["ticketTypeId", "tourId"]
             }
         });
         let day = DAY_ENUM.NORMAL
@@ -103,9 +132,7 @@ const getTicketById = (req) => new Promise(async (resolve, reject) => {
                 ticketTypeId: ticket.ticket_type.ticketTypeId,
                 day: day
             },
-            attributes: {
-                exclude: ["ticketTypeId"]
-            }
+            attributes: ["priceId", "amount", "day"]
         })
         ticket.dataValues.ticket_type.dataValues.price = price
 
@@ -266,7 +293,7 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
             })
             return
         } else {
-            if (TOUR_STATUS.NOT_STARTED != tour.tourStatus || STATUS.DEACTIVE == tour.status) {
+            if (TOUR_STATUS.NOT_STARTED !== tour.tourStatus || STATUS.DEACTIVE === tour.status) {
                 resolve({
                     status: 409,
                     data: {

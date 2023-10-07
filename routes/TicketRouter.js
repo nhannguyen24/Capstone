@@ -1,7 +1,7 @@
 const controllers = require('../controllers/TicketController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isAdmin} = require('../middlewares/VerifyRole');
+const {isAdmin, isAdminOrManager} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -13,6 +13,33 @@ const router = express.Router();
  *         - BearerAuth: []
  *     summary: get tickets 
  *     tags: [Ticket]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           example: 1
+ *         required: true
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           example: 10
+ *         required: true
+ *         description: Maximum items per page
+ *       - in: query
+ *         name: tourId
+ *         schema:
+ *           type: string
+ *         description: Search by tourId
+ *       - in: query
+ *         name: ticketTypeId
+ *         schema:
+ *           type: string
+ *         description: Search by ticketTypeId
  * 
  *     responses:
  *       200:
@@ -22,7 +49,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isAdmin, controllers.getAllTickets);
+router.get("/", verifyToken, isAdminOrManager, controllers.getAllTickets);
 
 /**
  * @swagger
@@ -53,7 +80,7 @@ router.get("/", verifyToken, isAdmin, controllers.getAllTickets);
  *             schema:
  *               type: string
  */
-router.get("/:id", verifyToken, isAdmin, controllers.getTicketById);
+router.get("/:id", verifyToken, isAdminOrManager, controllers.getTicketById);
 
 /**
  * @swagger
@@ -99,7 +126,7 @@ router.get("/:id", verifyToken, isAdmin, controllers.getTicketById);
  *             schema:
  *               type: object
  */
-router.post("/", verifyToken, isAdmin, controllers.createTicket);
+router.post("/", verifyToken, isAdminOrManager, controllers.createTicket);
 
 /**
  * @swagger
@@ -154,7 +181,7 @@ router.post("/", verifyToken, isAdmin, controllers.createTicket);
  *             schema:
  *               type: object
  */
-router.put("/:id", verifyToken, isAdmin, controllers.updateTicket);
+router.put("/:id", verifyToken, isAdminOrManager, controllers.updateTicket);
 
 /**
  * @swagger
@@ -191,6 +218,6 @@ router.put("/:id", verifyToken, isAdmin, controllers.updateTicket);
  *             schema:
  *               type: object
  */
-router.delete("/:id", verifyToken, isAdmin, controllers.deleteTicket);
+router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteTicket);
 
 module.exports = router;

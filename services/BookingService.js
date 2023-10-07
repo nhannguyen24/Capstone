@@ -57,78 +57,70 @@ const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject)
     }
 });
 
-const getBookingsForCustomer = (req) => new Promise(async (resolve, reject) => {
+const getBookings = (req) => new Promise(async (resolve, reject) => {
     try {
-        let customerId = req.query.customerId
-        if (customerId === undefined || customerId === null || customerId.trim().length < 1) {
-            customerId = ""
-        } else {
+        const page = parseInt(req.query.page)
+        const limit = parseInt(req.query.limit)
+        const offset = parseInt((page - 1) * limit)   
+        const customerId = req.query.customerId || "";
+        const bookingCode = req.query.bookingCode || "";
+        const bookingStatus = req.query.bookingStatus || "";
+        const status = req.query.status || "";
+        const orderDate = req.query.orderDate || DESC;
+
+        const whereClause = {};
+
+        if (customerId.trim() !== "") {
             const user = await db.User.findOne({
                 where: {
                     userId: customerId
                 }
-            })
+            });
 
             if (!user) {
                 resolve({
                     status: 404,
                     data: {
-                        msg: `Customer not found with ID: ${customerId}`,
+                        msg: `Customer not found with Id: ${customerId}`,
                     }
                 });
-                return
+                return;
+            }
+            whereClause.customerId = customerId;
+        }
+
+        if (bookingCode.trim() !== "") {
+            whereClause.bookingCode = {
+                [Op.substring]: bookingCode
             }
         }
-        let bookingCode = req.query.bookingCode
-        if (bookingCode === undefined || bookingCode === null) {
-            bookingCode = ""
+        if (bookingStatus !== "") {
+            whereClause.bookingStatus = bookingStatus
+        }
+
+        if (status !== "") {
+            whereClause.status = status
         }
 
         const bookings = await db.Booking.findAll({
-            where: {
-                bookingCode: {
-                    [Op.substring]: bookingCode
+            where: whereClause,
+            order: [
+                ["bookingDate", orderDate],
+                ["updatedAt", "DESC"]
+            ],
+            limit: limit,
+            offset: offset
+        });
+
+        resolve({
+            status: 200,
+            data: {
+                msg: `Get Bookings successfully`,
+                paging: {
+                    page: page,
+                    limit: limit
                 },
-                customerId: customerId
-            },
-            order: [
-                ["bookingDate", "DESC"]
-            ]
-        });
-
-        resolve({
-            status: 200,
-            data: bookings ? {
-                msg: `Get Bookings successfully`,
-                bookings: bookings
-            } : {
-                msg: `No booking result`,
-                bookings: []
-            }
-        });
-
-    } catch (error) {
-        reject(error);
-    }
-});
-
-const getBookingsForManager = (req) => new Promise(async (resolve, reject) => {
-    try {
-        const bookings = await db.Booking.findAll({
-            order: [
-                ["bookingDate", "DESC"],
-                ["updatedAt", "DESC"],
-            ]
-        });
-
-        resolve({
-            status: 200,
-            data: bookings ? {
-                msg: `Get Bookings successfully`,
-                bookings: bookings
-            } : {
-                msg: `No booking result`,
-                bookings: []
+                bookings: bookings,
             }
         });
 
@@ -139,7 +131,17 @@ const getBookingsForManager = (req) => new Promise(async (resolve, reject) => {
 
 const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
     try {
-        let email = req.params.email
+        const email = req.query.email
+        const page = parseInt(req.query.page)
+        const limit = parseInt(req.query.limit)
+        const offset = parseInt((page - 1) * limit)   
+        const bookingCode = req.query.bookingCode.trim() || "";
+        const bookingStatus = req.query.bookingStatus || "";
+        const status = req.query.status || "";
+        const orderDate = req.query.orderDate || DESC;
+
+        let whereClause = {};
+
         const user = await db.User.findOne({
             where: {
                 email: email
@@ -189,23 +191,39 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
             return
         }
 
+        if (bookingCode !== "") {
+            whereClause.bookingCode = {
+                [Op.substring]: bookingCode
+            }
+        }
+
+        if (bookingStatus !== "") {
+            whereClause.bookingStatus = bookingStatus
+        }
+
+        if (status !== "") {
+            whereClause.status = status
+        }
+
         const bookings = await db.Booking.findAll({
-            where: {
-                customerId: user.userId
-            },
+            where: whereClause,
             order: [
-                ["bookingDate", "DESC"]
-            ]
+                ["bookingDate", orderDate],
+                ["updatedAt", orderDate]
+            ],
+            limit: limit,
+            offset: offset
         });
 
         resolve({
             status: 200,
-            data: bookings ? {
+            data: {
                 msg: `Get bookings successfully`,
+                paging: {
+                    page: page,
+                    limit: limit
+                },
                 bookings: bookings
-            } : {
-                msg: `No booking results`,
-                bookings: []
             }
         });
 
@@ -220,7 +238,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
         const tickets = req.body.tickets
         const totalPrice = req.body.totalPrice
         const birthday = new Date(user.birthday)
-
+        const departureStationId = req.body.departureStationId
         /**
          * Checking if Admin or Manager not allow to book
          */
@@ -247,6 +265,11 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             where: {
                 tourId: tickets[0].tourId,
             },
+            include: {
+                model: db.Bus,
+                as: "tour_bus",
+                attributes: ["busId", "numberSeat"]
+            }
         })
         if (!tour) {
             resolve({
@@ -257,7 +280,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             });
             return
         } else {
-            if (TOUR_STATUS.NOT_STARTED !== tour.tourStatus || STATUS.DEACTIVE === tour.status) {
+            if (TOUR_STATUS.NOT_STARTED !== tour.tourStatus || STATUS.ACTIVE !== tour.status) {
                 resolve({
                     status: 403,
                     data: {
@@ -266,7 +289,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 });
                 return
             }
-            const departureStationId = req.body.departureStationId
+
             station = await db.Station.findOne({
                 where: {
                     stationId: departureStationId
@@ -281,13 +304,13 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 });
                 return
             }
-            const routeDetail = await db.RouteDetail.findOne({
+            const routeSegment = await db.RouteSegment.findOne({
                 where: {
                     routeId: tour.routeId,
-                    stationId: station.stationId
+                    departureStationId: station.stationId
                 }
             })
-            if (!routeDetail) {
+            if (!routeSegment) {
                 resolve({
                     status: 404,
                     data: {
@@ -377,34 +400,13 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
         /**
          * Begin checking available seat of a Bus
         */
-        const schedule = await db.Schedule.findOne({
-            where: {
-                tourId: tickets[0].tourId
-            },
-            include: {
-                model: db.Bus,
-                as: "schedule_bus",
-                attributes: ["busId", "numberSeat"]
-            },
-            attributes: ["scheduleId", "busId", "tourId"]
-        })
-        if(!schedule){
-            resolve({
-                status: 404,
-                data: {
-                    msg: `Schedule not found with tourId: ${tickets[0].tourId}`,
-                }
-            });
-            return
-        }
-
         let totalBookedSeat = 0
         const bookingDetails = await db.BookingDetail.findAll({
             include: {
                 model: db.Ticket,
                 as: "booking_detail_ticket",
                 where: {
-                    tourId: schedule.tourId,
+                    tourId: tour.tourId,
                 },
                 attributes: {
                     exclude: ["ticketTypeId", "updatedAt", "createdAt", "status"]
@@ -422,8 +424,8 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             totalBookedSeat += e.quantity
         }
 
-        if (seatBookingQuantity + totalBookedSeat > schedule.schedule_bus.numberSeat) {
-            const availableSeats = schedule.schedule_bus.numberSeat - totalBookedSeat;
+        if (seatBookingQuantity + totalBookedSeat > tour.tour_bus.numberSeat) {
+            const availableSeats = tour.tour_bus.numberSeat - totalBookedSeat;
             resolve({
                 status: 400,
                 data: {
@@ -452,64 +454,10 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             console.log(error)
         }
 
-        /**
-         * Starting Send QR To Customer through Email
-         */
-        const tourName = tour.tourName
-        const tourDepartureDate = new Date(tour.departureDate)
-        const formatDepartureDate = `${tourDepartureDate.getDate().toString().padStart(2, '0')}/${(tourDepartureDate.getMonth() + 1).toString().padStart(2, '0')}/${tourDepartureDate.getFullYear()}  |  ${tourDepartureDate.getHours().toString().padStart(2, '0')}:${tourDepartureDate.getMinutes().toString().padStart(2, '0')}`
-        const tourDuration = tour.duration
-        const getBookedTickets = await db.BookingDetail.findAll({
-            where: {
-                bookingId: booking.bookingId
-            },
-            include:
-            {
-                model: db.Ticket,
-                as: "booking_detail_ticket",
-                include: [
-                    {
-                        model: db.TicketType,
-                        as: "ticket_type",
-                        attributes: ["ticketTypeName", "description"]
-                    },
-                    {
-                        model: db.Tour,
-                        as: "ticket_tour",
-                        attributes: ["tourName", "departureDate", "duration", "status"]
-                    },
-                ],
-                attributes: {
-                    exclude: ["tourid", "ticketTypeId", "updatedAt", "createdAt"]
-                }
-            },
-            attributes: {
-                exclude: ["ticketId", "updatedAt", "createdAt"]
-            }
-        })
-
-        const bookedTickets = JSON.stringify(getBookedTickets)
-
-        qr.toFile(`./qrcode/${booking.bookingId}.png`, bookedTickets, function (err) {
-            if (err) { console.log(err) }
-        })
-
-        const htmlContent = {
-            body: {
-                name: resultUser[0].dataValues.userName,
-                intro: [`Thank you for choosing <b>NBTour</b> booking system. Here is your <b>QR code<b> attachment for upcomming tour tickets`,
-                    `<b>Tour Information:</b>`, `  - Tour Name: <b>${tourName}</b>`, `  - Tour Departure Date: <b>${formatDepartureDate}</b>`, `  - Departure Station: <b>${station.stationName}</b>`,
-                    `  - Tour Duration: <b>${tourDuration}</b>`, `  - Tour Total Price: <b>${totalPrice}</b>`],
-                outro: [`If you have any questions or need assistance, please to reach out to our customer support team at [nbtour@gmail.com].`],
-                signature: 'Sincerely'
-            }
-        };
-        mailer.sendMail(resultUser[0].dataValues.email, "Tour booking tickets", htmlContent, booking.bookingId)
-
         resolve({
             status: 201,
             data: {
-                msg: "Booking Tour Successfully. Check your Email for tikets QR code",
+                msg: "Booking Tour Created. Please finish your payments",
             }
         })
 
@@ -760,4 +708,4 @@ const deleteBooking = (req) => new Promise(async (resolve, reject) => {
 });
 
 
-module.exports = { getBookingDetailByBookingId, getBookingsForCustomer, getBookingsForManager, getBookingsByEmail, createBooking, updateBooking, deleteBooking };
+module.exports = { getBookingDetailByBookingId, getBookings, getBookingsByEmail, createBooking, updateBooking, deleteBooking };

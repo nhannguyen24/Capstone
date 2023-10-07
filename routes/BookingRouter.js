@@ -11,20 +11,59 @@ const router = express.Router();
  *   get:
  *     security: 
  *         - BearerAuth: []
- *     summary: Get bookings by bookingCode and cutomerId for customer 
+ *     summary: Get bookings by bookingCode and cutomerId
  *     tags: [Booking]
  *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           example: 1
+ *         required: true
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           example: 10
+ *         required: true
+ *         description: Maximum items per page
  *       - in: query
  *         name: customerId
  *         schema:
  *           type: string
- *           example: 224e8a10-4933-486d-8df2-b799905cde83
- *         required: true
+ *         description: Get booking with customerId
  *       - in: query
  *         name: bookingCode
  *         schema:
  *           type: string
- *           example: 23
+ *           example: BO23
+ *         description: Search with booking code
+ *       - in: query
+ *         name: bookingStatus
+ *         schema:
+ *           type: string
+ *           enum:
+ *              - Ongoing
+ *              - Canceled
+ *              - Finished
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum:
+ *              - Draft
+ *              - Active
+ *              - Deactive
+ *       - in: query
+ *         name: orderDate
+ *         schema:
+ *           type: string
+ *           enum:
+ *              - DESC
+ *              - ASC
  *     responses:
  *       200:
  *         description: OK
@@ -33,39 +72,66 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isCustomer, controllers.getBookingsForCustomer);
+router.get("/", verifyToken, isLoggedIn, controllers.getBookings);
 
 /**
  * @swagger
- * /api/v1/bookings/manager:
- *   get:
- *     security: 
- *         - BearerAuth: []
- *     summary: Get bookings for manager
- *     tags: [Booking]
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- */
-router.get("/manager", verifyToken,  isAdminOrManager, controllers.getBookingsForManager);
-
-/**
- * @swagger
- * /api/v1/bookings/{email}:
+ * /api/v1/bookings/email:
  *   get:
  *     summary: Get bookings by email for not logged in customer 
  *     tags: [Booking]
  *     parameters:
- *       - in: path
+ *       - in: query
  *         name: email
  *         schema:
  *           type: string
  *           example: abx@gmail.com
  *         required: true
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           example: 1
+ *         required: true
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           example: 10
+ *         required: true
+ *         description: Maximum items per page
+ *       - in: query
+ *         name: bookingCode
+ *         schema:
+ *           type: string
+ *           example: BO23
+ *         description: Search with booking code
+ *       - in: query
+ *         name: bookingStatus
+ *         schema:
+ *           type: string
+ *           enum:
+ *              - Ongoing
+ *              - Canceled
+ *              - Finished
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum:
+ *              - Draft
+ *              - Active
+ *              - Deactive
+ *       - in: query
+ *         name: orderDate
+ *         schema:
+ *           type: string
+ *           enum:
+ *              - DESC
+ *              - ASC
  *     responses:
  *       200:
  *         description: OK
@@ -74,7 +140,36 @@ router.get("/manager", verifyToken,  isAdminOrManager, controllers.getBookingsFo
  *             schema:
  *               type: object
  */
-router.get("/:email", controllers.getBookingsByEmail);
+router.get("/email", controllers.getBookingsByEmail);
+
+/**
+ * @swagger
+ * /api/v1/bookings/{id}:
+ *   get:
+ *     summary: Get booking by id
+ *     tags: [Booking]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ */
+router.get("/:id", controllers.getBookingDetailByBookingId);
 
 /**
  * @swagger
@@ -91,8 +186,6 @@ router.get("/:email", controllers.getBookingsByEmail);
  *              properties:
  *                  totalPrice:
  *                      type: integer
- *                  redirectLink:
- *                      type: string
  *                  departureStationId:
  *                      type: string
  *                  user:
@@ -102,7 +195,6 @@ router.get("/:email", controllers.getBookingsByEmail);
  *                      minItems: 1
  *            example: {
  *              totalPrice: 425000,
- *              redirectLink: https://walletfpt.com,
  *              departureStationId: a1685c29-7e2e-409f-8a12-e935b2a34b01,
  *              user: {
  *                  email: tminhquan@gmail.com,
@@ -142,36 +234,6 @@ router.get("/:email", controllers.getBookingsByEmail);
  *               type: string
  */
 router.post("/", controllers.createBooking);
-
-/**
- * @swagger
- * /api/v1/bookings/{id}:
- *   get:
- *     summary: Get booking by id
- *     tags: [Booking]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
- *         required: true
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *       400:
- *         description: Bad request
- *         content:
- *           application/json:
- *             schema:
- *               type: string
- */
-router.get("/:id", controllers.getBookingDetailByBookingId);
-
 
 /**
  * @swagger

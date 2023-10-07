@@ -13,6 +13,40 @@ const router = express.Router();
  *         - BearerAuth: []
  *     summary: Get prices 
  *     tags: [Price]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           example: 1
+ *         required: true
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           example: 10
+ *         required: true
+ *         description: Maximum items per page
+ *       - in: query
+ *         name: day
+ *         schema:
+ *           type: string
+ *           enum:
+ *              - Normal
+ *              - Weekend
+ *              - Holiday
+ *         description: Filter by day type
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum:
+ *              - Active
+ *              - Deactive
+ *         description: Filter by status
  * 
  *     responses:
  *       200:
