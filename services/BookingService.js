@@ -458,6 +458,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             status: 201,
             data: {
                 msg: "Booking Tour Created. Please finish your payments",
+                booking: booking,
             }
         })
 
