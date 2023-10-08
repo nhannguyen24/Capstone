@@ -154,10 +154,10 @@ const getAllTour = (
                         ]
                     });
 
-                    for (const e of tours) {
+                    for (const tour of tours) {
                         let day = DAY_ENUM.NORMAL
 
-                        const tourDepartureDate = new Date(e.departureDate)
+                        const tourDepartureDate = new Date(tour.departureDate)
                         const dayOfWeek = tourDepartureDate.getDay()
                         if (dayOfWeek === 0 || dayOfWeek === 6) {
                             day = DAY_ENUM.WEEKEND
@@ -169,7 +169,7 @@ const getAllTour = (
                             day = DAY_ENUM.HOLIDAY
                         }
 
-                        for (const ticket of e.tour_ticket) {
+                        for (const ticket of tour.tour_ticket) {
                             const price = await db.Price.findOne({
                                 where: {
                                     ticketTypeId: ticket.ticket_type.ticketTypeId,
@@ -186,6 +186,18 @@ const getAllTour = (
                             })
                             ticket.dataValues.ticket_type.dataValues.price = price
                         }
+
+                        const departureDate = new Date(tour.departureDate);
+                        // Split the duration string into hours, minutes, and seconds
+                        const [hours, minutes, seconds] = tour.duration.split(':').map(Number);
+
+                        // Add the duration to the departureDate
+                        departureDate.setHours(departureDate.getHours() + hours);
+                        departureDate.setMinutes(departureDate.getMinutes() + minutes);
+                        departureDate.setSeconds(departureDate.getSeconds() + seconds);
+                        // Now, departureDate holds the endTime
+                        const endDate = departureDate.toISOString();
+                        tour.dataValues.endDate = endDate;
                     }
 
                     redisClient.setEx(`admin_tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}`, 900, JSON.stringify(tours));
@@ -209,7 +221,7 @@ const getAllTour = (
 const getTourById = (tourId) =>
     new Promise(async (resolve, reject) => {
         try {
-            const tour = await db.Tour.findAll({
+            const tours = await db.Tour.findAll({
                 where: { tourId: tourId },
                 nest: true,
                 attributes: {
@@ -217,9 +229,6 @@ const getTourById = (tourId) =>
                 },
                 order: [
                     ['updatedAt', 'DESC'],
-                    [{ model: db.Route, as: 'tour_route' }, { model: db.RouteDetail, as: 'route_detail' }, 'index', 'ASC'],
-                    [{ model: db.Route, as: 'tour_route' }, { model: db.RouteDetail, as: 'route_detail' }, { model: db.Step, as: 'route_detail_step' }, 'index', 'ASC'],
-                    [{ model: db.Route, as: 'tour_route' }, { model: db.RoutePointDetail, as: 'route_poi_detail' }, 'index', 'ASC']
                 ],
                 include: [
                     {
@@ -264,24 +273,24 @@ const getTourById = (tourId) =>
                     {
                         model: db.User,
                         as: "tour_tourguide",
-                        attributes: {
-                            exclude: [
-                                "createdAt",
-                                "updatedAt",
-                                "status",
-                            ],
-                        },
+                        attributes: [
+                            "userId",
+                            "userName",
+                            "email",
+                            "avatar",
+                            "phone",
+                        ],
                     },
                     {
                         model: db.User,
                         as: "tour_driver",
-                        attributes: {
-                            exclude: [
-                                "createdAt",
-                                "updatedAt",
-                                "status",
-                            ],
-                        },
+                        attributes: [
+                            "userId",
+                            "userName",
+                            "email",
+                            "avatar",
+                            "phone",
+                        ],
                     },
                     {
                         model: db.Route,
@@ -293,71 +302,6 @@ const getTourById = (tourId) =>
                                 "status",
                             ],
                         },
-                        include: [
-                            {
-                                model: db.RouteDetail,
-                                as: "route_detail",
-                                attributes: {
-                                    exclude: [
-                                        "routeId",
-                                        "stationId",
-                                        "createdAt",
-                                        "updatedAt",
-                                        "status",
-                                    ],
-                                },
-                                include: [
-                                    {
-                                        model: db.Station,
-                                        as: "route_detail_station",
-                                        attributes: {
-                                            exclude: [
-                                                "createdAt",
-                                                "updatedAt",
-                                                "status",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        model: db.Step,
-                                        as: "route_detail_step",
-                                        attributes: {
-                                            exclude: [
-                                                "createdAt",
-                                                "updatedAt",
-                                                "status",
-                                            ],
-                                        },
-                                    },
-                                ]
-                            },
-                            {
-                                model: db.RoutePointDetail,
-                                as: "route_poi_detail",
-                                attributes: {
-                                    exclude: [
-                                        "routeId",
-                                        "poiId",
-                                        "createdAt",
-                                        "updatedAt",
-                                        "status",
-                                    ],
-                                },
-                                include: [
-                                    {
-                                        model: db.PointOfInterest,
-                                        as: "route_poi_detail_poi",
-                                        attributes: {
-                                            exclude: [
-                                                "createdAt",
-                                                "updatedAt",
-                                                "status",
-                                            ],
-                                        },
-                                    }
-                                ]
-                            },
-                        ],
                     },
                     {
                         model: db.Ticket,
@@ -388,10 +332,10 @@ const getTourById = (tourId) =>
                 ]
             });
 
-            for (const e of tour) {
+            for (const tour of tours) {
                 let day = DAY_ENUM.NORMAL
 
-                const tourDepartureDate = new Date(e.departureDate)
+                const tourDepartureDate = new Date(tour.departureDate)
                 const dayOfWeek = tourDepartureDate.getDay()
                 if (dayOfWeek === 0 || dayOfWeek === 6) {
                     day = DAY_ENUM.WEEKEND
@@ -403,7 +347,7 @@ const getTourById = (tourId) =>
                     day = DAY_ENUM.HOLIDAY
                 }
 
-                for (const ticket of e.tour_ticket) {
+                for (const ticket of tour.tour_ticket) {
                     const price = await db.Price.findOne({
                         where: {
                             ticketTypeId: ticket.ticket_type.ticketTypeId,
@@ -420,13 +364,25 @@ const getTourById = (tourId) =>
                     })
                     ticket.dataValues.ticket_type.dataValues.price = price
                 }
+
+                const departureDate = new Date(tour.departureDate);
+                // Split the duration string into hours, minutes, and seconds
+                const [hours, minutes, seconds] = tour.duration.split(':').map(Number);
+
+                // Add the duration to the departureDate
+                departureDate.setHours(departureDate.getHours() + hours);
+                departureDate.setMinutes(departureDate.getMinutes() + minutes);
+                departureDate.setSeconds(departureDate.getSeconds() + seconds);
+                // Now, departureDate holds the endTime
+                const endDate = departureDate.toISOString();
+                tour.dataValues.endDate = endDate;
             }
 
             resolve({
-                status: tour.length > 0 ? 200 : 404,
+                status: tours.length > 0 ? 200 : 404,
                 data: {
-                    msg: tour.length > 0 ? "Got tour" : `Cannot find tour with id: ${tourId}`,
-                    tour: tour,
+                    msg: tours.length > 0 ? "Got tour" : `Cannot find tour with id: ${tourId}`,
+                    tour: tours,
                 }
             });
         } catch (error) {
