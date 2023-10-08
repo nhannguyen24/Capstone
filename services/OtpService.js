@@ -62,7 +62,7 @@ const validateOtp = (req) => new Promise(async (resolve, reject) => {
         resolve({
             status: 200,
             data: {
-                msg: `OTP valid`,
+                msg: `OTP validation success`,
             }
         });
 
@@ -99,7 +99,7 @@ const sendOtpToEmail = async (email, userId, fullName, otpType) => {
         const newTimeExpired = currentDate.setMinutes(currentDate.getMinutes() + 15)
         if (resultOtp) {
             otp = resultOtp
-
+            console.log(JSON(otp))
             await db.Otp.update({
                 otpCode: hashOtpCode(otpCode), timeExpired: newTimeExpired, isAllow: false
             }, {
@@ -108,7 +108,7 @@ const sendOtpToEmail = async (email, userId, fullName, otpType) => {
                 }, individualHooks: true
             })
         } else {
-            const setUpOtp = { otpCode: hashOtpCode(otpCode), otpType: otpType, userId: userId ? userId : user.userId, timeExpired: newTimeExpired }
+            const setUpOtp = { otpCode: hashOtpCode(otpCode), otpType: otpType, userId: userId ? userId : user.userId, timeExpired: newTimeExpired, otpType: otpType }
             otp = await db.Otp.create(setUpOtp)
         }
 

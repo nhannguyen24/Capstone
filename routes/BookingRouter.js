@@ -146,7 +146,7 @@ router.get("/email", controllers.getBookingsByEmail);
  * @swagger
  * /api/v1/bookings/{id}:
  *   get:
- *     summary: Get booking by id
+ *     summary: Get booking detail by booking id
  *     tags: [Booking]
  *     parameters:
  *       - in: path
