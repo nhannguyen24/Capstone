@@ -102,9 +102,8 @@ const getMoMoPaymentResponse = (req) =>
     new Promise(async (resolve, reject) => {
         try {
             const ipnData = req.body;
-
+            const bookingId = ipnData.extraData
             if (ipnData.resultCode === 0) {
-                const bookingId = ipnData.extraData
                 const bookingDetail = await db.BookingDetail.findOne({
                     where: {
                         bookingId: bookingId
@@ -117,12 +116,18 @@ const getMoMoPaymentResponse = (req) =>
                             {
                                 model: db.Tour,
                                 as: "ticket_tour",
-                                attributes: ["tourName", "departureDate", "duration", "status"]
+                                attributes: ["tourName", "departureDate", "duration", "status"],
+                                include:
+                                {
+                                    model: db.Bus,
+                                    as: "tour_bus",
+                                    attributes: ["busPlate"],
+                                }
                             },
                             attributes: {
                                 exclude: ["tourid", "ticketTypeId", "updatedAt", "createdAt"]
                             }
-                        },{
+                        }, {
                             model: db.Booking,
                             as: "detail_booking",
                             include: [
@@ -148,7 +153,8 @@ const getMoMoPaymentResponse = (req) =>
                 const tourDuration = bookingDetail.booking_detail_ticket.ticket_tour.duration
                 const totalPrice = bookingDetail.detail_booking.totalPrice
                 const stationName = bookingDetail.detail_booking.booking_departure_station.stationName
-                console.log(bookingDetail.detail_booking.booking_user.email)
+                const busPlate = bookingDetail.booking_detail_ticket.ticket_tour.tour_bus.busPlate
+
                 const getBookedTickets = await db.BookingDetail.findAll({
                     where: {
                         bookingId: bookingDetail.detail_booking.bookingId
@@ -166,7 +172,13 @@ const getMoMoPaymentResponse = (req) =>
                             {
                                 model: db.Tour,
                                 as: "ticket_tour",
-                                attributes: ["tourName", "departureDate", "duration", "status"]
+                                attributes: ["tourName", "departureDate", "duration", "status"],
+                                include:
+                                {
+                                    model: db.Bus,
+                                    as: "tour_bus",
+                                    attributes: ["busPlate"],
+                                }
                             },
                         ],
                         attributes: {
@@ -187,10 +199,19 @@ const getMoMoPaymentResponse = (req) =>
                 const htmlContent = {
                     body: {
                         name: bookingDetail.detail_booking.booking_user.userName,
-                        intro: [`Thank you for choosing <b>NBTour</b> booking system. Here is your <b>QR code<b> attachment for upcomming tour tickets`,
-                            `<b>Tour Information:</b>`, `  - Tour Name: <b>${tourName}</b>`, `  - Tour Departure Date: <b>${formatDepartureDate}</b>`, `  - Departure Station: <b>${stationName}</b>`,
-                            `  - Tour Duration: <b>${tourDuration}</b>`, `  - Tour Total Price: <b>${totalPrice}</b>`],
-                        outro: [`If you have any questions or need assistance, please to reach out to our customer support team at nbtour@gmail.com.`],
+                        intro: [
+                            `Thank you for choosing <b>NBTour</b> booking system. Here is your <b>QR code<b> attachment for upcomming tour tickets`,
+                            `<b>Tour Information:</b>`, 
+                            `  - Tour Name: <b>${tourName}</b>`, 
+                            `  - Tour Departure Date: <b>${formatDepartureDate}</b>`, 
+                            `  - Departure Station: <b>${stationName}</b>`, 
+                            `  - Bus plate: <b>${busPlate}</b>`,
+                            `  - Tour Duration: <b>${tourDuration}</b>`, 
+                            `  - Tour Total Price: <b>${totalPrice}</b>`
+                        ],
+                        outro: [
+                            `If you have any questions or need assistance, please to reach out to our customer support team at nbtour@gmail.com.`
+                        ],
                         signature: 'Sincerely'
                     }
                 };
@@ -198,21 +219,21 @@ const getMoMoPaymentResponse = (req) =>
 
                 await db.Booking.update({
                     status: STATUS.ACTIVE
-                },{
+                }, {
                     where: {
                         bookingId: bookingId
                     }
                 })
                 await db.BookingDetail.update({
                     status: STATUS.ACTIVE
-                },{
+                }, {
                     where: {
                         bookingId: bookingId
                     }
                 })
                 await db.Transaction.update({
                     isSuccess: true
-                },{
+                }, {
                     where: {
                         bookingId: bookingId
                     }
@@ -229,7 +250,8 @@ const getMoMoPaymentResponse = (req) =>
                 resolve({
                     status: 400,
                     data: {
-                        msg: 'Payment process failed'
+                        msg: 'Payment process failed',
+                        bookingId: bookingId
                     }
                 });
             }
