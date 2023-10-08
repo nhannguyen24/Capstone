@@ -21,6 +21,28 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
             var requestType = "captureWallet"
             var extraData = bookingId; //pass empty value if your merchant does not have stores
 
+            const transaction = await db.Transaction.findOne({
+                where: { bookingId: bookingId },
+            })
+            if (!transaction) {
+                resolve({
+                    status: 404,
+                    data: {
+                        msg: `Cannot find transaction with Id: ${bookingId}`,
+                    }
+                });
+                return
+            } else {
+                if (transaction.isSuccess === true) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: 'Transaction already paid',
+                        }
+                    });
+                    return
+                }
+            }
             //before sign HMAC SHA256 with format
             //accessKey=$accessKey&amount=$amount&extraData=$extraData&ipnUrl=$ipnUrl&orderId=$orderId&orderInfo=$orderInfo&partnerCode=$partnerCode&redirectUrl=$redirectUrl&requestId=$requestId&requestType=$requestType
             var rawSignature = "accessKey=" + accessKey + "&amount=" + amount + "&extraData=" + extraData + "&ipnUrl=" + ipnUrl + "&orderId=" + orderId + "&orderInfo=" + orderInfo + "&partnerCode=" + partnerCode + "&redirectUrl=" + redirectUrl + "&requestId=" + requestId + "&requestType=" + requestType
@@ -68,9 +90,9 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
                 console.log(`Headers: ${JSON.stringify(res.headers)}`);
                 res.setEncoding('utf8');
                 res.on('data', (body) => {
-                    // console.log('Body: ');
-                    // console.log(body);
-                    // console.log('payUrl: ');
+                    console.log('Body: ');
+                    console.log(body);
+                    console.log('payUrl: ');
                     console.log(JSON.parse(body));
                     resolve({
                         status: 200,
@@ -104,166 +126,143 @@ const getMoMoPaymentResponse = (req) =>
             const ipnData = req.body;
             const bookingId = ipnData.extraData
             if (ipnData.resultCode === 0) {
-                const transaction = await db.Transaction.findOne({
-                    where: { bookingId: bookingId },
-                })
 
-                if(!transaction){
-                    resolve({
-                        status: 404,
-                        data: {
-                            msg: 'Cannot find transaction',
-                            bookingId: bookingId
-                        }
-                    });
-                    return
-                } else {
-                    if(transaction.isSuccess === true){
-                        resolve({
-                            status: 400,
-                            data: {
-                                msg: 'Transaction already paid',
-                                bookingId: bookingId
-                            }
-                        });
-                        return
-                    } else {
-                        const bookingDetail = await db.BookingDetail.findOne({
-                            where: {
-                                bookingId: bookingId
-                            },
-                            include: [
-                                {
-                                    model: db.Ticket,
-                                    as: "booking_detail_ticket",
-                                    include:
-                                    {
-                                        model: db.Tour,
-                                        as: "ticket_tour",
-                                        attributes: ["tourName", "departureDate", "duration", "status"],
-                                        include:
-                                        {
-                                            model: db.Bus,
-                                            as: "tour_bus",
-                                            attributes: ["busPlate"],
-                                        }
-                                    },
-                                    attributes: {
-                                        exclude: ["tourid", "ticketTypeId", "updatedAt", "createdAt"]
-                                    }
-                                }, {
-                                    model: db.Booking,
-                                    as: "detail_booking",
-                                    include: [
-                                        {
-                                            model: db.User,
-                                            as: "booking_user",
-                                            attributes: ["userName", "email"]
-                                        },
-                                        {
-                                            model: db.Station,
-                                            as: "booking_departure_station",
-                                            attributes: ["stationName"]
-                                        },
-                                    ],
-                                    attributes: ["bookingId", "customerId", "departureStationId", "totalPrice"]
-                                }
-                            ]
-                        })
-        
-                        const tourName = bookingDetail.booking_detail_ticket.ticket_tour.tourName
-                        const tourDepartureDate = new Date(bookingDetail.booking_detail_ticket.ticket_tour.departureDate)
-                        const formatDepartureDate = `${tourDepartureDate.getDate().toString().padStart(2, '0')}/${(tourDepartureDate.getMonth() + 1).toString().padStart(2, '0')}/${tourDepartureDate.getFullYear()}  |  ${tourDepartureDate.getHours().toString().padStart(2, '0')}:${tourDepartureDate.getMinutes().toString().padStart(2, '0')}`
-                        const tourDuration = bookingDetail.booking_detail_ticket.ticket_tour.duration
-                        const totalPrice = bookingDetail.detail_booking.totalPrice
-                        const stationName = bookingDetail.detail_booking.booking_departure_station.stationName
-                        const busPlate = bookingDetail.booking_detail_ticket.ticket_tour.tour_bus.busPlate
-        
-                        const getBookedTickets = await db.BookingDetail.findAll({
-                            where: {
-                                bookingId: bookingDetail.detail_booking.bookingId
-                            },
+                const bookingDetail = await db.BookingDetail.findOne({
+                    where: {
+                        bookingId: bookingId
+                    },
+                    include: [
+                        {
+                            model: db.Ticket,
+                            as: "booking_detail_ticket",
                             include:
                             {
-                                model: db.Ticket,
-                                as: "booking_detail_ticket",
-                                include: [
-                                    {
-                                        model: db.TicketType,
-                                        as: "ticket_type",
-                                        attributes: ["ticketTypeName", "description"]
-                                    },
-                                    {
-                                        model: db.Tour,
-                                        as: "ticket_tour",
-                                        attributes: ["tourName", "departureDate", "duration", "status"],
-                                        include:
-                                        {
-                                            model: db.Bus,
-                                            as: "tour_bus",
-                                            attributes: ["busPlate"],
-                                        }
-                                    },
-                                ],
-                                attributes: {
-                                    exclude: ["tourid", "ticketTypeId", "updatedAt", "createdAt"]
+                                model: db.Tour,
+                                as: "ticket_tour",
+                                attributes: ["tourName", "departureDate", "duration", "status"],
+                                include:
+                                {
+                                    model: db.Bus,
+                                    as: "tour_bus",
+                                    attributes: ["busPlate"],
                                 }
                             },
                             attributes: {
-                                exclude: ["ticketId", "updatedAt", "createdAt"]
+                                exclude: ["tourid", "ticketTypeId", "updatedAt", "createdAt"]
                             }
-                        })
-        
-                        const bookedTickets = JSON.stringify(getBookedTickets)
-        
-                        qr.toFile(`./qrcode/${bookingId}.png`, bookedTickets, function (err) {
-                            if (err) { console.log(err) }
-                        })
-        
-                        const htmlContent = {
-                            body: {
-                                name: bookingDetail.detail_booking.booking_user.userName,
-                                intro: [
-                                    `Thank you for choosing <b>NBTour</b> booking system. Here is your <b>QR code<b> attachment for upcomming tour tickets`,
-                                    `<b>Tour Information:</b>`,
-                                    `  - Tour Name: <b>${tourName}</b>`,
-                                    `  - Tour Departure Date: <b>${formatDepartureDate}</b>`,
-                                    `  - Departure Station: <b>${stationName}</b>`,
-                                    `  - Bus plate: <b>${busPlate}</b>`,
-                                    `  - Tour Duration: <b>${tourDuration}</b>`,
-                                    `  - Tour Total Price: <b>${totalPrice}</b>`
-                                ],
-                                outro: [
-                                    `If you have any questions or need assistance, please to reach out to our customer support team at nbtour@gmail.com.`
-                                ],
-                                signature: 'Sincerely'
-                            }
-                        };
-                        mailer.sendMail(bookingDetail.detail_booking.booking_user.email, "Tour booking tickets", htmlContent, bookingId)
-        
-                        await db.Booking.update({
-                            status: STATUS.ACTIVE
                         }, {
-                            where: {
-                                bookingId: bookingId
-                            }
-                        })
-                        await db.BookingDetail.update({
-                            status: STATUS.ACTIVE
-                        }, {
-                            where: {
-                                bookingId: bookingId
-                            }
-                        })
-                        await db.Transaction.update({
-                            isSuccess: true
-                        }, {
-                            where: {
-                                bookingId: bookingId
-                            }
-                        })
+                            model: db.Booking,
+                            as: "detail_booking",
+                            include: [
+                                {
+                                    model: db.User,
+                                    as: "booking_user",
+                                    attributes: ["userName", "email"]
+                                },
+                                {
+                                    model: db.Station,
+                                    as: "booking_departure_station",
+                                    attributes: ["stationName"]
+                                },
+                            ],
+                            attributes: ["bookingId", "customerId", "departureStationId", "totalPrice"]
+                        }
+                    ]
+                })
+
+                const tourName = bookingDetail.booking_detail_ticket.ticket_tour.tourName
+                const tourDepartureDate = new Date(bookingDetail.booking_detail_ticket.ticket_tour.departureDate)
+                const formatDepartureDate = `${tourDepartureDate.getDate().toString().padStart(2, '0')}/${(tourDepartureDate.getMonth() + 1).toString().padStart(2, '0')}/${tourDepartureDate.getFullYear()}  |  ${tourDepartureDate.getHours().toString().padStart(2, '0')}:${tourDepartureDate.getMinutes().toString().padStart(2, '0')}`
+                const tourDuration = bookingDetail.booking_detail_ticket.ticket_tour.duration
+                const totalPrice = bookingDetail.detail_booking.totalPrice
+                const stationName = bookingDetail.detail_booking.booking_departure_station.stationName
+                const busPlate = bookingDetail.booking_detail_ticket.ticket_tour.tour_bus.busPlate
+
+                const getBookedTickets = await db.BookingDetail.findAll({
+                    where: {
+                        bookingId: bookingDetail.detail_booking.bookingId
+                    },
+                    include:
+                    {
+                        model: db.Ticket,
+                        as: "booking_detail_ticket",
+                        include: [
+                            {
+                                model: db.TicketType,
+                                as: "ticket_type",
+                                attributes: ["ticketTypeName", "description"]
+                            },
+                            {
+                                model: db.Tour,
+                                as: "ticket_tour",
+                                attributes: ["tourName", "departureDate", "duration", "status"],
+                                include:
+                                {
+                                    model: db.Bus,
+                                    as: "tour_bus",
+                                    attributes: ["busPlate"],
+                                }
+                            },
+                        ],
+                        attributes: {
+                            exclude: ["tourid", "ticketTypeId", "updatedAt", "createdAt"]
+                        }
+                    },
+                    attributes: {
+                        exclude: ["ticketId", "updatedAt", "createdAt"]
                     }
-                }
+                })
+
+                const bookedTickets = JSON.stringify(getBookedTickets)
+
+                qr.toFile(`./qrcode/${bookingId}.png`, bookedTickets, function (err) {
+                    if (err) { console.log(err) }
+                })
+
+                const htmlContent = {
+                    body: {
+                        name: bookingDetail.detail_booking.booking_user.userName,
+                        intro: [
+                            `Thank you for choosing <b>NBTour</b> booking system. Here is your <b>QR code<b> attachment for upcomming tour tickets`,
+                            `<b>Tour Information:</b>`,
+                            `  - Tour Name: <b>${tourName}</b>`,
+                            `  - Tour Departure Date: <b>${formatDepartureDate}</b>`,
+                            `  - Departure Station: <b>${stationName}</b>`,
+                            `  - Bus plate: <b>${busPlate}</b>`,
+                            `  - Tour Duration: <b>${tourDuration}</b>`,
+                            `  - Tour Total Price: <b>${totalPrice}</b>`
+                        ],
+                        outro: [
+                            `If you have any questions or need assistance, please to reach out to our customer support team at nbtour@gmail.com.`
+                        ],
+                        signature: 'Sincerely'
+                    }
+                };
+                mailer.sendMail(bookingDetail.detail_booking.booking_user.email, "Tour booking tickets", htmlContent, bookingId)
+
+                await db.Booking.update({
+                    status: STATUS.ACTIVE
+                }, {
+                    where: {
+                        bookingId: bookingId
+                    }
+                })
+                await db.BookingDetail.update({
+                    status: STATUS.ACTIVE
+                }, {
+                    where: {
+                        bookingId: bookingId
+                    }
+                })
+                await db.Transaction.update({
+                    isSuccess: true
+                }, {
+                    where: {
+                        bookingId: bookingId
+                    }
+                })
+
+
                 // console.log(ipnData);
                 resolve({
                     status: 200,
