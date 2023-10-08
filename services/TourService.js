@@ -7,11 +7,11 @@ const DAY_ENUM = require("../enums/PriceDayEnum")
 const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
 
 const getAllTour = (
-    { page, limit, order, tourName, address, tourStatus, status, routeId, ...query }
+    { page, limit, order, tourName, address, tourStatus, status, routeId, tourGuideId, driverId, ...query }
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}`, async (error, tour) => {
+            redisClient.get(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}`, async (error, tour) => {
                 if (error) console.error(error);
                 if (tour != null && tour != "") {
                     resolve({
@@ -37,6 +37,8 @@ const getAllTour = (
                     if (tourStatus) query.tourStatus = { [Op.eq]: tourStatus };
                     if (routeId) query.routeId = { [Op.eq]: routeId };
                     if (status) query.status = { [Op.eq]: status };
+                    if (tourGuideId) query.tourGuideId = { [Op.eq]: tourGuideId };
+                    if (driverId) query.driverId = { [Op.eq]: driverId };
 
                     const tours = await db.Tour.findAll({
                         where: query,
@@ -93,24 +95,24 @@ const getAllTour = (
                             {
                                 model: db.User,
                                 as: "tour_tourguide",
-                                attributes: {
-                                    exclude: [
-                                        "createdAt",
-                                        "updatedAt",
-                                        "status",
-                                    ],
-                                },
+                                attributes: [
+                                    "userId",
+                                    "userName",
+                                    "email",
+                                    "avatar",
+                                    "phone",
+                                ],
                             },
                             {
                                 model: db.User,
                                 as: "tour_driver",
-                                attributes: {
-                                    exclude: [
-                                        "createdAt",
-                                        "updatedAt",
-                                        "status",
-                                    ],
-                                },
+                                attributes: [
+                                    "userId",
+                                    "userName",
+                                    "email",
+                                    "avatar",
+                                    "phone",
+                                ],
                             },
                             {
                                 model: db.Route,
@@ -186,7 +188,7 @@ const getAllTour = (
                         }
                     }
 
-                    redisClient.setEx(`admin_tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}`, 900, JSON.stringify(tours));
+                    redisClient.setEx(`admin_tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}`, 900, JSON.stringify(tours));
 
                     resolve({
                         status: tours ? 200 : 404,
@@ -838,8 +840,8 @@ const assignTour = () =>
                     if (availableTourGuide.length > 0 && availableDriver.length > 0 && availableBuses.length > 0) {
                         const chosenTourGuide = availableTourGuide[0];
                         const chosenDriver = availableDriver[0];
-                        chosenTourGuide.maxTour --;
-                        chosenDriver.maxTour --;
+                        chosenTourGuide.maxTour--;
+                        chosenDriver.maxTour--;
 
                         const chosenBus = availableBuses[0];
                         schedule.push({ tour, tourGuide: chosenTourGuide, driver: chosenDriver, bus: chosenBus });
