@@ -594,7 +594,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             endBookingDate: tourEndBookingDate,
                             departureDate: tDepartureDate,
                             tourName: tourName,
-                            departureStationId: station.route_segment.stationId,
+                            departureStationId: station.route_segment.departureStationId,
                             ...body,
                         },
                         transaction: t,
@@ -736,7 +736,8 @@ const assignTour = () =>
                         departureDate: {
                             [Op.gte]: currentDate,
                         },
-                        status: STATUS.ACTIVE
+                        isScheduled: false,
+                        tourStatus: TOUR_STATUS.NOT_STARTED,
                     }
                 })
 
@@ -744,7 +745,7 @@ const assignTour = () =>
                     resolve({
                         status: 400,
                         data: {
-                            msg: 'There are not tours active'
+                            msg: 'There are no tours active'
                         }
                     })
                     return;
@@ -816,11 +817,14 @@ const assignTour = () =>
                 }
 
                 // Initialize the schedule
-                const findSchedule = await db.Tour.findAll({
+                const findScheduledTour = await db.Tour.findAll({
                     raw: true, nest: true,
+                    order: [['departureDate', 'ASC']],
                     where: {
-                        status: STATUS.SCHEDULED,
-                        tourStatus: TOUR_STATUS.NOT_STARTED
+                        departureDate: {
+                            [Op.gte]: currentDate,
+                        },
+                        isScheduled: true,
                     },
                     attributes: [
                         "tourId",
@@ -858,8 +862,8 @@ const assignTour = () =>
                 })
 
                 const schedule = [];
-                if (findSchedule.length > 0) {
-                    for (const tour of findSchedule) {
+                if (findScheduledTour.length > 0) {
+                    for (const tour of findScheduledTour) {
                         const tourGuide = tour.tour_tourguide;
                         const driver = tour.tour_driver;
                         const bus = tour.tour_bus;
@@ -947,7 +951,7 @@ const assignTour = () =>
                         tourGuideId: assignment.tourGuide.userId,
                         driverId: assignment.driver.userId,
                         busId: assignment.bus.busId,
-                        status: STATUS.SCHEDULED,
+                        isScheduled: true,
                     }, {
                         where: { tourId: assignment.tour.tourId },
                         individualHooks: true,
