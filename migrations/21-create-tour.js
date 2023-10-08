@@ -34,6 +34,10 @@ module.exports = {
         type: Sequelize.TIME,
         allowNull: false,
       },
+      isScheduled: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+      },
       routeId: {
         type: Sequelize.UUID,
         references: {
