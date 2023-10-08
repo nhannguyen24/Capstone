@@ -9,21 +9,26 @@ const OtpService = require("./OtpService")
 const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject) => {
     try {
         const bookingId = req.params.id
-        if (bookingId === undefined || bookingId === null || bookingId.trim().length < 1) {
-            resolve({
-                status: 400,
-                data: {
-                    msg: `bookingId required`,
-                    booking: {}
-                }
-            });
-            return
-        }
 
         const booking = await db.Booking.findOne({
             where: {
                 bookingId: bookingId
-            }
+            },
+            include: [
+                {
+                    model: db.User,
+                    as: "booking_user",
+                    attributes: ["userId", "userName"]
+                }, 
+                {
+                    model: db.Station,
+                    as: "booking_departure_station",
+                    attributes: ["stationId", "stationName"]
+                }
+            ],
+            attributes: { 
+                exclude: ["customerId", "departureStationId"] 
+            },
         })
 
         if (!booking) {
@@ -41,13 +46,39 @@ const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject)
             where: {
                 bookingId: booking.bookingId
             },
+            include: {
+                model: db.Ticket,
+                as: "booking_detail_ticket",
+                include: [
+                    {
+                        model: db.Tour,
+                        as: "ticket_tour",
+                        attributes: {
+                            exclude: ["createdAt", "updatedAt", "beginBookingDate", "endBookingDate"]
+                        }
+                    },
+                    {
+                        model: db.TicketType,
+                        as: "ticket_type",
+                        attributes: {
+                            exclude: ["status", "createdAt", "updatedAt"]
+                        }
+                    }
+                ],
+                attributes: {
+                    exclude: ["tourId", "ticketTypeId", "createdAt", "updatedAt"]
+                }
+            },
+            attributes: {
+                exclude: ["bookingId", "ticketId"]
+            },
         });
-
+        booking.dataValues.booking_detail = bookingDetails
         resolve({
             status: 200,
             data: {
                 msg: 'Get Booking detail successfully',
-                bookingDetails: bookingDetails,
+                booking: booking,
             },
         });
     } catch (error) {
@@ -59,12 +90,12 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
     try {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
-        const offset = parseInt((page - 1) * limit)   
+        const offset = parseInt((page - 1) * limit)
         const customerId = req.query.customerId || "";
         const bookingCode = req.query.bookingCode || "";
         const bookingStatus = req.query.bookingStatus || "";
         const status = req.query.status || "";
-        const orderDate = req.query.orderDate || DESC;
+        const orderDate = req.query.orderDate || "DESC";
 
         const whereClause = {};
 
@@ -106,6 +137,21 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
                 ["bookingDate", orderDate],
                 ["updatedAt", "DESC"]
             ],
+            include: [
+                {
+                    model: db.User,
+                    as: "booking_user",
+                    attributes: ["userId", "userName"]
+                }, 
+                {
+                    model: db.Station,
+                    as: "booking_departure_station",
+                    attributes: ["stationId", "stationName"]
+                }
+            ],
+            attributes: { 
+                exclude: ["customerId", "departureStationId"] 
+            },
             limit: limit,
             offset: offset
         });
@@ -132,11 +178,11 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
         const email = req.query.email
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
-        const offset = parseInt((page - 1) * limit)   
-        const bookingCode = req.query.bookingCode.trim() || "";
+        const offset = parseInt((page - 1) * limit)
+        const bookingCode = req.query.bookingCode || "";
         const bookingStatus = req.query.bookingStatus || "";
         const status = req.query.status || "";
-        const orderDate = req.query.orderDate || DESC;
+        const orderDate = req.query.orderDate || "DESC";
 
         let whereClause = {};
 
@@ -189,7 +235,7 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
             return
         }
 
-        if (bookingCode !== "") {
+        if (bookingCode.trim() !== "") {
             whereClause.bookingCode = {
                 [Op.substring]: bookingCode
             }
@@ -207,8 +253,23 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
             where: whereClause,
             order: [
                 ["bookingDate", orderDate],
-                ["updatedAt", orderDate]
+                ["updatedAt", "DESC"]
             ],
+            include: [
+                {
+                    model: db.User,
+                    as: "booking_user",
+                    attributes: ["userId", "userName"]
+                }, 
+                {
+                    model: db.Station,
+                    as: "booking_departure_station",
+                    attributes: ["stationId", "stationName"]
+                }
+            ],
+            attributes: { 
+                exclude: ["customerId", "departureStationId"] 
+            },
             limit: limit,
             offset: offset
         });

@@ -3,7 +3,8 @@ const {
   Model
 } = require('sequelize');
 
-const BOOKING_STATUS = require("../enums/BookingStatusEnum")
+const BOOKING_STATUS = require("../enums/BookingStatusEnum");
+const STATUS = require('../enums/StatusEnum');
 module.exports = (sequelize, DataTypes) => {
   class Booking extends Model {
     static associate(models) {
@@ -88,6 +89,7 @@ module.exports = (sequelize, DataTypes) => {
     bookingCode = `BO${stringCurrentYear}${stringCurrentMonth}${stringCurrentDay}${stringCurrentHour}${stringCurrentMinute}${stringCurrentSecond}`
 
     booking.bookingStatus = BOOKING_STATUS.ON_GOING;
+    booking.bookingStatus = STATUS.DRAFT;
     booking.bookingDate = currentDate;
     booking.createdAt = currentDate;
     booking.updatedAt = currentDate;
