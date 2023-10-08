@@ -124,6 +124,72 @@ const getAllTour = (
                                         "status",
                                     ],
                                 },
+                                include: [
+                                    {
+                                        model: db.RouteSegment,
+                                        as: "route_segment",
+                                        attributes: {
+                                            exclude: [
+                                                "routeId",
+                                                "departureStationId",
+                                                "endStationId",
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                        include: [
+                                            {
+                                                model: db.Station,
+                                                as: "segment_departure_station",
+                                                attributes: {
+                                                    exclude: [
+                                                        "createdAt",
+                                                        "updatedAt",
+                                                        "status",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                model: db.Station,
+                                                as: "segment_end_station",
+                                                attributes: {
+                                                    exclude: [
+                                                        "createdAt",
+                                                        "updatedAt",
+                                                        "status",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                model: db.RoutePointDetail,
+                                                as: "segment_route_poi_detail",
+                                                attributes: {
+                                                    exclude: [
+                                                        "routeSegmentId",
+                                                        "poiId",
+                                                        "createdAt",
+                                                        "updatedAt",
+                                                        "status",
+                                                    ],
+                                                },
+                                                include: [
+                                                    {
+                                                        model: db.PointOfInterest,
+                                                        as: "route_poi_detail_poi",
+                                                        attributes: {
+                                                            exclude: [
+                                                                "createdAt",
+                                                                "updatedAt",
+                                                                "status",
+                                                            ],
+                                                        },
+                                                    }
+                                                ]
+                                            },
+                                        ]
+                                    },
+                                ],
                             },
                             {
                                 model: db.Ticket,
@@ -302,6 +368,72 @@ const getTourById = (tourId) =>
                                 "status",
                             ],
                         },
+                        include: [
+                            {
+                                model: db.RouteSegment,
+                                as: "route_segment",
+                                attributes: {
+                                    exclude: [
+                                        "routeId",
+                                        "departureStationId",
+                                        "endStationId",
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                                include: [
+                                    {
+                                        model: db.Station,
+                                        as: "segment_departure_station",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        model: db.Station,
+                                        as: "segment_end_station",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        model: db.RoutePointDetail,
+                                        as: "segment_route_poi_detail",
+                                        attributes: {
+                                            exclude: [
+                                                "routeSegmentId",
+                                                "poiId",
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                        include: [
+                                            {
+                                                model: db.PointOfInterest,
+                                                as: "route_poi_detail_poi",
+                                                attributes: {
+                                                    exclude: [
+                                                        "createdAt",
+                                                        "updatedAt",
+                                                        "status",
+                                                    ],
+                                                },
+                                            }
+                                        ]
+                                    },
+                                ]
+                            },
+                        ],
                     },
                     {
                         model: db.Ticket,

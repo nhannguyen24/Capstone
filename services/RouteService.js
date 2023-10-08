@@ -192,7 +192,7 @@ const getRouteById = (routeId) =>
                             },
                             {
                                 model: db.RoutePointDetail,
-                                as: "route_poi_detail",
+                                as: "segment_route_poi_detail",
                                 attributes: {
                                     exclude: [
                                         "routeSegmentId",
