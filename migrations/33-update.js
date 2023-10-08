@@ -30,9 +30,9 @@ module.exports = {
     up: function(queryInterface, Sequelize) {
       // logic for transforming into the new state
       return queryInterface.addColumn(
-        'Users',
-        'maxTour',
-       Sequelize.INTEGER
+        'Routes',
+        'geoJson',
+       Sequelize.JSON
       );
   
     },
@@ -40,8 +40,8 @@ module.exports = {
     down: function(queryInterface, Sequelize) {
       // logic for reverting the changes
       return queryInterface.removeColumn(
-        'Users',
-        'maxTour',
+        'Routes',
+        'geoJson',
       );
     }
   }

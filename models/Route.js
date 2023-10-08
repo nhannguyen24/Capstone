@@ -29,6 +29,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     routeName: DataTypes.STRING,
     distance: DataTypes.FLOAT,
+    geoJson: DataTypes.JSON,
     status: {
       type: DataTypes.ENUM,
       values: ["Active", "Deactive"],

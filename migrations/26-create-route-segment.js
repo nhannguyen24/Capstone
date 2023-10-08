@@ -16,10 +16,6 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      geoJson: {
-        type: Sequelize.JSON,
-        allowNull: false,
-      },
       routeId: {
         type: Sequelize.UUID,
         references: {

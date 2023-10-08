@@ -44,7 +44,6 @@ module.exports = (sequelize, DataTypes) => {
     },
     // stopoverTime: DataTypes.TIME,
     index: DataTypes.INTEGER,
-    geoJson: DataTypes.JSON,
     routeId: {
       type: DataTypes.UUID
     },

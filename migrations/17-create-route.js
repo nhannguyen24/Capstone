@@ -16,6 +16,10 @@ module.exports = {
         type: Sequelize.FLOAT,
 	      allowNull: false,
       },
+      geoJson: {
+        type: Sequelize.JSON,
+        allowNull: false,
+      },
       status: {
         type: Sequelize.ENUM,
         values: ["Active", "Deactive"],
