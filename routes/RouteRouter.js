@@ -116,39 +116,28 @@ router.get("/:id", verifyToken, controllers.getRouteById);
  *                  example:
  *                    routeName: Tuyến đường Nha Trang
  *                    distance: 10.5
+ *                    geoJson:
+ *                           type: Feature
+ *                           geometry: 
+ *                                  type: LineString
+ *                                  coordinates: 
+ *                                        - [departureLongitude, departureLatitude]
+ *                                        - [waypoint1Longitude, waypoint1Latitude]
+ *                                        - [waypoint2Longitude, waypoint2Latitude]
+ *                                        - [endLongitude, endLatitude]
+ *                           properties: 
+ *                                  name: Route between Stations
  *                    segments:
- *                          - departureStationId: string
- *                            endStationId: string
- *                            geoJson:
- *                                   type: Feature
- *                                   geometry: 
- *                                          type: LineString
- *                                          coordinates: 
- *                                                - [departureLongitude, departureLatitude]
- *                                                - [waypoint1Longitude, waypoint1Latitude]
- *                                                - [waypoint2Longitude, waypoint2Latitude]
- *                                                - [endLongitude, endLatitude]
- *                                   properties: 
- *                                          name: Route between Stations
+ *                          - departureStationId: stationId
+ *                            endStationId: stationId
  *                            points:
- *                                  - string
- *                                  - string
- *                          - departureStationId: string
- *                            endStationId: string
- *                            geoJson:
- *                                   type: Feature
- *                                   geometry: 
- *                                          type: LineString
- *                                          coordinates: 
- *                                                - [departureLongitude, departureLatitude]
- *                                                - [waypoint1Longitude, waypoint1Latitude]
- *                                                - [waypoint2Longitude, waypoint2Latitude]
- *                                                - [endLongitude, endLatitude]
- *                                   properties: 
- *                                          name: Route between Stations
+ *                                  - poiId
+ *                                  - poiId
+ *                          - departureStationId: stationId
+ *                            endStationId: stationId
  *                            points:
- *                                  - string
- *                                  - string
+ *                                  - poiId
+ *                                  - poiId
  *     responses:
  *       200:
  *         description: Create new route successfully

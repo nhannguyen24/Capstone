@@ -69,6 +69,16 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *         schema:
  *           type: string
  *         description: Find tour by routeId
+ *       - name: tourGuideId
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Find tour by tourGuideId
+ *       - name: driverId
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Find tour by driverId
  *       - name: tourStatus
  *         in: query
  *         schema:
@@ -159,6 +169,7 @@ router.get("/:id", controllers.getTourById);
  *                    departureDate: 2023-09-23T09:00:00Z
  *                    duration: 03:00:00
  *                    routeId: 8c382e13-8620-460a-bd95-96b1152c1368
+ *                    departureStationId: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    tickets:
  *                          - ticketTypeId
  *                          - ticketTypeId
@@ -217,6 +228,26 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createTour);
  *                 $ref: '#/components/schemas/Tour'
  */
 router.put("/", verifyToken, isAdminOrManager, controllers.updateTour);
+
+/**
+ * @swagger
+ * /api/v1/tours/assigned-tours:
+ *   put:
+ *     security: 
+ *         - BearerAuth: []
+ *     summary: Assign employee to tour
+ *     tags: [Tour]
+ *     responses:
+ *       200:
+ *         description: Update the tour successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Tour'
+ */
+router.put("/assigned-tours", verifyToken, isAdminOrManager, controllers.assignTour);
 
 /**
  * @swagger

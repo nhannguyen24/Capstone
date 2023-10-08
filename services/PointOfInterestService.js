@@ -63,7 +63,31 @@ const getAllPointOfInterest = (
                                                 "status",
                                             ],
                                         },
-                                    }
+                                    },
+                                    {
+                                        model: db.FileSound,
+                                        as: "poi_sound",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                        include: [
+                                            {
+                                                model: db.Language,
+                                                as: "sound_language",
+                                                attributes: {
+                                                    exclude: [
+                                                        "createdAt",
+                                                        "updatedAt",
+                                                        "status",
+                                                    ],
+                                                },
+                                            }
+                                        ]
+                                    },
                                 ]
                             });
 
@@ -275,6 +299,7 @@ const deletePointOfInterest = (poiIds) =>
                             msg: "The point of interest already deactive!",
                         }
                     });
+                    return;
                 }
             }
 

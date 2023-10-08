@@ -148,6 +148,7 @@ const deleteProductCategory = (productCateIds) =>
                             msg: "The productCate already deactive!",
                         }
                     });
+                    return;
                 }
             }
 

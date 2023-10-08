@@ -22,9 +22,9 @@ const payment = require('./PaymentRouter');
 const announcement = require('./AnnouncementRouter');
 const report = require('./ReportRouter');
 const product = require('./ProductRouter');
+const language = require('./LanguageRouter');
+const sound = require('./SoundRouter');
 
-// const order_detail = require('./order_detail');
-// const order = require('./order');
 
 // const stripe = require('./payment');
 // const blog = require('./blog');
@@ -61,17 +61,15 @@ const initRoutes = (app) => {
     app.use('/api/v1/payments', payment);
     app.use('/api/v1/reports', report);
     app.use('/api/v1/products', product);
+    app.use('/api/v1/languages', language);
+    app.use('/api/v1/sounds', sound);
 
     // app.post('/api/v1/payments/momo-ipn');
 
     // app.use('/api/v1/categories-detail', category_detail);
     // app.use('/api/v1/order-detail', order_detail);
-    // app.use('/api/v1/orders', order);
-    // app.use('/api/v1/categories_detail', category_detail);
     
     // app.use('/api/v1/stripe', stripe);
-    // app.use('/api/v1/blogs', blog);
-
     // app.use('/api/v1/statistic', statistic);
     // app.use('/api/v1/stripe', stripe);
     // app.use('/api/v1/forgotpass', mail);

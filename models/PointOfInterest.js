@@ -19,6 +19,8 @@ module.exports = (sequelize, DataTypes) => {
       });
 
       PointOfInterest.hasMany(models.Image, { as: 'poi_image', foreignKey: 'poiId'});
+
+      PointOfInterest.hasMany(models.FileSound, { as: 'poi_sound', foreignKey: 'poiId'});
     }
   }
   PointOfInterest.init({

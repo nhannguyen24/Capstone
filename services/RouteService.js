@@ -92,7 +92,7 @@ const getAllRoute = (
                                                 as: "segment_route_poi_detail",
                                                 attributes: {
                                                     exclude: [
-                                                        "routeId",
+                                                        "routeSegmentId",
                                                         "poiId",
                                                         "createdAt",
                                                         "updatedAt",
@@ -195,7 +195,7 @@ const getRouteById = (routeId) =>
                                 as: "route_poi_detail",
                                 attributes: {
                                     exclude: [
-                                        "routeId",
+                                        "routeSegmentId",
                                         "poiId",
                                         "createdAt",
                                         "updatedAt",
@@ -294,7 +294,8 @@ const createRoute = ({ routeName, ...body }) =>
                     },
                     defaults: {
                         routeName: routeName,
-                        distance: body.distance
+                        distance: body.distance,
+                        geoJson: body.geoJson
                     },
                     transaction: t,
                 });
@@ -318,7 +319,6 @@ const createRoute = ({ routeName, ...body }) =>
                             routeId: createRoute[0].dataValues.routeId,
                             departureStationId: segmentObj.departureStationId,
                             endStationId: segmentObj.endStationId,
-                            geoJson: segmentObj.geoJson,
                         },
                         { transaction: t }
                     );
@@ -452,6 +452,7 @@ const deleteRoute = (routeIds) =>
                             msg: "The route already deactive!",
                         }
                     });
+                    return;
                 }
             }
 
