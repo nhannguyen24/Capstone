@@ -4,9 +4,7 @@ const BOOKING_STATUS = require("../enums/BookingStatusEnum")
 const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
 const OTP_TYPE = require("../enums/OtpTypeEnum")
-const mailer = require("../utils/MailerUtil")
 const OtpService = require("./OtpService")
-const qr = require('qrcode');
 
 const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject) => {
     try {
@@ -408,13 +406,9 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 where: {
                     tourId: tour.tourId,
                 },
-                attributes: {
-                    exclude: ["ticketTypeId", "updatedAt", "createdAt", "status"]
-                }
+                attributes: []
             },
-            attributes: [
-                "bookingDetailId", "quantity",
-            ],
+            attributes: ["bookingDetailId", "quantity"],
             where: {
                 status: STATUS.ACTIVE
             }
@@ -458,7 +452,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             status: 201,
             data: {
                 msg: "Booking Tour Created. Please finish your payments",
-                booking: booking,
+                bookingId: booking.bookingId
             }
         })
 
