@@ -73,7 +73,16 @@ const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject)
                 exclude: ["bookingId", "ticketId"]
             },
         });
+
+        const transaction = await db.Transaction.findOne({
+            where: {
+                bookingId: booking.bookingId
+            },
+            attributes: ["transactionId", "amount", "isSuccess","status"]
+        })
+
         booking.dataValues.booking_detail = bookingDetails
+        booking.dataValues.booking_transaction = transaction
         resolve({
             status: 200,
             data: {
