@@ -195,7 +195,7 @@ router.get("/:id", controllers.getBookingDetailByBookingId);
  *                      minItems: 1
  *            example: {
  *              totalPrice: 60000,
- *              departureStationId: 47098476-08c5-42d0-a04e-0878494d54d8,
+ *              departureStationId: 267aa90c-763c-406e-a7bc-944eae45020d,
  *              user: {
  *                  email: tminhquan@gmail.com,
  *                  userName: Trần Minh Quân,
