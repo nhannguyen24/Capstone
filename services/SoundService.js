@@ -9,7 +9,6 @@ const getAllFileSound = (
     new Promise(async (resolve, reject) => {
         try {
             redisClient.get(`sounds_${page}_${limit}_${order}_${status}_${poiId}_${languageId}`, async (error, sound) => {
-                if (error) console.error(error);
                 if (sound != null && sound != "" && roleName != 'Admin') {
                     resolve({
                         status: 200,

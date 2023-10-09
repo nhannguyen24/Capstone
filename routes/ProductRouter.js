@@ -108,7 +108,7 @@ router.get("/", verifyToken, controllers.getAllProduct);
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Station'
+ *                 $ref: '#/components/schemas/Product'
  */
 router.get("/:id", verifyToken, controllers.getProductById);
 

@@ -114,7 +114,7 @@ router.get("/", verifyToken, controllers.getAllPointOfInterest);
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Station'
+ *                 $ref: '#/components/schemas/PointOfInterest'
  */
 router.get("/:id", verifyToken, controllers.getPointOfInterestById);
 

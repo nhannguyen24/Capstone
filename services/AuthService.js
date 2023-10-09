@@ -69,12 +69,14 @@ const login = ({ email, password }) => new Promise(async (resolve, reject) => {
       : null
 
     // delete field password from response json
-    delete response.password;
+    if (response) {
+      delete response.password;
+    }
 
     resolve({
       status: accessToken ? 200 : 401,
       data: {
-        msg: accessToken ? 'Login is successfully' : response ? 'Password is wrong' : 'Not found account',
+        msg: accessToken ? 'Login is successfully' : response ? 'Password is wrong' : 'Not found user account!',
         'accessToken': accessToken ? `${accessToken}` : accessToken,
         'refreshToken': refreshToken,
         user: isChecked ? response : null

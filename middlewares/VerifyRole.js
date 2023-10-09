@@ -37,10 +37,10 @@ const isAdminOrManagerOrTourguideOrDriver = (req, res, next) => {
   next();
 };
 
-const isAdminOrTourguideOrDriver = (req, res, next) => {
+const isTourguideOrDriver = (req, res, next) => {
   const { roleName } = req.user;
-  if (roleName !== 'TourGuide' && roleName !== 'Driver' && roleName !== 'Admin') {
-    throw new UnauthenticatedError('Require role Admin or TourGuide or Driver');
+  if (roleName !== 'TourGuide' && roleName !== 'Driver') {
+    throw new UnauthenticatedError('Require role TourGuide or Driver');
   }
   next();
 };
@@ -53,4 +53,4 @@ const isLoggedIn = (req, res, next) => {
   next();
 };
 
-module.exports = { isAdmin, isManager, isAdminOrManager, isCustomer, isAdminOrTourguideOrDriver, isLoggedIn, isAdminOrManagerOrTourguideOrDriver };
+module.exports = { isAdmin, isManager, isAdminOrManager, isCustomer, isTourguideOrDriver, isLoggedIn, isAdminOrManagerOrTourguideOrDriver };

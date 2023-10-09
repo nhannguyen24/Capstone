@@ -145,7 +145,7 @@ router.get("/", controllers.getAllTour);
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Station'
+ *                 $ref: '#/components/schemas/Tour'
  */
 router.get("/:id", controllers.getTourById);
 
