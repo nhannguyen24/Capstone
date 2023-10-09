@@ -9,7 +9,6 @@ const getAllProduct = (
     new Promise(async (resolve, reject) => {
         try {
             redisClient.get(`products_${page}_${limit}_${order}_${productName}_${status}_${productCateId}`, async (error, product) => {
-                if (error) console.error(error);
                 if (product != null && product != "" && roleName != 'Admin') {
                     resolve({
                         status: 200,

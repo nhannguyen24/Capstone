@@ -9,7 +9,6 @@ const getAllPointOfInterest = (
     new Promise(async (resolve, reject) => {
         try {
             redisClient.get(`pois_${page}_${limit}_${order}_${poiName}_${address}_${status}`, async (error, poi) => {
-                if (error) console.error(error);
                 if (poi != null && poi != "" && roleName != 'Admin') {
                     resolve({
                         status: 200,
@@ -126,10 +125,10 @@ const getPointOfInterestById = (poiId) =>
                 include: [
                     {
                         model: db.Image,
-                        as: "product_image",
+                        as: "poi_image",
                         attributes: {
                             exclude: [
-                                "productId",
+                                "poiId",
                                 "busId",
                                 "tourId",
                                 "productId",
@@ -139,7 +138,31 @@ const getPointOfInterestById = (poiId) =>
                                 "status",
                             ],
                         },
-                    }
+                    },
+                    {
+                        model: db.FileSound,
+                        as: "poi_sound",
+                        attributes: {
+                            exclude: [
+                                "createdAt",
+                                "updatedAt",
+                                "status",
+                            ],
+                        },
+                        include: [
+                            {
+                                model: db.Language,
+                                as: "sound_language",
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                            }
+                        ]
+                    },
                 ]
             });
             resolve({

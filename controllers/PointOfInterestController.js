@@ -1,7 +1,5 @@
 const services = require('../services/PointOfInterestService');
 const {BadRequestError, InternalServerError} = require('../errors/Index');
-// const joi = require('joi');
-// const {poiId, poiIds} = require('../helpers/joi_schema');
 
 const getAllPointOfInterest = async (req, res) => {
     try {
@@ -52,8 +50,6 @@ const createPointOfInterest = async (req, res) => {
 
 const updatePointOfInterest = async (req, res) => {
     try {
-        // const { error } = joi.object({poiId}).validate({poiId: req.body.poiId});
-        // if (error) throw new BadRequestError(error.details[0].message);
         const {poiId} = req.body;
         if(!poiId) {
             throw new BadRequestError('Please provide poiId');
@@ -67,8 +63,6 @@ const updatePointOfInterest = async (req, res) => {
 
 const deletePointOfInterest = async (req, res) => {
     try {
-        // const { error } = joi.object({poiIds}).validate(req.query);
-        // if (error) throw new BadRequestError(error.details[0].message);
         const {poiIds} = req.query;
         if(!poiIds) {
             throw new BadRequestError('Please provide poiIds');
