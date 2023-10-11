@@ -26,9 +26,10 @@ const language = require('./LanguageRouter');
 const sound = require('./SoundRouter');
 const templateDownload = require('./TemplateDownloadRouter');
 
+const form = require('./FormRouter');
 
 // const stripe = require('./payment');
-// const blog = require('./blog');
+
 
 // const firebaseService = require('./firebaseService');
 // const statistic = require('./statistic')
@@ -65,12 +66,11 @@ const initRoutes = (app) => {
     app.use('/api/v1/languages', language);
     app.use('/api/v1/sounds', sound);
     app.use('/api/v1/download', templateDownload);
+    app.use('/api/v1/forms', form);
+
 
     // app.post('/api/v1/payments/momo-ipn');
-
     // app.use('/api/v1/categories-detail', category_detail);
-    // app.use('/api/v1/order-detail', order_detail);
-    
     // app.use('/api/v1/stripe', stripe);
     // app.use('/api/v1/statistic', statistic);
     // app.use('/api/v1/stripe', stripe);

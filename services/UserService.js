@@ -10,7 +10,6 @@ const getAllUsers = ({ page, limit, order, userName, email, status, roleName, ..
   new Promise(async (resolve, reject) => {
     try {
       redisClient.get(`user_paging_${page}_${limit}_${order}_${userName}_${email}_${status}_${roleName}`, async (error, user_paging) => {
-        if (error) console.error(error);
         if (user_paging != null) {
           resolve({
             status: 200,

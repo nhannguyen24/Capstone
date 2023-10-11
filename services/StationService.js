@@ -9,7 +9,6 @@ const getAllStation = (
     new Promise(async (resolve, reject) => {
         try {
             redisClient.get(`stations_${page}_${limit}_${order}_${stationName}_${address}_${status}`, async (error, station) => {
-                if (error) console.error(error);
                 if (station != null && station != "" && roleName != 'Admin') {
                     resolve({
                         status: 200,

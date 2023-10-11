@@ -9,7 +9,6 @@ const getAllAnnouncement = (
     new Promise(async (resolve, reject) => {
         try {
             redisClient.get(`announcements_${page}_${limit}_${order}_${title}_${status}`, async (error, announcement) => {
-                if (error) console.error(error);
                 if (announcement != null && announcement != "" && roleName != 'Admin') {
                     resolve({
                         status: 200,

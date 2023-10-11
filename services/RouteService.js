@@ -9,7 +9,6 @@ const getAllRoute = (
     new Promise(async (resolve, reject) => {
         try {
             redisClient.get(`routes_${page}_${limit}_${order}_${routeName}_${status}`, async (error, route) => {
-                if (error) console.error(error);
                 if (route != null && route != "" && roleName != 'Admin') {
                     resolve({
                         status: 200,
@@ -192,7 +191,7 @@ const getRouteById = (routeId) =>
                             },
                             {
                                 model: db.RoutePointDetail,
-                                as: "route_poi_detail",
+                                as: "segment_route_poi_detail",
                                 attributes: {
                                     exclude: [
                                         "routeSegmentId",

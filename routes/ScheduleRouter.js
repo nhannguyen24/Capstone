@@ -140,7 +140,7 @@
 //  *             schema:
 //  *               type: array
 //  *               items:
-//  *                 $ref: '#/components/schemas/Station'
+//  *                 $ref: '#/components/schemas/Schedule'
 //  */
 // router.get("/:id", verifyToken, controllers.getScheduleById);
 

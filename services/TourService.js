@@ -13,7 +13,6 @@ const getAllTour = (
     new Promise(async (resolve, reject) => {
         try {
             redisClient.get(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}`, async (error, tour) => {
-                if (error) console.error(error);
                 if (tour != null && tour != "") {
                     resolve({
                         status: 200,
@@ -125,6 +124,72 @@ const getAllTour = (
                                         "status",
                                     ],
                                 },
+                                include: [
+                                    {
+                                        model: db.RouteSegment,
+                                        as: "route_segment",
+                                        attributes: {
+                                            exclude: [
+                                                "routeId",
+                                                "departureStationId",
+                                                "endStationId",
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                        include: [
+                                            {
+                                                model: db.Station,
+                                                as: "segment_departure_station",
+                                                attributes: {
+                                                    exclude: [
+                                                        "createdAt",
+                                                        "updatedAt",
+                                                        "status",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                model: db.Station,
+                                                as: "segment_end_station",
+                                                attributes: {
+                                                    exclude: [
+                                                        "createdAt",
+                                                        "updatedAt",
+                                                        "status",
+                                                    ],
+                                                },
+                                            },
+                                            {
+                                                model: db.RoutePointDetail,
+                                                as: "segment_route_poi_detail",
+                                                attributes: {
+                                                    exclude: [
+                                                        "routeSegmentId",
+                                                        "poiId",
+                                                        "createdAt",
+                                                        "updatedAt",
+                                                        "status",
+                                                    ],
+                                                },
+                                                include: [
+                                                    {
+                                                        model: db.PointOfInterest,
+                                                        as: "route_poi_detail_poi",
+                                                        attributes: {
+                                                            exclude: [
+                                                                "createdAt",
+                                                                "updatedAt",
+                                                                "status",
+                                                            ],
+                                                        },
+                                                    }
+                                                ]
+                                            },
+                                        ]
+                                    },
+                                ],
                             },
                             {
                                 model: db.Ticket,
@@ -197,6 +262,7 @@ const getAllTour = (
                         departureDate.setMinutes(departureDate.getMinutes() + minutes);
                         departureDate.setSeconds(departureDate.getSeconds() + seconds);
                         // Now, departureDate holds the endTime
+                        console.log(departureDate);
                         const endDate = departureDate.toISOString();
                         tour.dataValues.endDate = endDate;
                     }
@@ -303,6 +369,72 @@ const getTourById = (tourId) =>
                                 "status",
                             ],
                         },
+                        include: [
+                            {
+                                model: db.RouteSegment,
+                                as: "route_segment",
+                                attributes: {
+                                    exclude: [
+                                        "routeId",
+                                        "departureStationId",
+                                        "endStationId",
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                                include: [
+                                    {
+                                        model: db.Station,
+                                        as: "segment_departure_station",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        model: db.Station,
+                                        as: "segment_end_station",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        model: db.RoutePointDetail,
+                                        as: "segment_route_poi_detail",
+                                        attributes: {
+                                            exclude: [
+                                                "routeSegmentId",
+                                                "poiId",
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                        include: [
+                                            {
+                                                model: db.PointOfInterest,
+                                                as: "route_poi_detail_poi",
+                                                attributes: {
+                                                    exclude: [
+                                                        "createdAt",
+                                                        "updatedAt",
+                                                        "status",
+                                                    ],
+                                                },
+                                            }
+                                        ]
+                                    },
+                                ]
+                            },
+                        ],
                     },
                     {
                         model: db.Ticket,
@@ -463,7 +595,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             endBookingDate: tourEndBookingDate,
                             departureDate: tDepartureDate,
                             tourName: tourName,
-                            departureStationId: station.route_segment.stationId,
+                            departureStationId: station.route_segment.departureStationId,
                             ...body,
                         },
                         transaction: t,
@@ -629,7 +761,8 @@ const assignTour = () =>
                         departureDate: {
                             [Op.gte]: currentDate,
                         },
-                        status: STATUS.ACTIVE
+                        isScheduled: false,
+                        tourStatus: TOUR_STATUS.NOT_STARTED,
                     }
                 })
 
@@ -637,7 +770,7 @@ const assignTour = () =>
                     resolve({
                         status: 400,
                         data: {
-                            msg: 'There are not tours active'
+                            msg: 'There are no tours active'
                         }
                     })
                     return;
@@ -654,7 +787,7 @@ const assignTour = () =>
                     resolve({
                         status: 400,
                         data: {
-                            msg: 'There are not buses active'
+                            msg: 'There are no buses active'
                         }
                     })
                     return;
@@ -692,7 +825,7 @@ const assignTour = () =>
                     resolve({
                         status: 400,
                         data: {
-                            msg: 'There are not tour guide available'
+                            msg: 'There are no tour guide available'
                         }
                     })
                     return;
@@ -702,18 +835,21 @@ const assignTour = () =>
                     resolve({
                         status: 400,
                         data: {
-                            msg: 'There are not buses available'
+                            msg: 'There are no driver available'
                         }
                     })
                     return;
                 }
 
                 // Initialize the schedule
-                const findSchedule = await db.Tour.findAll({
+                const findScheduledTour = await db.Tour.findAll({
                     raw: true, nest: true,
+                    order: [['departureDate', 'ASC']],
                     where: {
-                        status: STATUS.SCHEDULED,
-                        tourStatus: TOUR_STATUS.NOT_STARTED
+                        departureDate: {
+                            [Op.gte]: currentDate,
+                        },
+                        isScheduled: true,
                     },
                     attributes: [
                         "tourId",
@@ -751,8 +887,8 @@ const assignTour = () =>
                 })
 
                 const schedule = [];
-                if (findSchedule.length > 0) {
-                    for (const tour of findSchedule) {
+                if (findScheduledTour.length > 0) {
+                    for (const tour of findScheduledTour) {
                         const tourGuide = tour.tour_tourguide;
                         const driver = tour.tour_driver;
                         const bus = tour.tour_bus;
@@ -814,7 +950,7 @@ const assignTour = () =>
                                 departureDate.setMinutes(departureDate.getMinutes() + minutes);
                                 departureDate.setSeconds(departureDate.getSeconds() + seconds);
                                 const endDate = departureDate;
-                                return endDate >= tour.departureDate && assignment.bus.busId == bus.busId
+                                return endDate >= tour.departureDate
                             })
                     );
 
@@ -840,7 +976,7 @@ const assignTour = () =>
                         tourGuideId: assignment.tourGuide.userId,
                         driverId: assignment.driver.userId,
                         busId: assignment.bus.busId,
-                        status: STATUS.SCHEDULED,
+                        isScheduled: true,
                     }, {
                         where: { tourId: assignment.tour.tourId },
                         individualHooks: true,
@@ -937,25 +1073,111 @@ const updateTour = ({ images, tourId, ...body }) =>
                         });
                         return;
                     } else {
-                        const station = await db.Route.findOne({
-                            raw: true,
-                            nest: true,
+                        let tourGuide = body.tourGuideId
+                        let driver = body.driverId
+                        const findTour = await db.Tour.findOne({
+                            raw: true, nest: true,
                             where: {
-                                routeId: body.routeId
+                                tourId: tourId
                             },
-                            include: [
-                                {
-                                    model: db.RouteDetail,
-                                    as: "route_detail",
-                                    where: {
-                                        index: 1
-                                    }
+                        })
+                        if (tourGuide) {
+                            const findScheduledTourGuild = await db.Tour.findAll({
+                                raw: true, nest: true,
+                                order: [['departureDate', 'ASC']],
+                                where: {
+                                    departureDate: {
+                                        [Op.gte]: currentDate,
+                                    },
+                                    isScheduled: true,
+                                    tourGuideId: body.tourGuideId
                                 },
-                            ]
-                        });
+                            })
+                            const checkDuplicatedTime = findScheduledTourGuild.some((assignment) => {
+                                const departureDate = new Date(assignment.departureDate);
+                                // Split the duration string into hours, minutes, and seconds
+                                const [hours, minutes, seconds] = assignment.duration.split(':').map(Number);
+
+                                // Add the duration to the departureDate
+                                departureDate.setHours(departureDate.getHours() + hours);
+                                departureDate.setMinutes(departureDate.getMinutes() + minutes);
+                                departureDate.setSeconds(departureDate.getSeconds() + seconds);
+                                const endDate = departureDate;
+
+                                // Check if the tour guide is available
+                                return endDate >= findTour.departureDate
+                            })
+
+                            if (checkDuplicatedTime) {
+                                resolve({
+                                    status: 400,
+                                    data: {
+                                        msg: "Tour guide time is duplicated",
+                                    }
+                                });
+                                return;
+                            }
+                        } else if (driver) {
+                            const findScheduledDriver = await db.Tour.findAll({
+                                raw: true, nest: true,
+                                order: [['departureDate', 'ASC']],
+                                where: {
+                                    departureDate: {
+                                        [Op.gte]: currentDate,
+                                    },
+                                    isScheduled: true,
+                                    driverId: body.driverId
+                                },
+                            })
+
+                            const checkDuplicatedTime = findScheduledDriver.some((assignment) => {
+                                const departureDate = new Date(assignment.departureDate);
+                                // Split the duration string into hours, minutes, and seconds
+                                const [hours, minutes, seconds] = assignment.duration.split(':').map(Number);
+
+                                // Add the duration to the departureDate
+                                departureDate.setHours(departureDate.getHours() + hours);
+                                departureDate.setMinutes(departureDate.getMinutes() + minutes);
+                                departureDate.setSeconds(departureDate.getSeconds() + seconds);
+                                const endDate = departureDate;
+
+                                // Check if the tour guide is available
+                                return endDate >= findTour.departureDate
+                            })
+                            if (checkDuplicatedTime) {
+                                resolve({
+                                    status: 400,
+                                    data: {
+                                        msg: "Driver time is duplicated",
+                                    }
+                                });
+                                return;
+                            }
+                        }
+
+                        let departureStation = body.routeId;
+                        let station;
+                        if (departureStation) {
+                            station = await db.Route.findOne({
+                                raw: true,
+                                nest: true,
+                                where: {
+                                    routeId: departureStation
+                                },
+                                include: [
+                                    {
+                                        model: db.RouteSegment,
+                                        as: "route_segment",
+                                        where: {
+                                            index: 1
+                                        }
+                                    },
+                                ]
+                            });
+                        }
 
                         const tours = await db.Tour.update({
-                            departureStationId: station.route_detail.stationId,
+                            departureStationId: departureStation ? station.route_segment.stationId : findTour.departureStationId,
                             beginBookingDate: tourBeginBookingDate,
                             endBookingDate: tourEndBookingDate,
                             departureDate: tDepartureDate,
@@ -1021,7 +1243,6 @@ const updateTour = ({ images, tourId, ...body }) =>
             reject(error.message);
         }
     });
-
 
 const deleteTour = (tourIds) =>
     new Promise(async (resolve, reject) => {

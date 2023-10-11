@@ -56,6 +56,7 @@ module.exports = (sequelize, DataTypes) => {
     endBookingDate: DataTypes.DATE,
     departureDate: DataTypes.DATE,
     duration: DataTypes.TIME,
+    isScheduled: DataTypes.BOOLEAN,
     routeId: {
       type: DataTypes.UUID
     },
@@ -83,11 +84,11 @@ module.exports = (sequelize, DataTypes) => {
     },
     status: {
       type: DataTypes.ENUM,
-      values: ["Active", "Scheduled", "Deactive"],
+      values: ["Active", "Deactive"],
       validate: {
         isIn: {
-          args: [["Active", "Scheduled", "Deactive"]],
-          msg: 'Invalid value for tour.status (Active, Scheduled, Deactive)'
+          args: [["Active", "Deactive"]],
+          msg: 'Invalid value for tour.status (Active, Deactive)'
         }
       }
     },
