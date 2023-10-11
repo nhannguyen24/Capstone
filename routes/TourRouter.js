@@ -3,7 +3,9 @@ const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
 const router = express.Router();
 const {isAdminOrManager} = require('../middlewares/VerifyRole');
-
+const multer = require('multer');
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 /**
  * @swagger
  * components:
@@ -129,7 +131,7 @@ router.get("/", controllers.getAllTour);
  *   get:
  *     security: 
  *         - BearerAuth: []
- *     summary: Returns the the tours by id
+ *     summary: Returns the tours by id
  *     tags: [Tour]
  *     parameters:
  *       - name: id
@@ -187,6 +189,36 @@ router.get("/:id", controllers.getTourById);
  *                 $ref: '#/components/schemas/Tour'
  */
 router.post("/", verifyToken, isAdminOrManager, controllers.createTour);
+
+/**
+ * @swagger
+ * /api/v1/tours/upload:
+ *   post:
+ *     security:
+ *       - BearerAuth: []
+ *     summary: Create new tour by excel
+ *     tags: [Tour]
+ *     requestBody:
+ *          required: true
+ *          content:
+ *            multipart/form-data:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  file:
+ *                    type: string
+ *                    format: binary
+ *     responses:
+ *       201:
+ *         description: CREATED
+ *         content:
+ *           multipart/form-data:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Tour'
+ */
+router.post("/upload", verifyToken, isAdminOrManager,  upload.single('file'), controllers.createTourByFile);
 
 /**
  * @swagger

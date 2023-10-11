@@ -5,6 +5,7 @@ const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
 const DAY_ENUM = require("../enums/PriceDayEnum")
 const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
+const readXlsxFile = require('read-excel-file/node')
 
 const getAllTour = (
     { page, limit, order, tourName, address, tourStatus, status, routeId, tourGuideId, driverId, ...query }
@@ -721,6 +722,30 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
         }
     });
 
+const createTourByFile = (req) => new Promise(async (resolve, reject) => {
+    try {
+        const uploadedFile = req.file
+        console.log(uploadedFile)
+
+        readXlsxFile(uploadedFile.buffer).then((rows) => {
+            console.log('Excel data:', rows[0][1]);
+            console.log('Excel data:', rows[2][2]);
+        }).catch((error) => {
+            console.error('Error reading Excel file:', error);
+        });
+
+        resolve({
+            status: 201,
+            data: {
+                msg: `Created tour using excel file successfully`,
+                //booking: uploadedFile
+            }
+        });
+    } catch (error) {
+        reject(error)
+    }
+})
+
 const assignTour = () =>
     new Promise(async (resolve, reject) => {
         let transaction;
@@ -1282,6 +1307,7 @@ module.exports = {
     updateTour,
     deleteTour,
     createTour,
+    createTourByFile,
     getAllTour,
     getTourById,
     assignTour,

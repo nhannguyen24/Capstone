@@ -13,44 +13,53 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static("client"));
 
 app.use(
-    cors({
-      origin: "*",
-      methods: ["GET", "POST", "PUT", "DELETE"],
-    })
-  );
-  
-  const options = {
-    definition: {
-      openapi: "3.0.0",
-      info: {
-        title: "NBTour API",
-        version: "1.0.0",
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  })
+);
+
+const options = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "NBTour API",
+      version: "1.0.0",
+    },
+    servers: [
+      {
+        url: process.env.SWAGGER_URL || "http://localhost:3000",
       },
-      servers: [
-        {
-          url: process.env.SWAGGER_URL || "http://localhost:3000",
-        },
-      ],
-      components: {
-        securitySchemes: {
-          BearerAuth: {
-            type: 'http',
-            scheme: 'bearer',
-          },
+    ],
+    components: {
+      securitySchemes: {
+        BearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
         },
       },
     },
-  
-    apis: ["./routes/*js"],
-  };
-  
-  const specs = swaggerJSDoc(options);
-  
-  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+    tags: [
+      { name: "Auth" },
+      { name: "User" },
+      { name: "Tour" }, 
+      { name: "Template" }, 
+      { name: "Booking" }, 
+      { name: "OTP" }, 
+      { name: "Payment" }, 
+    ],
+  },
 
-  const PORT = process.env.PORT || 3000;
+  apis: ["./routes/*js"],
+};
 
-  app.use(express.json());
+const specs = swaggerJSDoc(options);
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+
+const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
 
 initRoutes(app);
 

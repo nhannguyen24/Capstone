@@ -19,15 +19,15 @@ const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject)
                     model: db.User,
                     as: "booking_user",
                     attributes: ["userId", "userName"]
-                }, 
+                },
                 {
                     model: db.Station,
                     as: "booking_departure_station",
                     attributes: ["stationId", "stationName"]
                 }
             ],
-            attributes: { 
-                exclude: ["customerId", "departureStationId"] 
+            attributes: {
+                exclude: ["customerId", "departureStationId"]
             },
         })
 
@@ -78,8 +78,23 @@ const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject)
             where: {
                 bookingId: booking.bookingId
             },
-            attributes: ["transactionId", "amount", "isSuccess","status"]
+            attributes: ["transactionId", "amount", "isSuccess", "status"]
         })
+
+        const productOrder = await db.ProductOrder.findAll({
+            where: {
+                bookingId: booking.bookingId
+            },
+            attributes: ["productPrice", "quantity"],
+            include: {
+                model: db.Product,
+                as: "product_order",
+                attributes: ["productName"],
+            }
+        })
+        if(productOrder){
+            booking.dataValues.booking_product = productOrder
+        }
 
         booking.dataValues.booking_detail = bookingDetails
         booking.dataValues.booking_transaction = transaction
@@ -151,15 +166,15 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
                     model: db.User,
                     as: "booking_user",
                     attributes: ["userId", "userName"]
-                }, 
+                },
                 {
                     model: db.Station,
                     as: "booking_departure_station",
                     attributes: ["stationId", "stationName"]
                 }
             ],
-            attributes: { 
-                exclude: ["customerId", "departureStationId"] 
+            attributes: {
+                exclude: ["customerId", "departureStationId"]
             },
             limit: limit,
             offset: offset
@@ -269,15 +284,15 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
                     model: db.User,
                     as: "booking_user",
                     attributes: ["userId", "userName"]
-                }, 
+                },
                 {
                     model: db.Station,
                     as: "booking_departure_station",
                     attributes: ["stationId", "stationName"]
                 }
             ],
-            attributes: { 
-                exclude: ["customerId", "departureStationId"] 
+            attributes: {
+                exclude: ["customerId", "departureStationId"]
             },
             limit: limit,
             offset: offset
@@ -304,6 +319,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
     try {
         const user = req.body.user
         const tickets = req.body.tickets
+        const products = req.body.products
         const totalPrice = req.body.totalPrice
         const birthday = new Date(user.birthday)
         const departureStationId = req.body.departureStationId
@@ -325,6 +341,45 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             });
             return
         }
+
+        /**
+                 * Sending OTP if user not logged in
+                 */
+        if (!req.user) {
+            const otp = await db.Otp.findOne({
+                where: {
+                    otpType: OTP_TYPE.BOOKING_TOUR,
+                    userId: resultUser[0].dataValues.userId
+                }
+            })
+
+            if (!otp) {
+                const data = await OtpService.sendOtpToEmail(resultUser[0].dataValues.email, resultUser[0].dataValues.userId, resultUser[0].dataValues.userName, OTP_TYPE.BOOKING_TOUR)
+                if (data) {
+                    resolve(data);
+                    return
+                } else {
+                    resolve({
+                        status: 409,
+                        data: {
+                            msg: `Mail sent failed`,
+                        }
+                    });
+                    return
+                }
+            }
+
+            if (!otp.isAllow) {
+                resolve({
+                    status: 403,
+                    data: {
+                        msg: `Action not allow, Please validate OTP!`,
+                    }
+                });
+                return
+            }
+        }
+
         /**
          * Checking if tour, departure station exist
          */
@@ -388,46 +443,9 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 return
             }
         }
-        /**
-         * Sending OTP if user not logged in
-         */
-        if (!req.user) {
-            const otp = await db.Otp.findOne({
-                where: {
-                    otpType: OTP_TYPE.BOOKING_TOUR,
-                    userId: resultUser[0].dataValues.userId
-                }
-            })
-
-            if (!otp) {
-                const data = await OtpService.sendOtpToEmail(resultUser[0].dataValues.email, resultUser[0].dataValues.userId, resultUser[0].dataValues.userName, OTP_TYPE.BOOKING_TOUR)
-                if (data) {
-                    resolve(data);
-                    return
-                } else {
-                    resolve({
-                        status: 409,
-                        data: {
-                            msg: `Mail sent failed`,
-                        }
-                    });
-                    return
-                }
-            }
-
-            if (!otp.isAllow) {
-                resolve({
-                    status: 403,
-                    data: {
-                        msg: `Action not allow, Please validate OTP!`,
-                    }
-                });
-                return
-            }
-        }
 
         /**
-         * Checking tourId, ticketId and priceId and calculate booked ticket quantity
+         * Checking ticketId and priceId and calculate booked ticket quantity
          */
         let ticketList = []
         let seatBookingQuantity = 0
@@ -499,6 +517,36 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             return
         }
 
+        const productList = []
+        for (const e of products) {
+            const product = await db.Product.findOne({
+                where: {
+                    productId: e.productId
+                },
+                attributes: ["productId", "price"]
+            })
+            if(!product){
+                resolve({
+                    status: 404,
+                    data: {
+                        msg: `Product not found with Id: ${e.productId}`,
+                    }
+                });
+                return
+            } 
+            if(STATUS.DEACTIVE === product.status){
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: `Product is Deactive`,
+                    }
+                });
+                return
+            }
+            product.dataValues.quantity = e.quantity
+            productList.push(product)
+        }
+
         /**
          * Begin booking creation process and roll back if error
          */
@@ -512,6 +560,10 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 for (let index = 0; index < ticketList.length; index++) {
                     const e = ticketList[index];
                     await db.BookingDetail.create({ TicketPrice: e.dataValues.ticket_price.amount, bookingId: booking.bookingId, ticketId: e.dataValues.ticketId, quantity: tickets[index].quantity }, { transaction: t });
+                }
+
+                for (const e of productList) {
+                    await db.ProductOrder.create({ productPrice: e.dataValues.price, quantity: e.dataValues.quantity, bookingId: booking.bookingId, productId: e.dataValues.productId}, { transaction: t });
                 }
             })
         } catch (error) {

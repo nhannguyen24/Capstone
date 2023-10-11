@@ -190,11 +190,13 @@ router.get("/:id", controllers.getBookingDetailByBookingId);
  *                      type: string
  *                  user:
  *                      type: object
+ *                  products:
+ *                      type: array
  *                  tickets:
  *                      type: array
  *                      minItems: 1
  *            example: {
- *              totalPrice: 60000,
+ *              totalPrice: 70000,
  *              departureStationId: 267aa90c-763c-406e-a7bc-944eae45020d,
  *              user: {
  *                  email: tminhquan@gmail.com,
@@ -202,6 +204,12 @@ router.get("/:id", controllers.getBookingDetailByBookingId);
  *                  phone: 0123456789,
  *                  birthday: 2000-09-11
  *              },
+ *              products: [
+ *                  {
+                        productId: 8d2340e0-acdd-4411-bcca-453c790cd8cd,
+ *                      quantity: 1
+ *                  }
+ *              ],
  *              tickets: [
  *                  {
  *                      ticketId: 06bec4fd-d3aa-418d-af37-c5037dc313aa,
