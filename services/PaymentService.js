@@ -165,7 +165,7 @@ const getMoMoPaymentResponse = (req) =>
                                     attributes: ["stationName"]
                                 },
                             ],
-                            attributes: ["bookingId", "customerId", "departureStationId", "totalPrice"]
+                            attributes: ["bookingId", "bookingCode", "customerId", "departureStationId", "totalPrice"]
                         }
                     ]
                 })
@@ -177,6 +177,7 @@ const getMoMoPaymentResponse = (req) =>
                 const totalPrice = bookingDetail.detail_booking.totalPrice
                 const stationName = bookingDetail.detail_booking.booking_departure_station.stationName
                 const busPlate = bookingDetail.booking_detail_ticket.ticket_tour.tour_bus.busPlate
+                const bookingCode = bookingDetail.detail_booking.bookingCode
 
                 const getBookedTickets = await db.BookingDetail.findAll({
                     where: {
@@ -228,6 +229,7 @@ const getMoMoPaymentResponse = (req) =>
                             `  - Tour Name: <b>${tourName}</b>`,
                             `  - Tour Departure Date: <b>${formatDepartureDate}</b>`,
                             `  - Departure Station: <b>${stationName}</b>`,
+                            `  - Booking Code: <b>${bookingCode}</b>`,
                             `  - Bus plate: <b>${busPlate}</b>`,
                             `  - Tour Duration: <b>${tourDuration}</b>`,
                             `  - Tour Total Price: <b>${totalPrice}</b>`
@@ -240,6 +242,22 @@ const getMoMoPaymentResponse = (req) =>
                 };
                 mailer.sendMail(bookingDetail.detail_booking.booking_user.email, "Tour booking tickets", htmlContent, bookingId)
 
+                const productOrder = await db.ProductOrder.findOne({
+                    where: {
+                        bookingId: bookingDetail.detail_booking.bookingId
+                    }
+                })
+
+                if(productOrder){
+                    await db.ProductOrder.update({
+                        status: STATUS.ACTIVE
+                    }, {
+                        where: {
+                            bookingId: bookingId
+                        }
+                    })
+                }
+                    
                 await db.Booking.update({
                     status: STATUS.ACTIVE
                 }, {
@@ -262,8 +280,6 @@ const getMoMoPaymentResponse = (req) =>
                     }
                 })
 
-
-                // console.log(ipnData);
                 resolve({
                     status: 200,
                     data: {

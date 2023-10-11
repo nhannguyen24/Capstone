@@ -44,6 +44,24 @@ const createTour = async (req, res) => {
     }
 };
 
+const createTourByFile = async (req, res) => {
+    try {
+        const uploadedFile = req.file;
+        const mimetype = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        if(!uploadedFile){
+            throw new BadRequestError('File required');
+        } 
+        else if(mimetype !== uploadedFile.mimetype){
+            throw new BadRequestError('Excel file type of (xlsx) required');
+        }
+        const response = await services.createTourByFile(req);
+        return res.status(response.status).json(response.data);
+    } catch (error) {
+        console.log(error);
+        throw new InternalServerError(error);
+    }
+};
+
 const assignTour = async (req, res) => {
     try {
         const response = await services.assignTour();
@@ -80,4 +98,4 @@ const deleteTour = async (req, res) => {
     }
 };
 
-module.exports = {getAllTour, createTour, updateTour, deleteTour, getTourById, assignTour};
+module.exports = {getAllTour, createTour, createTourByFile, updateTour, deleteTour, getTourById, assignTour};

@@ -2,6 +2,7 @@
 const {
   Model
 } = require('sequelize');
+const STATUS = require('../enums/StatusEnum')
 module.exports = (sequelize, DataTypes) => {
   class ProductOrder extends Model {
     /**
@@ -17,10 +18,10 @@ module.exports = (sequelize, DataTypes) => {
         as: "order_product",
       });
       
-      ProductOrder.belongsTo(models.BookingDetail, {
-        foreignKey: "bookingDetailId",
-        targetKey: 'bookingDetailId',
-        as: "product_order_booking_detail",
+      ProductOrder.belongsTo(models.Booking, {
+        foreignKey: "bookingId",
+        targetKey: 'bookingId',
+        as: "product_order_booking",
       });
     }
   }
@@ -30,9 +31,9 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    productPrice: DataTypes.DECIMAL(3,3),
+    productPrice: DataTypes.INTEGER,
     quantity: DataTypes.INTEGER,
-    bookingDetailId: {
+    bookingId: {
       type: DataTypes.UUID
     },
     productId: {
@@ -55,6 +56,7 @@ module.exports = (sequelize, DataTypes) => {
   ProductOrder.beforeCreate((productOrder, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
+    productOrder.status = STATUS.DRAFT;
     productOrder.createdAt = currentDate;
     productOrder.updatedAt = currentDate;
   });

@@ -24,6 +24,7 @@ const report = require('./ReportRouter');
 const product = require('./ProductRouter');
 const language = require('./LanguageRouter');
 const sound = require('./SoundRouter');
+const templateDownload = require('./TemplateDownloadRouter');
 
 
 // const stripe = require('./payment');
@@ -63,6 +64,7 @@ const initRoutes = (app) => {
     app.use('/api/v1/products', product);
     app.use('/api/v1/languages', language);
     app.use('/api/v1/sounds', sound);
+    app.use('/api/v1/download', templateDownload);
 
     // app.post('/api/v1/payments/momo-ipn');
 
