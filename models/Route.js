@@ -19,6 +19,8 @@ module.exports = (sequelize, DataTypes) => {
       });
 
       Route.hasMany(models.RouteSegment, { as: 'route_segment', foreignKey: 'routeId'});
+
+      Route.hasMany(models.Tour, { as: 'route_tour', foreignKey: 'routeId'});
     }
   }
   Route.init({
