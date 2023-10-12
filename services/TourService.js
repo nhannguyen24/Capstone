@@ -261,7 +261,6 @@ const getAllTour = (
                         departureDate.setMinutes(departureDate.getMinutes() + minutes);
                         departureDate.setSeconds(departureDate.getSeconds() + seconds);
                         // Now, departureDate holds the endTime
-                        console.log(departureDate);
                         const endDate = departureDate.toISOString();
                         tour.dataValues.endDate = endDate;
                     }
@@ -560,7 +559,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                 const tourBeginBookingDate = new Date(body.beginBookingDate);
                 const tourEndBookingDate = new Date(body.endBookingDate);
 
-                if (currentDate > tourBeginBookingDate || currentDate.getTime() > tourBeginBookingDate.getTime()) {
+                if (currentDate > tourBeginBookingDate) {
                     resolve({
                         status: 400,
                         data: {
@@ -568,7 +567,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                         }
                     })
                     return;
-                } else if (tourBeginBookingDate >= tourEndBookingDate || tourBeginBookingDate.getTime() >= tourEndBookingDate.getTime()) {
+                } else if (tourBeginBookingDate >= tourEndBookingDate) {
                     resolve({
                         status: 400,
                         data: {
@@ -576,11 +575,11 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                         }
                     });
                     return;
-                } else if (tDepartureDate <= tourEndBookingDate || tDepartureDate.getTime() <= tourEndBookingDate.getTime() + 12 * 60 * 60 * 1000) {
+                } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >=  tDepartureDate.getTime()) {
                     resolve({
                         status: 400,
                         data: {
-                            msg: "End booking date must be 12 hours earlier than Departure date",
+                            msg: "End booking date must be 24 hours earlier than Departure date",
                         }
                     });
                     return;
@@ -1023,7 +1022,7 @@ const updateTour = ({ images, tourId, ...body }) =>
                     const tourBeginBookingDate = new Date(body.beginBookingDate);
                     const tourEndBookingDate = new Date(body.endBookingDate);
 
-                    if (currentDate > tourBeginBookingDate || currentDate.getTime() > tourBeginBookingDate.getTime()) {
+                    if (currentDate > tourBeginBookingDate) {
                         resolve({
                             status: 400,
                             data: {
@@ -1031,7 +1030,7 @@ const updateTour = ({ images, tourId, ...body }) =>
                             }
                         })
                         return;
-                    } else if (tourBeginBookingDate >= tourEndBookingDate || tourBeginBookingDate.getTime() >= tourEndBookingDate.getTime()) {
+                    } else if (tourBeginBookingDate >= tourEndBookingDate) {
                         resolve({
                             status: 400,
                             data: {
@@ -1039,11 +1038,11 @@ const updateTour = ({ images, tourId, ...body }) =>
                             }
                         });
                         return;
-                    } else if (tDepartureDate <= tourEndBookingDate || tDepartureDate.getTime() <= tourEndBookingDate.getTime() + 12 * 60 * 60 * 1000) {
+                    } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >=  tDepartureDate.getTime()) {
                         resolve({
                             status: 400,
                             data: {
-                                msg: "End booking date must be 12 hours earlier than Departure date",
+                                msg: "End booking date must be 24 hours earlier than Departure date",
                             }
                         });
                         return;
@@ -1151,11 +1150,15 @@ const updateTour = ({ images, tourId, ...body }) =>
                             });
                         }
 
+                        console.log('hihi', body.tourEndBookingDate);
+                        console.log('haha', findTour.beginBookingDate);
+                        // console.log('hihi', body.tourEndBookingDate);
+                        
                         const tours = await db.Tour.update({
                             departureStationId: departureStation ? station.route_segment.stationId : findTour.departureStationId,
-                            beginBookingDate: tourBeginBookingDate,
-                            endBookingDate: tourEndBookingDate,
-                            departureDate: tDepartureDate,
+                            beginBookingDate: body.beginBookingDate ? tourBeginBookingDate : findTour.beginBookingDate,
+                            endBookingDate: body.tourEndBookingDate ? tourEndBookingDate : findTour.tourEndBookingDate,
+                            departureDate: body.tDepartureDate ? tDepartureDate : findTour.tDepartureDate,
                             ...body
                         }, {
                             where: { tourId },
