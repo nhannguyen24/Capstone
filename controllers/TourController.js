@@ -26,15 +26,12 @@ const getTourById = async (req, res) => {
 
 const createTour = async (req, res) => {
     try {
-        const {tourName, routeId, departureStationId} = req.body;
+        const {tourName, routeId} = req.body;
         if(!tourName) {
             throw new BadRequestError('Please provide tourName');
         }
         if(!routeId) {
             throw new BadRequestError('Please provide routeId');
-        }
-        if(!departureStationId) {
-            throw new BadRequestError('Please provide departureStationId');
         }
         const response = await services.createTour(req.body);
         return res.status(response.status).json(response.data);
