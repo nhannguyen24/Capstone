@@ -576,7 +576,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                         }
                     });
                     return;
-                } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >=  tDepartureDate.getTime()) {
+                } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
                     resolve({
                         status: 400,
                         data: {
@@ -753,6 +753,52 @@ const assignTour = () =>
                 const currentDate = new Date();
                 currentDate.setHours(currentDate.getHours() + 7);
 
+                // Initialize the schedule
+                const findScheduledTour = await db.Tour.findAll({
+                    raw: true, nest: true,
+                    order: [['departureDate', 'ASC']],
+                    where: {
+                        departureDate: {
+                            [Op.gte]: currentDate,
+                        },
+                        isScheduled: true,
+                    },
+                    attributes: [
+                        "tourId",
+                        "tourName",
+                        "beginBookingDate",
+                        "endBookingDate",
+                        "departureDate",
+                        "duration",
+                        "tourStatus",
+                        "status",
+                        "isScheduled"
+                    ],
+                    include: [
+                        {
+                            model: db.Bus,
+                            as: "tour_bus",
+                            attributes: [
+                                "busId"
+                            ]
+                        },
+                        {
+                            model: db.User,
+                            as: "tour_tourguide",
+                            attributes: [
+                                "userId"
+                            ]
+                        },
+                        {
+                            model: db.User,
+                            as: "tour_driver",
+                            attributes: [
+                                "userId"
+                            ]
+                        },
+                    ]
+                })
+
                 const findTourActive = await db.Tour.findAll({
                     raw: true, nest: true,
                     order: [['departureDate', 'ASC']],
@@ -761,7 +807,6 @@ const assignTour = () =>
                             [Op.gte]: currentDate,
                         },
                         isScheduled: false,
-                        tourStatus: TOUR_STATUS.NOT_STARTED,
                     }
                 })
 
@@ -840,52 +885,8 @@ const assignTour = () =>
                     return;
                 }
 
-                // Initialize the schedule
-                const findScheduledTour = await db.Tour.findAll({
-                    raw: true, nest: true,
-                    order: [['departureDate', 'ASC']],
-                    where: {
-                        departureDate: {
-                            [Op.gte]: currentDate,
-                        },
-                        isScheduled: true,
-                    },
-                    attributes: [
-                        "tourId",
-                        "tourName",
-                        "beginBookingDate",
-                        "endBookingDate",
-                        "departureDate",
-                        "duration",
-                        "tourStatus",
-                        "status",
-                    ],
-                    include: [
-                        {
-                            model: db.Bus,
-                            as: "tour_bus",
-                            attributes: [
-                                "busId"
-                            ]
-                        },
-                        {
-                            model: db.User,
-                            as: "tour_tourguide",
-                            attributes: [
-                                "userId"
-                            ]
-                        },
-                        {
-                            model: db.User,
-                            as: "tour_driver",
-                            attributes: [
-                                "userId"
-                            ]
-                        },
-                    ]
-                })
-
                 const schedule = [];
+                const scheduleFinal = [];
                 if (findScheduledTour.length > 0) {
                     for (const tour of findScheduledTour) {
                         const tourGuide = tour.tour_tourguide;
@@ -896,6 +897,7 @@ const assignTour = () =>
                     }
                 }
                 for (const tour of findTourActive) {
+                    // console.log(tour);
                     // Find an available employee for the tour
                     const availableTourGuide = findTourguide.filter(
                         (employee) =>
@@ -949,7 +951,8 @@ const assignTour = () =>
                                 departureDate.setMinutes(departureDate.getMinutes() + minutes);
                                 departureDate.setSeconds(departureDate.getSeconds() + seconds);
                                 const endDate = departureDate;
-                                return endDate >= tour.departureDate
+                                // console.log(`${bus.busPlate} + ${assignment.tour.tourName}`, endDate >= tour.departureDate);
+                                return endDate >= tour.departureDate && assignment.bus.busId == bus.busId
                             })
                     );
 
@@ -961,53 +964,57 @@ const assignTour = () =>
 
                         const chosenBus = availableBuses[0];
                         schedule.push({ tour, tourGuide: chosenTourGuide, driver: chosenDriver, bus: chosenBus });
+                        scheduleFinal.push({ tour, tourGuide: chosenTourGuide, driver: chosenDriver, bus: chosenBus });
                     }
                 }
 
                 const findTourNotScheduled = findTourActive.filter(itemA => !schedule.some(itemB => itemB.tour.tourId === itemA.tourId));
 
-                for (const assignment of schedule) {
-                    // console.log(
-                    //     `Tour ${assignment.tour.tourId} at ${assignment.tour.departureDate.toISOString()} assigned to ${assignment.tourGuide.userId}, ${assignment.driver.userId} on Bus ${assignment.bus.busId}`
-                    // );
-
-                    await db.Tour.update({
-                        tourGuideId: assignment.tourGuide.userId,
-                        driverId: assignment.driver.userId,
-                        busId: assignment.bus.busId,
-                        isScheduled: true,
-                    }, {
-                        where: { tourId: assignment.tour.tourId },
-                        individualHooks: true,
-                        transaction: t
-                    });
-
-                    await db.User.update({
-                        maxTour: assignment.tourGuide.maxTour,
-                    }, {
-                        where: { userId: assignment.tourGuide.userId },
-                        individualHooks: true,
-                        transaction: t
-                    });
-
-                    await db.User.update({
-                        maxTour: assignment.driver.maxTour,
-                    }, {
-                        where: { userId: assignment.driver.userId },
-                        individualHooks: true,
-                        transaction: t
-                    });
-
-                    resolve({
-                        status: 200,
-                        data: {
-                            msg:
-                                findTourNotScheduled.length == 0
-                                    ? 'Tours have been scheduled'
-                                    : 'Tour name ' + findTourNotScheduled.map(tour => `'${tour.tourName}'`).join(', ') + ' cannot be scheduled'
-                        }
-                    });
+                if (scheduleFinal.length > 0) {
+                    for (const assignment of scheduleFinal) {
+                        // console.log(
+                        //     `Tour ${assignment.tour.tourId} at ${assignment.tour.departureDate.toISOString()} assigned to ${assignment.tourGuide.userId}, ${assignment.driver.userId} on Bus ${assignment.bus.busId}`
+                        // );
+    
+                        await db.Tour.update({
+                            tourGuideId: assignment.tourGuide.userId,
+                            driverId: assignment.driver.userId,
+                            busId: assignment.bus.busId,
+                            isScheduled: true,
+                        }, {
+                            where: { tourId: assignment.tour.tourId },
+                            individualHooks: true,
+                            transaction: t
+                        });
+    
+                        await db.User.update({
+                            maxTour: assignment.tourGuide.maxTour,
+                        }, {
+                            where: { userId: assignment.tourGuide.userId },
+                            individualHooks: true,
+                            transaction: t
+                        });
+    
+                        await db.User.update({
+                            maxTour: assignment.driver.maxTour,
+                        }, {
+                            where: { userId: assignment.driver.userId },
+                            individualHooks: true,
+                            transaction: t
+                        });
+                    }
                 }
+                
+                resolve({
+                    status: 200,
+                    data: {
+                        msg:
+                            findTourNotScheduled.length == 0
+                                ? 'Tours have been scheduled'
+                                : 'Tour name ' + findTourNotScheduled.map(tour => `'${tour.tourName}'`).join(', ') + ' cannot be scheduled'
+                    }
+                });
+
                 await t.commit();
             });
         } catch (error) {
@@ -1063,7 +1070,7 @@ const updateTour = ({ images, tourId, ...body }) =>
                             }
                         });
                         return;
-                    } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >=  tDepartureDate.getTime()) {
+                    } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
                         resolve({
                             status: 400,
                             data: {
@@ -1178,7 +1185,7 @@ const updateTour = ({ images, tourId, ...body }) =>
                         console.log('hihi', body.tourEndBookingDate);
                         console.log('haha', findTour.beginBookingDate);
                         // console.log('hihi', body.tourEndBookingDate);
-                        
+
                         const tours = await db.Tour.update({
                             departureStationId: departureStation ? station.route_segment.stationId : findTour.departureStationId,
                             beginBookingDate: body.beginBookingDate ? tourBeginBookingDate : findTour.beginBookingDate,
