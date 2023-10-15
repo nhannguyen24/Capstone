@@ -1315,4 +1315,3 @@ module.exports = {
     getTourById,
     assignTour,
 };
-
