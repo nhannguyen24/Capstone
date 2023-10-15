@@ -159,7 +159,7 @@ const getAllRoute = (
                                     // queries.order = [['updatedAt', 'DESC']];
                                     queries.order = [
                                         ['updatedAt', 'DESC'],
-                                        [{ model: db.RouteSegment, as: 'route_segment' }, 'index', 'ASC']
+                                        [{ model: db.RouteSegment, as: 'route_segment' }, 'index', 'ASC'],
                                         [{ model: db.RouteSegment, as: 'route_segment' }, { model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
                                     ];
                                 }
@@ -203,7 +203,7 @@ const getRouteById = (routeId) =>
                 },
                 order: [
                     ['updatedAt', 'DESC'],
-                    [{ model: db.RouteSegment, as: 'route_segment' }, 'index', 'ASC']
+                    [{ model: db.RouteSegment, as: 'route_segment' }, 'index', 'ASC'],
                     [{ model: db.RouteSegment, as: 'route_segment' }, { model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
                 ],
                 include: [
