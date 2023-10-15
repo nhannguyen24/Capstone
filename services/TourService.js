@@ -710,6 +710,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                         });
                     });
                 }
+
                 await t.commit();
             });
         } catch (error) {
@@ -1003,6 +1004,23 @@ const assignTour = () =>
                             transaction: t
                         });
                     }
+
+                    redisClient.keys('*tours_*', (error, keys) => {
+                        if (error) {
+                            console.error('Error retrieving keys:', error);
+                            return;
+                        }
+                        // Delete each key individually
+                        keys.forEach((key) => {
+                            redisClient.del(key, (deleteError, reply) => {
+                                if (deleteError) {
+                                    console.error(`Error deleting key ${key}:`, deleteError);
+                                } else {
+                                    console.log(`Key ${key} deleted successfully`);
+                                }
+                            });
+                        });
+                    });
                 }
                 
                 resolve({
