@@ -61,17 +61,17 @@ const getAllFileSound = (
                                             ],
                                         },
                                     },
-                                    // {
-                                    //     model: db.PointOfInterest,
-                                    //     as: "sound_point",
-                                    //     attributes: {
-                                    //         exclude: [
-                                    //             "createdAt",
-                                    //             "updatedAt",
-                                    //             "status",
-                                    //         ],
-                                    //     },
-                                    // }
+                                    {
+                                        model: db.PointOfInterest,
+                                        as: "sound_point",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                    }
                                 ]
                             });
 
@@ -119,17 +119,17 @@ const getFileSoundById = (soundId) =>
                             ],
                         },
                     },
-                    // {
-                    //     model: db.PointOfInterest,
-                    //     as: "sound_point",
-                    //     attributes: {
-                    //         exclude: [
-                    //             "createdAt",
-                    //             "updatedAt",
-                    //             "status",
-                    //         ],
-                    //     },
-                    // }
+                    {
+                        model: db.PointOfInterest,
+                        as: "sound_point",
+                        attributes: {
+                            exclude: [
+                                "createdAt",
+                                "updatedAt",
+                                "status",
+                            ],
+                        },
+                    }
                 ]
             });
             resolve({
