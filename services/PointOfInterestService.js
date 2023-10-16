@@ -115,9 +115,8 @@ const getAllPointOfInterest = (
 const getPointOfInterestById = (poiId) =>
     new Promise(async (resolve, reject) => {
         try {
-            const poi = await db.PointOfInterest.findOne({
+            const poi = await db.PointOfInterest.findAll({
                 where: { poiId: poiId },
-                raw: true,
                 nest: true,
                 attributes: {
                     exclude: ["createdAt", "updatedAt"],
