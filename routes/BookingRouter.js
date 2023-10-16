@@ -42,6 +42,11 @@ const router = express.Router();
  *           example: BO23
  *         description: Search with booking code
  *       - in: query
+ *         name: tourId
+ *         schema:
+ *           type: string
+ *         description: Search with tourId
+ *       - in: query
  *         name: bookingStatus
  *         schema:
  *           type: string
@@ -57,13 +62,6 @@ const router = express.Router();
  *              - Draft
  *              - Active
  *              - Deactive
- *       - in: query
- *         name: orderDate
- *         schema:
- *           type: string
- *           enum:
- *              - DESC
- *              - ASC
  *     responses:
  *       200:
  *         description: OK
@@ -110,6 +108,11 @@ router.get("/", verifyToken, isLoggedIn, controllers.getBookings);
  *           example: BO23
  *         description: Search with booking code
  *       - in: query
+ *         name: tourId
+ *         schema:
+ *           type: string
+ *         description: Search with tourId
+ *       - in: query
  *         name: bookingStatus
  *         schema:
  *           type: string
@@ -125,13 +128,6 @@ router.get("/", verifyToken, isLoggedIn, controllers.getBookings);
  *              - Draft
  *              - Active
  *              - Deactive
- *       - in: query
- *         name: orderDate
- *         schema:
- *           type: string
- *           enum:
- *              - DESC
- *              - ASC
  *     responses:
  *       200:
  *         description: OK
@@ -194,7 +190,6 @@ router.get("/:id", controllers.getBookingDetailByBookingId);
  *                      type: array
  *                  tickets:
  *                      type: array
- *                      minItems: 1
  *            example: {
  *              totalPrice: 70000,
  *              departureStationId: 267aa90c-763c-406e-a7bc-944eae45020d,
@@ -206,7 +201,7 @@ router.get("/:id", controllers.getBookingDetailByBookingId);
  *              },
  *              products: [
  *                  {
-                        productId: 8d2340e0-acdd-4411-bcca-453c790cd8cd,
+ *                      productId: 8d2340e0-acdd-4411-bcca-453c790cd8cd,
  *                      quantity: 1
  *                  }
  *              ],
@@ -217,7 +212,14 @@ router.get("/:id", controllers.getBookingDetailByBookingId);
  *                      tourId: d16d6812-3772-4f72-a3fb-c7a617397c3c,
  *                      priceId: cfa845b9-3182-4322-932d-05a6284e6928,
  *                      quantity: 1
- *                  }
+ *                  },
+ *                  {
+ *                      ticketId: 2b4e447c-289a-4dc3-be4b-01d955e05578,
+ *                      ticketTypeId: 99f73c58-7c81-4152-90f9-21e50637e9c8,  
+ *                      tourId: d16d6812-3772-4f72-a3fb-c7a617397c3c,
+ *                      priceId: 83bdc7a1-c77e-46c7-b8f0-de7fd4bf5859,
+ *                      quantity: 1
+ *                  },
  *              ]
  *            }
  *     responses:

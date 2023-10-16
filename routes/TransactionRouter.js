@@ -32,6 +32,11 @@ const router = express.Router();
  *         required: true
  *         description: Maximum items per page
  *       - in: query
+ *         name: bookingId
+ *         schema:
+ *           type: string
+ *         description: Search by bookingId
+ *       - in: query
  *         name: transactionCode
  *         schema:
  *           type: string

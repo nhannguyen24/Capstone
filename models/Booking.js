@@ -88,8 +88,8 @@ module.exports = (sequelize, DataTypes) => {
 
     bookingCode = `BO${stringCurrentYear}${stringCurrentMonth}${stringCurrentDay}${stringCurrentHour}${stringCurrentMinute}${stringCurrentSecond}`
 
+    booking.status = STATUS.DRAFT;
     booking.bookingStatus = BOOKING_STATUS.ON_GOING;
-    booking.bookingStatus = STATUS.DRAFT;
     booking.bookingDate = currentDate;
     booking.createdAt = currentDate;
     booking.updatedAt = currentDate;

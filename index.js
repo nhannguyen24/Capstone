@@ -47,6 +47,7 @@ const options = {
       { name: "Booking" }, 
       { name: "OTP" }, 
       { name: "Payment" }, 
+      { name: "Transaction" }, 
     ],
   },
 

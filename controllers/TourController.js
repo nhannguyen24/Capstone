@@ -47,11 +47,11 @@ const createTour = async (req, res) => {
 const createTourByFile = async (req, res) => {
     try {
         const uploadedFile = req.file;
-        const mimetype = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         if(!uploadedFile){
-            throw new BadRequestError('File required');
+            throw new BadRequestError('File Excel required');
         } 
-        else if(mimetype !== uploadedFile.mimetype){
+        const fileName = uploadedFile.originalname
+        if("xlsx" !== fileName.slice(-4)){
             throw new BadRequestError('Excel file type of (xlsx) required');
         }
         const response = await services.createTourByFile(req);
