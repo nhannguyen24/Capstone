@@ -3,12 +3,12 @@ const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
 
 const getAllRoute = (
-    { page, limit, order, routeName, status, ...query },
+    { page, limit, order, routeName, status, tour, ...query },
     roleName
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`routes_${page}_${limit}_${order}_${routeName}_${status}`, async (error, route) => {
+            redisClient.get(`routes_${page}_${limit}_${order}_${routeName}_${status}_${tour}`, async (error, route) => {
                 if (route != null && route != "" && roleName != 'Admin') {
                     resolve({
                         status: 200,
@@ -18,7 +18,7 @@ const getAllRoute = (
                         }
                     });
                 } else {
-                    redisClient.get(`admin_routes_${page}_${limit}_${order}_${routeName}_${status}`, async (error, adminRoute) => {
+                    redisClient.get(`admin_routes_${page}_${limit}_${order}_${routeName}_${status}_${tour}`, async (error, adminRoute) => {
                         if (adminRoute != null && adminRoute != "") {
                             resolve({
                                 status: 200,
@@ -33,23 +33,33 @@ const getAllRoute = (
                             const flimit = +limit || +process.env.LIMIT_POST;
                             queries.offset = offset * flimit;
                             queries.limit = flimit;
-                            if (order) queries.order = [[order]]
-                            else {
-                                // queries.order = [['updatedAt', 'DESC']];
-                                queries.order = [
-                                    ['updatedAt', 'DESC'],
-                                    [{ model: db.RouteSegment, as: 'route_segment' }, { model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
-                                ];
-                            }
                             if (routeName) query.routeName = { [Op.substring]: routeName };
                             if (status) query.status = { [Op.eq]: status };
                             if (roleName !== "Admin") {
                                 query.status = { [Op.notIn]: ['Deactive'] };
                             }
-                            const routes = await db.Route.findAll({
-                                where: query,
-                                ...queries,
-                                include: [
+
+                            if (tour == 'true') {
+                                queries.include = [
+                                    {
+                                        model: db.Tour,
+                                        as: "route_tour",
+                                        attributes: {
+                                            exclude: [
+                                                "routeId",
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                    }
+                                ]
+
+                                if (order) queries.order = [[order]]
+                            }
+                            else {
+                                // queries.order = [['updatedAt', 'DESC']];
+                                queries.include = [
                                     {
                                         model: db.RouteSegment,
                                         as: "route_segment",
@@ -109,18 +119,61 @@ const getAllRoute = (
                                                                 "status",
                                                             ],
                                                         },
+                                                        include: [
+                                                            {
+                                                                model: db.FileSound,
+                                                                as: "poi_sound",
+                                                                attributes: {
+                                                                    exclude: [
+                                                                        "languageId",
+                                                                        "poiId",
+                                                                        "createdAt",
+                                                                        "updatedAt",
+                                                                        "status",
+                                                                    ],
+                                                                },
+                                                                include: [
+                                                                    {
+                                                                        model: db.Language,
+                                                                        as: "sound_language",
+                                                                        attributes: {
+                                                                            exclude: [
+                                                                                "createdAt",
+                                                                                "updatedAt",
+                                                                                "status",
+                                                                            ],
+                                                                        },
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ]
                                                     }
                                                 ]
                                             },
                                         ]
                                     },
-                                ],
+                                ];
+
+                                if (order) queries.order = [[order]]
+                                else {
+                                    // queries.order = [['updatedAt', 'DESC']];
+                                    queries.order = [
+                                        ['updatedAt', 'DESC'],
+                                        [{ model: db.RouteSegment, as: 'route_segment' }, 'index', 'ASC'],
+                                        [{ model: db.RouteSegment, as: 'route_segment' }, { model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
+                                    ];
+                                }
+                            }
+
+                            const routes = await db.Route.findAll({
+                                where: query,
+                                ...queries,
                             });
 
                             if (roleName !== "Admin") {
-                                redisClient.setEx(`routes_${page}_${limit}_${order}_${routeName}_${status}`, 3600, JSON.stringify(routes));
+                                redisClient.setEx(`routes_${page}_${limit}_${order}_${routeName}_${status}_${tour}`, 3600, JSON.stringify(routes));
                             } else {
-                                redisClient.setEx(`admin_routes_${page}_${limit}_${order}_${routeName}_${status}`, 3600, JSON.stringify(routes));
+                                redisClient.setEx(`admin_routes_${page}_${limit}_${order}_${routeName}_${status}_${tour}`, 3600, JSON.stringify(routes));
                             }
                             resolve({
                                 status: routes ? 200 : 404,
@@ -150,6 +203,7 @@ const getRouteById = (routeId) =>
                 },
                 order: [
                     ['updatedAt', 'DESC'],
+                    [{ model: db.RouteSegment, as: 'route_segment' }, 'index', 'ASC'],
                     [{ model: db.RouteSegment, as: 'route_segment' }, { model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
                 ],
                 include: [
@@ -212,6 +266,34 @@ const getRouteById = (routeId) =>
                                                 "status",
                                             ],
                                         },
+                                        include: [
+                                            {
+                                                model: db.FileSound,
+                                                as: "poi_sound",
+                                                attributes: {
+                                                    exclude: [
+                                                        "languageId",
+                                                        "poiId",
+                                                        "createdAt",
+                                                        "updatedAt",
+                                                        "status",
+                                                    ],
+                                                },
+                                                include: [
+                                                    {
+                                                        model: db.Language,
+                                                        as: "sound_language",
+                                                        attributes: {
+                                                            exclude: [
+                                                                "createdAt",
+                                                                "updatedAt",
+                                                                "status",
+                                                            ],
+                                                        },
+                                                    }
+                                                ]
+                                            }
+                                        ]
                                     }
                                 ]
                             },

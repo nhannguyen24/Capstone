@@ -34,12 +34,6 @@ const createForm = async (req, res) => {
         if(!currentTour) {
             throw new BadRequestError('Please provide currentTour');
         }
-        if(!desireTour) {
-            throw new BadRequestError('Please provide desireTour');
-        }
-        if(!changeEmployee) {
-            throw new BadRequestError('Please provide changeEmployee');
-        }
         const response = await services.createForm(req.body, userId);
         return res.status(response.status).json(response.data);
     } catch (error) {

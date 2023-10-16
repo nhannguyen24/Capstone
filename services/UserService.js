@@ -111,7 +111,7 @@ const createUser = ({ password, ...body }) =>
         defaults: {
           password: hashPassword(password),
           avatar: "https://cdn-icons-png.flaticon.com/512/147/147144.png",
-          maxTour: 4,
+          maxTour: 10,
           ...body,
         },
       });

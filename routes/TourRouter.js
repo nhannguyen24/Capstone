@@ -171,7 +171,6 @@ router.get("/:id", controllers.getTourById);
  *                    departureDate: 2023-09-23T09:00:00Z
  *                    duration: 03:00:00
  *                    routeId: 8c382e13-8620-460a-bd95-96b1152c1368
- *                    departureStationId: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    tickets:
  *                          - ticketTypeId
  *                          - ticketTypeId

@@ -8,6 +8,8 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  * @swagger
  * /api/v1/download:
  *   get:
+ *     security:
+ *       - BearerAuth: []
  *     summary: Get excel template for create tour
  *     tags: [Template]
  *     responses:
