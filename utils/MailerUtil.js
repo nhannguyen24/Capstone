@@ -35,7 +35,7 @@ exports.sendMail = (to, subject, htmlContent, file) => {
             attachments: [
                 {
                     filename: 'qrcode.png',
-                    content: file,
+                    content: file.split(';base64,').pop(),
                     encoding: 'base64',
                     cid: 'qrcode',
                 },
