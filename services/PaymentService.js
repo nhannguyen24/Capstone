@@ -126,7 +126,7 @@ const getMoMoPaymentResponse = (req) =>
             const ipnData = req.body;
             const bookingId = ipnData.extraData
             if (ipnData.resultCode === 0) {
-
+                console.log(ipnData);
                 const bookingDetail = await db.BookingDetail.findOne({
                     where: {
                         bookingId: bookingId
