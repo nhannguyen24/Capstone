@@ -763,9 +763,6 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
             }
 
             if (BOOKING_STATUS.CANCELED === bookingStatus) {
-                /**
-                * Sending OTP if user not logged in
-                */
                 const otp = await db.Otp.findOne({
                     where: {
                         otpType: OTP_TYPE.CANCEL_BOOKING,
@@ -813,7 +810,15 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                 if(result){
                     resolve(result)
                     return
-                } 
+                } else {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: `Something wrong happened to refund`,
+                        }
+                    })
+                    return
+                }
             }
 
             if (BOOKING_STATUS.FINISHED === bookingStatus) {
