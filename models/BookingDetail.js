@@ -12,7 +12,6 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      BookingDetail.hasMany(models.ProductOrder, { as: 'booking_detail_product_order', foreignKey: 'bookingDetailId'});
 
       BookingDetail.belongsTo(models.Booking, {
         foreignKey: 'bookingId',

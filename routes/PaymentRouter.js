@@ -40,30 +40,6 @@ const router = express.Router();
  */
 router.post("/", controllers.paymentMomo);
 
-/**
- * @swagger
- * /api/v1/payments/refund:
- *   post:
- *     summary: Refund cancel booking with Momo
- *     tags: [Payment]
- *     parameters:
- *       - in: query
- *         name: bookingId
- *         schema:
- *           type: string
- *           example: 2233d992-f13f-49b9-a878-80a77e1e2d62
- *         required: true
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- */
-router.post("/refund", controllers.refundMomo);
-
-
 router.post("/momo-ipn", controllers.getPaymentMomo);
 
 module.exports = router;

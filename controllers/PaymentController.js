@@ -11,16 +11,6 @@ const paymentMomo = async (req, res) => {
     }
 }
 
-const refundMomo = async (req, res) => {
-    try {
-        const { bookingId } = req.query;
-        const response = await services.refundMomo(bookingId);
-        return res.status(response.status).json(response.data);
-    } catch (error) {
-        throw new InternalServerError(error);
-    }
-}
-
 const getPaymentMomo = async (req, res) => {
     try {
         const response = await services.getMoMoPaymentResponse(req);
@@ -30,4 +20,4 @@ const getPaymentMomo = async (req, res) => {
     }
 }
 
-module.exports = { paymentMomo, refundMomo, getPaymentMomo }
+module.exports = { paymentMomo, getPaymentMomo }

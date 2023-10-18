@@ -76,17 +76,7 @@ module.exports = (sequelize, DataTypes) => {
   Booking.beforeCreate(async (booking, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-
-    let bookingCode;
-
-    const stringCurrentDay = currentDate.getDate().toString().padStart(2, '0');
-    const stringCurrentMonth = (currentDate.getMonth() + 1).toString().padStart(2, '0');
-    const stringCurrentYear = currentDate.getFullYear().toString();
-    const stringCurrentHour = currentDate.getHours().toString().toString().padStart(2, '0');
-    const stringCurrentMinute = currentDate.getMinutes().toString().toString().padStart(2, '0');
-    const stringCurrentSecond = currentDate.getSeconds().toString().toString().padStart(2, '0');
-
-    bookingCode = `BO${stringCurrentYear}${stringCurrentMonth}${stringCurrentDay}${stringCurrentHour}${stringCurrentMinute}${stringCurrentSecond}`
+    const bookingCode = `BO${currentDate.getTime()}`
 
     booking.status = STATUS.DRAFT;
     booking.bookingStatus = BOOKING_STATUS.ON_GOING;

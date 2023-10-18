@@ -99,7 +99,6 @@ const sendOtpToEmail = async (email, userId, fullName, otpType) => {
         const newTimeExpired = currentDate.setMinutes(currentDate.getMinutes() + 15)
         if (resultOtp) {
             otp = resultOtp
-            console.log(JSON(otp))
             await db.Otp.update({
                 otpCode: hashOtpCode(otpCode), timeExpired: newTimeExpired, isAllow: false
             }, {
