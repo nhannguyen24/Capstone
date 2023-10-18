@@ -340,7 +340,7 @@ const getMoMoPaymentResponse = (req) =>
                         signature: 'Sincerely'
                     }
                 };
-                mailer.sendMail(bookingDetail.detail_booking.booking_user.email, "Tour booking tickets", htmlContent, bookingId)
+                mailer.sendMail(bookingDetail.detail_booking.booking_user.email, "Tour booking tickets", htmlContent)
 
                 const productOrder = await db.ProductOrder.findOne({
                     where: {
