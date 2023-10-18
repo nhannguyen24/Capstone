@@ -61,17 +61,17 @@ const getAllFileSound = (
                                             ],
                                         },
                                     },
-                                    // {
-                                    //     model: db.PointOfInterest,
-                                    //     as: "sound_point",
-                                    //     attributes: {
-                                    //         exclude: [
-                                    //             "createdAt",
-                                    //             "updatedAt",
-                                    //             "status",
-                                    //         ],
-                                    //     },
-                                    // }
+                                    {
+                                        model: db.PointOfInterest,
+                                        as: "sound_point",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                    }
                                 ]
                             });
 
@@ -119,17 +119,17 @@ const getFileSoundById = (soundId) =>
                             ],
                         },
                     },
-                    // {
-                    //     model: db.PointOfInterest,
-                    //     as: "sound_point",
-                    //     attributes: {
-                    //         exclude: [
-                    //             "createdAt",
-                    //             "updatedAt",
-                    //             "status",
-                    //         ],
-                    //     },
-                    // }
+                    {
+                        model: db.PointOfInterest,
+                        as: "sound_point",
+                        attributes: {
+                            exclude: [
+                                "createdAt",
+                                "updatedAt",
+                                "status",
+                            ],
+                        },
+                    }
                 ]
             });
             resolve({
@@ -185,6 +185,23 @@ const createFileSound = ( body ) =>
                 }
             });
             redisClient.keys('*sounds_*', (error, keys) => {
+                if (error) {
+                    console.error('Error retrieving keys:', error);
+                    return;
+                }
+                // Delete each key individually
+                keys.forEach((key) => {
+                    redisClient.del(key, (deleteError, reply) => {
+                        if (deleteError) {
+                            console.error(`Error deleting key ${key}:`, deleteError);
+                        } else {
+                            console.log(`Key ${key} deleted successfully`);
+                        }
+                    });
+                });
+            });
+
+            redisClient.keys('*pois_*', (error, keys) => {
                 if (error) {
                     console.error('Error retrieving keys:', error);
                     return;
@@ -275,6 +292,23 @@ const updateFileSound = ( body ) =>
                     });
                 });
             });
+
+            redisClient.keys('*pois_*', (error, keys) => {
+                if (error) {
+                    console.error('Error retrieving keys:', error);
+                    return;
+                }
+                // Delete each key individually
+                keys.forEach((key) => {
+                    redisClient.del(key, (deleteError, reply) => {
+                        if (deleteError) {
+                            console.error(`Error deleting key ${key}:`, deleteError);
+                        } else {
+                            console.log(`Key ${key} deleted successfully`);
+                        }
+                    });
+                });
+            });
         } catch (error) {
             reject(error.message);
         }
@@ -318,6 +352,22 @@ const deleteFileSound = (soundIds) =>
             });
 
             redisClient.keys('*sounds_*', (error, keys) => {
+                if (error) {
+                    console.error('Error retrieving keys:', error);
+                    return;
+                }
+                // Delete each key individually
+                keys.forEach((key) => {
+                    redisClient.del(key, (deleteError, reply) => {
+                        if (deleteError) {
+                            console.error(`Error deleting key ${key}:`, deleteError);
+                        } else {
+                            console.log(`Key ${key} deleted successfully`);
+                        }
+                    });
+                });
+            });
+            redisClient.keys('*pois_*', (error, keys) => {
                 if (error) {
                     console.error('Error retrieving keys:', error);
                     return;
