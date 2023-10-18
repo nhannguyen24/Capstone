@@ -398,6 +398,7 @@ const createRoute = ({ routeName, ...body }) =>
                         {
                             index: segmentIndex,
                             routeId: createRoute[0].dataValues.routeId,
+                            distance: segmentObj.distance,
                             departureStationId: segmentObj.departureStationId,
                             endStationId: segmentObj.endStationId,
                         },

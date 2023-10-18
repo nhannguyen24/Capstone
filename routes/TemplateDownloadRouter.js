@@ -20,6 +20,6 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *             schema:
  *               type: string
  */
-router.get("/", controllers.downloadTourTemplate);
+router.get("/", verifyToken, isAdminOrManager, controllers.downloadTourTemplate);
 
 module.exports = router;

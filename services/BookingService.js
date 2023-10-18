@@ -5,6 +5,7 @@ const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
 const OTP_TYPE = require("../enums/OtpTypeEnum")
 const OtpService = require("./OtpService")
+const PaymentService = require("./PaymentService")
 
 const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject) => {
     try {
@@ -766,7 +767,6 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                 /**
                 * Sending OTP if user not logged in
                 */
-
                 const otp = await db.Otp.findOne({
                     where: {
                         otpType: OTP_TYPE.CANCEL_BOOKING,
@@ -809,6 +809,8 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                     })
                     return
                 }
+
+                PaymentService.refundMomo(booking.bookingId)
             }
 
             if (BOOKING_STATUS.FINISHED === bookingStatus) {

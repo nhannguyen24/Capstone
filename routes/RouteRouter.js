@@ -135,11 +135,13 @@ router.get("/:id", verifyToken, controllers.getRouteById);
  *                    segments:
  *                          - departureStationId: stationId
  *                            endStationId: stationId
+ *                            distance: 100.2
  *                            points:
  *                                  - poiId
  *                                  - poiId
  *                          - departureStationId: stationId
  *                            endStationId: stationId
+ *                            distance: 410.3
  *                            points:
  *                                  - poiId
  *                                  - poiId
