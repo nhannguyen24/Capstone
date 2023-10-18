@@ -1,26 +1,26 @@
-const crypto = require('crypto');
-const db = require('../models');
+const crypto = require('crypto')
+const db = require('../models')
 const STATUS = require("../enums/StatusEnum")
 const mailer = require("../utils/MailerUtil")
-const qr = require('qrcode');
+const qr = require('qrcode')
 const BOOKING_STATUS = require("../enums/BookingStatusEnum")
 const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
     new Promise(async (resolve, reject) => {
         try {
             //https://developers.momo.vn/#/docs/en/aiov2/?id=payment-method
             //parameters
-            var partnerCode = "MOMO";
-            var accessKey = "F8BBA842ECF85";
-            var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
-            var requestId = partnerCode + new Date().getTime();
-            var orderId = requestId;
-            var orderInfo = "Pay with MoMo";
-            var redirectUrl = redirect;
-            var ipnUrl = "https://nbtour-fc9f59891cf4.herokuapp.com/api/v1/payments/momo-ipn";
-            // var ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8";
-            var amount = amounts;
+            var partnerCode = "MOMO"
+            var accessKey = "F8BBA842ECF85"
+            var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz"
+            var requestId = partnerCode + new Date().getTime()
+            var orderId = requestId
+            var orderInfo = "Pay with MoMo"
+            var redirectUrl = redirect
+            var ipnUrl = "https://nbtour-fc9f59891cf4.herokuapp.com/api/v1/payments/momo-ipn"
+            // var ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8"
+            var amount = amounts
             var requestType = "captureWallet"
-            var extraData = bookingId; //pass empty value if your merchant does not have stores
+            var extraData = bookingId //pass empty value if your merchant does not have stores
 
             const transaction = await db.Transaction.findOne({
                 where: { bookingId: bookingId },
@@ -31,7 +31,7 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
                     data: {
                         msg: `Cannot find transaction with Id: ${bookingId}`,
                     }
-                });
+                })
                 return
             } else {
                 if (transaction.isSuccess === true) {
@@ -40,7 +40,7 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
                         data: {
                             msg: 'Transaction already paid',
                         }
-                    });
+                    })
                     return
                 }
             }
@@ -53,7 +53,7 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
             //signature
             var signature = crypto.createHmac('sha256', secretkey)
                 .update(rawSignature)
-                .digest('hex');
+                .digest('hex')
             // console.log("--------------------SIGNATURE----------------")
             // console.log(signature)
 
@@ -71,9 +71,9 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
                 requestType: requestType,
                 signature: signature,
                 lang: 'vi'
-            });
+            })
             //Create the HTTPS objects
-            const https = require('https');
+            const https = require('https')
             const options = {
                 hostname: 'test-payment.momo.vn',
                 port: 443,
@@ -87,40 +87,40 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
 
             //Send the request and get the response
             const req = https.request(options, res => {
-                console.log(`Status: ${res.statusCode}`);
-                console.log(`Headers: ${JSON.stringify(res.headers)}`);
-                res.setEncoding('utf8');
+                console.log(`Status: ${res.statusCode}`)
+                console.log(`Headers: ${JSON.stringify(res.headers)}`)
+                res.setEncoding('utf8')
                 res.on('data', (body) => {
-                    console.log('Body: ');
-                    console.log(body);
-                    console.log('payUrl: ');
-                    console.log(JSON.parse(body));
+                    console.log('Body: ')
+                    console.log(body)
+                    console.log('payUrl: ')
+                    console.log(JSON.parse(body))
                     resolve({
                         status: 200,
                         data: {
                             msg: "Get link payment successfully!",
                             url: JSON.parse(body).payUrl,
                         }
-                    });
-                });
+                    })
+                })
                 res.on('end', () => {
-                    console.log('No more data in response.');
-                });
+                    console.log('No more data in response.')
+                })
             })
 
             req.on('error', (e) => {
-                console.log(`problem with request: ${e.message}`);
-            });
+                console.log(`problem with request: ${e.message}`)
+            })
 
             // write data to request body
             console.log("Sending....")
-            req.write(requestBody);
-            req.end();
+            req.write(requestBody)
+            req.end()
         } catch (error) {
-            reject(error);
+            reject(error)
         }
-    });
-const refundMomo = async (bookingId) => {
+    })
+const refundMomo = async (bookingId, callback) => {
     try {
         const bookingDetail = await db.BookingDetail.findOne({
             raw: true,
@@ -145,7 +145,7 @@ const refundMomo = async (bookingId) => {
                 data: {
                     msg: `Cannot find booking with Id: ${bookingId}`,
                 }
-            };
+            }
         }
 
         const transaction = await db.Transaction.findOne({
@@ -161,7 +161,7 @@ const refundMomo = async (bookingId) => {
                 data: {
                     msg: `Cannot find transaction with Id: ${bookingId}`,
                 }
-            };
+            }
         } else {
             if (transaction.isSuccess === false) {
                 return {
@@ -169,16 +169,16 @@ const refundMomo = async (bookingId) => {
                     data: {
                         msg: `Transaction not paid with bookingId: ${bookingId}`,
                     }
-                };
+                }
             }
             let amount = parseInt(transaction.amount)
-            var partnerCode = "MOMO";
-            var accessKey = "F8BBA842ECF85";
-            var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
-            var requestId = partnerCode + new Date().getTime();
-            var orderId = requestId;
-            var description = "Refund calceled booking";
-            var transId = transaction.transactionCode;
+            var partnerCode = "MOMO"
+            var accessKey = "F8BBA842ECF85"
+            var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz"
+            var requestId = partnerCode + new Date().getTime()
+            var orderId = requestId
+            var description = "Refund calceled booking"
+            var transId = transaction.transactionCode
 
             const departureDate = new Date(bookingDetail.booking_detail_ticket.ticket_tour.departureDate)
             const currentDate = new Date()
@@ -192,7 +192,7 @@ const refundMomo = async (bookingId) => {
                     data: {
                         msg: "Cancel within last day or tour started will not get refund",
                     }
-                };
+                }
             } else if (timeDifference <= twoDaysInMillis) {
                 amount = amount * 75 / 100
             } else {
@@ -209,7 +209,7 @@ const refundMomo = async (bookingId) => {
 
             var signature = crypto.createHmac('sha256', secretkey)
                 .update(rawSignature)
-                .digest('hex');
+                .digest('hex')
 
             const requestBody = JSON.stringify({
                 partnerCode: partnerCode,
@@ -221,9 +221,9 @@ const refundMomo = async (bookingId) => {
                 transId: transId,
                 signature: signature,
                 lang: 'vi'
-            });
+            })
 
-            const https = require('https');
+            const https = require('https')
             const options = {
                 hostname: 'test-payment.momo.vn',
                 port: 443,
@@ -238,51 +238,44 @@ const refundMomo = async (bookingId) => {
             const req = https.request(options, res => {
                 res.setEncoding('utf8');
                 let responseBody = '';
-
+          
                 res.on('data', (chunk) => {
-                    responseBody += chunk;
+                  responseBody += chunk;
+                  const response = JSON.parse(responseBody);
+                  if (response.resultCode === 0) {
+                    callback({
+                      status: 200,
+                      data: {
+                        msg: `Refund to booking ${bookingId}`,
+                      }
+                    });
+                  } else {
+                    callback({
+                      status: 400,
+                      data: {
+                        msg: response.message,
+                      }
+                    });
+                  }
                 });
-
-                res.on('end', async () => {
-                    const response = JSON.parse(responseBody);
-                    if (response.resultCode === 0) {
-                        await db.Booking.update({
-                            bookingStatus: BOOKING_STATUS.CANCELED,
-                        }, {
-                            where: {
-                                bookingId: bookingId
-                            },
-                            individualHooks: true,
-                        })
-                        return {
-                            status: 200,
-                            data: {
-                                msg: response.message,
-                            }
-                        };
-                    } else {
-                        return {
-                            status: 400,
-                            data: {
-                                msg: response.message,
-                            }
-                        };
-                    }
+          
+                res.on('end', () => {
+                  console.log('No more data in response.');
                 });
+              });
 
-            })
-            req.on('error', (e) => {
+              req.on('error', (e) => {
                 console.log(`Problem with request: ${e.message}`);
-                return {
-                    status: 500, // Adjust the status code as needed
-                    data: {
-                        msg: "Internal server error",
-                    }
-                };
-            });
+                callback({
+                  status: 500,
+                  data: {
+                    msg: "Internal server error",
+                  }
+                });
+              });
 
-            req.write(requestBody);
-            req.end();
+            req.write(requestBody)
+            req.end()
         }
     } catch (error) {
         console.log(error)
@@ -292,7 +285,7 @@ const refundMomo = async (bookingId) => {
 const getMoMoPaymentResponse = (req) =>
     new Promise(async (resolve, reject) => {
         try {
-            const ipnData = req.body;
+            const ipnData = req.body
             const bookingId = ipnData.extraData
             if (ipnData.resultCode === 0) {
                 const bookingDetail = await db.BookingDetail.findOne({
@@ -368,7 +361,7 @@ const getMoMoPaymentResponse = (req) =>
                         ],
                         signature: 'Sincerely'
                     }
-                };
+                }
                 mailer.sendMail(bookingDetail.detail_booking.booking_user.email, "Tour booking tickets", htmlContent, qrDataURL)
                 //Find if there are any product of a booking
                 const productOrder = await db.ProductOrder.findOne({
@@ -415,7 +408,7 @@ const getMoMoPaymentResponse = (req) =>
                     data: {
                         msg: 'Payment processed successfully'
                     }
-                });
+                })
             } else {
                 // Payment fail
                 resolve({
@@ -424,17 +417,17 @@ const getMoMoPaymentResponse = (req) =>
                         msg: 'Payment process failed',
                         bookingId: bookingId
                     }
-                });
+                })
             }
         } catch (error) {
-            console.error(error);
+            console.error(error)
             resolve({
                 status: 500,
                 data: {
                     msg: 'Error processing payment',
                 }
-            });
+            })
         }
-    });
+    })
 
-module.exports = { createMoMoPaymentRequest, refundMomo, getMoMoPaymentResponse };
+module.exports = { createMoMoPaymentRequest, refundMomo, getMoMoPaymentResponse }
