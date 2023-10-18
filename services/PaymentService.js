@@ -119,14 +119,148 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
             reject(error);
         }
     });
+const refundMomo = async (bookingId) => {
+    try {
+        const bookingDetail = await db.BookingDetail.findOne({
+            raw: true,
+            nest: true,
+            where: {
+                bookingId: bookingId
+            },
+            include: {
+                model: db.Ticket,
+                as: "detail_ticket",
+                attributes: ["ticketId"],
+                include: {
+                    model: db.Tour,
+                    as: "ticket_tour",
+                    attributes: ["tourId", "tourName", "departureDate"],
+                }
+            }
+        })
+        if (!bookingDetail) {
+            return {
+                status: 404,
+                data: {
+                    msg: `Cannot find booking with Id: ${bookingId}`,
+                }
+            };
+        }
+
+        const transaction = await db.Transaction.findOne({
+            raw: true,
+            nest: true,
+            where: {
+                bookingId: bookingId
+            },
+        })
+        if (!transaction) {
+            return {
+                status: 404,
+                data: {
+                    msg: `Cannot find transaction with Id: ${bookingId}`,
+                }
+            };
+        } else {
+            if (transaction.isSuccess === false) {
+                return {
+                    status: 400,
+                    data: {
+                        msg: `Transaction not paid with bookingId: ${bookingId}`,
+                    }
+                };
+            }
+            let amount = parseInt(transaction.amount)
+            var partnerCode = "MOMO";
+            var accessKey = "F8BBA842ECF85";
+            var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
+            var requestId = partnerCode + new Date().getTime();
+            var orderId = requestId;
+            var orderInfo = "Refund calceled booking with MoMo";
+
+            const departureDate = new Date(bookingDetail.detail_ticket.ticket_tour.departureDate)
+            const currentDate = new Date()
+            currentDate.setHours(currentDate.getHours() + 7)
+            const timeDifference = departureDate - currentDate
+            const twoDaysInMillis = 2 * 24 * 60 * 60 * 1000 // 2 days in milliseconds
+            const oneDayInMillis = 24 * 60 * 60 * 1000 // 1 day in milliseconds
+            if (timeDifference <= twoDaysInMillis) {
+                amount = amount * 90 / 100
+            } else if (timeDifference <= oneDayInMillis) {
+                amount = amount * 75 / 100
+            }
+            var rawSignature =
+                "accessKey=" + accessKey +
+                "&amount=" + amount +
+                "&orderId=" + orderId +
+                "&orderInfo=" + orderInfo +
+                "&partnerCode=" + partnerCode +
+                "&requestId=" + requestId +
+                "&transId=" + transaction.transactionCode
+
+            var signature = crypto.createHmac('sha256', secretkey)
+                .update(rawSignature)
+                .digest('hex');
+
+            const requestBody = JSON.stringify({
+                partnerCode: partnerCode,
+                accessKey: accessKey,
+                requestId: requestId,
+                amount: amount,
+                orderId: orderId,
+                orderInfo: orderInfo,
+                transId: transaction.transactionCode,
+                signature: signature,
+                lang: 'vi'
+            });
+
+            const https = require('https');
+            const options = {
+                hostname: 'test-payment.momo.vn',
+                port: 443,
+                path: '/v2/gateway/api/refund',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(requestBody)
+                }
+            }
+
+            const req = https.request(options, res => {
+                res.setEncoding('utf8');
+                res.on('data', (body) => {
+                    console.log(JSON.parse(body));
+                    return{
+                        status: 200,
+                        data: {
+                            msg: "Refund successfully",
+                        }
+                    };
+                });
+                res.on('end', () => {
+                    console.log('No more data in response.');
+                });
+            })
+
+            req.on('error', (e) => {
+                console.log(`problem with request: ${e.message}`);
+            });
+
+            req.write(requestBody);
+            req.end();
+        }
+    } catch (error) {
+        console.log(error)
+    }
+}
 
 const getMoMoPaymentResponse = (req) =>
     new Promise(async (resolve, reject) => {
         try {
             const ipnData = req.body;
+            console.log(ipnData)
             const bookingId = ipnData.extraData
             if (ipnData.resultCode === 0) {
-
                 const bookingDetail = await db.BookingDetail.findOne({
                     where: {
                         bookingId: bookingId
@@ -179,42 +313,7 @@ const getMoMoPaymentResponse = (req) =>
                 const busPlate = bookingDetail.booking_detail_ticket.ticket_tour.tour_bus.busPlate
                 const bookingCode = bookingDetail.detail_booking.bookingCode
 
-                const getBookedTickets = await db.BookingDetail.findAll({
-                    where: {
-                        bookingId: bookingDetail.detail_booking.bookingId
-                    },
-                    include:
-                    {
-                        model: db.Ticket,
-                        as: "booking_detail_ticket",
-                        include: [
-                            {
-                                model: db.TicketType,
-                                as: "ticket_type",
-                                attributes: ["ticketTypeName", "description"]
-                            },
-                            {
-                                model: db.Tour,
-                                as: "ticket_tour",
-                                attributes: ["tourName", "departureDate", "duration", "status"],
-                                include:
-                                {
-                                    model: db.Bus,
-                                    as: "tour_bus",
-                                    attributes: ["busPlate"],
-                                }
-                            },
-                        ],
-                        attributes: {
-                            exclude: ["tourid", "ticketTypeId", "updatedAt", "createdAt"]
-                        }
-                    },
-                    attributes: {
-                        exclude: ["ticketId", "updatedAt", "createdAt"]
-                    }
-                })
-
-                const bookedTickets = JSON.stringify(getBookedTickets)
+                const bookedTickets = JSON.parse(bookingId)
 
                 qr.toFile(`./qrcode/${bookingId}.png`, bookedTickets, function (err) {
                     if (err) { console.log(err) }
@@ -248,7 +347,7 @@ const getMoMoPaymentResponse = (req) =>
                     }
                 })
 
-                if(productOrder){
+                if (productOrder) {
                     await db.ProductOrder.update({
                         status: STATUS.ACTIVE
                     }, {
@@ -257,7 +356,7 @@ const getMoMoPaymentResponse = (req) =>
                         }
                     })
                 }
-                    
+
                 await db.Booking.update({
                     status: STATUS.ACTIVE
                 }, {
@@ -307,4 +406,4 @@ const getMoMoPaymentResponse = (req) =>
         }
     });
 
-module.exports = { createMoMoPaymentRequest, getMoMoPaymentResponse };
+module.exports = { createMoMoPaymentRequest, refundMomo, getMoMoPaymentResponse };
