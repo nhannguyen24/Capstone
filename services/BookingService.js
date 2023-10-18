@@ -805,20 +805,24 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                     })
                     return
                 }
-
-                const result = await PaymentService.refundMomo(booking.bookingId)
-                if(result){
-                    resolve(result)
-                    return
-                } else {
-                    resolve({
-                        status: 400,
-                        data: {
-                            msg: `Something wrong happened to refund`,
-                        }
-                    })
-                    return
-                }
+                PaymentService.refundMomo(bookingId, (result) => {
+                    console.log(result)
+                    if (result.status === 200) {
+                        db.Booking.update({
+                            bookingStatus: bookingStatus,
+                        }, {
+                            where: {
+                                bookingId: booking.bookingId
+                            },
+                            individualHooks: true,
+                        })
+                        resolve(result)
+                        return
+                    } else {
+                        resolve(result)
+                        return
+                    }
+                });
             }
 
             if (BOOKING_STATUS.FINISHED === bookingStatus) {
