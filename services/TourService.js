@@ -279,7 +279,7 @@ const getAllTour = (
 
             })
         } catch (error) {
-            console.log(error);
+            ;
             reject(error);
         }
     });
@@ -945,10 +945,11 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
     });
 
 const createTourByFile = (req) => new Promise(async (resolve, reject) => {
+    const t = await db.sequelize.transaction()
     try {
         const uploadedFile = req.file
-        let tickets = []
         let tours = []
+        let errors = []
 
         const ticketList = await db.TicketType.findAll({
             where: {
@@ -960,14 +961,18 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
         const currentDate = new Date();
         currentDate.setHours(currentDate.getHours() + 7);
         await readXlsxFile(uploadedFile.buffer).then((rows) => {
-            for (let i = 0; i < ticketList.length; i++) {
-                let ticket = { ticketName: rows[2][8 + i], isSelect: false }
-                tickets.push(ticket)
-            }
             for (let j = 3; j <= 12; j++) {
                 let isValidRow = true
+                let isValidTicket = false
+                let isNotEmptyRow = true
+                let rowError = []
+                let tickets = []
                 for (let i = 0; i < ticketList.length; i++) {
-                    tickets[i].isSelect = rows[j][8 + i]
+                    let ticket = { ticketName: rows[2][8 + i], isSelect: rows[j][8 + i] !== null ? rows[j][8 + i] : false }
+                    if (rows[j][8 + i]) {
+                        isValidTicket = true
+                    }
+                    tickets.push(ticket)
                 }
                 let tour = {
                     tourName: rows[j][1],
@@ -979,169 +984,281 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                     route: rows[j][7],
                     tickets: tickets
                 }
-                tours.push(tour)
 
+                if (
+                    tour.tourName === null &&
+                    tour.description === null &&
+                    tour.beginBookingDate === null &&
+                    tour.endBookingDate === null &&
+                    tour.departureDate === null &&
+                    tour.duration === null &&
+                    tour.route === null &&
+                    isValidTicket == false
+                ) {
+                    isNotEmptyRow = false
+                }
+                if (isNotEmptyRow == true) {
+                    if (tour.tourName == null) {
+                        let error = `Tour name is required`
+                        rowError.push(error)
+                        isValidRow = false;
+                    }
+                    if (tour.description == null) {
+                        let error = `Description is required`
+                        rowError.push(error)
+                        isValidRow = false;
+                    }
+                    if (tour.beginBookingDate == null) {
+                        let error = `Begin booking date is required`
+                        rowError.push(error)
+                        isValidRow = false;
+                    } else if (!(tour.beginBookingDate instanceof Date)) {
+                        let error = `Begin booking date need to be correct date format`
+                        rowError.push(error)
+                        isValidRow = false;
+                    }
 
-                // if (
-                //     tour.tourName == null ||
-                //     tour.description == null ||
-                //     tour.beginBookingDate == null ||
-                //     tour.endBookingDate == null ||
-                //     tour.departureDate == null ||
-                //     tour.duration == null ||
-                //     tour.route == null
-                // ) {
-                //     isValidRow = false;
-                // }
-                // if (isValidRow) {
-                //     if (currentDate > tour.beginBookingDate) {
-                //         throw new BadRequestError(`Begin booking date need to be after current date at row ${j + 1}`);
-                //     }
-                //     if (tour.beginBookingDate === tour.endBookingDate) {
-                //         throw new BadRequestError(`Begin Booking Date cannot be the same as End Booking Date at row ${j + 1}`);
-                //     }
-                //     if (tour.beginBookingDate >= tour.endBookingDate) {
-                //         let tmp = tour.beginBookingDate
-                //         tour.beginBookingDate = tour.endBookingDate
-                //         tour.endBookingDate = tmp
-                //     }
-                //     if (tour.endBookingDate.getTime() + 24 * 60 * 60 * 1000 > tour.departureDate.getTime()) {
-                //         throw new BadRequestError(`Departure Date need to be atleast 24 hours after End Booking Date at row ${j + 1}`);
-                //     }
-                //     tours.push(tour)
-                // }
+                    if (tour.endBookingDate == null) {
+                        let error = `End booking date is required`
+                        rowError.push(error)
+                        isValidRow = false;
+                    } else if (!(tour.endBookingDate instanceof Date)) {
+                        let error = `End booking date need to be correct date format`
+                        rowError.push(error)
+                        isValidRow = false;
+                    }
+
+                    if (tour.departureDate == null) {
+                        let error = `Departure date is required`
+                        rowError.push(error)
+                        isValidRow = false;
+                    } else if (!(tour.departureDate instanceof Date)) {
+                        let error = `Departure date need to be correct date format`
+                        rowError.push(error)
+                        isValidRow = false;
+                    }
+
+                    if (tour.duration == null) {
+                        let error = `Duration is required`
+                        rowError.push(error)
+                        isValidRow = false;
+                    } else if (!(tour.duration instanceof Date)) {
+                        let error = `duration need to be correct date format`
+                        rowError.push(error)
+                        isValidRow = false;
+                    }
+
+                    if (tour.route == null) {
+                        let error = `Route is required`
+                        rowError.push(error)
+                        isValidRow = false;
+                    }
+                    if (isValidTicket == false) {
+                        let error = `Tour need to has atleast 1 ticket set to true`
+                        rowError.push(error)
+                        isValidRow = false;
+                    }
+                    if (tour.endBookingDate != null) {
+                        if (currentDate > tour.beginBookingDate) {
+                            let error = `Begin booking date need to be after current date`
+                            rowError.push(error)
+                            isValidRow = false;
+                        }
+                    }
+                    if (tour.beginBookingDate != null && tour.endBookingDate != null) {
+                        if (tour.beginBookingDate === tour.endBookingDate) {
+                            let error = `Begin Booking Date cannot be the same as End Booking Date`
+                            rowError.push(error)
+                            isValidRow = false;
+                        }
+                    }
+                    if (tour.beginBookingDate != null && tour.endBookingDate != null) {
+                        if (tour.beginBookingDate >= tour.endBookingDate) {
+                            let tmp = tour.beginBookingDate
+                            tour.beginBookingDate = tour.endBookingDate
+                            tour.endBookingDate = tmp
+                        }
+                    }
+                    if (tour.endBookingDate != null && tour.departureDate != null) {
+                        if (tour.endBookingDate.getTime() + 24 * 60 * 60 * 1000 > tour.departureDate.getTime()) {
+                            let error = `Departure Date need to be atleast 24 hours after End Booking Date`
+                            rowError.push(error)
+                            isValidRow = false;
+                        }
+                    }
+                    if (rowError.length > 0) {
+                        errors.push({ line: j - 2, rowError: rowError })
+                    }
+
+                    if (isValidRow == true) {
+                        tours.push(tour)
+                    }
+                }
             }
-            console.log(tours.length)
-            return
         })
-        //GET DEPAURTURE STATION WITHIN ROUTE
 
-        // let transaction;
-        // try {
-        //     transaction = await db.sequelize.transaction(async (t) => {
-        //         const station = await db.Route.findOne({
-        //             raw: true,
-        //             nest: true,
-        //             where: {
-        //                 routeName: tour.route
-        //             },
-        //             include: [
-        //                 {
-        //                     model: db.RouteSegment,
-        //                     as: "route_segment",
-        //                     where: {
-        //                         index: 1
-        //                     }
-        //                 },
-        //             ]
-        //         });
+        //Create Process Start HERE
+        const duplicateTourNames = new Set();
+        for (const tour of tours) {
+            let i = 1
+            const route = await db.Route.findOne({
+                raw: true,
+                nest: true,
+                where: {
+                    routeName: tour.route
+                },
+            })
+            if (!route) {
+                let error = `Route not found with: ${tour.route}`
+                errors.push({ line: i, tourError: error })
+                i++
+                continue
+            }
+            const routeSegment = await db.RouteSegment.findOne({
+                raw: true,
+                nest: true,
+                where: {
+                    routeId: route.routeId,
+                    index: 1
+                }
+            });
 
-        //         if (!station) {
-        //             resolve({
-        //                 status: 400,
-        //                 data: {
-        //                     msg: "Route Id not found"
-        //                 }
-        //             })
-        //             return;
-        //         }
-        //         const createTour = await db.Tour.findOrCreate({
-        //             where: {
-        //                 tourName: tour.tourName
-        //             },
-        //             defaults: {
-        //                 beginBookingDate: tour.beginBookingDate,
-        //                 endBookingDate: tour.endBookingDate,
-        //                 departureDate: tour.departureDate,
-        //                 description: tour.description,
-        //                 duration: tour.duration,
-        //                 tourName: tour.tourName,
-        //                 departureStationId: station.route_segment.departureStationId,
-        //             },
-        //             transaction: t,
-        //         });
+            if (!routeSegment) {
+                let error = `Route does not have route segment`
+                errors.push({ line: i, tourError: error })
+                i++
+                continue
+            }
 
-        //         const createTicketPromises = tickets.map(async (ticketTypeId) => {
-        //             const ticketType = await db.TicketType.findOne({
-        //                 where: {
-        //                     ticketTypeId: ticketTypeId
-        //                 },
-        //             })
+            const resultTour = await db.Tour.findOne({
+                raw: true,
+                nest: true,
+                where: {
+                    tourName: tour.tourName
+                },
+            })
 
-        //             if (!ticketType) {
-        //                 resolve({
-        //                     status: 404,
-        //                     data: {
-        //                         msg: `Ticket type not found with id ${ticketTypeId}`,
-        //                     }
-        //                 })
-        //                 return
-        //             }
-        //             if (STATUS.DEACTIVE == ticketType.status) {
-        //                 resolve({
-        //                     status: 409,
-        //                     data: {
-        //                         msg: `Ticket type is "Deactive"`,
-        //                     }
-        //                 })
-        //                 return
-        //             }
+            if (resultTour) {
+                let error = `Tour name existed: ${tour.tourName}`
+                errors.push({ line: i, tourError: error })
+                i++
+                continue
+            }
 
-        //             let day = DAY_ENUM.NORMAL
+            if (duplicateTourNames.has(tour.tourName)) {
+                let error = `Duplicate tour name within excel: ${tour.tourName} `
+                errors.push({ line: i, tourError: error })
+                i++
+                continue
+            }
+            duplicateTourNames.add(tour.tourName);
+            const setUpTour = {
+                tourName: tour.tourName,
+                description: tour.description,
+                beginBookingDate: tour.beginBookingDate,
+                endBookingDate: tour.endBookingDate,
+                departureDate: tour.departureDate,
+                duration: tour.duration,
+                routeId: route.routeId,
+                departureStationId: routeSegment.departureStationId
+            }
+            const createTour = await db.Tour.create(setUpTour, { transaction: t })
+            if (!createTour) {
+                let error = `Error create tour: ${tour.tourName} `
+                errors.push({ line: i, tourError: error })
+                i++
+                continue
+            }
+            const tourJson = createTour.toJSON();
 
-        //             const dayOfWeek = departureDate.getDay()
-        //             if (dayOfWeek === 0 || dayOfWeek === 6) {
-        //                 day = DAY_ENUM.WEEKEND
-        //             }
-        //             const date = departureDate.getDate()
-        //             const month = departureDate.getMonth()
-        //             const dateMonth = `${date}-${month}`
-        //             if (dateMonth.includes(SPECIAL_DAY)) {
-        //                 day = DAY_ENUM.HOLIDAY
-        //             }
+            for (const ticket of tour.tickets) {
+                if (ticket.isSelect == true) {
+                    const ticketType = await db.TicketType.findOne({
+                        where: {
+                            ticketTypeName: ticket.ticketName
+                        },
+                    })
 
-        //             const price = await db.Price.findOne({
-        //                 where: {
-        //                     ticketTypeId: ticketType.ticketTypeId,
-        //                     day: day,
-        //                 }
-        //             })
-        //             if (!price) {
-        //                 resolve({
-        //                     status: 409,
-        //                     data: {
-        //                         msg: `Ticket type doesn't have a price for ${day}`,
-        //                     }
-        //                 })
-        //                 return
-        //             } else {
-        //                 await db.Ticket.findOrCreate({
-        //                     where: {
-        //                         ticketTypeId: ticketTypeId,
-        //                         tourId: createTour[0].tourId
-        //                     },
-        //                     defaults: { ticketTypeId: ticketTypeId, tourId: createTour[0].tourId, },
-        //                     transaction: t,
-        //                 });
-        //             }
-        //         });
-        //         await Promise.all(createTicketPromises);
-        //         await t.commit();
-        //         resolve({
-        //             status: 201,
-        //             data: {
-        //                 msg: `Created tour using excel file successfully`,
-        //             }
-        //         });
-        //     });
-        // } catch (error) {
-        //     if (transaction) {
-        //         // Rollback the transaction in case of an error
-        //         await transaction.rollback();
-        //     }
-        //     reject(error);
-        // }
+                    if (!ticketType) {
+                        let error = `Ticket not found with: ${ticket.ticketName}`
+                        errors.push({ line: i, tourError: error })
+                        i++
+                        continue
+                    }
+
+                    if (STATUS.DEACTIVE == ticketType.status) {
+                        let error = `Ticket is Deactive with: ${ticket.ticketName}`
+                        errors.push({ line: i, tourError: error })
+                        i++
+                        continue
+                    }
+
+                    let day = DAY_ENUM.NORMAL
+
+                    const dayOfWeek = tour.departureDate.getDay()
+                    if (dayOfWeek === 0 || dayOfWeek === 6) {
+                        day = DAY_ENUM.WEEKEND
+                    }
+                    const date = tour.departureDate.getDate()
+                    const month = tour.departureDate.getMonth()
+                    const dateMonth = `${date}-${month}`
+                    if (dateMonth.includes(SPECIAL_DAY)) {
+                        day = DAY_ENUM.HOLIDAY
+                    }
+
+                    const price = await db.Price.findOne({
+                        where: {
+                            ticketTypeId: ticketType.ticketTypeId,
+                            day: day,
+                        }
+                    })
+
+                    if (!price) {
+                        let error = `Ticket price for ${day} not found with: ${ticket.ticketName}`
+                        errors.push({ line: i, tourError: error })
+                        i++
+                        continue
+                    }
+                    const resultTicket = await db.Ticket.findOne({
+                        raw: true,
+                        nest: true,
+                        where: {
+                            ticketTypeId: ticketType.ticketTypeId,
+                            tourId: tourJson.tourId
+                        },
+                    })
+                    if (resultTicket) {
+                        let error = `Duplicate ticket(${ticket.ticketName}) in tour(${tourJson.tourName})`
+                        errors.push({ line: i, tourError: error })
+                        i++
+                        continue
+                    }
+                    const setUpTicket = { tourId: tourJson.tourId, ticketTypeId: ticketType.ticketTypeId }
+                    const createTicket = await db.Ticket.create(
+                        setUpTicket,
+                        { transaction: t },
+                    )
+
+                    if (!createTicket) {
+                        let error = `Error create ticket(${ticket.ticketName}) in tour(${tourJson.tourName})`
+                        errors.push({ line: i, tourError: error })
+                        i++
+                        continue
+                    }
+                }
+            }
+            i++
+        }
+        await t.commit();
+        resolve({
+            status: 201,
+            data: {
+                msg: `Create tour using excel file successfully`,
+                errors: errors,
+            }
+        });
     } catch (error) {
+        await t.rollback();
         reject(error)
     }
 })

@@ -53,6 +53,9 @@ module.exports = (sequelize, DataTypes) => {
     endStationId: {
       type: DataTypes.UUID
     },
+    distance: {
+      distance: DataTypes.FLOAT,
+    },
     status: {
       type: DataTypes.ENUM,
       values: ["Active", "Deactive"],

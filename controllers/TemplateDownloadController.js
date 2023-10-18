@@ -80,7 +80,6 @@ const copyAndModifyExcelInMemory = async (mainFilePath, ticketTypes, routeNames)
                     formulae: ['"true,false"'],
                 };
                 cell.dataValidation = cellValidation;
-                cell.value = 'false';
             }
 
             const routeRow = worksheet.getRow(rowNum);

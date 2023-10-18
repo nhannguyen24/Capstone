@@ -193,6 +193,8 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createTour);
  * @swagger
  * /api/v1/tours/upload:
  *   post:
+ *     security:
+ *       - BearerAuth: []
  *     summary: Create new tour by excel
  *     tags: [Tour]
  *     requestBody:
@@ -215,7 +217,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createTour);
  *               items:
  *                 $ref: '#/components/schemas/Tour'
  */
-router.post("/upload", upload.single('file'), controllers.createTourByFile);
+router.post("/upload", upload.single('file'), verifyToken, isAdminOrManager, controllers.createTourByFile);
 
 /**
  * @swagger
