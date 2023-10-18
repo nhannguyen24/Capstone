@@ -314,12 +314,8 @@ const getMoMoPaymentResponse = (req) =>
                 const busPlate = bookingDetail.booking_detail_ticket.ticket_tour.tour_bus.busPlate
                 const bookingCode = bookingDetail.detail_booking.bookingCode
 
-                const bookedTickets = bookingId
-
-                const qrDataURL = qr.toDataURL(bookedTickets, function (err) {
-                    if (err) { console.log(err) }
-                })
-                console.log(qrDataURL)
+                const qrDataURL = await qr.toDataURL(`bookingId: ${bookingId}`)
+                
                 const htmlContent = {
                     body: {
                         name: bookingDetail.detail_booking.booking_user.userName,
@@ -341,8 +337,8 @@ const getMoMoPaymentResponse = (req) =>
                     }
                 };
                 mailer.sendMail(bookingDetail.detail_booking.booking_user.email, "Tour booking tickets", htmlContent, qrDataURL)
-
-                const productOrder = await db.ProductOrder.findAll({
+                //Find if there are any product of a booking
+                const productOrder = await db.ProductOrder.findOne({
                     where: {
                         bookingId: bookingDetail.detail_booking.bookingId
                     }
