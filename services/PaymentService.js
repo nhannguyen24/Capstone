@@ -316,7 +316,7 @@ const getMoMoPaymentResponse = (req) =>
 
                 const bookedTickets = {bookingId: bookingId}
 
-                qr.toFile(`./qrcode/${bookingId}.png`, bookedTickets, function (err) {
+                const qrDataURL = qr.toDataURL(bookedTickets, function (err) {
                     if (err) { console.log(err) }
                 })
 
@@ -340,9 +340,9 @@ const getMoMoPaymentResponse = (req) =>
                         signature: 'Sincerely'
                     }
                 };
-                mailer.sendMail(bookingDetail.detail_booking.booking_user.email, "Tour booking tickets", htmlContent)
+                mailer.sendMail(bookingDetail.detail_booking.booking_user.email, "Tour booking tickets", htmlContent, qrDataURL)
 
-                const productOrder = await db.ProductOrder.findOne({
+                const productOrder = await db.ProductOrder.findAll({
                     where: {
                         bookingId: bookingDetail.detail_booking.bookingId
                     }

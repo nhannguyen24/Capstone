@@ -3,7 +3,7 @@ const mailConfig = require('../config/MailConfig');
 const Mailgen = require('mailgen');
 require('dotenv').config();
 
-exports.sendMail = (to, subject, htmlContent, fileName) => {
+exports.sendMail = (to, subject, htmlContent, file) => {
 
     let MailGenerator = new Mailgen({
         theme: "default",
@@ -26,7 +26,7 @@ exports.sendMail = (to, subject, htmlContent, fileName) => {
     })
     let options
 
-    if (fileName) {
+    if (file) {
         options = {
             from: mailConfig.FROM_ADDRESS,
             to: to,
@@ -34,9 +34,10 @@ exports.sendMail = (to, subject, htmlContent, fileName) => {
             html: mail,
             attachments: [
                 {
-                    filename: `${fileName}.png`,
-                    path: `./qrcode/${fileName}.png`,
-                    cid: `${fileName}`,
+                    filename: 'qrcode.png',
+                    content: file,
+                    encoding: 'base64',
+                    cid: 'qrcode',
                 },
             ],
         }
