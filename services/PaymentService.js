@@ -314,7 +314,7 @@ const getMoMoPaymentResponse = (req) =>
                 const busPlate = bookingDetail.booking_detail_ticket.ticket_tour.tour_bus.busPlate
                 const bookingCode = bookingDetail.detail_booking.bookingCode
 
-                const bookedTickets = JSON.parse(bookingId)
+                const bookedTickets = {bookingId: bookingId}
 
                 qr.toFile(`./qrcode/${bookingId}.png`, bookedTickets, function (err) {
                     if (err) { console.log(err) }
