@@ -367,7 +367,8 @@ const getMoMoPaymentResponse = (req) =>
                     }
                 })
                 await db.Transaction.update({
-                    isSuccess: true
+                    isSuccess: true,
+                    transactionCode: ipnData.transId
                 }, {
                     where: {
                         bookingId: bookingId
