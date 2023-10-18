@@ -3,7 +3,7 @@ const db = require('../models');
 const STATUS = require("../enums/StatusEnum")
 const mailer = require("../utils/MailerUtil")
 const qr = require('qrcode');
-
+const BOOKING_STATUS = require("../enums/BookingStatusEnum")
 const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
     new Promise(async (resolve, reject) => {
         try {
@@ -243,10 +243,17 @@ const refundMomo = async (bookingId) => {
                     responseBody += chunk;
                 });
 
-                res.on('end', () => {
+                res.on('end', async () => {
                     const response = JSON.parse(responseBody);
-                    console.log(response);
                     if (response.resultCode === 0) {
+                        await db.Booking.update({
+                            bookingStatus: BOOKING_STATUS.CANCELED,
+                        }, {
+                            where: {
+                                bookingId: bookingId
+                            },
+                            individualHooks: true,
+                        })
                         return {
                             status: 200,
                             data: {
