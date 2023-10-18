@@ -315,7 +315,7 @@ const getMoMoPaymentResponse = (req) =>
                 const bookingCode = bookingDetail.detail_booking.bookingCode
 
                 const qrDataURL = await qr.toDataURL(`bookingId: ${bookingId}`)
-
+                
                 const htmlContent = {
                     body: {
                         name: bookingDetail.detail_booking.booking_user.userName,
