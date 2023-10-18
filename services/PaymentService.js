@@ -3,6 +3,7 @@ const db = require('../models');
 const STATUS = require("../enums/StatusEnum")
 const mailer = require("../utils/MailerUtil")
 const qr = require('qrcode');
+
 const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
     new Promise(async (resolve, reject) => {
         try {
@@ -129,7 +130,7 @@ const refundMomo = async (bookingId) => {
             },
             include: {
                 model: db.Ticket,
-                as: "detail_ticket",
+                as: "booking_detail_ticket",
                 attributes: ["ticketId"],
                 include: {
                     model: db.Tour,
@@ -176,27 +177,35 @@ const refundMomo = async (bookingId) => {
             var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
             var requestId = partnerCode + new Date().getTime();
             var orderId = requestId;
-            var orderInfo = "Refund calceled booking with MoMo";
+            var description = "Refund calceled booking";
+            var transId = transaction.transactionCode;
 
-            const departureDate = new Date(bookingDetail.detail_ticket.ticket_tour.departureDate)
+            const departureDate = new Date(bookingDetail.booking_detail_ticket.ticket_tour.departureDate)
             const currentDate = new Date()
             currentDate.setHours(currentDate.getHours() + 7)
             const timeDifference = departureDate - currentDate
             const twoDaysInMillis = 2 * 24 * 60 * 60 * 1000 // 2 days in milliseconds
             const oneDayInMillis = 24 * 60 * 60 * 1000 // 1 day in milliseconds
-            if (timeDifference <= twoDaysInMillis) {
-                amount = amount * 90 / 100
-            } else if (timeDifference <= oneDayInMillis) {
+            if (timeDifference <= oneDayInMillis) {
+                return {
+                    status: 403,
+                    data: {
+                        msg: "Cancel within last day or tour started will not get refund",
+                    }
+                };
+            } else if (timeDifference <= twoDaysInMillis) {
                 amount = amount * 75 / 100
+            } else {
+                amount = amount * 80 / 100
             }
             var rawSignature =
                 "accessKey=" + accessKey +
                 "&amount=" + amount +
+                "&description=" + description +
                 "&orderId=" + orderId +
-                "&orderInfo=" + orderInfo +
                 "&partnerCode=" + partnerCode +
                 "&requestId=" + requestId +
-                "&transId=" + transaction.transactionCode
+                "&transId=" + transId
 
             var signature = crypto.createHmac('sha256', secretkey)
                 .update(rawSignature)
@@ -208,8 +217,8 @@ const refundMomo = async (bookingId) => {
                 requestId: requestId,
                 amount: amount,
                 orderId: orderId,
-                orderInfo: orderInfo,
-                transId: transaction.transactionCode,
+                description: description,
+                transId: transId,
                 signature: signature,
                 lang: 'vi'
             });
@@ -228,22 +237,41 @@ const refundMomo = async (bookingId) => {
 
             const req = https.request(options, res => {
                 res.setEncoding('utf8');
-                res.on('data', (body) => {
-                    console.log(JSON.parse(body));
-                    return{
-                        status: 200,
-                        data: {
-                            msg: "Refund successfully",
-                        }
-                    };
-                });
-                res.on('end', () => {
-                    console.log('No more data in response.');
-                });
-            })
+                let responseBody = '';
 
+                res.on('data', (chunk) => {
+                    responseBody += chunk;
+                });
+
+                res.on('end', () => {
+                    const response = JSON.parse(responseBody);
+                    console.log(response);
+                    if (response.resultCode === 0) {
+                        return {
+                            status: 200,
+                            data: {
+                                msg: response.message,
+                            }
+                        };
+                    } else {
+                        return {
+                            status: 400,
+                            data: {
+                                msg: response.message,
+                            }
+                        };
+                    }
+                });
+
+            })
             req.on('error', (e) => {
-                console.log(`problem with request: ${e.message}`);
+                console.log(`Problem with request: ${e.message}`);
+                return {
+                    status: 500, // Adjust the status code as needed
+                    data: {
+                        msg: "Internal server error",
+                    }
+                };
             });
 
             req.write(requestBody);
@@ -313,7 +341,7 @@ const getMoMoPaymentResponse = (req) =>
                 const bookingCode = bookingDetail.detail_booking.bookingCode
 
                 const qrDataURL = await qr.toDataURL(`bookingId: ${bookingId}`)
-                
+
                 const htmlContent = {
                     body: {
                         name: bookingDetail.detail_booking.booking_user.userName,

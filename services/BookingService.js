@@ -748,11 +748,10 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
             }
             const currentDate = new Date()
             currentDate.setHours(currentDate.getHours() + 7)
-            const departureDate = new Date(bookingDetail.booking_detail_ticket.ticket_tour.departureDate)
 
             //Need to update the time when the tour is finished
             if (BOOKING_STATUS.ON_GOING === bookingStatus) {
-                if (currentDate > departureDate) {
+                if (TOUR_STATUS.NOT_STARTED !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
                     resolve({
                         status: 400,
                         data: {
@@ -800,7 +799,7 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                     return
                 }
 
-                if (currentDate > departureDate) {
+                if (TOUR_STATUS.NOT_STARTED !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
                     resolve({
                         status: 400,
                         data: {
@@ -810,11 +809,15 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                     return
                 }
 
-                PaymentService.refundMomo(booking.bookingId)
+                const result = await PaymentService.refundMomo(booking.bookingId)
+                if(result){
+                    resolve(result)
+                    return
+                } 
             }
 
             if (BOOKING_STATUS.FINISHED === bookingStatus) {
-                if (currentDate < departureDate) {
+                if (TOUR_STATUS.FINISHED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
                     resolve({
                         status: 400,
                         data: {
