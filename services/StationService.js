@@ -194,7 +194,6 @@ const updateStation = ({ stationId, ...body }) =>
         }
     });
 
-
 const deleteStation = (stationIds) =>
     new Promise(async (resolve, reject) => {
         try {

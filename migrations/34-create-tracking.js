@@ -2,27 +2,29 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Routes', {
-      routeId: {
+    await queryInterface.createTable('Trackings', {
+      trackingId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      routeName: {
-        type: Sequelize.STRING,
-	      allowNull: false,
-      },
-      distance: {
-        type: Sequelize.FLOAT,
-	      allowNull: false,
-      },
-      geoJson: {
+      coordinates: {
         type: Sequelize.JSON,
         allowNull: false,
       },
-      stars: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
+      tourId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'tours',
+          key: 'tourId'
+        }
+      },
+      busId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'buses',
+          key: 'busId'
+        }
       },
       status: {
         type: Sequelize.ENUM,
@@ -42,6 +44,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Routes');
+    await queryInterface.dropTable('Trackings');
   }
 };

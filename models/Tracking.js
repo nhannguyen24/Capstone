@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class Route extends Model {
+  class Tracking extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,53 +11,55 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Route.belongsToMany(models.Station, {
-        through: 'RouteDetail',
-        foreignKey: 'routeId',
-        otherKey: 'stationId',
-        as: "route_station",
+      Tracking.belongsTo(models.Tour, {
+        foreignKey: "tourId",
+        as: "tracking_tour",
       });
 
-      Route.hasMany(models.RouteSegment, { as: 'route_segment', foreignKey: 'routeId'});
-
-      Route.hasMany(models.Tour, { as: 'route_tour', foreignKey: 'routeId'});
+      Tracking.belongsTo(models.Bus, {
+        foreignKey: 'busId',
+        as: 'tracking_bus'
+      });
     }
   }
-  Route.init({
-    routeId: {
+  Tracking.init({
+    trackingId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    routeName: DataTypes.STRING,
-    distance: DataTypes.FLOAT,
-    geoJson: DataTypes.JSON,
-    stars: DataTypes.INTEGER,
+    coordinates: DataTypes.JSON,
+    tourId: {
+      type: DataTypes.UUID
+    },
+    busId: {
+      type: DataTypes.UUID
+    },
     status: {
       type: DataTypes.ENUM,
       values: ["Active", "Deactive"],
       validate: {
         isIn: {
           args: [["Active", "Deactive"]],
-          msg: 'Invalid value for route.status (Active, Deactive)'
+          msg: 'Invalid value for tourDetail.status (Active, Deactive)'
         }
       }
     },
   }, {
     sequelize,
-    modelName: 'Route',
+    modelName: 'Tracking',
   });
-  Route.beforeCreate((route, options) => {
+  Tracking.beforeCreate((tracking, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    route.createdAt = currentDate;
-    route.updatedAt = currentDate;
+    tracking.createdAt = currentDate;
+    tracking.updatedAt = currentDate;
   });
 
-  Route.beforeUpdate((route, options) => {
+  Tracking.beforeUpdate((tracking, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    route.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
+    tracking.setDataValue('updatedAt', currentDate); // Correctly update the updatedAt field
   });
-  return Route;
+  return Tracking;
 };
