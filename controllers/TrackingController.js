@@ -13,10 +13,6 @@ const getAllTracking = async (req, res) => {
 
 const createTracking = async (req, res) => {
     try {
-        const {trackingId} = req.body;
-        if(!trackingId) {
-            throw new BadRequestError('Please provide trackingId');
-        }
         const response = await services.createTracking(req.body);
         return res.status(response.status).json(response.data);
     } catch (error) {
@@ -24,4 +20,17 @@ const createTracking = async (req, res) => {
     }
 };
 
-module.exports = {getAllTracking, createTracking};
+const updateTracking = async (req, res) => {
+    try {
+        const {trackingId} = req.body;
+        if(!trackingId) {
+            throw new BadRequestError('Please provide trackingId');
+        }
+        const response = await services.updateTracking(req.body);
+        return res.status(response.status).json(response.data);
+    } catch (error) {
+        throw new InternalServerError(error);
+    }
+};
+
+module.exports = {getAllTracking, createTracking, updateTracking};

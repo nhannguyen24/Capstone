@@ -38,26 +38,31 @@ const getAllTracking = (
         }
     });
 
-const createTracking = ({ trackingId, ...body }) =>
+const createTracking = (body) =>
     new Promise(async (resolve, reject) => {
         try {
-            const tracking = await db.Tracking.findOne({
-                where: {
-                    trackingId: trackingId
-                }
-            });
-            // console.log(tracking);
-
             let arrayCoordinate = [];
             let latitude = body.latitude;
             let longitude = body.longitude;
 
-            if (tracking == null) {
+            const duplicateTour = await db.Tracking.findOne({
+                raw: true,
+                where: {
+                    tourId: body.tourId
+                }
+            });
+            if (duplicateTour) {
+                resolve({
+                    status: 200,
+                    data: {
+                        msg: `Tour Id has already exist!`,
+                    }
+                });
+            } else {
                 arrayCoordinate.push([latitude, longitude]);
                 let coordinates = {
                     coordinates: arrayCoordinate
                 };
-                console.log(coordinates);
 
                 const bus = await db.Tour.findOne({
                     raw: true,
@@ -66,43 +71,83 @@ const createTracking = ({ trackingId, ...body }) =>
                         tourId: body.tourId
                     }
                 });
-                console.log(bus);
 
-                await db.Tracking.create({coordinates, busId: bus.busId, ...body})
-                // resolve({
-                //     status: 409,
-                //     data: {
-                //         msg: "Tracking not found!"
-                //     }
-                // });
-            } else {
-                // if () {
-
-                // }
-                // const trackings = await db.Tracking.update(body, {
-                //     where: { trackingId },
-                //     individualHooks: true,
-                // });
-
-                // resolve({
-                //     status: trackings[1].length !== 0 ? 200 : 400,
-                //     data: {
-                //         msg:
-                //             trackings[1].length !== 0
-                //                 ? `Tracking update`
-                //                 : "Cannot update tracking/ trackingId not found",
-                //     }
-                // });
-                console.log('lol');
-
+                await db.Tracking.create({ coordinates, busId: bus.busId, ...body })
+                resolve({
+                    status: 200,
+                    data: {
+                        msg: "Tracking create successfully!"
+                    }
+                });
             }
         } catch (error) {
-            reject(error.message);
+            resolve({
+                status: 400,
+                data: {
+                    msg: error.message,
+                }
+            });
+            // reject(error.message);
+        }
+    });
+
+const updateTracking = ({ trackingId, ...body }) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            const tracking = await db.Tracking.findOne({
+                raw: true,
+                where: {
+                    trackingId: trackingId
+                }
+            });
+
+            if (!tracking) {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: `Tracking not found!`,
+                    }
+                });
+                return;
+            }
+
+            let arrayCoordinate = [];
+            let latitude = body.latitude;
+            let longitude = body.longitude;
+
+            const coordinate = tracking.coordinates.coordinates;
+            arrayCoordinate.push(latitude, longitude);
+            coordinate.push(arrayCoordinate);
+            let coordinateAfter = {
+                coordinates: coordinate
+            };
+
+            await db.Tracking.update({ coordinates: coordinateAfter, ...body }, {
+                where: { trackingId },
+                individualHooks: true,
+            });
+
+            resolve({
+                status: 200,
+                data: {
+                    msg: `Tracking update successfully`,
+                }
+            });
+
+        } catch (error) {
+            resolve({
+                status: 400,
+                data: {
+                    msg: error.message,
+                }
+            });
+            // reject(error.message);
         }
     });
 
 module.exports = {
     createTracking,
     getAllTracking,
+    updateTracking,
 };
 
