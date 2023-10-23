@@ -571,6 +571,16 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 return
             }
             seatBookingQuantity += e.quantity
+            if(seatBookingQuantity > 6){
+                resolve({
+                    status: 404,
+                    data: {
+                        msg: `Can only booking maximum of 6 tickets`,
+                    }
+                })
+                return
+            }
+
             const price = await db.Price.findOne({
                 where: {
                     priceId: e.priceId,
@@ -593,13 +603,13 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
         */
         let totalBookedSeat = 0
         const bookingDetails = await db.BookingDetail.findAll({
+            raw: true,
             include: {
                 model: db.Ticket,
                 as: "booking_detail_ticket",
                 where: {
                     tourId: tour.tourId,
                 },
-                attributes: []
             },
             attributes: ["bookingDetailId", "quantity"],
             where: {
