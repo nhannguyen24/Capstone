@@ -81,7 +81,6 @@ router.get("/", verifyToken, controllers.getAllTracking);
  *              tourId: ed1fa858-326b-408b-a2db-0290a6b5373b
  *              latitude: 10.7688046
  *              longitude: 106.6903351
- *              status: Active
  *     responses:
  *       200:
  *         description: Update the tracking successfully

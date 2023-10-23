@@ -72,11 +72,12 @@ const createTracking = (body) =>
                     }
                 });
 
-                await db.Tracking.create({ coordinates, busId: bus.busId, ...body })
+                const create = await db.Tracking.create({ coordinates, busId: bus.busId, ...body })
                 resolve({
                     status: 200,
                     data: {
-                        msg: "Tracking create successfully!"
+                        msg: "Tracking create successfully!",
+                        tracking: create.dataValues,
                     }
                 });
             }
