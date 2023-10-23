@@ -5,19 +5,26 @@ const pushNotification = (req, res) => {
     //   .object({ title, body, device_token })
     //   .validate( req.body );
     // if (error) throw new BadRequestError(error.details[0].message);
-    const currentDate = new Date();
-    currentDate.setHours(currentDate.getHours() + 7);
+    // const currentDate = new Date();
+    // currentDate.setHours(currentDate.getHours() + 7);
 
-    let android = {
-        ttl: 360000,
-        data: {
-            title: req.body.title,
-            body: req.body.content,
-        }
-    }
+    // let android = {
+    //     ttl: 360000,
+    //     data: {
+    //         title: req.body.title,
+    //         body: req.body.content,
+    //     }
+    // }
 
     const message = {
-        android: android,
+        notification: {
+            title: req.body.title,
+            body: req.body.content,
+        },
+        // android: android,
+        data: {
+            notiType: req.body.notiType,
+        },
         token: req.body.device_token,
     };
 
@@ -41,10 +48,6 @@ const pushNotification = (req, res) => {
 };
 
 const pushNotiMutipleDevices = (req, res) => {
-    // const { error } = joi
-    //   .object({ title, body, device_token })
-    //   .validate( req.body );
-    // if (error) throw new BadRequestError(error.details[0].message);
     let android = {
         type: req.body.type,
         data: {
