@@ -346,7 +346,7 @@ const getMoMoPaymentResponse = (req) =>
                 const bookedStationId = bookingDetail.detail_booking.booking_departure_station.stationId
                 const tourDepartureTime = new Date(bookingDetail.booking_detail_ticket.ticket_tour.departureDate).getTime()
                 const busArrivalTimeToBookedStation = calculateTotalTime(routeSegment, tourDepartureTime, bookedStationId)
-                const formatDepartureDate = `${busArrivalTimeToBookedStation.getDate().toString().padStart(2, '0')}/${(busArrivalTimeToBookedStation.getMonth() + 1).toString().padStart(2, '0')}/${busArrivalTimeToBookedStation.getFullYear()}  |  ${busArrivalTimeToBookedStation.getHours().toString().padStart(2, '0')}:${busArrivalTimeToBookedStation.getMinutes().toString().padStart(2, '0')}`
+                const formatDepartureDate = `${busArrivalTimeToBookedStation.getDate().toString().padStart(2, '0')}/${(busArrivalTimeToBookedStation.getMonth() + 1).toString().padStart(2, '0')}/${busArrivalTimeToBookedStation.getFullYear()}  |  ${busArrivalTimeToBookedStation.getHours().toString().padStart(2, '0')}:${busArrivalTimeToBookedStation.getMinutes().toString().padStart(2, '0')}:${busArrivalTimeToBookedStation.getSeconds().toString().padStart(2, '0')}`
                 const tourDuration = bookingDetail.booking_detail_ticket.ticket_tour.duration
                 const totalPrice = bookingDetail.detail_booking.totalPrice
                 const stationName = bookingDetail.detail_booking.booking_departure_station.stationName
@@ -354,7 +354,8 @@ const getMoMoPaymentResponse = (req) =>
                 const bookingCode = bookingDetail.detail_booking.bookingCode
 
                 const qrDataURL = await qr.toDataURL(`bookingId: ${bookingId}`)
-
+                console.log("TOUR_TIME", tourDepartureTime)
+                console.log("FORMAT_TIME", formatDepartureDate)
                 const htmlContent = {
                     body: {
                         name: bookingDetail.detail_booking.booking_user.userName,
