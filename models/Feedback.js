@@ -37,6 +37,9 @@ module.exports = (sequelize, DataTypes) => {
     routeId: {
       type: DataTypes.UUID
     },
+    stars: {
+      type: DataTypes.INTEGER
+    },
     status: {
       type: DataTypes.ENUM,
       values: ["Active", "Deactive"],

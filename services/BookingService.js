@@ -518,6 +518,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                     stationId: departureStationId
                 }
             })
+
             if (!station) {
                 resolve({
                     status: 404,
@@ -527,13 +528,17 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 });
                 return
             }
-            const routeSegment = await db.RouteSegment.findOne({
+            const routeSegment = await db.RouteSegment.findAll({
+                raw: true,
+                nest: true,
                 where: {
                     routeId: tour.routeId,
-                    departureStationId: station.stationId
-                }
+                    status: STATUS.ACTIVE,
+                },
+                order: [['index', 'ASC']]
             })
-            if (!routeSegment) {
+
+            if (!routeSegment || routeSegment.length === 0) {
                 resolve({
                     status: 404,
                     data: {
@@ -806,7 +811,6 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                     return
                 }
                 PaymentService.refundMomo(bookingId, (result) => {
-                    console.log(result)
                     if (result.status === 200) {
                         db.Booking.update({
                             bookingStatus: bookingStatus,

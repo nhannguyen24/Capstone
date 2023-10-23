@@ -4,7 +4,7 @@ const auth = require('./AuthRouter');
 const role = require('./RoleRouter');
 const user = require('./UserRouter');
 const station = require('./StationRouter');
-//const feedback = require('./FeedbackRouter');
+const feedback = require('./FeedbackRouter');
 const bus = require('./BusRouter')
 const booking = require('./BookingRouter')
 const ticketType = require('./TicketTypeRouter')
@@ -50,7 +50,7 @@ const initRoutes = (app) => {
     app.use('/api/v1/tickets', ticket);
     app.use('/api/v1/ticket-types', ticketType);
     app.use('/api/v1/stations', station);
-    //app.use('/api/v1/feedbacks', feedback);
+    app.use('/api/v1/feedbacks', feedback);
     app.use('/api/v1/roles', role);
     app.use('/api/v1/transactions', transaction);
     app.use('/api/v1/points', point);

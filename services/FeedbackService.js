@@ -1,269 +1,341 @@
-// const db = require('../models');
-// const { Op, sequelize } = require('sequelize');
-// const STATUS = require("../enums/StatusEnum")
-// const TOUR_STATUS = require("../enums/TourStatusEnum")
+const db = require('../models');
+const { Op, sequelize } = require('sequelize');
+const STATUS = require("../enums/StatusEnum")
+const TOUR_STATUS = require("../enums/TourStatusEnum")
 
-// const getFeedbacks = (req) => new Promise(async (resolve, reject) => {
-//     try {
-//         const feedbacks = await db.Feedback.findAll({
-//             order: [
-//                 ["updatedAt", "DESC"]
-//             ],
-//         });
+const getFeedbacks = (req) => new Promise(async (resolve, reject) => {
+    try {
+        const page = parseInt(req.query.page)
+        const limit = parseInt(req.query.limit)
+        const offset = parseInt((page - 1) * limit)
+        const routeId = req.query.routeId || ""
+        const status = req.query.status || ""
 
-//         resolve({
-//             status: 200,
-//             data: {
-//                 msg: `Get list of feedbacks successfully`,
-//                 feedbacks: feedbacks
-//             }
-//         });
+        let whereClause = {}
 
-//     } catch (error) {
-//         reject(error);
-//     }
-// });
+        if (routeId !== "") {
+            whereClause.routeId = routeId
+        }
 
-// const getFeedbacksByTourId = (req) => new Promise(async (resolve, reject) => {
-//     try {
-//         const tourId = req.params.tourId
-//         const feedbacks = await db.Feedback.findAll({
-//             where: {
-//                 tourId: tourId
-//             },
+        if (status.trim !== "") {
+            whereClause.status = status
+        }
 
-//             attributes: [
-//                 [db.sequelize.fn('AVG', db.sequelize.col('stars')), 'avgStars']
-//             ],
-//             include: [
-//                 {
-//                     model: db.User,
-//                     as: "feedback_user",
-//                     attribute: {
-//                         exclude: ["email", "password", "birthday", "avatar", "address", "phone", "accessChangePassword", "refreshToken", "roleId"]
-//                     }
-//                 },
-//             ],
-//         });
+        const feedbacks = await db.Feedback.findAll({
+            where: whereClause,
+            include: [
+                {
+                    model: db.User,
+                    as: "feedback_user",
+                    attributes: ["userId", "userName"]
+                },
+                {
+                    model: db.Route,
+                    as: "feedback_route",
+                    attributes: ["routeId", "routeName"]
+                },
+            ],
+            attributes: {
+                exclude: ["userId", "routeId"]
+            },
+            order: [
+                ["updatedAt", "DESC"]
+            ],
+            limit: limit,
+            offset: offset
+        });
 
-//         const averageStars = feedbacks.length > 0 ? feedbacks[0].dataValues.avgStars : null;
+        resolve({
+            status: 200,
+            data: {
+                msg: `Get list of feedbacks successfully`,
+                paging: {
+                    page: page,
+                    limit: limit
+                },
+                feedbacks: feedbacks
+            }
+        });
 
-//         resolve({
-//             status: feedbacks.length > 0 ? 200 : 404,
-//             data: feedbacks.length > 0 ? {
-//                 msg: `Get feedbacks successfully`,
-//                 averageStars: averageStars,
-//                 feedbacks: feedbacks
-//             } : {
-//                 msg: `No feedbacks found with tourId: "${tourId}"`,
-//             }
-//         });
+    } catch (error) {
+        reject(error);
+    }
+});
 
-//     } catch (error) {
-//         reject(error);
-//     }
-// });
+const getFeedbackById = (req) => new Promise(async (resolve, reject) => {
+    try {
+        const feedbackId = req.params.feedbackId
+        const feedback = await db.Feedback.findOne({
+            where: {
+                feedbackId: feedbackId
+            },
+            include: [
+                {
+                    model: db.User,
+                    as: "feedback_user",
+                    attributes: ["userId", "userName"]
+                },
+                {
+                    model: db.Route,
+                    as: "feedback_route",
+                    attributes: ["routeId", "routeName"]
+                },
+            ],
+        });
 
-// const createFeedback = (req) => new Promise(async (resolve, reject) => {
-//     try {
-//         const customerId = req.body.customerId
-//         const tourId = req.body.tourId
-//         const stars = req.body.stars
-//         const description = req.body.description
+        resolve({
+            status: feedback ? 200 : 404,
+            data: feedback ? {
+                msg: `Get feedbacks successfully`,
+                feedback: feedback
+            } : {
+                msg: `No feedbacks found with Id: ${feedbackId}`,
+            }
+        });
 
-//         //check user
-//         const user = await db.User.findOne({
-//             where: {
-//                 userId: customerId
-//             }
-//         })
+    } catch (error) {
+        reject(error);
+    }
+});
 
-//         if (!user) {
-//             resolve({
-//                 status: 404,
-//                 data: {
-//                     msg: `User not found with id: "${customerId}",`
-//                 }
-//             })
-//             return
-//         }
+const createFeedback = (req) => new Promise(async (resolve, reject) => {
+    const t = await db.sequelize.transaction();
+    try {
+        const customerId = req.body.customerId
+        const routeId = req.body.routeId
+        const stars = req.body.stars
+        const description = req.body.description
 
-//         //check tour
-//         const tour = await db.Tour.findOne({
-//             where: {
-//                 tourId: tourId
-//             }
-//         })
+        if (stars.isNaN) {
+            resolve({
+                status: 400,
+                data: {
+                    msg: `Star need to be a number",`
+                }
+            })
+            return
+        }
+        //check user
+        const user = await db.User.findOne({
+            where: {
+                userId: customerId
+            }
+        })
 
-//         if (!tour) {
-//             resolve({
-//                 status: 404,
-//                 data: {
-//                     msg: `Tour not found with id: "${tourId}",`
-//                 }
-//             })
-//             return
-//         }
+        if (!user) {
+            resolve({
+                status: 404,
+                data: {
+                    msg: `User not found with id: "${customerId}",`
+                }
+            })
+            return
+        }
 
-//         //Check if the user has gone on a tour
-//         const isGoneOnTour = await db.BookingDetail.findOne({
-//             include: [
-//                 {
-//                     model: db.Ticket,
-//                     as: "booking_detail_ticket",
-//                     where: {
-//                         tourId: tourId,
-//                     },
-//                     include: [
-//                         {
-//                             model: db.Tour,
-//                             as: "ticket_tour",
-//                             where: {
-//                                 tourStatus: TOUR_STATUS.FINISHED,
-//                             },
-//                         }
-//                     ]
-//                 },
-//             ],
-//         })
+        //check route
+        const route = await db.Route.findOne({
+            where: {
+                routeId: routeId
+            }
+        })
 
-//         if (!isGoneOnTour) {
-//             resolve({
-//                 status: 409,
-//                 data: {
-//                     msg: 'User has not gone on this tour yet',
-//                 }
-//             });
-//             return
-//         }
+        if (!route) {
+            resolve({
+                status: 404,
+                data: {
+                    msg: `Route not found with id: "${routeId}",`
+                }
+            })
+            return
+        }
 
-//         const [feedback, created] = await db.Feedback.findOrCreate({
-//             where: { customerId: customerId, tourId: tourId },
-//             defaults: { stars: stars, description: description }
-//         });
+        //Check if the user has gone on a tour
+        const isGoneOnTour = await db.BookingDetail.findOne({
+            raw: true,
+            nest: true,
+            include: [
+                {
+                    model: db.Booking,
+                    as: "detail_booking",
+                    where: {
+                        isAttended: true
+                    },
+                    attributes: ["bookingId"],
+                    include: {
+                        model: db.User,
+                        as: "booking_user",
+                        where: {
+                            userId: customerId
+                        },
+                        attributes: ["userId", "userName"]
+                    }
+                },
+                {
+                    model: db.Ticket,
+                    as: "booking_detail_ticket",
+                    attributes: {
+                        exclude: ["ticketId"]
+                    },
+                    include: [
+                        {
+                            model: db.Tour,
+                            as: "ticket_tour",
+                            where: {
+                                tourStatus: TOUR_STATUS.FINISHED,
+                                routeId: routeId
+                            },
+                        }
+                    ]
+                },
+            ],
+            attributes: {
+                exclude: ["bookingId", "ticketId", "createdAt", "updatedAt"]
+            }
 
-//         resolve({
-//             status: created ? 201 : 400,
-//             data: {
-//                 msg: created ? 'Create feedback successfully' : 'Feedback already exists',
-//                 feedback: feedback
-//             }
-//         });
-//     } catch (error) {
-//         reject(error);
-//     }
-// });
+        })
 
-// const updateFeedback = (req) => new Promise(async (resolve, reject) => {
-//     const t = await db.sequelize.transaction();
-//     try {
-//         const feedbackId = req.params.feedbackId
-//         const feedback = await db.Feedback.findOne({
-//             where: {
-//                 feedbackId: feedbackId
-//             }
-//         })
+        if (!isGoneOnTour) {
+            resolve({
+                status: 409,
+                data: {
+                    msg: 'User has not gone on this tour yet',
+                }
+            });
+            return
+        }
 
-//         if (!feedback) {
-//             resolve({
-//                 status: 404,
-//                 data: {
-//                     msg: `Feedback not found with id ${feedbackId}`,
-//                 }
-//             })
-//             return
-//         }
+        const [feedback, created] = await db.Feedback.findOrCreate({ 
+                where: {
+                    userId: customerId,
+                    routeId: routeId
+                } ,
+                default: {stars: stars, description: description, userId: customerId, routeId: routeId}
+            });
 
-//         var stars = req.query.stars
-//         if (isNaN(stars)) {
-//             resolve({
-//                 status: 400,
-//                 data: {
-//                     msg: "Stars need to be a numeric",
-//                 }
-//             })
-//             return
-//         }
-//         if (stars === undefined || stars === null) {
-//             stars = feedback.stars
-//         }
-//         var description = req.query.description
-//         if (description === undefined || description === null) {
-//             description = feedback.description
-//         }
-//         var status = req.query.status
-//         if (status === undefined || status === null) {
-//             status = feedback.status
-//         }
+        await t.commit()
+        resolve({
+            status: created ? 201 : 400,
+            data: {
+                msg: created ? 'Create feedback successfully' : 'Customer already left feedback for this route',
+                feedback: created ? feedback : "" 
+            }
+        });
+    } catch (error) {
+        await t.rollback()
+        reject(error);
+    }
+});
 
-//         await db.Feedback.update({
-//             stars: stars,
-//             description: description,
-//             status: status
-//         }, {
-//             where: {
-//                 feedbackId: feedback.feedbackId
-//             },
-//             individualHooks: true,
-//             transaction: t
-//         })
+const updateFeedback = (req) => new Promise(async (resolve, reject) => {
+    const t = await db.sequelize.transaction();
+    try {
+        const feedbackId = req.params.feedbackId
+        const feedback = await db.Feedback.findOne({
+            where: {
+                feedbackId: feedbackId
+            }
+        })
 
-//         await t.commit()
+        if (!feedback) {
+            resolve({
+                status: 404,
+                data: {
+                    msg: `Feedback not found with id ${feedbackId}`,
+                }
+            })
+            return
+        }
 
-//         resolve({
-//             status: 200,
-//             data: {
-//                 msg: "Update feedback successfully",
-//             }
-//         })
+        var stars = req.query.stars
+        if (isNaN(stars)) {
+            resolve({
+                status: 400,
+                data: {
+                    msg: "Stars need to be a numeric",
+                }
+            })
+            return
+        }
+        if (stars === undefined || stars === null) {
+            stars = feedback.stars
+        }
+        var description = req.query.description
+        if (description === undefined || description === null) {
+            description = feedback.description
+        }
+        var status = req.query.status
+        if (status === undefined || status === null) {
+            status = feedback.status
+        }
 
-//     } catch (error) {
-//         await t.rollback()
-//         reject(error);
-//     }
-// });
+        await db.Feedback.update({
+            stars: stars,
+            description: description,
+            status: status
+        }, {
+            where: {
+                feedbackId: feedback.feedbackId
+            },
+            individualHooks: true,
+            transaction: t
+        })
 
-// const deleteFeedback = (req) => new Promise(async (resolve, reject) => {
-//     try {
-//         const feedbackId = req.params.feedbackId
+        await t.commit()
 
-//         const feedback = await db.Feedback.findOne({
-//             where: {
-//                 feedbackId: feedbackId
-//             }
-//         })
+        resolve({
+            status: 200,
+            data: {
+                msg: "Update feedback successfully",
+            }
+        })
 
-//         if (!feedback) {
-//             resolve({
-//                 status: 404,
-//                 data: {
-//                     msg: `Feedback not found with id ${feedbackId}`,
-//                 }
-//             })
-//             return
-//         }
+    } catch (error) {
+        await t.rollback()
+        reject(error);
+    }
+});
 
-//         await db.Feedback.update({
-//             status: STATUS.DEACTIVE
-//         }, {
-//             where: {
-//                 feedbackId: feedback.feedbackId
-//             },
-//             individualHooks: true,
-//         })
+const deleteFeedback = (req) => new Promise(async (resolve, reject) => {
+    try {
+        const feedbackId = req.params.feedbackId
 
-//         resolve({
-//             status: 200,
-//             data: {
-//                 msg: "Delete feedback successfully",
-//             }
-//         })
+        const feedback = await db.Feedback.findOne({
+            where: {
+                feedbackId: feedbackId
+            }
+        })
+
+        if (!feedback) {
+            resolve({
+                status: 404,
+                data: {
+                    msg: `Feedback not found with id ${feedbackId}`,
+                }
+            })
+            return
+        }
+
+        await db.Feedback.update({
+            status: STATUS.DEACTIVE
+        }, {
+            where: {
+                feedbackId: feedback.feedbackId
+            },
+            individualHooks: true,
+        })
+
+        resolve({
+            status: 200,
+            data: {
+                msg: "Delete feedback successfully",
+            }
+        })
 
 
-//     } catch (error) {
-//         reject(error);
-//     }
-// });
+    } catch (error) {
+        reject(error);
+    }
+});
 
 
-// module.exports = { getFeedbacks, getFeedbacksByTourId, createFeedback, updateFeedback, deleteFeedback };
+module.exports = { getFeedbacks, getFeedbackById, createFeedback, updateFeedback, deleteFeedback };
