@@ -302,7 +302,7 @@ const getMoMoPaymentResponse = (req) =>
                             {
                                 model: db.Tour,
                                 as: "ticket_tour",
-                                attributes: ["tourName", "departureDate", "duration", "status"],
+                                attributes: ["tourName", "routeId", "departureDate", "duration", "status"],
                                 include:
                                 {
                                     model: db.Bus,
