@@ -238,41 +238,41 @@ const refundMomo = async (bookingId, callback) => {
             const req = https.request(options, res => {
                 res.setEncoding('utf8');
                 let responseBody = '';
-          
-                res.on('data', (chunk) => {
-                  responseBody += chunk;
-                  const response = JSON.parse(responseBody);
-                  if (response.resultCode === 0) {
-                    callback({
-                      status: 200,
-                      data: {
-                        msg: `Refund to booking ${bookingId}`,
-                      }
-                    });
-                  } else {
-                    callback({
-                      status: 400,
-                      data: {
-                        msg: response.message,
-                      }
-                    });
-                  }
-                });
-          
-                res.on('end', () => {
-                  console.log('No more data in response.');
-                });
-              });
 
-              req.on('error', (e) => {
+                res.on('data', (chunk) => {
+                    responseBody += chunk;
+                    const response = JSON.parse(responseBody);
+                    if (response.resultCode === 0) {
+                        callback({
+                            status: 200,
+                            data: {
+                                msg: `Refund to booking ${bookingId}`,
+                            }
+                        });
+                    } else {
+                        callback({
+                            status: 400,
+                            data: {
+                                msg: response.message,
+                            }
+                        });
+                    }
+                });
+
+                res.on('end', () => {
+                    console.log('No more data in response.');
+                });
+            });
+
+            req.on('error', (e) => {
                 console.log(`Problem with request: ${e.message}`);
                 callback({
-                  status: 500,
-                  data: {
-                    msg: "Internal server error",
-                  }
+                    status: 500,
+                    data: {
+                        msg: "Internal server error",
+                    }
                 });
-              });
+            });
 
             req.write(requestBody)
             req.end()
@@ -289,6 +289,8 @@ const getMoMoPaymentResponse = (req) =>
             const bookingId = ipnData.extraData
             if (ipnData.resultCode === 0) {
                 const bookingDetail = await db.BookingDetail.findOne({
+                    raw: true,
+                    nest: true,
                     where: {
                         bookingId: bookingId
                     },
@@ -300,7 +302,7 @@ const getMoMoPaymentResponse = (req) =>
                             {
                                 model: db.Tour,
                                 as: "ticket_tour",
-                                attributes: ["tourName", "departureDate", "duration", "status"],
+                                attributes: ["tourName", "routeId", "departureDate", "duration", "status"],
                                 include:
                                 {
                                     model: db.Bus,
@@ -323,7 +325,7 @@ const getMoMoPaymentResponse = (req) =>
                                 {
                                     model: db.Station,
                                     as: "booking_departure_station",
-                                    attributes: ["stationName"]
+                                    attributes: ["stationId", "stationName"]
                                 },
                             ],
                             attributes: ["bookingId", "bookingCode", "customerId", "departureStationId", "totalPrice"]
@@ -331,9 +333,20 @@ const getMoMoPaymentResponse = (req) =>
                     ]
                 })
 
+                const routeSegment = await db.RouteSegment.findAll({
+                    raw: true,
+                    nest: true,
+                    where: {
+                        routeId: bookingDetail.booking_detail_ticket.ticket_tour.routeId,
+                    },
+                    order: [['index', 'ASC']]
+                })
+
                 const tourName = bookingDetail.booking_detail_ticket.ticket_tour.tourName
-                const tourDepartureDate = new Date(bookingDetail.booking_detail_ticket.ticket_tour.departureDate)
-                const formatDepartureDate = `${tourDepartureDate.getDate().toString().padStart(2, '0')}/${(tourDepartureDate.getMonth() + 1).toString().padStart(2, '0')}/${tourDepartureDate.getFullYear()}  |  ${tourDepartureDate.getHours().toString().padStart(2, '0')}:${tourDepartureDate.getMinutes().toString().padStart(2, '0')}`
+                const bookedStationId = bookingDetail.detail_booking.booking_departure_station.stationId
+                const tourDepartureTime = new Date(bookingDetail.booking_detail_ticket.ticket_tour.departureDate).getTime()
+                const busArrivalTimeToBookedStation = calculateTotalTime(routeSegment, tourDepartureTime, bookedStationId)
+                const formatDepartureDate = `${busArrivalTimeToBookedStation.getDate().toString().padStart(2, '0')}/${(busArrivalTimeToBookedStation.getMonth() + 1).toString().padStart(2, '0')}/${busArrivalTimeToBookedStation.getFullYear()}  |  ${busArrivalTimeToBookedStation.getHours().toString().padStart(2, '0')}:${busArrivalTimeToBookedStation.getMinutes().toString().padStart(2, '0')}:${busArrivalTimeToBookedStation.getSeconds().toString().padStart(2, '0')}`
                 const tourDuration = bookingDetail.booking_detail_ticket.ticket_tour.duration
                 const totalPrice = bookingDetail.detail_booking.totalPrice
                 const stationName = bookingDetail.detail_booking.booking_departure_station.stationName
@@ -341,7 +354,8 @@ const getMoMoPaymentResponse = (req) =>
                 const bookingCode = bookingDetail.detail_booking.bookingCode
 
                 const qrDataURL = await qr.toDataURL(`bookingId: ${bookingId}`)
-
+                console.log("TOUR_TIME", tourDepartureTime)
+                console.log("FORMAT_TIME", formatDepartureDate)
                 const htmlContent = {
                     body: {
                         name: bookingDetail.detail_booking.booking_user.userName,
@@ -429,5 +443,23 @@ const getMoMoPaymentResponse = (req) =>
             })
         }
     })
+
+function calculateTotalTime(routeSegments, startTime, departureStationId) {
+    const velocityKmPerHour = 35;
+    const velocityMetersPerMillisecond = (velocityKmPerHour * 1000) / (60 * 60 * 1000);
+
+    let totalSegmentTime = 0;
+    for (const segment of routeSegments) {
+        if (segment.departureStationId === departureStationId) {
+            break;
+        }
+        //Calculate time taken of bus run through all station before getting to booked departure station
+        const timeTaken = segment.distance / velocityMetersPerMillisecond;
+        totalSegmentTime += timeTaken;
+    }
+
+    const totalTime = startTime + totalSegmentTime
+    return new Date(totalTime);
+}
 
 module.exports = { createMoMoPaymentRequest, refundMomo, getMoMoPaymentResponse }

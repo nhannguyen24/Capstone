@@ -11,7 +11,7 @@ const router = express.Router();
  *   get:
  *     security: 
  *         - BearerAuth: []
- *     summary: Get bookings by bookingCode and cutomerId
+ *     summary: Get bookings
  *     tags: [Booking]
  *     parameters:
  *       - in: query

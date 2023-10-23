@@ -518,6 +518,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                     stationId: departureStationId
                 }
             })
+
             if (!station) {
                 resolve({
                     status: 404,
@@ -527,13 +528,17 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 });
                 return
             }
-            const routeSegment = await db.RouteSegment.findOne({
+            const routeSegment = await db.RouteSegment.findAll({
+                raw: true,
+                nest: true,
                 where: {
                     routeId: tour.routeId,
-                    departureStationId: station.stationId
-                }
+                    status: STATUS.ACTIVE,
+                },
+                order: [['index', 'ASC']]
             })
-            if (!routeSegment) {
+
+            if (!routeSegment || routeSegment.length === 0) {
                 resolve({
                     status: 404,
                     data: {
@@ -566,6 +571,16 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 return
             }
             seatBookingQuantity += e.quantity
+            if(seatBookingQuantity > 6){
+                resolve({
+                    status: 404,
+                    data: {
+                        msg: `Can only booking maximum of 6 tickets`,
+                    }
+                })
+                return
+            }
+
             const price = await db.Price.findOne({
                 where: {
                     priceId: e.priceId,
@@ -588,13 +603,13 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
         */
         let totalBookedSeat = 0
         const bookingDetails = await db.BookingDetail.findAll({
+            raw: true,
             include: {
                 model: db.Ticket,
                 as: "booking_detail_ticket",
                 where: {
                     tourId: tour.tourId,
                 },
-                attributes: []
             },
             attributes: ["bookingDetailId", "quantity"],
             where: {
@@ -806,7 +821,6 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                     return
                 }
                 PaymentService.refundMomo(bookingId, (result) => {
-                    console.log(result)
                     if (result.status === 200) {
                         db.Booking.update({
                             bookingStatus: bookingStatus,
