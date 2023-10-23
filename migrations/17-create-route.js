@@ -20,10 +20,6 @@ module.exports = {
         type: Sequelize.JSON,
         allowNull: false,
       },
-      stars: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
       status: {
         type: Sequelize.ENUM,
         values: ["Active", "Deactive"],
