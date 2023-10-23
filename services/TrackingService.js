@@ -1,6 +1,5 @@
 const db = require("../models");
 const { Op } = require("sequelize");
-const redisClient = require("../config/RedisConfig");
 
 const getAllTracking = (
     { tourId, busId, status, ...query },

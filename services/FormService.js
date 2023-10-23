@@ -3,7 +3,7 @@ const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
 
 const getAllForm = (
-    { page, limit, order, userId, status, ...query }
+    { page, limit, order, userId, changeEmployee, status, ...query }
 ) =>
     new Promise(async (resolve, reject) => {
         try {
@@ -17,6 +17,7 @@ const getAllForm = (
                 queries.order = [['updatedAt', 'DESC']];
             }
             if (userId) query.userId = { [Op.eq]: userId };
+            if (changeEmployee) query.changeEmployee = { [Op.eq]: changeEmployee };
             if (status) query.status = { [Op.eq]: status };
             const forms = await db.Form.findAll({
                 where: query,

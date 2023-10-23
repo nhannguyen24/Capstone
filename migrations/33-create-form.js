@@ -15,12 +15,12 @@ module.exports = {
           key: 'userId'
         }
       },
-      reason: {
-        type: Sequelize.STRING(500),
-        allowNull: false,
-      },
-      file: {
-        type: Sequelize.STRING(1000),
+      changeEmployee: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'users',
+          key: 'userId'
+        }
       },
       currentTour: {
         type: Sequelize.STRING,
@@ -28,15 +28,17 @@ module.exports = {
       },
       desireTour: {
         type: Sequelize.STRING,
+      },
+      reason: {
+        type: Sequelize.STRING(500),
         allowNull: false,
       },
-      changeEmployee: {
-        type: Sequelize.STRING,
-        allowNull: false,
+      file: {
+        type: Sequelize.STRING(1000),
       },
       status: {
         type: Sequelize.ENUM,
-        values: ["Active", "Approved", "Rejected"],
+        values: ["Active", "Accepted", "Declined", "Approved", "Rejected"],
         defaultValue: 'Active',
       },
       createdAt: {
