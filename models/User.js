@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
       });
 
       User.hasMany(models.Otp, { as: 'user_otp', foreignKey: 'userId'});
+      User.hasMany(models.Feedback, { as: 'user_feedback', foreignKey: 'userId'});
 
       // User.belongsToMany(models.Bus, {
       //   through: 'Schedule',

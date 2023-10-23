@@ -2,27 +2,29 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Routes', {
-      routeId: {
+    await queryInterface.createTable('Feedbacks', {
+      feedbackId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      routeName: {
+      description: {
         type: Sequelize.STRING,
-	      allowNull: false,
-      },
-      distance: {
-        type: Sequelize.FLOAT,
-	      allowNull: false,
-      },
-      geoJson: {
-        type: Sequelize.JSON,
         allowNull: false,
       },
-      stars: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
+      userId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'users',
+          key: 'userId'
+        }
+      },
+      routeId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'routes',
+          key: 'routeId'
+        }
       },
       status: {
         type: Sequelize.ENUM,
@@ -42,6 +44,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Routes');
+    await queryInterface.dropTable('Feedbacks');
   }
 };
