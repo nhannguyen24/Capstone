@@ -1,4 +1,5 @@
-const {uploadFile, pushNotification} = require('../middlewares/FirebaseService')
+const {uploadFile} = require('../middlewares/FirebaseService')
+const {pushNotification} = require('../utils/NotificationUtil')
 const express = require('express');
 const router = express.Router();
 const verifyToken = require('../middlewares/VerifyToken');

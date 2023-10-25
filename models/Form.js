@@ -17,6 +17,12 @@ module.exports = (sequelize, DataTypes) => {
         as: "form_user",
       });
 
+      Form.belongsTo(models.User, {
+        foreignKey: "changeEmployee",
+        targetKey: 'userId',
+        as: "form_change_user",
+      });
+
     }
   }
   Form.init({
@@ -25,21 +31,23 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    reason: DataTypes.STRING(500),
-    file: DataTypes.STRING(1000),
     userId: {
+      type: DataTypes.UUID,
+    },
+    changeEmployee: {
       type: DataTypes.UUID,
     },
     currentTour: DataTypes.STRING,
     desireTour: DataTypes.STRING,
-    changeEmployee: DataTypes.STRING,
+    reason: DataTypes.STRING(500),
+    file: DataTypes.STRING(1000),
     status: {
       type: DataTypes.ENUM,
-      values: ["Active", "Approved", "Rejected"],
+      values: ["Active", "Accepted", "Declined", "Approved", "Rejected"],
       validate: {
         isIn: {
-          args: [["Active", "Approved", "Rejected"]],
-          msg: 'Invalid value for form.status (Active, Approved, Rejected)'
+          args: [["Active", "Accepted", "Declined", "Approved", "Rejected"]],
+          msg: 'Invalid value for form.status (Active, Accepted, Declined, Approved, Rejected)'
         }
       }
     },

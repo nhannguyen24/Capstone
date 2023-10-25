@@ -772,8 +772,8 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
 
                     const availableBuses = findBusActive.filter(
                         (bus) =>
-                            bus.numberSeat >= 2
-                            && !schedule.some((assignment) => {
+                            // bus.numberSeat >= 2 && 
+                            !schedule.some((assignment) => {
                                 const departureDate = new Date(assignment.tour.departureDate);
 
                                 // Split the duration string into hours, minutes, and seconds
@@ -1490,8 +1490,8 @@ const assignTour = () =>
 
                     const availableBuses = findBusActive.filter(
                         (bus) =>
-                            bus.numberSeat >= 2
-                            && !schedule.some((assignment) => {
+                            // bus.numberSeat >= 2 && 
+                            !schedule.some((assignment) => {
                                 const departureDate = new Date(assignment.tour.departureDate);
 
                                 // Split the duration string into hours, minutes, and seconds

@@ -49,6 +49,11 @@ const {isAdminOrManager, isTourguideOrDriver} = require('../middlewares/VerifyRo
  *         schema:
  *           type: string
  *         description: Find form by userId
+ *       - name: changeEmployee
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Find form by change employee id
  *       - name: status
  *         in: query
  *         schema:
@@ -161,7 +166,7 @@ router.post("/", verifyToken, isTourguideOrDriver, controllers.createForm);
  *         in: query
  *         schema:
  *           type: string
- *           enum: ["Active", "Approved", "Rejected"]
+ *           enum: ["Active", "Accepted", "Declined", "Approved", "Rejected"]
  *     responses:
  *       200:
  *         description: Update the form successfully
