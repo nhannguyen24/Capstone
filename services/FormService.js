@@ -42,8 +42,50 @@ const getAllForm = (
                             },
                         ]
                     },
+                    {
+                        model: db.User,
+                        as: "form_change_user",
+                        attributes: [
+                            "userId",
+                            "userName",
+                            "email",
+                            "phone",
+                        ],
+                        include: [
+                            {
+                                model: db.Role,
+                                as: "user_role",
+                                attributes: [
+                                    "roleId",
+                                    "roleName",
+                                ],
+                            },
+                        ]
+                    },
                 ]
             });
+
+            for (const form of forms) {
+                const currentTour = await db.Tour.findOne({
+                    raw: true, nest: true,
+                    where: {tourId: form.currentTour},
+                    attributes: {
+                        exclude: ['createdAt', 'updatedAt']
+                    }
+                })
+
+                const desireTour = await db.Tour.findOne({
+                    raw: true, nest: true,
+                    where: {tourId: form.desireTour},
+                    attributes: {
+                        exclude: ['createdAt', 'updatedAt']
+                    }
+                })
+
+                // console.log(currentTour);
+                form.dataValues.currentTour = currentTour
+                form.dataValues.desireTour = desireTour
+            }
 
             resolve({
                 status: forms ? 200 : 404,
