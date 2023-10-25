@@ -12,6 +12,8 @@ const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject)
         const bookingId = req.params.id
 
         const booking = await db.Booking.findOne({
+            raw: true,
+            nest: true,
             where: {
                 bookingId: bookingId
             },
@@ -94,11 +96,11 @@ const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject)
             }
         })
         if (productOrder) {
-            booking.dataValues.booking_product = productOrder
+            booking.booking_product = productOrder
         }
 
-        booking.dataValues.booking_detail = bookingDetails
-        booking.dataValues.booking_transaction = transaction
+        booking.booking_detail = bookingDetails
+        booking.booking_transaction = transaction
         resolve({
             status: 200,
             data: {
@@ -117,6 +119,7 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
         const limit = parseInt(req.query.limit)
         const offset = parseInt((page - 1) * limit)
         const customerId = req.query.customerId || "";
+        const customerName = req.query.customerName || "";
         const bookingCode = req.query.bookingCode || "";
         const tourId = req.query.tourId || "";
         const bookingStatus = req.query.bookingStatus || "";
@@ -125,6 +128,7 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
 
         const whereClause = {};
         const whereClauseTour = {};
+        const whereClauseUser = {};
 
         if (customerId.trim() !== "") {
             const user = await db.User.findOne({
@@ -143,6 +147,12 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
                 return;
             }
             whereClause.customerId = customerId;
+        }
+
+        if (customerName.trim() !== "") {
+            whereClauseUser.userName = {
+                [Op.substring]: customerName
+            }
         }
 
         let tour
@@ -179,7 +189,9 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
             whereClause.status = status
         }
 
-        const bookingDetails = await db.BookingDetail.findAll({
+        const resultBookingDetails = await db.BookingDetail.findAll({
+            raw: true,
+            nest: true,
             order: [
                 ["updatedAt", "DESC"]
             ],
@@ -188,14 +200,6 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
                     model: db.Ticket,
                     as: "booking_detail_ticket",
                     where: whereClauseTour,
-                    attributes: ["ticketId"],
-                    include: {
-                        model: db.Tour,
-                        as: "ticket_tour",
-                        attributes: {
-                            exclude: ["createdAt", "updatedAt", "beginBookingDate", "endBookingDate"]
-                        }
-                    }
                 },
                 {
                     model: db.Booking,
@@ -205,30 +209,101 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
                         {
                             model: db.User,
                             as: "booking_user",
-                            attributes: ["userId", "userName"]
-                        },
-                        {
-                            model: db.Station,
-                            as: "booking_departure_station",
-                            attributes: ["stationId", "stationName"]
+                            attributes: ["userId", "userName", "email"],
+                            where: whereClauseUser
                         }
                     ],
-                    attributes: {
-                        exclude: ["customerId", "departureStationId"]
-                    },
-
                 }
             ],
             attributes: ["bookingId"],
-            group: 'bookingId',
+            group: "bookingId",
             limit: limit,
             offset: offset
         })
 
-        const modifiedData = bookingDetails.map(booking => {
-            const { bookingId, ...rest } = booking.dataValues;
-            return rest
+        const listBookingId = []
+        const listBooking = []
+        resultBookingDetails.map((bookingDetail) => {
+            listBookingId.push(bookingDetail.detail_booking.bookingId)
         })
+
+        if (listBookingId.length > 0) {
+            const promises = listBookingId.map(async (bookingId) => {
+                let filterBooking
+                const filterBookingTicket = []
+                const bookingDetails = await db.BookingDetail.findAll({
+                    raw: true,
+                    nest: true,
+                    order: [
+                        ["updatedAt", "DESC"]
+                    ],
+                    where: {
+                        bookingId: bookingId
+                    },
+                    include: [
+                        {
+                            model: db.Ticket,
+                            as: "booking_detail_ticket",
+                            attributes: ["ticketId"],
+                            include: [
+                                {
+                                    model: db.Tour,
+                                    as: "ticket_tour",
+                                    attributes: {
+                                        exclude: ["createdAt", "updatedAt", "beginBookingDate", "endBookingDate", "departureStationId", "isScheduled"]
+                                    }
+                                },
+                                {
+                                    model: db.TicketType,
+                                    as: "ticket_type",
+                                    attributes: ["ticketTypeId", "ticketTypeName", "description"]
+                                }
+                            ]
+                        },
+                        {
+                            model: db.Booking,
+                            as: "detail_booking",
+                            include: [
+                                {
+                                    model: db.User,
+                                    as: "booking_user",
+                                    attributes: ["userId", "userName", "email"],
+                                },
+                                {
+                                    model: db.Station,
+                                    as: "booking_departure_station",
+                                    attributes: ["stationId", "stationName"]
+                                }
+                            ],
+                            attributes: {
+                                exclude: ["customerId", "departureStationId"]
+                            },
+                        }
+                    ],
+                    attributes: ["bookingId", "quantity"],
+                })
+                if (bookingDetails.length > 1) {
+                    for (let i = 0; i < bookingDetails.length; i++) {
+                        const { detail_booking, bookingId, ...rest } = bookingDetails[i]
+                        if (i == 0) {
+                            filterBooking = detail_booking
+                        }
+                        filterBookingTicket.push(rest)
+                    }
+                    filterBooking.tickets = filterBookingTicket
+                    listBooking.push(filterBooking)
+                } else {
+                    const { detail_booking, bookingId, ...rest } = bookingDetails[0]
+                    filterBooking = detail_booking
+                    filterBookingTicket.push(rest)
+                    filterBooking.tickets = filterBookingTicket
+                    listBooking.push(filterBooking)
+                }
+            })
+            await Promise.all(promises);
+        }
+
+        const totalBooking = resultBookingDetails.length
 
         resolve({
             status: 200,
@@ -236,13 +311,12 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
                 msg: `Get Bookings successfully`,
                 paging: {
                     page: page,
-                    limit: limit
+                    limit: limit,
+                    total: totalBooking
                 },
-                bookings: modifiedData,
+                bookings: listBooking,
             }
         });
-
-
     } catch (error) {
         reject(error);
     }
@@ -277,6 +351,8 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
                 }
             });
             return
+        } else {
+            whereClause.customerId = user.userId;
         }
 
         const otp = await db.Otp.findOne({
@@ -347,7 +423,9 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
             whereClause.status = status
         }
 
-        const bookingDetails = await db.BookingDetail.findAll({
+        const resultBookingDetails = await db.BookingDetail.findAll({
+            raw: true,
+            nest: true,
             order: [
                 ["updatedAt", "DESC"]
             ],
@@ -356,14 +434,6 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
                     model: db.Ticket,
                     as: "booking_detail_ticket",
                     where: whereClauseTour,
-                    attributes: ["ticketId"],
-                    include: {
-                        model: db.Tour,
-                        as: "ticket_tour",
-                        attributes: {
-                            exclude: ["createdAt", "updatedAt", "beginBookingDate", "endBookingDate"]
-                        }
-                    }
                 },
                 {
                     model: db.Booking,
@@ -373,30 +443,97 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
                         {
                             model: db.User,
                             as: "booking_user",
-                            attributes: ["userId", "userName"]
-                        },
-                        {
-                            model: db.Station,
-                            as: "booking_departure_station",
-                            attributes: ["stationId", "stationName"]
                         }
                     ],
-                    attributes: {
-                        exclude: ["customerId", "departureStationId"]
-                    },
-
                 }
             ],
             attributes: ["bookingId"],
-            group: 'bookingId',
+            group: "bookingId",
             limit: limit,
             offset: offset
         })
 
-        const modifiedData = bookingDetails.map(booking => {
-            const { bookingId, ...rest } = booking.dataValues;
-            return rest
+        const listBookingId = []
+        const listBooking = []
+        resultBookingDetails.map((bookingDetail) => {
+            listBookingId.push(bookingDetail.detail_booking.bookingId)
         })
+        if (listBookingId.length > 0) {
+            const promises = listBookingId.map(async (bookingId) => {
+                let filterBooking
+                const filterBookingTicket = []
+                const bookingDetails = await db.BookingDetail.findAll({
+                    raw: true,
+                    nest: true,
+                    order: [
+                        ["updatedAt", "DESC"]
+                    ],
+                    where: {
+                        bookingId: bookingId
+                    },
+                    include: [
+                        {
+                            model: db.Ticket,
+                            as: "booking_detail_ticket",
+                            attributes: ["ticketId"],
+                            include: [
+                                {
+                                    model: db.Tour,
+                                    as: "ticket_tour",
+                                    attributes: {
+                                        exclude: ["createdAt", "updatedAt", "beginBookingDate", "endBookingDate", "departureStationId", "isScheduled"]
+                                    }
+                                },
+                                {
+                                    model: db.TicketType,
+                                    as: "ticket_type",
+                                    attributes: ["ticketTypeId", "ticketTypeName", "description"]
+                                }
+                            ]
+                        },
+                        {
+                            model: db.Booking,
+                            as: "detail_booking",
+                            include: [
+                                {
+                                    model: db.User,
+                                    as: "booking_user",
+                                    attributes: ["userId", "userName", "email"],
+                                },
+                                {
+                                    model: db.Station,
+                                    as: "booking_departure_station",
+                                    attributes: ["stationId", "stationName"]
+                                }
+                            ],
+                            attributes: {
+                                exclude: ["customerId", "departureStationId"]
+                            },
+                        }
+                    ],
+                    attributes: ["bookingId", "quantity"],
+                })
+                if (bookingDetails.length > 1) {
+                    for (let i = 0; i < bookingDetails.length; i++) {
+                        const { detail_booking, bookingId, ...rest } = bookingDetails[i]
+                        if (i == 0) {
+                            filterBooking = detail_booking
+                        }
+                        filterBookingTicket.push(rest)
+                    }
+                    filterBooking.tickets = filterBookingTicket
+                    listBooking.push(filterBooking)
+                } else {
+                    const { detail_booking, bookingId, ...rest } = bookingDetails[0]
+                    filterBooking = detail_booking
+                    filterBookingTicket.push(rest)
+                    filterBooking.tickets = filterBookingTicket
+                    listBooking.push(filterBooking)
+                }
+            })
+            await Promise.all(promises);
+        }
+        const totalBooking = resultBookingDetails.length
 
         resolve({
             status: 200,
@@ -404,9 +541,10 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
                 msg: `Get bookings successfully`,
                 paging: {
                     page: page,
-                    limit: limit
+                    limit: limit,
+                    total: totalBooking
                 },
-                bookings: modifiedData
+                bookings: listBooking
             }
         });
 
@@ -571,7 +709,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 return
             }
             seatBookingQuantity += e.quantity
-            if(seatBookingQuantity > 6){
+            if (seatBookingQuantity > 6) {
                 resolve({
                     status: 404,
                     data: {
@@ -706,52 +844,67 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
          * Checking bookingId exists
          */
         const bookingId = req.params.id
-        const booking = await db.Booking.findOne({
+        //Get tour status
+        const bookingDetail = await db.BookingDetail.findOne({
             where: {
                 bookingId: bookingId
             },
-            include: {
-                model: db.User,
-                as: "booking_user",
-                attributes: ["userId", "userName", "email"]
-            }
+            attributes: ["bookingDetailId"],
+            include: [
+                {
+                    model: db.Ticket,
+                    as: "booking_detail_ticket",
+                    attributes: ["ticketId"],
+                    include: {
+                        model: db.Tour,
+                        as: "ticket_tour",
+                        attributes: ["tourId", "tourStatus"]
+                    }
+                },
+                {
+                    model: db.Booking,
+                    as: "detail_booking",
+                    where: {
+                        bookingId: bookingId
+                    },
+                    include: [
+                        {
+                            model: db.User,
+                            as: "booking_user",
+                            attributes: ["userId", "userName", "email"],
+                        }
+                    ],
+                    attributes: {
+                        exclude: ["customerId"]
+                    },
+                }
+            ]
         })
-
-        if (!booking) {
+        if (!bookingDetail) {
             resolve({
-                status: 404,
+                status: 200,
                 data: {
-                    msg: `Booking not found with id ${bookingId}`,
+                    msg: `Booking not found with Id: ${bookingId}`,
                 }
             })
             return
         }
-
-        const bookingDetail = await db.BookingDetail.findOne({
-            where: {
-                bookingId: booking.bookingId
-            },
-            attributes: ["bookingDetailId"],
-            include: {
-                model: db.Ticket,
-                as: "booking_detail_ticket",
-                attributes: ["ticketId"],
-                include: {
-                    model: db.Tour,
-                    as: "ticket_tour",
-                    attributes: ["tourId", "departureDate", "tourStatus"]
-                }
-            }
-        })
-
         /**
          * Validate Booking Status
          */
-        var bookingStatus = req.query.bookingStatus
-        if (bookingStatus === undefined || bookingStatus === null) {
-            bookingStatus = booking.bookingStatus
-        } else {
-            //Check if booking is already finished
+        const updateBooking = {}
+        var bookingStatus = req.query.bookingStatus || ""
+        if (bookingStatus !== "") {
+            if (bookingStatus === bookingDetail.detail_booking.bookingStatus) {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: `Booking status is already ${bookingStatus}`,
+                    }
+                })
+                return
+            }
+            //Check if tour is already finished
             if (TOUR_STATUS.FINISHED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
                 resolve({
                     status: 400,
@@ -761,10 +914,7 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                 })
                 return
             }
-            const currentDate = new Date()
-            currentDate.setHours(currentDate.getHours() + 7)
 
-            //Need to update the time when the tour is finished
             if (BOOKING_STATUS.ON_GOING === bookingStatus) {
                 if (TOUR_STATUS.NOT_STARTED !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
                     resolve({
@@ -778,15 +928,17 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
             }
 
             if (BOOKING_STATUS.CANCELED === bookingStatus) {
+                const userId = bookingDetail.detail_booking.booking_user.userId
+                const email = bookingDetail.detail_booking.booking_user.email
+                const userName = bookingDetail.detail_booking.booking_user.userName
                 const otp = await db.Otp.findOne({
                     where: {
                         otpType: OTP_TYPE.CANCEL_BOOKING,
-                        userId: booking.customerId
+                        userId: bookingDetail.detail_booking.booking_user.userId
                     }
                 })
-
                 if (!otp) {
-                    const data = await OtpService.sendOtpToEmail(booking.booking_user.email, booking.booking_user.userId, booking.booking_user.userName, OTP_TYPE.CANCEL_BOOKING)
+                    const data = await OtpService.sendOtpToEmail(email, userId, userName, OTP_TYPE.CANCEL_BOOKING)
                     if (data) {
                         resolve(data);
                         return
@@ -811,7 +963,8 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                     return
                 }
 
-                if (TOUR_STATUS.NOT_STARTED !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
+                if (TOUR_STATUS.NOT_STARTED !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus ||
+                    TOUR_STATUS.ON_TOUR !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
                     resolve({
                         status: 400,
                         data: {
@@ -819,66 +972,78 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                         }
                     })
                     return
+                } else {
+                    PaymentService.refundMomo(bookingId, (result) => {
+                        if (result.status === 200) {
+                            db.Booking.update({
+                                bookingStatus: bookingStatus,
+                            }, {
+                                where: {
+                                    bookingId: bookingId
+                                },
+                                individualHooks: true,
+                            })
+                        }
+                        resolve(result)
+                        return
+                    });
                 }
-                PaymentService.refundMomo(bookingId, (result) => {
-                    if (result.status === 200) {
-                        db.Booking.update({
-                            bookingStatus: bookingStatus,
-                        }, {
-                            where: {
-                                bookingId: booking.bookingId
-                            },
-                            individualHooks: true,
-                        })
-                        resolve(result)
-                        return
-                    } else {
-                        resolve(result)
-                        return
-                    }
-                });
             }
 
             if (BOOKING_STATUS.FINISHED === bookingStatus) {
-                if (TOUR_STATUS.FINISHED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
+                if (TOUR_STATUS.FINISHED !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
                     resolve({
                         status: 400,
                         data: {
-                            msg: `Cannot update booking status ${bookingStatus} because tour not started`,
+                            msg: `Cannot update booking status ${bookingStatus} because tour not finished`,
                         }
                     })
                     return
                 }
             }
+            updateBooking.bookingStatus = bookingStatus
         }
 
-        var isAttended = req.query.isAttended
-        if (isAttended === undefined || isAttended === null) {
-            isAttended = booking.isAttended
+        var isAttended = req.query.isAttended || ""
+        if (isAttended !== "") {
+            if (isAttended === true && isAttended === bookingDetail.detail_booking.isAttended) {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: `Customer is already Attended!`,
+                    }
+                })
+                return
+            }
+            updateBooking.isAttended = isAttended
+        }
+        const updateBookingDetail = {}
+        var status = req.query.status || ""
+        if (status !== "") {
+            if (status === bookingDetail.detail_booking.status) {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: `Status is already ${status}`,
+                    }
+                })
+                return
+            }
+            updateBooking.status = status
+            updateBookingDetail.status = status
         }
 
-        var status = req.query.status
-        if (status === undefined || status === null) {
-            status = booking.status
-        }
-
-        await db.Booking.update({
-            isAttended: isAttended,
-            bookingStatus: bookingStatus,
-            status: status,
-        }, {
+        await db.Booking.update(updateBooking, {
             where: {
-                bookingId: booking.bookingId
+                bookingId: bookingId
             },
             individualHooks: true,
             transaction: t
         })
 
-        await db.BookingDetail.update({
-            status: status,
-        }, {
+        await db.BookingDetail.update(updateBookingDetail, {
             where: {
-                bookingId: booking.bookingId
+                bookingId: bookingId
             },
             individualHooks: true,
             transaction: t

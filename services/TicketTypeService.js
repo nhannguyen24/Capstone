@@ -2,17 +2,16 @@ const db = require('../models');
 const { Op } = require('sequelize');
 const STATUS = require("../enums/StatusEnum")
 
-const getAllTicketTypes = (req) => new Promise(async (resolve, reject) => {
+const getTicketTypes = (req) => new Promise(async (resolve, reject) => {
     try {
         const ticketTypes = await db.TicketType.findAll();
-            resolve({
-                status: 200,
-                data: {
-                    msg: `Get list of ticket types successfully`,
-                    ticketTypes: ticketTypes
-                }
-            });
-        
+        resolve({
+            status: 200,
+            data: {
+                msg: `Get list of ticket types successfully`,
+                ticketTypes: ticketTypes
+            }
+        });
     } catch (error) {
         reject(error);
     }
@@ -26,17 +25,17 @@ const getTicketTypeById = (req) => new Promise(async (resolve, reject) => {
                 ticketTypeId: ticketTypeId
             }
         });
-            resolve({
-                status: ticketType ? 200 : 404,
-                data: ticketType ? {
-                    msg: `Get ticket type successfully`,
-                    ticketType: ticketType
-                }:{
-                    msg: `Ticket type not found`,
-                    ticketType: {}
-                }
-            });
-        
+        resolve({
+            status: ticketType ? 200 : 404,
+            data: ticketType ? {
+                msg: `Get ticket type successfully`,
+                ticketType: ticketType
+            } : {
+                msg: `Ticket type not found`,
+                ticketType: {}
+            }
+        });
+
     } catch (error) {
         reject(error);
     }
@@ -97,17 +96,18 @@ const updateTicketType = (req) => new Promise(async (resolve, reject) => {
                 ticketTypeName: {
                     [Op.like]: ticketTypeName
                 }
-            }})
-
-            if(result){
-                resolve({
-                    status: 400,
-                    data: {
-                        msg: `Ticket type name already exists`,
-                    }
-                })
-                return
             }
+        })
+
+        if (result) {
+            resolve({
+                status: 400,
+                data: {
+                    msg: `Ticket type name already exists`,
+                }
+            })
+            return
+        }
 
         var description = req.query.description
         if (description === undefined || description === null) {
@@ -138,4 +138,4 @@ const updateTicketType = (req) => new Promise(async (resolve, reject) => {
     }
 });
 
-module.exports = { getAllTicketTypes, getTicketTypeById, createTicketType, updateTicketType };
+module.exports = { getTicketTypes, getTicketTypeById, createTicketType, updateTicketType };

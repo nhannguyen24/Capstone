@@ -2,7 +2,7 @@ const db = require('../models');
 const { Op } = require('sequelize');
 const STATUS = require("../enums/StatusEnum")
 
-const getAllBuses = (req) => new Promise(async (resolve, reject) => {
+const getBuses = (req) => new Promise(async (resolve, reject) => {
     try {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
@@ -54,6 +54,9 @@ const getAllBuses = (req) => new Promise(async (resolve, reject) => {
                 },
             ],
         });
+        const totalBus = await db.Bus.count({
+            where: whereClause,
+        });
 
         resolve({
             status: 200,
@@ -62,6 +65,7 @@ const getAllBuses = (req) => new Promise(async (resolve, reject) => {
                 paging: {
                     page: page,
                     limit: limit,
+                    total: totalBus
                 },
                 buses: buses
             }
@@ -99,7 +103,6 @@ const getBusById = (req) => new Promise(async (resolve, reject) => {
                 },
             ],
         });
-
 
         resolve({
             status: bus ? 200 : 404,
@@ -299,4 +302,4 @@ const deleteBus = (req) => new Promise(async (resolve, reject) => {
 });
 
 
-module.exports = { getAllBuses, getBusById, createBus, updateBus, deleteBus };
+module.exports = { getBuses, getBusById, createBus, updateBus, deleteBus };
