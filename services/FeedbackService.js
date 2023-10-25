@@ -44,6 +44,9 @@ const getFeedbacks = (req) => new Promise(async (resolve, reject) => {
             limit: limit,
             offset: offset
         });
+        const totalFeedback = await db.Feedback.count({
+            where: whereClause,
+        });
 
         resolve({
             status: 200,
@@ -51,7 +54,8 @@ const getFeedbacks = (req) => new Promise(async (resolve, reject) => {
                 msg: `Get list of feedbacks successfully`,
                 paging: {
                     page: page,
-                    limit: limit
+                    limit: limit,
+                    total: totalFeedback
                 },
                 feedbacks: feedbacks
             }

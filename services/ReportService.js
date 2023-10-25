@@ -27,6 +27,9 @@ const getReports = (req) => new Promise(async (resolve, reject) => {
             limit: limit,
             offset: offset
         });
+        const totalReport = await db.Report.count({
+            where: whereClause,
+        });
 
         resolve({
             status: 200,
@@ -34,7 +37,8 @@ const getReports = (req) => new Promise(async (resolve, reject) => {
                 msg: `Get reports successfully`,
                 paging: {
                     page: page,
-                    limit: limit
+                    limit: limit,
+                    total: totalReport
                 },
                 reports: reports,
             },

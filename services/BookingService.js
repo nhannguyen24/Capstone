@@ -117,6 +117,7 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
         const limit = parseInt(req.query.limit)
         const offset = parseInt((page - 1) * limit)
         const customerId = req.query.customerId || "";
+        const customerName = req.query.customerName || "";
         const bookingCode = req.query.bookingCode || "";
         const tourId = req.query.tourId || "";
         const bookingStatus = req.query.bookingStatus || "";
@@ -125,6 +126,7 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
 
         const whereClause = {};
         const whereClauseTour = {};
+        const whereClauseUser = {};
 
         if (customerId.trim() !== "") {
             const user = await db.User.findOne({
@@ -143,6 +145,12 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
                 return;
             }
             whereClause.customerId = customerId;
+        }
+
+        if (customerName.trim() !== "") {
+            whereClauseUser.userName = {
+                [Op.substring]: customerName
+            }
         }
 
         let tour
@@ -189,13 +197,21 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
                     as: "booking_detail_ticket",
                     where: whereClauseTour,
                     attributes: ["ticketId"],
-                    include: {
-                        model: db.Tour,
-                        as: "ticket_tour",
-                        attributes: {
-                            exclude: ["createdAt", "updatedAt", "beginBookingDate", "endBookingDate"]
+                    plain: true,
+                    include: [
+                        {
+                            model: db.Tour,
+                            as: "ticket_tour",
+                            attributes: {
+                                exclude: ["createdAt", "updatedAt", "beginBookingDate", "endBookingDate", "departureStationId", "isScheduled"]
+                            }
+                        },
+                        {
+                            model: db.TicketType,
+                            as: "ticket_type",
+                            attributes: ["ticketTypeId", "ticketTypeName", "description"]
                         }
-                    }
+                    ]
                 },
                 {
                     model: db.Booking,
@@ -205,7 +221,8 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
                         {
                             model: db.User,
                             as: "booking_user",
-                            attributes: ["userId", "userName"]
+                            attributes: ["userId", "userName", "email"],
+                            where: whereClauseUser
                         },
                         {
                             model: db.Station,
@@ -216,13 +233,59 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
                     attributes: {
                         exclude: ["customerId", "departureStationId"]
                     },
-
                 }
             ],
-            attributes: ["bookingId"],
-            group: 'bookingId',
+            attributes: ["bookingId", "quantity"],
             limit: limit,
             offset: offset
+        })
+
+        const totalBooking = await db.BookingDetail.count({
+            include: [
+                {
+                    model: db.Ticket,
+                    as: "booking_detail_ticket",
+                    where: whereClauseTour,
+                    attributes: ["ticketId"],
+                    plain: true,
+                    include: [
+                        {
+                            model: db.Tour,
+                            as: "ticket_tour",
+                            attributes: {
+                                exclude: ["createdAt", "updatedAt", "beginBookingDate", "endBookingDate", "departureStationId", "isScheduled"]
+                            }
+                        },
+                        {
+                            model: db.TicketType,
+                            as: "ticket_type",
+                            attributes: ["ticketTypeId", "ticketTypeName", "description"]
+                        }
+                    ]
+                },
+                {
+                    model: db.Booking,
+                    as: "detail_booking",
+                    where: whereClause,
+                    include: [
+                        {
+                            model: db.User,
+                            as: "booking_user",
+                            attributes: ["userId", "userName", "email"],
+                            where: whereClauseUser
+                        },
+                        {
+                            model: db.Station,
+                            as: "booking_departure_station",
+                            attributes: ["stationId", "stationName"]
+                        }
+                    ],
+                    attributes: {
+                        exclude: ["customerId", "departureStationId"]
+                    },
+                }
+            ],
+            attributes: ["bookingId", "quantity"],
         })
 
         const modifiedData = bookingDetails.map(booking => {
@@ -236,7 +299,8 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
                 msg: `Get Bookings successfully`,
                 paging: {
                     page: page,
-                    limit: limit
+                    limit: limit,
+                    total: totalBooking
                 },
                 bookings: modifiedData,
             }
@@ -277,6 +341,8 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
                 }
             });
             return
+        } else {
+            whereClause.customerId = user.userId;
         }
 
         const otp = await db.Otp.findOne({
@@ -373,7 +439,7 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
                         {
                             model: db.User,
                             as: "booking_user",
-                            attributes: ["userId", "userName"]
+                            attributes: ["userId", "userName", "email"],
                         },
                         {
                             model: db.Station,
@@ -387,10 +453,44 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
 
                 }
             ],
-            attributes: ["bookingId"],
-            group: 'bookingId',
+            attributes: ["bookingId", "quantity"],
             limit: limit,
             offset: offset
+        })
+
+        const totalBooking = await db.BookingDetail.count({
+            include: [
+                {
+                    model: db.Ticket,
+                    as: "booking_detail_ticket",
+                    where: whereClauseTour,
+                    attributes: ["ticketId"],
+                    include: {
+                        model: db.Tour,
+                        as: "ticket_tour",
+                        attributes: {
+                            exclude: ["createdAt", "updatedAt", "beginBookingDate", "endBookingDate"]
+                        }
+                    }
+                },
+                {
+                    model: db.Booking,
+                    as: "detail_booking",
+                    where: whereClause,
+                    include: [
+                        {
+                            model: db.User,
+                            as: "booking_user",
+                            attributes: ["userId", "userName", "email"],
+                        },
+                        {
+                            model: db.Station,
+                            as: "booking_departure_station",
+                            attributes: ["stationId", "stationName"]
+                        }
+                    ],
+                }
+            ],
         })
 
         const modifiedData = bookingDetails.map(booking => {
@@ -404,7 +504,8 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
                 msg: `Get bookings successfully`,
                 paging: {
                     page: page,
-                    limit: limit
+                    limit: limit,
+                    total: totalBooking
                 },
                 bookings: modifiedData
             }
@@ -571,7 +672,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 return
             }
             seatBookingQuantity += e.quantity
-            if(seatBookingQuantity > 6){
+            if (seatBookingQuantity > 6) {
                 resolve({
                     status: 404,
                     data: {

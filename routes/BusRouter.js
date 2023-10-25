@@ -57,7 +57,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, controllers.getBusByPlate);
+router.get("/", verifyToken, controllers.getBuses);
 
 
 /**

@@ -56,7 +56,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isAdminOrManager, controllers.getAllPrices);
+router.get("/", verifyToken, isAdminOrManager, controllers.getPrices);
 
 /**
  * @swagger

@@ -49,7 +49,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isAdminOrManager, controllers.getAllTickets);
+router.get("/", verifyToken, isAdminOrManager, controllers.getTickets);
 
 /**
  * @swagger
