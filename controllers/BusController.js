@@ -1,9 +1,9 @@
 const services = require('../services/BusService');
 const {BadRequestError, InternalServerError} = require('../errors/Index');
 
-const getBusByPlate = async (req, res) => {
+const getBuses = async (req, res) => {
     try {
-        const response = await services.getAllBuses(req);
+        const response = await services.getBuses(req);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
@@ -44,4 +44,4 @@ const deleteBus = async (req, res) => {
     }
 }
 
-module.exports = { getBusByPlate, getBusById, createBus, updateBus, deleteBus }
+module.exports = { getBuses, getBusById, createBus, updateBus, deleteBus }

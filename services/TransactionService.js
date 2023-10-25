@@ -50,13 +50,18 @@ const getTransactions = (req) => new Promise(async (resolve, reject) => {
             offset: offset
         });
 
+        const totalTrans = await db.Transaction.count({
+            where: whereClause,
+        });
+
         resolve({
             status: 200,
             data: {
                 msg: `Get transactions successfully`,
                 paging: {
                     page: page,
-                    limit: limit
+                    limit: limit,
+                    total: totalTrans
                 },
                 transactions: transactions
             }

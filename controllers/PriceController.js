@@ -1,9 +1,9 @@
 const services = require('../services/PriceService');
 const {BadRequestError, InternalServerError} = require('../errors/Index');
 
-const getAllPrices = async (req, res) => {
+const getPrices = async (req, res) => {
     try {
-        const response = await services.getAllPrices(req);
+        const response = await services.getPrices(req);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
@@ -45,4 +45,4 @@ const deletePrice = async (req, res) => {
     }
 }
 
-module.exports = { getAllPrices, getPriceById, createPrice, updatePrice, deletePrice }
+module.exports = { getPrices, getPriceById, createPrice, updatePrice, deletePrice }

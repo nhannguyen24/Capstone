@@ -2,7 +2,7 @@ const db = require('../models');
 const { Op } = require('sequelize');
 const STATUS = require("../enums/StatusEnum")
 const DAY = require("../enums/PriceDayEnum")
-const getAllPrices = (req) => new Promise(async (resolve, reject) => {
+const getPrices = (req) => new Promise(async (resolve, reject) => {
     try {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
@@ -20,15 +20,16 @@ const getAllPrices = (req) => new Promise(async (resolve, reject) => {
             whereClause.status = status
         }
 
-        const prices = await db.Price.findAll(
-            {
-                where: whereClause,
-                order: [["updatedAt", "DESC"]],
-                offset: offset,
-                limit: limit
-            }
-        );
-
+        const prices = await db.Price.findAll({
+            where: whereClause,
+            order: [["updatedAt", "DESC"]],
+            offset: offset,
+            limit: limit
+        });
+        
+        const totalPrice = await db.Price.count({
+            where: whereClause,
+        });
 
         resolve({
             status: 200,
@@ -36,7 +37,8 @@ const getAllPrices = (req) => new Promise(async (resolve, reject) => {
                 msg: `Get prices successfully`,
                 paging: {
                     page: page,
-                    limit: limit
+                    limit: limit,
+                    total: totalPrice
                 },
                 prices: prices
             }
@@ -94,7 +96,7 @@ const createPrice = (req) => new Promise(async (resolve, reject) => {
             return
         }
 
-        const price = await db.Price.create({ticketTypeId: ticketTypeId, amount: amount, day: day});
+        const price = await db.Price.create({ ticketTypeId: ticketTypeId, amount: amount, day: day });
 
         resolve({
             status: 201,
@@ -224,4 +226,4 @@ const deletePrice = (req) => new Promise(async (resolve, reject) => {
 });
 
 
-module.exports = { getAllPrices, getPriceById, createPrice, updatePrice, deletePrice };
+module.exports = { getPrices, getPriceById, createPrice, updatePrice, deletePrice };

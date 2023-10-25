@@ -36,10 +36,14 @@ const router = express.Router();
  *           type: string
  *         description: Get booking with customerId
  *       - in: query
+ *         name: customerName
+ *         schema:
+ *           type: string
+ *         description: Get booking with customer name
+ *       - in: query
  *         name: bookingCode
  *         schema:
  *           type: string
- *           example: BO23
  *         description: Search with booking code
  *       - in: query
  *         name: tourId

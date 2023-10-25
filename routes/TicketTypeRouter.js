@@ -22,7 +22,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isAdmin, controllers.getAllTicketTypes);
+router.get("/", verifyToken, isAdmin, controllers.getTicketTypes);
 
 /**
  * @swagger
