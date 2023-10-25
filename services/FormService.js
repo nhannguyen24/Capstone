@@ -1,6 +1,5 @@
 const db = require("../models");
 const { Op } = require("sequelize");
-const redisClient = require("../config/RedisConfig");
 
 const getAllForm = (
     { page, limit, order, userId, changeEmployee, status, ...query }
