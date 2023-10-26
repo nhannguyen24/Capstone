@@ -5,6 +5,8 @@ class StatusEnum {
     static ONGOING = "Ongoing";
     static DEACTIVE = "Deactive";
     static DRAFT = "Draft";
+    static NOTARRIVED = "NotArrived";
+    static ARRIVED = "Arrived";
 }
 
 module.exports = StatusEnum

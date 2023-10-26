@@ -6,7 +6,7 @@ const TOUR_STATUS = require("../enums/TourStatusEnum")
 const DAY_ENUM = require("../enums/PriceDayEnum")
 const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
 const readXlsxFile = require('read-excel-file/node')
-const { BadRequestError } = require('../errors/Index');
+
 const getAllTour = (
     { page, limit, order, tourName, address, tourStatus, status, routeId, tourGuideId, driverId, ...query }
 ) =>
@@ -279,7 +279,6 @@ const getAllTour = (
 
             })
         } catch (error) {
-            ;
             reject(error);
         }
     });
@@ -527,54 +526,54 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
         let transaction;
         try {
             transaction = await db.sequelize.transaction(async (t) => {
-            const station = await db.Route.findAll({
-                raw: true,
-                nest: true,
-                order: [
-                    [{ model: db.RouteSegment, as: 'route_segment' }, 'index', 'ASC'],
-                ],
-                where: {
-                    routeId: body.routeId
-                },
-                include: [
-                    {
-                        model: db.RouteSegment,
-                        as: "route_segment",
-                        attributes: {
-                            exclude: [
-                                "createdAt",
-                                "updatedAt",
-                                "status",
-                            ],
-                        },
+                const station = await db.Route.findAll({
+                    raw: true,
+                    nest: true,
+                    order: [
+                        [{ model: db.RouteSegment, as: 'route_segment' }, 'index', 'ASC'],
+                    ],
+                    where: {
+                        routeId: body.routeId
                     },
-                ]
-            });
+                    include: [
+                        {
+                            model: db.RouteSegment,
+                            as: "route_segment",
+                            attributes: {
+                                exclude: [
+                                    "createdAt",
+                                    "updatedAt",
+                                    "status",
+                                ],
+                            },
+                        },
+                    ]
+                });
 
-            if (!station) {
-                resolve({
-                    status: 400,
-                    data: {
-                        msg: "Route Id not found"
+                if (!station) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: "Route Id not found"
+                        }
+                    })
+                    return;
+                }
+
+                const uniqueStationArray = [];
+
+                // Loop through the JSON data and add station IDs to the array
+                station.forEach(item => {
+                    if (!uniqueStationArray.includes(item.route_segment.departureStationId)) {
+                        uniqueStationArray.push(item.route_segment.departureStationId);
                     }
-                })
-                return;
-            }
+                    if (uniqueStationArray.includes(item.route_segment.endStationId)) {
+                        uniqueStationArray.push(item.route_segment.endStationId);
+                    }
+                });
 
-            const uniqueStationArray = [];
-
-            // Loop through the JSON data and add station IDs to the array
-            station.forEach(item => {
-                if (!uniqueStationArray.includes(item.route_segment.departureStationId)) {
-                    uniqueStationArray.push(item.route_segment.departureStationId);
-                }
-                if (uniqueStationArray.includes(item.route_segment.endStationId)) {
-                    uniqueStationArray.push(item.route_segment.endStationId);
-                }
-            });
-
-            // console.log(station);
-            // console.log('ok', uniqueStationArray);
+                // console.log(station);
+                // console.log('ok', uniqueStationArray);
 
                 // console.log(station.route_detail.routeDetailId);
                 const currentDate = new Date();
@@ -829,6 +828,14 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             maxTour: chosenDriver.maxTour,
                         }, {
                             where: { userId: chosenDriver.userId },
+                            individualHooks: true,
+                            transaction: t
+                        });
+
+                        await db.Bus.update({
+                            status: STATUS.ONGOING,
+                        }, {
+                            where: { busId: chosenBus.busId },
                             individualHooks: true,
                             transaction: t
                         });
@@ -1761,6 +1768,26 @@ const updateTour = ({ images, tourId, ...body }) =>
                             individualHooks: true,
                             transaction: t
                         });
+
+                        if (body.tourStatus == TOUR_STATUS.ON_TOUR) {
+                            await db.TourDetail.update({
+                                status: STATUS.NOTARRIVED,
+                            }, {
+                                where: { tourId },
+                                individualHooks: true,
+                                transaction: t
+                            });
+                        }
+
+                        if (body.tourStatus == TOUR_STATUS.FINISHED) {
+                            await db.Bus.update({
+                                status: STATUS.ACTIVE,
+                            }, {
+                                where: { busId: findTour.busId },
+                                individualHooks: true,
+                                transaction: t
+                            });
+                        }
 
                         if (images) {
                             await db.Image.destroy({

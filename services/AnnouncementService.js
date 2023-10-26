@@ -114,8 +114,8 @@ const getAnnouncementById = (announcementId) =>
 const createAnnouncement = ({ title, ...body }, userId) =>
     new Promise(async (resolve, reject) => {
         try {
-            console.log(title);
-            console.log(userId);
+            // console.log(title);
+            // console.log(userId);
             const createAnnouncement = await db.Announcement.findOrCreate({
                 where: {
                     title: title
