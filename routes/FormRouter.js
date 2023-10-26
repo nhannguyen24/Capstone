@@ -2,7 +2,7 @@ const controllers = require('../controllers/FormController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
 const router = express.Router();
-const {isAdminOrManager, isTourguideOrDriver} = require('../middlewares/VerifyRole');
+const {isAdminOrManager, isTourguideOrDriver, isAdminOrManagerOrTourguideOrDriver} = require('../middlewares/VerifyRole');
 
 /**
  * @swagger
@@ -177,6 +177,6 @@ router.post("/", verifyToken, isTourguideOrDriver, controllers.createForm);
  *               items:
  *                 $ref: '#/components/schemas/Form'
  */
-router.put("/", verifyToken, isAdminOrManager, controllers.updateForm);
+router.put("/", verifyToken, isAdminOrManagerOrTourguideOrDriver, controllers.updateForm);
 
 module.exports = router;
