@@ -286,6 +286,7 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
                     for (let i = 0; i < bookingDetails.length; i++) {
                         const { detail_booking, bookingId, ...rest } = bookingDetails[i]
                         if (i == 0) {
+                            detail_booking.isAttended = detail_booking.isAttended === 1 ? true : false
                             filterBooking = detail_booking
                         }
                         filterBookingTicket.push(rest)
