@@ -28,9 +28,6 @@ const createForm = async (req, res) => {
     try {
         const { userId } = req.user;
         const {reason, currentTour, desireTour, changeEmployee} = req.body;
-        if(!reason) {
-            throw new BadRequestError('Please provide reason');
-        }
         if(!currentTour) {
             throw new BadRequestError('Please provide currentTour');
         }

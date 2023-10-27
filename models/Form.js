@@ -39,15 +39,13 @@ module.exports = (sequelize, DataTypes) => {
     },
     currentTour: DataTypes.STRING,
     desireTour: DataTypes.STRING,
-    reason: DataTypes.STRING(500),
-    file: DataTypes.STRING(1000),
     status: {
       type: DataTypes.ENUM,
-      values: ["Active", "Accepted", "Declined", "Approved", "Rejected"],
+      values: ["Approved", "Pending", "Rejected"],
       validate: {
         isIn: {
-          args: [["Active", "Accepted", "Declined", "Approved", "Rejected"]],
-          msg: 'Invalid value for form.status (Active, Accepted, Declined, Approved, Rejected)'
+          args: [["Approved", "Pending", "Rejected"]],
+          msg: 'Invalid value for form.status (Approved, Pending, Rejected)'
         }
       }
     },
