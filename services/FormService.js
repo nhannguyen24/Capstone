@@ -194,14 +194,24 @@ const updateForm = ({ formId, ...body }) =>
                     where: { formId },
                     individualHooks: true,
                 });
-            }
 
+                resolve({
+                    status: forms[1].length !== 0 ? 200 : 400,
+                    data: {
+                        msg:
+                            forms[1].length !== 0
+                                ? `Form updated/TourGuideId in Tour updated`
+                                : "Cannot update form/ formId not found",
+                    }
+                });
+                return;
+            }
             resolve({
                 status: forms[1].length !== 0 ? 200 : 400,
                 data: {
                     msg:
                         forms[1].length !== 0
-                            ? `Form update/TourGuideId in Tour updated`
+                            ? `Form updated`
                             : "Cannot update form/ formId not found",
                 }
             });
