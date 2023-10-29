@@ -55,21 +55,21 @@ const updateUser = async (req, res) => {
     }
 };
 
-const updateProfile = async (req, res) => {
-    try {
-        // const { error } = joi.object({userId}).validate({userId: req.body.userId});
-        // if (error) throw new BadRequestError(error.details[0].message);
-        const {userId} = req.user;
-        if(!userId) {
-            throw new BadRequestError('Please provide userId');
-        }
-        const response = await services.updateProfile(req.body, userId);
-        return res.status(response.status).json(response.data);
-    } catch (error) {
-        console.log(error);
-        throw new InternalServerError(error);
-    }
-};
+// const updateProfile = async (req, res) => {
+//     try {
+//         // const { error } = joi.object({userId}).validate({userId: req.body.userId});
+//         // if (error) throw new BadRequestError(error.details[0].message);
+//         const {userId} = req.user;
+//         if(!userId) {
+//             throw new BadRequestError('Please provide userId');
+//         }
+//         const response = await services.updateProfile(req.body, userId);
+//         return res.status(response.status).json(response.data);
+//     } catch (error) {
+//         console.log(error);
+//         throw new InternalServerError(error);
+//     }
+// };
 
 const deleteUser = async (req, res) => {
     try {
@@ -102,4 +102,4 @@ const getUserById = async (req, res) => {
     }
 };
 
-module.exports = {updateUser, deleteUser, createUser, getAllUsers, updateProfile, getUserById};
+module.exports = {updateUser, deleteUser, createUser, getAllUsers, getUserById};

@@ -174,7 +174,7 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
             })
             return
         } else {
-            if (TOUR_STATUS.NOT_STARTED !== tour.tourStatus || STATUS.DEACTIVE === tour.status) {
+            if (TOUR_STATUS.NEW !== tour.tourStatus || STATUS.DEACTIVE === tour.status) {
                 resolve({
                     status: 409,
                     data: {
@@ -296,7 +296,7 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
             })
             return
         } else {
-            if (TOUR_STATUS.NOT_STARTED !== tour.tourStatus || STATUS.DEACTIVE === tour.status) {
+            if (TOUR_STATUS.NEW !== tour.tourStatus || STATUS.DEACTIVE === tour.status) {
                 resolve({
                     status: 409,
                     data: {

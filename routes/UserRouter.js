@@ -201,38 +201,38 @@ router.post("/", verifyToken, isAdmin, controllers.createUser);
  */
 router.put("/", verifyToken, isAdmin, controllers.updateUser);
 
-/**
- * @swagger
- * /api/v1/users/profile:
- *   put:
- *     security: 
- *         - BearerAuth: []
- *     summary: Update the profile
- *     tags: [User]
- *     requestBody:
- *        required: true
- *        content:
- *          application/json:
- *            schema:
- *              $ref: '#/components/schemas/User'
- *            example:
- *              userId: V2sSC1HSLASNtTT0RhzwqDxxwri2
- *              userName: Nhan Nguyen
- *              avatar: https://lh3.googleusercontent.com/a/AEdFTp4508ZdzGjVRFFIwb0ULZXYm5V5_vyRsiKq-cfA=s96-c
- *              birthday: 2003-03-18 
- *              phone: "0898149847"
- *              address: 1/1 D1 HCM
- *     responses:
- *       200:
- *         description: Update profile successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/User'
- */
-router.put("/profile", verifyToken, controllers.updateProfile);
+// /**
+//  * @swagger
+//  * /api/v1/users/profile:
+//  *   put:
+//  *     security: 
+//  *         - BearerAuth: []
+//  *     summary: Update the profile
+//  *     tags: [User]
+//  *     requestBody:
+//  *        required: true
+//  *        content:
+//  *          application/json:
+//  *            schema:
+//  *              $ref: '#/components/schemas/User'
+//  *            example:
+//  *              userId: V2sSC1HSLASNtTT0RhzwqDxxwri2
+//  *              userName: Nhan Nguyen
+//  *              avatar: https://lh3.googleusercontent.com/a/AEdFTp4508ZdzGjVRFFIwb0ULZXYm5V5_vyRsiKq-cfA=s96-c
+//  *              birthday: 2003-03-18 
+//  *              phone: "0898149847"
+//  *              address: 1/1 D1 HCM
+//  *     responses:
+//  *       200:
+//  *         description: Update profile successfully
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: array
+//  *               items:
+//  *                 $ref: '#/components/schemas/User'
+//  */
+// router.put("/profile", verifyToken, controllers.updateProfile);
 
 /**
  * @swagger

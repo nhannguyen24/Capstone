@@ -16,12 +16,6 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'routeId',
         as: "tour_route",
       });
-
-      Tour.belongsTo(models.Station, {
-        foreignKey: "departureStationId",
-        targetKey: 'stationId',
-        as: "departure_station",
-      });
       
       Tour.hasMany(models.Ticket, { as: 'tour_ticket', foreignKey: 'tourId'});
       
@@ -51,7 +45,6 @@ module.exports = (sequelize, DataTypes) => {
     },
     tourName: DataTypes.STRING,
     description: DataTypes.STRING,
-    note: DataTypes.STRING,
     beginBookingDate: DataTypes.DATE,
     endBookingDate: DataTypes.DATE,
     departureDate: DataTypes.DATE,
@@ -60,9 +53,7 @@ module.exports = (sequelize, DataTypes) => {
     routeId: {
       type: DataTypes.UUID
     },
-    departureStationId: {
-      type: DataTypes.UUID
-    },
+    departureStationId: DataTypes.STRING,
     tourGuideId: {
       type: DataTypes.UUID
     },
@@ -74,11 +65,11 @@ module.exports = (sequelize, DataTypes) => {
     },
     tourStatus: {
       type: DataTypes.ENUM,
-      values: ["NotStarted", "Ontour", "Canceled", "Finished"],
+      values: ["New", "Started", "Canceled", "Finished"],
       validate: {
         isIn: {
-          args: [["NotStarted", "Ontour", "Canceled", "Finished"]],
-          msg: 'Invalid value for tour.status (NotStarted, Ontour, Canceled, Finished)'
+          args: [["New", "Started", "Canceled", "Finished"]],
+          msg: 'Invalid value for tour.status (New, Started, Canceled, Finished)'
         }
       }
     },

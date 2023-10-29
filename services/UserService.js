@@ -203,49 +203,49 @@ const updateUser = ({ userId, ...body }) =>
     }
   });
 
-const updateProfile = (body, userId) =>
-  new Promise(async (resolve, reject) => {
-    try {
-      if (body.userId !== userId) {
-        resolve({
-          msg: "Can't update other people's account"
-        });
-      } else {
-        const users = await db.User.update(body, {
-          where: { userId: userId },
-          individualHooks: true,
-        });
-        resolve({
-          status: users[0] ? 200 : 400,
-          data: {
-            msg:
-              users[0] > 0
-                ? "Update profile successfully"
-                : "Cannot update user/ userId not found",
-          }
-        });
-        redisClient.keys('user_paging*', (error, keys) => {
-          if (error) {
-            console.error('Error retrieving keys:', error);
-            return;
-          }
-          // Delete each key individually
-          keys.forEach((key) => {
-            redisClient.del(key, (deleteError, reply) => {
-              if (deleteError) {
-                console.error(`Error deleting key ${key}:`, deleteError);
-              } else {
-                console.log(`Key ${key} deleted successfully`);
-              }
-            });
-          });
-        });
+// const updateProfile = (body, userId) =>
+//   new Promise(async (resolve, reject) => {
+//     try {
+//       if (body.userId !== userId) {
+//         resolve({
+//           msg: "Can't update other people's account"
+//         });
+//       } else {
+//         const users = await db.User.update(body, {
+//           where: { userId: userId },
+//           individualHooks: true,
+//         });
+//         resolve({
+//           status: users[0] ? 200 : 400,
+//           data: {
+//             msg:
+//               users[0] > 0
+//                 ? "Update profile successfully"
+//                 : "Cannot update user/ userId not found",
+//           }
+//         });
+//         redisClient.keys('user_paging*', (error, keys) => {
+//           if (error) {
+//             console.error('Error retrieving keys:', error);
+//             return;
+//           }
+//           // Delete each key individually
+//           keys.forEach((key) => {
+//             redisClient.del(key, (deleteError, reply) => {
+//               if (deleteError) {
+//                 console.error(`Error deleting key ${key}:`, deleteError);
+//               } else {
+//                 console.log(`Key ${key} deleted successfully`);
+//               }
+//             });
+//           });
+//         });
 
-      }
-    } catch (error) {
-      reject(error.message);
-    }
-  });
+//       }
+//     } catch (error) {
+//       reject(error.message);
+//     }
+//   });
 
 const deleteUser = (userIds, userId) =>
   new Promise(async (resolve, reject) => {
@@ -317,7 +317,6 @@ module.exports = {
   deleteUser,
   createUser,
   getAllUsers,
-  updateProfile,
   getUserById
 };
 

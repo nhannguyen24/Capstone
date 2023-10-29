@@ -1769,7 +1769,7 @@ const updateTour = ({ images, tourId, ...body }) =>
                             transaction: t
                         });
 
-                        if (body.tourStatus == TOUR_STATUS.ON_TOUR) {
+                        if (body.tourStatus == TOUR_STATUS.STARTED) {
                             await db.TourDetail.update({
                                 status: STATUS.NOTARRIVED,
                             }, {

@@ -172,8 +172,8 @@ router.get("/:id", controllers.getTourById);
  *                    duration: 03:00:00
  *                    routeId: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    tickets:
- *                          - ticketTypeId
- *                          - ticketTypeId
+ *                          - 3355c24a-741c-4e3b-9d2a-fa43c4c950c5
+ *                          - 99f73c58-7c81-4152-90f9-21e50637e9c8
  *                    images:
  *                          - string
  *                          - string

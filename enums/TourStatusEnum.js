@@ -1,6 +1,6 @@
 class TourStatusEnum{
-    static NOT_STARTED = "NotStarted"
-    static ON_TOUR = "Ontour"
+    static NEW = "New"
+    static STARTED = "Started"
     static CANCELED = "Canceled"
     static FINISHED = "Finished"
 }

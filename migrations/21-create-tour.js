@@ -15,9 +15,6 @@ module.exports = {
       description: {
         type: Sequelize.STRING,
       },
-      note: {
-        type: Sequelize.STRING,
-      },
       beginBookingDate: {
         type: Sequelize.DATE,
         allowNull: false,
@@ -38,18 +35,14 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
       },
+      departureStationId: {
+        type: Sequelize.STRING,
+      },
       routeId: {
         type: Sequelize.UUID,
         references: {
           model: 'routes',
           key: 'routeId'
-        }
-      },
-      departureStationId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'stations',
-          key: 'stationId'
         }
       },
       tourGuideId: {
@@ -75,8 +68,8 @@ module.exports = {
       },
       tourStatus: {
         type: Sequelize.ENUM,
-        values: ["NotStarted", "Ontour", "Canceled", "Finished"],
-        defaultValue: 'NotStarted',
+        values: ["New", "Started", "Canceled", "Finished"],
+        defaultValue: 'New',
       },
       status: {
         type: Sequelize.ENUM,
