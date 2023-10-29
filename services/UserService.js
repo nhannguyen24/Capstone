@@ -247,21 +247,20 @@ const updateUser = ({ userId, ...body }) =>
 //     }
 //   });
 
-const deleteUser = (userIds, userId) =>
+const deleteUser = (delUserId, userId) =>
   new Promise(async (resolve, reject) => {
     try {
-      if (userIds.includes(userId)) {
+      if (delUserId == userId) {
         resolve({
           msg: `Cannot delete user/ Account ${userId} is in use`,
         });
       } else {
-        const findUser = await db.User.findAll({
+        const findUser = await db.User.findOne({
           raw: true, nest: true,
-          where: { userId: userIds },
+          where: { userId: delUserId },
         });
 
-        for (const user of findUser) {
-          if (user.status === "Deactive") {
+          if (findUser.status === "Deactive") {
             resolve({
               status: 400,
               data: {
@@ -270,16 +269,15 @@ const deleteUser = (userIds, userId) =>
             });
             return;
           }
-        }
 
         const users = await db.User.update(
           { status: "Deactive" },
           {
-            where: { userId: userIds },
+            where: { userId: delUserId },
             individualHooks: true,
           }
         );
-        console.log(users[0]);
+        // console.log(users[0]);
         resolve({
           status: users[0] > 0 ? 200 : 400,
           data: {

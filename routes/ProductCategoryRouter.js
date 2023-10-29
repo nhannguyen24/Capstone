@@ -167,7 +167,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateProductCategory
  *     summary: Delete the productCates by id
  *     tags: [ProductCategory]
  *     parameters:
- *       - name: productCateIds[0]
+ *       - name: productCateId
  *         in: query
  *         schema:
  *           type: string

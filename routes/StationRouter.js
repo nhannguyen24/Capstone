@@ -192,7 +192,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateStation);
  *     summary: Delete the stations by id
  *     tags: [Station]
  *     parameters:
- *       - name: stationIds[0]
+ *       - name: stationId
  *         in: query
  *         schema:
  *           type: string

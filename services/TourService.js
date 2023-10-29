@@ -1823,16 +1823,15 @@ const updateTour = ({ images, tourId, ...body }) =>
         }
     });
 
-const deleteTour = (tourIds) =>
+const deleteTour = (tourId) =>
     new Promise(async (resolve, reject) => {
         try {
-            const findPonit = await db.Tour.findAll({
+            const tour = await db.Tour.findOne({
                 raw: true, nest: true,
-                where: { tourId: tourIds },
+                where: { tourId: tourId },
             });
 
-            for (const tournt of findPonit) {
-                if (tournt.status === "Deactive") {
+                if (tour.status === "Deactive") {
                     resolve({
                         status: 400,
                         data: {
@@ -1841,12 +1840,11 @@ const deleteTour = (tourIds) =>
                     });
                     return;
                 }
-            }
 
             const tours = await db.Tour.update(
                 { status: "Deactive" },
                 {
-                    where: { tourId: tourIds },
+                    where: { tourId: tourId },
                     individualHooks: true,
                 }
             );

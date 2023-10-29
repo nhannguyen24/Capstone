@@ -167,7 +167,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateLanguage);
  *     summary: Delete the languages by id
  *     tags: [Language]
  *     parameters:
- *       - name: languageIds[0]
+ *       - name: languageId
  *         in: query
  *         schema:
  *           type: string

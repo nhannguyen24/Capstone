@@ -289,7 +289,7 @@ router.put("/assigned-tours", verifyToken, isAdminOrManager, controllers.assignT
  *     summary: Delete the tours by id
  *     tags: [Tour]
  *     parameters:
- *       - name: tourIds[0]
+ *       - name: tourId
  *         in: query
  *         schema:
  *           type: string

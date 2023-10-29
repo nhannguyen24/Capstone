@@ -74,13 +74,13 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
     try {
         const {userId} = req.user;
-        const {userIds} = req.query;
+        const {delUserId} = req.query;
         // const { error } = joi.object({userIds}).validate(req.query);
         // if (error) throw new BadRequestError(error.details[0].message);
-        if(!userIds) {
-            throw new BadRequestError('Please provide userIds');
+        if(!delUserId) {
+            throw new BadRequestError('Please provide delUserId');
         }
-        const response = await services.deleteUser(req.query.userIds, userId);
+        const response = await services.deleteUser(req.query.delUserId, userId);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);

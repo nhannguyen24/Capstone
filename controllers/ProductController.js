@@ -54,11 +54,11 @@ const updateProduct = async (req, res) => {
 
 const deleteProduct = async (req, res) => {
     try {
-        const {productIds} = req.query;
-        if(!productIds) {
-            throw new BadRequestError('Please provide productIds');
+        const {productId} = req.query;
+        if(!productId) {
+            throw new BadRequestError('Please provide productId');
         }
-        const response = await services.deleteProduct(req.query.productIds);
+        const response = await services.deleteProduct(req.query.productId);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);

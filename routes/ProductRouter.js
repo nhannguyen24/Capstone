@@ -185,7 +185,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateProduct);
  *     summary: Delete the products by id
  *     tags: [Product]
  *     parameters:
- *       - name: productIds[0]
+ *       - name: productId
  *         in: query
  *         schema:
  *           type: string

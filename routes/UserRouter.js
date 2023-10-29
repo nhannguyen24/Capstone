@@ -243,7 +243,7 @@ router.put("/", verifyToken, isAdmin, controllers.updateUser);
  *     summary: Delete the users by id
  *     tags: [User]
  *     parameters:
- *       - name: userIds[0]
+ *       - name: delUserId
  *         in: query
  *         schema:
  *           type: string
