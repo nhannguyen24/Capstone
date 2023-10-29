@@ -71,17 +71,6 @@ const getAllTour = (
                                 },
                             },
                             {
-                                model: db.Station,
-                                as: "departure_station",
-                                attributes: {
-                                    exclude: [
-                                        "createdAt",
-                                        "updatedAt",
-                                        "status",
-                                    ],
-                                },
-                            },
-                            {
                                 model: db.Bus,
                                 as: "tour_bus",
                                 attributes: {
@@ -307,17 +296,6 @@ const getTourById = (tourId) =>
                                 "poiId",
                                 "productId",
                                 "feedbackId",
-                                "createdAt",
-                                "updatedAt",
-                                "status",
-                            ],
-                        },
-                    },
-                    {
-                        model: db.Station,
-                        as: "departure_station",
-                        attributes: {
-                            exclude: [
                                 "createdAt",
                                 "updatedAt",
                                 "status",
