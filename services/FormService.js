@@ -176,15 +176,15 @@ const createForm = (body, userId) =>
         }
     });
 
-const updateForm = ({ formId, ...query }) =>
+const updateForm = ({ formId, ...body }) =>
     new Promise(async (resolve, reject) => {
         try {
-            const forms = await db.Form.update(query, {
+            const forms = await db.Form.update(body, {
                 where: { formId },
                 individualHooks: true,
             });
 
-            if (query.status == STATUS.APPROVED) {
+            if (body.status == STATUS.APPROVED) {
                 const form = await db.Form.findOne({
                     where: { formId: formId },
                     raw: true,

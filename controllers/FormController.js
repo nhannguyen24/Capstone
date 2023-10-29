@@ -27,7 +27,7 @@ const getFormById = async (req, res) => {
 const createForm = async (req, res) => {
     try {
         const { userId } = req.user;
-        const {reason, currentTour, desireTour, changeEmployee} = req.body;
+        const {currentTour} = req.body;
         if(!currentTour) {
             throw new BadRequestError('Please provide currentTour');
         }
@@ -41,11 +41,11 @@ const createForm = async (req, res) => {
 
 const updateForm = async (req, res) => {
     try {
-        const {formId} = req.query;
+        const {formId} = req.body;
         if(!formId) {
             throw new BadRequestError('Please provide formId');
         }
-        const response = await services.updateForm(req.query);
+        const response = await services.updateForm(req.body);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);

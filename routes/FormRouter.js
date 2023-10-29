@@ -156,17 +156,13 @@ router.post("/", verifyToken, isTourguideOrDriver, controllers.createForm);
  *         - BearerAuth: []
  *     summary: Update the form by id
  *     tags: [Form]
- *     parameters:
- *       - name: formId
- *         in: query
- *         schema:
- *           type: string
- *         description: Find form by formId
- *       - name: status
- *         in: query
- *         schema:
- *           type: string
- *           enum: ["Active", "Accepted", "Declined", "Approved", "Rejected"]
+ *     requestBody:
+ *       content:
+ *          application/json:
+ *            schema:                     
+ *                  example:
+ *                    formId: 8c382e13-8620-460a-bd95-96b1152c1368
+ *                    status: ('Approved','Pending','Rejected')
  *     responses:
  *       200:
  *         description: Update the form successfully
