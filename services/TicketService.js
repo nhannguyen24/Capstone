@@ -315,7 +315,7 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
                         msg: `Tour is already started or Deactive`,
                     }
                 })
-            } else if(TOUR_STATUS.NEW === tour.tourStatus && STATUS.ACTIVE === tour.status){
+            } else if(TOUR_STATUS.AVAILABLE === tour.tourStatus && STATUS.ACTIVE === tour.status){
                 const ticket = await db.Ticket.findOne({
                     where: {
                         tourId: tourId
