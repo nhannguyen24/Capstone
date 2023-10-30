@@ -46,6 +46,18 @@ const router = express.Router();
  *           type: string
  *         description: Search with booking code
  *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           example: 2023-10-23T00:00:00.000Z
+ *         description: Search after this date
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           example: 2023-10-29T23:59:59.000Z
+ *         description: Search before this date
+ *       - in: query
  *         name: tourId
  *         schema:
  *           type: string
@@ -109,8 +121,19 @@ router.get("/", verifyToken, isLoggedIn, controllers.getBookings);
  *         name: bookingCode
  *         schema:
  *           type: string
- *           example: BO23
  *         description: Search with booking code
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           example: 2023-10-23T00:00:00.000Z
+ *         description: Search after this date
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           example: 2023-10-29T23:59:59.000Z
+ *         description: Search before this date
  *       - in: query
  *         name: tourId
  *         schema:
@@ -253,27 +276,23 @@ router.post("/", controllers.createBooking);
  *         name: id
  *         schema:
  *           type: string
- *           example: 77ff7316-581e-448e-86c3-436263b277d1
  *         required: true
- *       - in: query
- *         name: isAttended
- *         schema:
- *           type: boolean
- *       - in: query
- *         name: bookingStatus
- *         schema:
- *           type: string
- *           enum:
- *              - Ongoing
- *              - Canceled
- *              - Finished
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum:
- *              - Active
- *              - Deactive
+ *     requestBody:
+ *       description: Booking data to update
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *              type: object
+ *              properties: 
+ *                  isAttended: 
+ *                      type: boolean
+ *                  bookingStatus: 
+ *                      type: string
+ *                      enum: 
+ *                          - Ongoing
+ *                          - Canceled
+ *                          - Finished
  *     responses:
  *       200:
  *         description: OK
@@ -296,41 +315,5 @@ router.post("/", controllers.createBooking);
  */
 router.put("/:id", controllers.updateBooking);
 
-/**
- * @swagger
- * /api/v1/bookings/{id}:
- *   delete:
- *     security: 
- *         - BearerAuth: []
- *     summary: Delete booking by id
- *     tags: [Booking]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
- *         required: true
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *       400:
- *         description: Bad request
- *         content:
- *           application/json:
- *             schema:
- *               type: string
- *       409:
- *         description: Conflict
- *         content:
- *           application/json:
- *             schema:
- *               type: string
- */
-router.delete("/:id", verifyToken, isCustomer, controllers.deleteBooking);
 
 module.exports = router;

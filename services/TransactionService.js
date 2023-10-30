@@ -5,7 +5,7 @@ const getTransactions = (req) => new Promise(async (resolve, reject) => {
     try {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
-        const offset = parseInt((page - 1) * limit)
+        const offset = (page - 1) * limit
         const bookingId = req.query.bookingId || ""
         const transactionCode = req.query.transactionCode || ""
         const isSuccess = req.query.isSuccess || ""

@@ -1,7 +1,7 @@
 const controllers = require('../controllers/TicketTypeController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isAdmin} = require('../middlewares/VerifyRole');
+const {isAdmin, isAdminOrManager} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -22,7 +22,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isAdmin, controllers.getTicketTypes);
+router.get("/", verifyToken, isAdminOrManager, controllers.getTicketTypes);
 
 /**
  * @swagger
@@ -47,7 +47,7 @@ router.get("/", verifyToken, isAdmin, controllers.getTicketTypes);
  *             schema:
  *               type: object
  */
-router.get("/:id", verifyToken, isAdmin, controllers.getTicketTypeById);
+router.get("/:id", verifyToken, isAdminOrManager, controllers.getTicketTypeById);
 
 
 /**
@@ -88,7 +88,7 @@ router.get("/:id", verifyToken, isAdmin, controllers.getTicketTypeById);
  *             schema:
  *               type: object
  */
-router.post("/", verifyToken, isAdmin, controllers.createTicketType);
+router.post("/", verifyToken, isAdminOrManager, controllers.createTicketType);
 
 /**
  * @swagger
@@ -103,19 +103,18 @@ router.post("/", verifyToken, isAdmin, controllers.createTicketType);
  *         name: id
  *         schema:
  *           type: string
- *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
  *         required: true
- *       - in: query
- *         name: ticketTypeName
- *         schema:
- *           type: string
- *           example: Vé người lớn 
- *       - in: query
- *         name: description
- *         schema:
- *           type: string
- *           example: Vé dành cho người lớn trên 15 tuổi
- *        
+ *     requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                  ticketTypeName:
+ *                      type: string
+ *                  description:
+ *                      type: string
  *     responses:
  *       200:
  *         description: OK
@@ -130,7 +129,7 @@ router.post("/", verifyToken, isAdmin, controllers.createTicketType);
  *             schema:
  *               type: string
  */
-router.put("/:id", verifyToken, isAdmin, controllers.updateTicketType);
+router.put("/:id", verifyToken, isAdminOrManager, controllers.updateTicketType);
 
 // /**
 //  * @swagger

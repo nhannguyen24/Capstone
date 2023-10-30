@@ -99,7 +99,7 @@ router.post("/", verifyToken, isCustomer, controllers.createFeedback);
 
 /**
  * @swagger
- * /api/v1/feedbacks/{feedbackId}:
+ * /api/v1/feedbacks/{id}:
  *   get:
  *     security: 
  *         - BearerAuth: []
@@ -107,7 +107,7 @@ router.post("/", verifyToken, isCustomer, controllers.createFeedback);
  *     tags: [Feedback]
  *     parameters:
  *       - in: path
- *         name: feedbackId
+ *         name: id
  *         schema:
  *           type: string
  *           example: 72102f7f-3b83-47ff-b5c7-ea5e75a20c80
@@ -120,11 +120,11 @@ router.post("/", verifyToken, isCustomer, controllers.createFeedback);
  *             schema:
  *               type: object
  */
-router.get("/:feedbackId", verifyToken, isManager, controllers.getFeedbackById);
+router.get("/:id", verifyToken, isManager, controllers.getFeedbackById);
 
 /**
  * @swagger
- * /api/v1/feedbacks/{feedbackId}:
+ * /api/v1/feedbacks/{id}:
  *   put:
  *     security: 
  *         - BearerAuth: []
@@ -132,31 +132,27 @@ router.get("/:feedbackId", verifyToken, isManager, controllers.getFeedbackById);
  *     tags: [Feedback]
  *     parameters:
  *       - in: path
- *         name: feedbackId
+ *         name: id
  *         schema:
  *           type: string
- *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
  *         required: true
- *       - in: query
- *         name: stars
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 5
- *           example: 3
- *       - in: query
- *         name: description
- *         schema:
- *           type: string
- *           example: Phong canh toan cay coi
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: 
- *              - Active   
- *              - Deactive
- *           example: Đang tour thì xe hư giữa đường
+ *     requestBody:
+ *       description: Bus data to update
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *              type: object
+ *              properties: 
+ *                  stars: 
+ *                      type: integer
+ *                  description: 
+ *                      type: string
+ *                  status: 
+ *                      type: string
+ *                      enum: 
+ *                          - Active
+ *                          - Deactive
  *     responses:
  *       200:
  *         description: OK
@@ -177,11 +173,11 @@ router.get("/:feedbackId", verifyToken, isManager, controllers.getFeedbackById);
  *             schema:
  *               type: string
  */
-router.put("/:feedbackId", verifyToken, isCustomerOrManager, controllers.updateFeedback);
+router.put("/:id", verifyToken, isCustomerOrManager, controllers.updateFeedback);
 
 /**
  * @swagger
- * /api/v1/feedbacks/{feedbackId}:
+ * /api/v1/feedbacks/{id}:
  *   delete:
  *     security: 
  *         - BearerAuth: []
@@ -189,7 +185,7 @@ router.put("/:feedbackId", verifyToken, isCustomerOrManager, controllers.updateF
  *     tags: [Feedback]
  *     parameters:
  *       - in: path
- *         name: feedbackId
+ *         name: id
  *         schema:
  *           type: string
  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
@@ -208,6 +204,6 @@ router.put("/:feedbackId", verifyToken, isCustomerOrManager, controllers.updateF
  *             schema:
  *               type: string
  */
-router.delete("/:feedbackId", verifyToken, isCustomerOrManager, controllers.deleteFeedback);
+router.delete("/:id", verifyToken, isCustomerOrManager, controllers.deleteFeedback);
 
 module.exports = router;

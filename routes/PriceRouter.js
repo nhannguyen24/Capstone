@@ -143,35 +143,30 @@ router.get("/:id", verifyToken, isAdminOrManager, controllers.getPriceById);
  *         name: id
  *         schema:
  *           type: string
- *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
  *         required: true
- *       - in: query
- *         name: amount
- *         schema:
- *           type: integer
- *           example: 200000
- *           minimum: 1000
- *       - in: query
- *         name: ticketTypeId
- *         schema:
- *           type: string
- *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
- *       - in: query
- *         name: day
- *         schema:
- *           type: string
- *           enum:
- *              - Holiday
- *              - Weekend
- *              - Normal
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum:
- *              - Active
- *              - Deactive
- *        
+ *     requestBody:
+ *       description: Price data to update
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *              type: object
+ *              properties: 
+ *                  amount: 
+ *                      type: integer
+ *                  ticketTypeId: 
+ *                      type: string
+ *                  day: 
+ *                      type: string
+ *                      enum:
+ *                          - Holiday
+ *                          - Weekend
+ *                          - Normal
+ *                  status: 
+ *                      type: string
+ *                      enum: 
+ *                          - Active
+ *                          - Deactive
  *     responses:
  *       200:
  *         description: OK
@@ -187,36 +182,5 @@ router.get("/:id", verifyToken, isAdminOrManager, controllers.getPriceById);
  *               type: object
  */
 router.put("/:id", verifyToken, isAdminOrManager, controllers.updatePrice);
-
-/**
- * @swagger
- * /api/v1/prices/{id}:
- *   delete:
- *     security: 
- *         - BearerAuth: []
- *     summary: Delete price by id
- *     tags: [Price]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
- *         required: true
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *       400:
- *         description: Bad request
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- */
-router.delete("/:id", verifyToken, isAdminOrManager, controllers.deletePrice);
 
 module.exports = router;

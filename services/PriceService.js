@@ -114,9 +114,16 @@ const updatePrice = (req) => new Promise(async (resolve, reject) => {
     const t = await db.sequelize.transaction();
     try {
         const priceId = req.params.id
+        const ticketTypeId = req.body.ticketTypeId || ""
+        const amount = parseInt(req.body.amount) || ""
+        const day = req.body.day || ""
+
+        const updatePrice = {}
+
         const price = await db.Price.findOne({
             where: {
-                priceId: priceId
+                priceId: priceId,
+                ticketTypeId: ticketTypeId
             }
         })
 
@@ -124,82 +131,20 @@ const updatePrice = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `Price not found with id "${priceId}"`,
+                    msg: `Price not found!`,
                 }
             })
-            return
         }
 
-        var ticketTypeId = req.query.ticketTypeId
-        let ticketType
-        if (ticketTypeId === undefined || ticketTypeId === null || ticketTypeId.trim().length === 0) {
-            ticketTypeId = price.ticketTypeId
-        } else {
-            ticketType = await db.TicketType.findOne({
-                where: {
-                    ticketTypeId: ticketTypeId
-                }
-            })
-
-            if (!ticketType) {
-                resolve({
-                    status: 404,
-                    data: {
-                        msg: `TicketType not found with id "${ticketTypeId}"`,
-                    }
-                })
-            }
+        if (amount !== "") {
+            updatePrice.amount = amount
         }
 
-        var amount = parseInt(req.query.amount)
-        if (amount === undefined || amount === null) {
-            amount = price.amount
-        } else {
-            if (isNaN(amount)) {
-                resolve({
-                    status: 400,
-                    data: {
-                        msg: `Amount need to be a number`,
-                    }
-                })
-            } else {
-                if (amount < 1000) {
-                    resolve({
-                        status: 400,
-                        data: {
-                            msg: `Amount need to be atleast 1000`,
-                        }
-                    })
-                }
-            }
+        if (day !== "") {
+            updatePrice.day = day
         }
 
-        var day = req.query.day
-        if (day === undefined || day === null) {
-            day = price.day
-        }
-
-        var status = req.query.status
-        if (status === undefined || status === null) {
-            status = price.status
-        } else {
-            if (STATUS.DEACTIVE === status) {
-                if (STATUS.DEACTIVE !== ticketType.status) {
-                    resolve({
-                        status: 400,
-                        data: {
-                            msg: `Price is currently in use for ticket type ${ticketType.ticketTypeId}`,
-                        }
-                    })
-                }
-            }
-        }
-
-        await db.Price.update({
-            amount: amount,
-            ticketTypeId: ticketTypeId,
-            day: day
-        }, {
+        await db.Price.update(updatePrice, {
             where: {
                 priceId: price.priceId
             }, individualHooks: true, transaction: t
@@ -220,58 +165,4 @@ const updatePrice = (req) => new Promise(async (resolve, reject) => {
     }
 });
 
-const deletePrice = (req) => new Promise(async (resolve, reject) => {
-    try {
-        const priceId = req.params.id
-        const price = await db.Price.findOne({
-            where: {
-                priceId: priceId
-            }
-        })
-
-        if (!price) {
-            resolve({
-                status: 404,
-                data: {
-                    msg: `Price not found with id "${priceId}"`,
-                }
-            })
-            return
-        }
-
-        const ticketType = await db.TicketType.findOne({
-            where: {
-                ticketTypeId: price.ticketTypeId
-            }
-        })
-
-        if (STATUS.DEACTIVE !== ticketType.status) {
-            resolve({
-                status: 400,
-                data: {
-                    msg: `Price is currently in use for ticket type ${ticketType.ticketTypeId}`,
-                }
-            })
-        } else {
-            await db.Price.update({
-                status: STATUS.DEACTIVE
-            }, {
-                where: {
-                    priceId: price.priceId
-                }, individualHooks: true
-            })
-
-            resolve({
-                status: 200,
-                data: {
-                    msg: "Delete price successfully",
-                }
-            })
-        }
-    } catch (error) {
-        reject(error);
-    }
-});
-
-
-module.exports = { getPrices, getPriceById, createPrice, updatePrice, deletePrice };
+module.exports = { getPrices, getPriceById, createPrice, updatePrice };

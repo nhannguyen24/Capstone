@@ -6,7 +6,7 @@ const getReports = (req) => new Promise(async (resolve, reject) => {
     try {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
-        const offset = parseInt((page - 1) * limit)
+        const offset = (page - 1) * limit
         const reportStatus = req.query.reportStatus || ""
 
         let whereClause = {}
@@ -91,7 +91,7 @@ const createReport = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `Can not report using other account`
+                    msg: `Cannot report using other account`
                 }
             })
         }
@@ -106,7 +106,7 @@ const createReport = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `User not found with id: "${customerId}",`
+                    msg: `User not found!",`
                 }
             })
         }
@@ -129,7 +129,11 @@ const createReport = (req) => new Promise(async (resolve, reject) => {
 const updateReport = (req) => new Promise(async (resolve, reject) => {
     const t = await db.sequelize.transaction();
     try {
-        const reportId = req.params.id
+        const reportId = req.params.id || ""
+        const response = req.body.response || ""
+        const reportStatus = req.body.reportStatus || ""
+
+        const updateReport = {}
         const report = await db.Report.findOne({
             where: {
                 reportId: reportId
@@ -140,25 +144,21 @@ const updateReport = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `Report not found with id ${reportId}`,
+                    msg: `Report not found!`,
                 }
             })
             return
         }
 
-        var response = req.query.response
-        if (response === undefined || response === null) {
-            response = report.response
+        if (response !== "") {
+            updateReport.response = response
         }
-        var reportStatus = req.query.reportStatus
-        if (reportStatus === undefined || reportStatus === null) {
-            reportStatus = report.reportStatus
+        
+        if (reportStatus !== "") {
+            updateReport.reportStatus = reportStatus
         }
 
-        await db.Report.update({
-            response: response,
-            reportStatus: reportStatus
-        }, {
+        await db.Report.update(updateReport, {
             where: {
                 reportId: report.reportId
             },

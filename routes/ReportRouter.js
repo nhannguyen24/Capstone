@@ -132,23 +132,24 @@ router.post("/", verifyToken, isLoggedIn, controllers.createReport);
  *         name: id
  *         schema:
  *           type: string
- *           example: 5fc762ee-0c43-45f6-affa-e4d7e340256d
  *         required: true
- *       - in: query
- *         name: response
- *         schema:
- *           type: string
- *           example: Reponse trả về cho người report khi thay đổi trạng thái report
- *         required: true
- *       - in: query
- *         name: reportStatus
- *         schema:
- *           type: string
- *           enum:  
- *              - Approved
- *              - Pending
- *              - Rejected
- *              - Completed
+ *     requestBody:
+ *       description: Report data to update
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *              type: object
+ *              properties: 
+ *                  response: 
+ *                      type: string
+ *                  reportStatus: 
+ *                      type: string
+ *                      enum:  
+ *                          - Approved
+ *                          - Pending
+ *                          - Rejected
+ *                          - Completed
  *     responses:
  *       200:
  *         description: OK

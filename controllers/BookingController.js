@@ -1,5 +1,5 @@
 const services = require('../services/BookingService');
-const {BadRequestError, InternalServerError} = require('../errors/Index');
+const { BadRequestError, InternalServerError } = require('../errors/Index');
 
 const getBookingDetailByBookingId = async (req, res) => {
     try {
@@ -12,8 +12,39 @@ const getBookingDetailByBookingId = async (req, res) => {
 
 const getBookings = async (req, res) => {
     try {
-        const response = await services.getBookings(req);
-        return res.status(response.status).json(response.data);
+        const errors = []
+        const page = parseInt(req.query.page)
+        const limit = parseInt(req.query.limit)
+        if (page !== "") {
+            if (isNaN(page)) {
+                errors.push("Page needs to be a number");
+            } else {
+                if (parseInt(page) < 1) {
+                    errors.push("Page needs to be 1 or higher");
+                }
+            }
+        } else {
+            errors.push("Page required!")
+        }
+
+        if (limit !== "") {
+            if (isNaN(limit)) {
+                errors.push("Limit needs to be a number");
+            } else {
+                if (parseInt(limit) < 1) {
+                    errors.push("Limit needs to be 1 or higher");
+                }
+            }
+        } else {
+            errors.push("Limit required!")
+        }
+
+        if (errors.length === 0) {
+            const response = await services.getBookings(req);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(400).json(errors);
+        }
     } catch (error) {
         throw new InternalServerError(error);
     }
@@ -21,16 +52,77 @@ const getBookings = async (req, res) => {
 
 const getBookingsByEmail = async (req, res) => {
     try {
-        const response = await services.getBookingsByEmail(req);
-        return res.status(response.status).json(response.data);
+        const email = req.query.email || ""
+        const page = parseInt(req.query.page) || ""
+        const limit = parseInt(req.query.limit) || ""
+        const errors = []
+        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+        if (email.trim() === "") {
+            errors.push("Email required!")
+        } else if (!emailRegex.test(email)) {
+            errors.push("Invalid email address!")
+        }
+
+        if (page !== "") {
+            if (isNaN(page)) {
+                errors.push("Page needs to be a number");
+            } else {
+                if (parseInt(page) < 1) {
+                    errors.push("Page needs to be 1 or higher");
+                }
+            }
+        } else {
+            errors.push("Page required!")
+        }
+
+        if (limit !== "") {
+            if (isNaN(limit)) {
+                errors.push("Limit needs to be a number");
+            } else {
+                if (parseInt(limit) < 1) {
+                    errors.push("Limit needs to be 1 or higher");
+                }
+            }
+        } else {
+            errors.push("Limit required!")
+        }
+
+        if (errors.length === 0) {
+            const response = await services.getBookingsByEmail(req);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(400).json(errors);
+        }
     } catch (error) {
         throw new InternalServerError(error);
     }
 };
 const createBooking = async (req, res) => {
     try {
-        const response = await services.createBooking(req);
-        return res.status(response.status).json(response.data);
+        const errors = []
+        const totalPrice = req.body.totalPrice || ""
+        const departureStationId = req.body.departureStationId || ""
+        if(totalPrice === ""){
+            errors.push("totalPrice required!")
+        } else {
+            if(isNaN(totalPrice)){
+                errors.push("totalPrice needs to be a number")
+            } else {
+                if(parseInt(totalPrice) < 1000){
+                    errors.push("totalPrice needs to be atleast 1000")
+                }
+            }
+        }
+        if(departureStationId.trim() === ""){
+            errors.push("departureStationId required!")
+        }
+
+        if (errors.length === 0) {
+            const response = await services.createBooking(req);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(400).json(errors);
+        }
     } catch (error) {
         throw new InternalServerError(error);
     }
@@ -38,19 +130,29 @@ const createBooking = async (req, res) => {
 
 const updateBooking = async (req, res) => {
     try {
-        const response = await services.updateBooking(req);
-        return res.status(response.status).json(response.data);
-    } catch (error) {
-        throw new InternalServerError(error);
-    }
-}
-const deleteBooking = async (req, res) => {
-    try {
-        const response = await services.deleteBooking(req);
-        return res.status(response.status).json(response.data);
+        const bookingId = req.params.id || ""
+        const bookingStatus = req.body.bookingStatus || ""
+        const isAttended = req.body.isAttended
+        const errors = []
+        if (isAttended === null) {
+            isAttended === ""
+        }
+        if (bookingId.trim() === "") {
+            errors.push("Id required!")
+        }
+        if (bookingStatus === "" && isAttended === "") {
+            errors.push("Update field required!")
+        }
+        if (errors.length === 0) {
+            const response = await services.updateBooking(bookingId, bookingStatus, isAttended);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(400).json(errors);
+        }
+
     } catch (error) {
         throw new InternalServerError(error);
     }
 }
 
-module.exports = { getBookingDetailByBookingId, getBookings, getBookingsByEmail, createBooking, updateBooking, deleteBooking }
+module.exports = { getBookingDetailByBookingId, getBookings, getBookingsByEmail, createBooking, updateBooking }
