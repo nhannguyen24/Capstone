@@ -253,6 +253,20 @@ const getAllTour = (
                         // Now, departureDate holds the endTime
                         const endDate = departureDate.toISOString();
                         tour.dataValues.endDate = endDate;
+
+                        const departureStation = await db.Station.findOne({
+                            where: {
+                                departureStationId: tour.departureStationId,
+                            },
+                            attributes: {
+                                exclude: [
+                                    "createdAt",
+                                    "updatedAt",
+                                    "status",
+                                ]
+                            }
+                        })
+                        tour.dataValues.departureStation = departureStation
                     }
 
                     redisClient.setEx(`admin_tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}`, 900, JSON.stringify(tours));

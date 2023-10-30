@@ -168,7 +168,7 @@ router.post("/", verifyToken, isAdmin, controllers.createUser);
 
 /**
  * @swagger
- * /api/v1/users:
+ * /api/v1/users/{id}:
  *   put:
  *     security: 
  *         - BearerAuth: []
@@ -236,7 +236,7 @@ router.put("/", verifyToken, isAdmin, controllers.updateUser);
 
 /**
  * @swagger
- * /api/v1/users:
+ * /api/v1/users/{id}:
  *   delete:
  *     security: 
  *         - BearerAuth: []

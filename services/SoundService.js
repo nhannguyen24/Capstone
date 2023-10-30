@@ -365,6 +365,7 @@ const deleteFileSound = (soundId) =>
                     });
                 });
             });
+            
             redisClient.keys('*pois_*', (error, keys) => {
                 if (error) {
                     console.error('Error retrieving keys:', error);
