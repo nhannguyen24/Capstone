@@ -106,8 +106,10 @@ const updateBus = async (req, res) => {
                     }
                 }
             }
-            if(isDoubleDecker !== true || isDoubleDecker !== false){
-                errors.push("isDoubleDecker needs to be true or false!")
+            if(isDoubleDecker !== null || isDoubleDecker !== undefined){
+                if(isDoubleDecker !== true || isDoubleDecker !== false){
+                    errors.push("isDoubleDecker needs to be true or false!")
+                }
             }
         }
         if (errors.length === 0) {
