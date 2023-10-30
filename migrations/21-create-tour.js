@@ -68,8 +68,8 @@ module.exports = {
       },
       tourStatus: {
         type: Sequelize.ENUM,
-        values: ["New", "Started", "Canceled", "Finished"],
-        defaultValue: 'New',
+        values: ["Available", "Started", "Canceled", "Finished"],
+        defaultValue: 'Available',
       },
       status: {
         type: Sequelize.ENUM,

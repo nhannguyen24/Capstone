@@ -207,7 +207,7 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
                 whereClause.bookingDate = {
                     [Op.gte]: startDate + "T00:00:00.000Z"
                 }
-            } 
+            }
             if (endDate !== "") {
                 whereClause.bookingDate = {
                     [Op.lte]: endDate + "T23:59:59.000Z"
@@ -472,7 +472,7 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
                 whereClause.bookingDate = {
                     [Op.gte]: startDate + "T00:00:00.000Z"
                 }
-            } 
+            }
             if (endDate !== "") {
                 whereClause.bookingDate = {
                     [Op.lte]: endDate + "T23:59:59.000Z"
@@ -701,7 +701,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 }
             });
         } else {
-            if (TOUR_STATUS.NEW !== tour.tourStatus || STATUS.ACTIVE !== tour.status) {
+            if (TOUR_STATUS.AVAILABLE !== tour.tourStatus || STATUS.ACTIVE !== tour.status) {
                 resolve({
                     status: 403,
                     data: {
@@ -984,7 +984,7 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                         }
                     })
                 }
-                if (TOUR_STATUS.NEW !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
+                if (TOUR_STATUS.AVAILABLE !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
                     resolve({
                         status: 400,
                         data: {
@@ -1040,7 +1040,7 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                     })
                 }
 
-                if (TOUR_STATUS.NEW !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus ||
+                if (TOUR_STATUS.AVAILABLE !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus ||
                     TOUR_STATUS.STARTED !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
                     resolve({
                         status: 400,
