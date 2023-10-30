@@ -8,7 +8,7 @@ const getTickets = (req) => new Promise(async (resolve, reject) => {
     try {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
-        const offset = parseInt((page - 1) * limit)
+        const offset = (page - 1) * limit
         const tourId = req.query.tourId || ""
         const ticketTypeId = req.query.ticketTypeId || ""
 
@@ -169,7 +169,7 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `Tour not found with id ${tourId}`,
+                    msg: `Tour not found!`,
                 }
             })
             return
@@ -178,7 +178,7 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
                 resolve({
                     status: 409,
                     data: {
-                        msg: `Tour is already started or Deactive`,
+                        msg: `Tour started or Deactive`,
                     }
                 })
                 return
@@ -193,22 +193,13 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `Ticket type not found with id ${ticketTypeId}`,
+                    msg: `Ticket type not found!`,
                 }
             })
             return
         }
-        if (STATUS.DEACTIVE == ticketType.status) {
-            resolve({
-                status: 409,
-                data: {
-                    msg: `Ticket type is "Deactive"`,
-                }
-            })
-            return
-        }
-        let day = DAY_ENUM.NORMAL
 
+        let day = DAY_ENUM.NORMAL
         const tourDepartureDate = new Date(tour.departureDate)
         const dayOfWeek = tourDepartureDate.getDay()
         if (dayOfWeek === 0 || dayOfWeek === 6) {
@@ -260,7 +251,17 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
     const t = await db.sequelize.transaction();
     try {
         const ticketId = req.params.id
-        var ticketTypeId = req.query.ticketTypeId
+        var ticketTypeId = req.body.ticketTypeId
+        var tourId = req.body.tourId
+        var status = req.body.status
+        const updateTicket = {}
+        resolve({
+            status: 200,
+            data: {
+                msg: `Comming soon`,
+            }
+        })
+        return
         const ticket = await db.Ticket.findOne({
             where: {
                 ticketId: ticketId
@@ -271,15 +272,27 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `Ticket not found with id ${ticketId}`,
+                    msg: `Ticket not found!`,
                 }
             })
             return
-        }
+        } else {
+            const tickets = await db.Ticket.findAll({
+                where: {
+                    tourId: ticket.tourId
+                },
+            });
+            if(tickets.length === 1){
+                resolve({
+                    status: 404,
+                    data: {
+                        msg: `Cannot update the new tour for the ticket because tour only has 1 ticket`,
+                    }
+                })
+            }
+            if(tickets.length > 1){
 
-        var tourId = req.query.tourId
-        if (tourId === undefined || tourId === null || tourId.trim().length < 1) {
-            tourId = ticket.tourId
+            }
         }
 
         const tour = await db.Tour.findOne({
@@ -287,23 +300,27 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
                 tourId: tourId
             }
         })
-        if (!tourId) {
+        if (!tour) {
             resolve({
                 status: 404,
                 data: {
-                    msg: `Tour not found with id ${tourId}`,
+                    msg: `Tour not found!`,
                 }
             })
-            return
         } else {
             if (TOUR_STATUS.AVAILABLE !== tour.tourStatus || STATUS.DEACTIVE === tour.status) {
                 resolve({
                     status: 409,
                     data: {
-                        msg: `Tour is already started or "Deactive"`,
+                        msg: `Tour is already started or Deactive`,
                     }
                 })
-                return
+            } else if(TOUR_STATUS.AVAILABLE === tour.tourStatus && STATUS.ACTIVE === tour.status){
+                const ticket = await db.Ticket.findOne({
+                    where: {
+                        tourId: tourId
+                    }
+                })
             }
         }
 
@@ -383,7 +400,7 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
             }
         }
 
-        var status = req.query.status
+        
         if (status === undefined || status === null) {
             status = ticketType.status
         }

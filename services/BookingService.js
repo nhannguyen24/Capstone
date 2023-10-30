@@ -117,14 +117,15 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
     try {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
-        const offset = parseInt((page - 1) * limit)
+        const offset = (page - 1) * limit
         const customerId = req.query.customerId || "";
         const customerName = req.query.customerName || "";
         const bookingCode = req.query.bookingCode || "";
+        const startDate = req.query.startDate || "";
+        const endDate = req.query.endDate || "";
         const tourId = req.query.tourId || "";
         const bookingStatus = req.query.bookingStatus || "";
         const status = req.query.status || "";
-        // const orderDate = req.query.orderDate || "DESC";
 
         const whereClause = {};
         const whereClauseTour = {};
@@ -189,6 +190,31 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
             whereClause.status = status
         }
 
+        if (startDate !== "" && endDate !== "") {
+            const _startDate = new Date(startDate)
+            const _endDate = new Date(endDate)
+            if (_startDate > _endDate) {
+                whereClause.bookingDate = {
+                    [Op.between]: [endDate + "T00:00:00.000Z", startDate + "T23:59:59.000Z"]
+                }
+            } else {
+                whereClause.bookingDate = {
+                    [Op.between]: [startDate + "T00:00:00.000Z", endDate + "T23:59:59.000Z"]
+                }
+            }
+        } else {
+            if (startDate !== "") {
+                whereClause.bookingDate = {
+                    [Op.gte]: startDate + "T00:00:00.000Z"
+                }
+            }
+            if (endDate !== "") {
+                whereClause.bookingDate = {
+                    [Op.lte]: endDate + "T23:59:59.000Z"
+                }
+            }
+        }
+
         const resultBookingDetails = await db.BookingDetail.findAll({
             raw: true,
             nest: true,
@@ -205,6 +231,9 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
                     model: db.Booking,
                     as: "detail_booking",
                     where: whereClause,
+                    order: [
+                        ["updatedAt", "DESC"]
+                    ],
                     include: [
                         {
                             model: db.User,
@@ -329,12 +358,13 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
         const email = req.query.email
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
-        const offset = parseInt((page - 1) * limit)
+        const offset = (page - 1) * limit
         const bookingCode = req.query.bookingCode || "";
+        const startDate = req.query.startDate || "";
+        const endDate = req.query.endDate || "";
         const tourId = req.query.tourId || "";
         const bookingStatus = req.query.bookingStatus || "";
         const status = req.query.status || "";
-        //const orderDate = req.query.orderDate || "DESC";
 
         let whereClause = {};
         let whereClauseTour = {};
@@ -349,7 +379,7 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `Customer not found with email: ${email}`,
+                    msg: `Customer not found!`,
                 }
             });
             return
@@ -408,7 +438,7 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
                 resolve({
                     status: 404,
                     data: {
-                        msg: `Tour not found with Id: ${tourId}`,
+                        msg: `Tour not found!`,
                     }
                 });
                 return;
@@ -423,6 +453,31 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
 
         if (status !== "") {
             whereClause.status = status
+        }
+
+        if (startDate !== "" && endDate !== "") {
+            const _startDate = new Date(startDate)
+            const _endDate = new Date(endDate)
+            if (_startDate > _endDate) {
+                whereClause.bookingDate = {
+                    [Op.between]: [endDate + "T00:00:00.000Z", startDate + "T23:59:59.000Z"]
+                }
+            } else {
+                whereClause.bookingDate = {
+                    [Op.between]: [startDate + "T00:00:00.000Z", endDate + "T23:59:59.000Z"]
+                }
+            }
+        } else {
+            if (startDate !== "") {
+                whereClause.bookingDate = {
+                    [Op.gte]: startDate + "T00:00:00.000Z"
+                }
+            }
+            if (endDate !== "") {
+                whereClause.bookingDate = {
+                    [Op.lte]: endDate + "T23:59:59.000Z"
+                }
+            }
         }
 
         const resultBookingDetails = await db.BookingDetail.findAll({
@@ -441,6 +496,9 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
                     model: db.Booking,
                     as: "detail_booking",
                     where: whereClause,
+                    order: [
+                        ["updatedAt", "DESC"]
+                    ],
                     include: [
                         {
                             model: db.User,
@@ -618,7 +676,6 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                         msg: `Action not allow, Please validate OTP!`,
                     }
                 });
-                return
             }
         }
 
@@ -643,13 +700,12 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                     msg: `Tour not found with id: ${tickets[0].tourId}`,
                 }
             });
-            return
         } else {
             if (TOUR_STATUS.AVAILABLE !== tour.tourStatus || STATUS.ACTIVE !== tour.status) {
                 resolve({
                     status: 403,
                     data: {
-                        msg: `Tour already started, finished or deactive `,
+                        msg: `Tour not available for booking!`,
                     }
                 });
                 return
@@ -665,7 +721,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 resolve({
                     status: 404,
                     data: {
-                        msg: `Station not found with id: ${departureStationId}`,
+                        msg: `Station not found!`,
                     }
                 });
                 return
@@ -684,7 +740,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 resolve({
                     status: 404,
                     data: {
-                        msg: `Station not found within the tour route`,
+                        msg: `Station not found within tour route`,
                     }
                 });
                 return
@@ -707,7 +763,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 resolve({
                     status: 404,
                     data: {
-                        msg: `Ticket not found with id: ${e.ticketId} of tour: ${tour.tourId}`,
+                        msg: `Ticket not found!`,
                     }
                 })
                 return
@@ -715,7 +771,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             seatBookingQuantity += e.quantity
             if (seatBookingQuantity > 6) {
                 resolve({
-                    status: 404,
+                    status: 400,
                     data: {
                         msg: `Can only booking maximum of 6 tickets`,
                     }
@@ -732,7 +788,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 resolve({
                     status: 404,
                     data: {
-                        msg: `Price not found with id: ${e.priceId}`,
+                        msg: `Price not found!`,
                     }
                 })
                 return
@@ -746,6 +802,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
         let totalBookedSeat = 0
         const bookingDetails = await db.BookingDetail.findAll({
             raw: true,
+            nest: true,
             include: {
                 model: db.Ticket,
                 as: "booking_detail_ticket",
@@ -755,7 +812,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             },
             attributes: ["bookingDetailId", "quantity"],
             where: {
-                status: STATUS.ACTIVE
+                bookingStatus: BOOKING_STATUS.ON_GOING
             }
         })
 
@@ -768,10 +825,9 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 400,
                 data: {
-                    msg: `There are not enough tickets available. The maximum quantity available is ${availableSeats}, but you requested ${seatBookingQuantity}`,
+                    msg: `Tickets available ${availableSeats}, but you requested ${seatBookingQuantity}`,
                 }
             });
-            return
         }
 
         const productList = []
@@ -789,16 +845,14 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                         msg: `Product not found with Id: ${e.productId}`,
                     }
                 });
-                return
             }
             if (STATUS.DEACTIVE === product.status) {
                 resolve({
                     status: 400,
                     data: {
-                        msg: `Product is Deactive`,
+                        msg: `Product not availale`,
                     }
                 });
-                return
             }
             product.dataValues.quantity = e.quantity
             productList.push(product)
@@ -830,7 +884,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
         resolve({
             status: 201,
             data: {
-                msg: "Booking Tour Created. Please finish your payments",
+                msg: "Please pay to finish booking process",
                 bookingId: booking.bookingId
             }
         })
@@ -841,17 +895,17 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
     }
 });
 
-const updateBooking = (req) => new Promise(async (resolve, reject) => {
+const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(async (resolve, reject) => {
     const t = await db.sequelize.transaction();
     try {
-        /**
-         * Checking bookingId exists
-         */
-        const bookingId = req.params.id
-        //Get tour status
+        const _bookingId = bookingId
+        const _bookingStatus = bookingStatus
+        const _isAttended = isAttended
+
+        const updateBooking = {}
         const bookingDetail = await db.BookingDetail.findOne({
             where: {
-                bookingId: bookingId
+                bookingId: _bookingId
             },
             attributes: ["bookingDetailId"],
             include: [
@@ -869,7 +923,7 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                     model: db.Booking,
                     as: "detail_booking",
                     where: {
-                        bookingId: bookingId
+                        bookingId: _bookingId
                     },
                     include: [
                         {
@@ -888,7 +942,7 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 200,
                 data: {
-                    msg: `Booking not found with Id: ${bookingId}`,
+                    msg: `Booking not found!`,
                 }
             })
             return
@@ -896,17 +950,14 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
         /**
          * Validate Booking Status
          */
-        const updateBooking = {}
-        var bookingStatus = req.query.bookingStatus || ""
-        if (bookingStatus !== "") {
-            if (bookingStatus === bookingDetail.detail_booking.bookingStatus) {
+        if (_bookingStatus !== "") {
+            if (_bookingStatus === bookingDetail.detail_booking.bookingStatus) {
                 resolve({
                     status: 400,
                     data: {
-                        msg: `Booking status is already ${bookingStatus}`,
+                        msg: `Booking status is already ${_bookingStatus}`,
                     }
                 })
-                return
             }
             //Check if tour is already finished
             if (TOUR_STATUS.FINISHED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
@@ -919,19 +970,32 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                 return
             }
 
-            if (BOOKING_STATUS.ON_GOING === bookingStatus) {
+            const transaction = await db.Transaction.findOne({
+                where: {
+                    bookingId: _bookingId
+                }
+            })
+            if (BOOKING_STATUS.ON_GOING === _bookingStatus) {
+                if (transaction.isSuccess === false) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: `Booking not paid!`,
+                        }
+                    })
+                }
                 if (TOUR_STATUS.AVAILABLE !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
                     resolve({
                         status: 400,
                         data: {
-                            msg: `Cannot update booking status ${bookingStatus} because tour started`,
+                            msg: `Cannot update booking status ${_bookingStatus} because tour started`,
                         }
                     })
                     return
                 }
             }
 
-            if (BOOKING_STATUS.CANCELED === bookingStatus) {
+            if (BOOKING_STATUS.CANCELED === _bookingStatus) {
                 const userId = bookingDetail.detail_booking.booking_user.userId
                 const email = bookingDetail.detail_booking.booking_user.email
                 const userName = bookingDetail.detail_booking.booking_user.userName
@@ -967,23 +1031,31 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                     return
                 }
 
+                if (transaction.isSuccess === false) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: `Booking not paid!`,
+                        }
+                    })
+                }
+
                 if (TOUR_STATUS.AVAILABLE !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus ||
                     TOUR_STATUS.STARTED !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
                     resolve({
                         status: 400,
                         data: {
-                            msg: `Cannot update booking status ${bookingStatus} because tour started`,
+                            msg: `Cannot update booking status ${_bookingStatus} because tour started`,
                         }
                     })
-                    return
                 } else {
-                    PaymentService.refundMomo(bookingId, (result) => {
+                    PaymentService.refundMomo(_bookingId, (result) => {
                         if (result.status === 200) {
                             db.Booking.update({
-                                bookingStatus: bookingStatus,
+                                bookingStatus: _bookingStatus,
                             }, {
                                 where: {
-                                    bookingId: bookingId
+                                    bookingId: _bookingId
                                 },
                                 individualHooks: true,
                             })
@@ -994,52 +1066,42 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                 }
             }
 
-            if (BOOKING_STATUS.FINISHED === bookingStatus) {
+            if (BOOKING_STATUS.FINISHED === _bookingStatus) {
+                if (transaction.isSuccess === false) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: `Booking not paid!`,
+                        }
+                    })
+                }
                 if (TOUR_STATUS.FINISHED !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
                     resolve({
                         status: 400,
                         data: {
-                            msg: `Cannot update booking status ${bookingStatus} because tour not finished`,
+                            msg: `Cannot update booking status ${_bookingStatus} because tour not finished`,
                         }
                     })
                     return
                 }
             }
-            updateBooking.bookingStatus = bookingStatus
+            updateBooking.bookingStatus = _bookingStatus
         }
 
-        var isAttended = req.query.isAttended || ""
-        if (isAttended !== "") {
-            if (isAttended === true && isAttended === bookingDetail.detail_booking.isAttended) {
-                resolve({
-                    status: 400,
-                    data: {
-                        msg: `Customer is already Attended!`,
-                    }
-                })
-                return
-            }
-            updateBooking.isAttended = isAttended
+        if (_isAttended === bookingDetail.detail_booking.isAttended) {
+            resolve({
+                status: 400,
+                data: {
+                    msg: `isAttended is already ${_isAttended}`,
+                }
+            })
+        } else {
+            updateBooking.isAttended = _isAttended
         }
         const updateBookingDetail = {}
-        var status = req.query.status || ""
-        if (status !== "") {
-            if (status === bookingDetail.detail_booking.status) {
-                resolve({
-                    status: 400,
-                    data: {
-                        msg: `Status is already ${status}`,
-                    }
-                })
-                return
-            }
-            updateBooking.status = status
-            updateBookingDetail.status = status
-        }
-
         await db.Booking.update(updateBooking, {
             where: {
-                bookingId: bookingId
+                bookingId: _bookingId
             },
             individualHooks: true,
             transaction: t
@@ -1047,7 +1109,7 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
 
         await db.BookingDetail.update(updateBookingDetail, {
             where: {
-                bookingId: bookingId
+                bookingId: _bookingId
             },
             individualHooks: true,
             transaction: t
@@ -1069,56 +1131,4 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
     }
 });
 
-const deleteBooking = (req) => new Promise(async (resolve, reject) => {
-    try {
-        const bookingId = req.params.id
-
-        const booking = await db.Booking.findOne({
-            where: {
-                bookingId: bookingId
-            }
-        })
-
-        if (!booking) {
-            resolve({
-                status: 404,
-                data: {
-                    msg: `Booking not found with id ${bookingId}`,
-                }
-            })
-            return
-        }
-
-        await db.Booking.update({
-            status: STATUS.DEACTIVE
-        }, {
-            where: {
-                bookingId: booking.bookingId
-            },
-            individualHooks: true,
-        })
-
-        await db.BookingDetail.update({
-            status: STATUS.DEACTIVE
-        }, {
-            where: {
-                bookingId: booking.bookingId
-            },
-            individualHooks: true,
-        })
-
-        resolve({
-            status: 200,
-            data: {
-                msg: "Delete booking successfully",
-            }
-        })
-
-
-    } catch (error) {
-        reject(error);
-    }
-});
-
-
-module.exports = { getBookingDetailByBookingId, getBookings, getBookingsByEmail, createBooking, updateBooking, deleteBooking };
+module.exports = { getBookingDetailByBookingId, getBookings, getBookingsByEmail, createBooking, updateBooking };

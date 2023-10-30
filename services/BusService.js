@@ -6,29 +6,29 @@ const getBuses = (req) => new Promise(async (resolve, reject) => {
     try {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
-        const offset = parseInt((page - 1) * limit)   
+        const offset = (page - 1) * limit
         const busPlate = req.query.busPlate || ""
         let isDoubleDecker = req.query.isDoubleDecker || ""
         const status = req.query.status || ""
 
         let whereClause = {}
 
-        if(busPlate.trim() !== ""){
+        if (busPlate.trim() !== "") {
             whereClause.busPlate = {
                 [Op.substring]: busPlate
             }
         }
 
-        if(isDoubleDecker !== ""){
-            if(isDoubleDecker === "true") {
+        if (isDoubleDecker !== "") {
+            if (isDoubleDecker === "true") {
                 isDoubleDecker = 1
-            } else if(isDoubleDecker === "false"){
+            } else if (isDoubleDecker === "false") {
                 isDoubleDecker = 0
             }
             whereClause.isDoubleDecker = isDoubleDecker
         }
-        
-        if(status !== ""){
+
+        if (status !== "") {
             whereClause.status = status
         }
 
@@ -153,6 +153,13 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
     const t = await db.sequelize.transaction();
     try {
         const busId = req.params.id
+        const busPlate = req.body.busPlate || ""
+        const seat = parseInt(req.body.numberSeat) || ""
+        const isDoubleDecker = req.body.isDoubleDecker || ""
+        const status = req.body.status || ""
+
+        const updateBus = {}
+
         const bus = await db.Bus.findOne({
             where: {
                 busId: busId
@@ -163,59 +170,70 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `Bus not found with id ${busId}`,
+                    msg: `Bus not found!`,
                 }
             })
-            return
         }
 
-        var busPlate = req.query.busPlate
-        if (busPlate === undefined || busPlate === null) {
-            busPlate = bus.busPlate
-        }
-        var seat = req.query.numberSeat
-        if (seat === undefined || seat === null) {
-            seat = bus.numberSeat
-        }
-        var isDoubleDecker = req.query.isDoubleDecker
-        if (isDoubleDecker === undefined || isDoubleDecker === null) {
-            isDoubleDecker = bus.isDoubleDecker
-        }
-        var status = req.query.status
-        if (status === undefined || status === null) {
-            status = bus.status
-        }
-
-        if (STATUS.DEACTIVE == status) {
-            const tour = await db.Tour.findOne({
+        if (busPlate !== "") {
+            updateBus.busPlate = busPlate
+            const bus = await db.Bus.findOne({
                 where: {
-                    busId: busId,
-                    status: STATUS.ACTIVE,
-                    tourStatus: {
-                        [Op.in]: ['NotStarted', 'OnTour'],
-                    },
-                },
+                    busPlate: busPlate
+                }
             })
-    
-            if (tour) {
+            if (bus) {
                 resolve({
-                    status: 409,
+                    status: 400,
                     data: {
-                        msg: `Cannot update bus status to Deactive because it currently has ongoing tour`,
-                        tour: tour
+                        msg: `Bus plate already existed!`,
                     }
                 })
-                return
             }
         }
 
+        if (seat !== "") {
+            updateBus.numberSeat = seat
+        }
 
-        await db.Bus.update({
-            busPlate: busPlate,
-            numberSeat: seat,
-            isDoubleDecker: isDoubleDecker,
-            status: status
-        }, {
+        if (isDoubleDecker !== "") {
+            updateBus.isDoubleDecker = isDoubleDecker
+        }
+
+        if (status !== "") {
+            if (bus.status === status) {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: `Bus status is already ${bus.status}`,
+                    }
+                })
+            }
+            if (STATUS.DEACTIVE == status) {
+                const tour = await db.Tour.findOne({
+                    where: {
+                        busId: busId,
+                        status: STATUS.ACTIVE,
+                        tourStatus: {
+                            [Op.in]: ['Started', 'Available'],
+                        },
+                    },
+                })
+
+                if (tour) {
+                    resolve({
+                        status: 409,
+                        data: {
+                            msg: `Cannot update bus status because currently has on going tour`,
+                            tour: tour
+                        }
+                    })
+                }
+            }
+            updateBus.status = status
+        }
+
+        await db.Bus.update(updateBus, {
             where: {
                 busId: bus.busId
             },
@@ -300,6 +318,5 @@ const deleteBus = (req) => new Promise(async (resolve, reject) => {
         reject(error);
     }
 });
-
 
 module.exports = { getBuses, getBusById, createBus, updateBus, deleteBus };

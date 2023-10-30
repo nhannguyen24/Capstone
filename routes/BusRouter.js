@@ -11,7 +11,7 @@ const router = express.Router();
  *   get:
  *     security: 
  *         - BearerAuth: []
- *     summary: Get buses by bus plate
+ *     summary: Get buses
  *     tags: [Bus]
  *     parameters:
  *       - in: query
@@ -57,7 +57,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, controllers.getBuses);
+router.get("/", verifyToken, isAdminOrManager, controllers.getBuses);
 
 
 /**
@@ -146,29 +146,26 @@ router.get("/:id", verifyToken, isAdminOrManager, controllers.getBusById);
  *         name: id
  *         schema:
  *           type: string
- *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
  *         required: true
- *       - in: query
- *         name: busPlate
- *         schema:
- *           type: string
- *           example: 79B.514-01
- *       - in: query
- *         name: numberSeat
- *         schema:
- *           type: integer
- *           example: 30
- *       - in: query
- *         name: isDoubleDecker
- *         schema:
- *           type: boolean
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum:
- *              - Active
- *              - Deactive
+ *     requestBody:
+ *       description: Bus data to update
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *              type: object
+ *              properties: 
+ *                  busPlate: 
+ *                      type: string
+ *                  numberSeat: 
+ *                      type: integer
+ *                  isDoubleDecker: 
+ *                      type: boolean
+ *                  status: 
+ *                      type: string
+ *                      enum: 
+ *                          - Active
+ *                          - Deactive
  *     responses:
  *       200:
  *         description: OK

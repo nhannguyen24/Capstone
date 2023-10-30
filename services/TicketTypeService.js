@@ -31,7 +31,7 @@ const getTicketTypeById = (req) => new Promise(async (resolve, reject) => {
                 msg: `Get ticket type successfully`,
                 ticketType: ticketType
             } : {
-                msg: `Ticket type not found`,
+                msg: `Ticket type not found!`,
                 ticketType: {}
             }
         });
@@ -71,6 +71,10 @@ const updateTicketType = (req) => new Promise(async (resolve, reject) => {
     const t = await db.sequelize.transaction();
     try {
         const ticketTypeId = req.params.id
+        const ticketTypeName = req.body.ticketTypeName || ""
+        const description = req.body.description || ""
+        const updateTicketType = {}
+
         const ticketType = await db.TicketType.findOne({
             where: {
                 ticketTypeId: ticketTypeId
@@ -81,45 +85,41 @@ const updateTicketType = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `TicketType not found with id "${ticketTypeId}"`,
+                    msg: `Ticket Type not found!`,
                 }
             })
         }
 
-        var ticketTypeName = req.query.ticketTypeName
-        if (ticketTypeName === undefined || ticketTypeName === null) {
-            ticketTypeName = ticketType.ticketTypeName
-        }
-
-        const result = await db.TicketType.findOne({
-            where: {
-                ticketTypeName: {
-                    [Op.like]: ticketTypeName
+        
+        if (ticketTypeName !== "") {
+            const ticketType = await db.TicketType.findOne({
+                where: {
+                    ticketTypeName: {
+                        [Op.like]: ticketTypeName
+                    }
                 }
+            })
+    
+            if (ticketType) {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: `Name existed`,
+                    }
+                })
+                return
+            } else {
+                updateTicketType.ticketTypeName = ticketTypeName
             }
-        })
-
-        if (result) {
-            resolve({
-                status: 400,
-                data: {
-                    msg: `Ticket type name already exists`,
-                }
-            })
-            return
         }
 
-        var description = req.query.description
-        if (description === undefined || description === null) {
-            description = ticketType.description
+        if (description !== "") {
+            updateTicketType.description = description
         }
 
-        await db.TicketType.update({
-            ticketTypeName: ticketTypeName,
-            description: description,
-        }, {
+        await db.TicketType.update(updateTicketType, {
             where: {
-                ticketTypeId: ticketType.ticketTypeId
+                ticketTypeId: ticketTypeId
             }, individualHooks: true, transaction: t
         })
 

@@ -53,7 +53,7 @@ const getAllUsers = ({ page, limit, order, userName, email, status, roleName, ..
             ],
           });
           redisClient.setEx(`user_paging_${page}_${limit}_${order}_${userName}_${email}_${status}_${roleName}`, 3600, JSON.stringify(users));
-          
+
           resolve({
             status: users ? 200 : 404,
             data: {
@@ -103,13 +103,14 @@ const getUserById = (userId) =>
     }
   });
 
-const createUser = ({ password, ...body }) =>
+const createUser = ({ ...body }) =>
   new Promise(async (resolve, reject) => {
     try {
+      const genPassword = generateRandomString(6)
       const user = await db.User.findOrCreate({
         where: { email: body?.email },
         defaults: {
-          password: hashPassword(password),
+          password: hashPassword(genPassword),
           avatar: "https://cdn-icons-png.flaticon.com/512/147/147144.png",
           maxTour: 10,
           ...body,
@@ -125,7 +126,7 @@ const createUser = ({ password, ...body }) =>
               data: [
                 {
                   email: body.email,
-                  password: password,
+                  password: genPassword,
                 }
               ]
             },
@@ -260,15 +261,15 @@ const deleteUser = (delUserId, userId) =>
           where: { userId: delUserId },
         });
 
-          if (findUser.status === "Deactive") {
-            resolve({
-              status: 400,
-              data: {
-                msg: "The user already deactive!",
-              }
-            });
-            return;
-          }
+        if (findUser.status === "Deactive") {
+          resolve({
+            status: 400,
+            data: {
+              msg: "The user already deactive!",
+            }
+          });
+          return;
+        }
 
         const users = await db.User.update(
           { status: "Deactive" },
@@ -309,11 +310,51 @@ const deleteUser = (delUserId, userId) =>
     }
   });
 
+const updateUserPassword = (userId, newPassword, confirmPassword, body) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      if (body.userId !== userId) {
+        resolve({
+          status: 403,
+          msg: "Can't update other people's account"
+        });
+      } else {
+        const users = await db.User.update(body, {
+          where: { userId: userId },
+          individualHooks: true,
+        });
+        resolve({
+          status: users[0] ? 200 : 400,
+          data: {
+            msg:
+              users[0] > 0
+                ? "Update profile successfully"
+                : "Cannot update user/ userId not found",
+          }
+        });
+      }
+    } catch (error) {
+      reject(error.message);
+    }
+  });
+
+function generateRandomString(length) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let randomString = '';
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    randomString += characters.charAt(randomIndex);
+  }
+
+  return randomString;
+}
 
 module.exports = {
   updateUser,
   deleteUser,
   createUser,
+  updateUserPassword,
   getAllUsers,
   getUserById
 };

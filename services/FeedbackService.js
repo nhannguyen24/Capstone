@@ -7,7 +7,7 @@ const getFeedbacks = (req) => new Promise(async (resolve, reject) => {
     try {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
-        const offset = parseInt((page - 1) * limit)
+        const offset = (page - 1) * limit
         const routeId = req.query.routeId || ""
         const status = req.query.status || ""
 
@@ -68,7 +68,7 @@ const getFeedbacks = (req) => new Promise(async (resolve, reject) => {
 
 const getFeedbackById = (req) => new Promise(async (resolve, reject) => {
     try {
-        const feedbackId = req.params.feedbackId
+        const feedbackId = req.params.id
         const feedback = await db.Feedback.findOne({
             where: {
                 feedbackId: feedbackId
@@ -93,7 +93,7 @@ const getFeedbackById = (req) => new Promise(async (resolve, reject) => {
                 msg: `Get feedbacks successfully`,
                 feedback: feedback
             } : {
-                msg: `No feedbacks found with Id: ${feedbackId}`,
+                msg: `No feedbacks found!`,
             }
         });
 
@@ -110,15 +110,6 @@ const createFeedback = (req) => new Promise(async (resolve, reject) => {
         const stars = req.body.stars
         const description = req.body.description
 
-        if (stars.isNaN) {
-            resolve({
-                status: 400,
-                data: {
-                    msg: `Star need to be a number",`
-                }
-            })
-            return
-        }
         //check user
         const user = await db.User.findOne({
             where: {
@@ -130,7 +121,7 @@ const createFeedback = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `User not found with id: "${customerId}",`
+                    msg: `User not found!",`
                 }
             })
             return
@@ -147,7 +138,7 @@ const createFeedback = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `Route not found with id: "${routeId}",`
+                    msg: `Route not found!",`
                 }
             })
             return
@@ -200,9 +191,9 @@ const createFeedback = (req) => new Promise(async (resolve, reject) => {
 
         if (!isGoneOnTour) {
             resolve({
-                status: 409,
+                status: 403,
                 data: {
-                    msg: 'User has not gone on this tour yet',
+                    msg: 'Not gone on tour or tour not finished',
                 }
             });
             return
@@ -233,7 +224,12 @@ const createFeedback = (req) => new Promise(async (resolve, reject) => {
 const updateFeedback = (req) => new Promise(async (resolve, reject) => {
     const t = await db.sequelize.transaction();
     try {
-        const feedbackId = req.params.feedbackId
+        const feedbackId = req.params.id
+        const stars = parseInt(req.body.stars) || ""
+        const description = req.body.description || ""
+
+        const updateFeedback = {}
+
         const feedback = await db.Feedback.findOne({
             where: {
                 feedbackId: feedbackId
@@ -244,39 +240,21 @@ const updateFeedback = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `Feedback not found with id ${feedbackId}`,
+                    msg: `Feedback not found!`,
                 }
             })
             return
         }
 
-        var stars = req.query.stars
-        if (isNaN(stars)) {
-            resolve({
-                status: 400,
-                data: {
-                    msg: "Stars need to be a numeric",
-                }
-            })
-            return
+        if (stars !== "") {
+            updateFeedback.stars = stars
         }
-        if (stars === undefined || stars === null) {
-            stars = feedback.stars
-        }
-        var description = req.query.description
-        if (description === undefined || description === null) {
-            description = feedback.description
-        }
-        var status = req.query.status
-        if (status === undefined || status === null) {
-            status = feedback.status
+        
+        if (description !== "") {
+            updateFeedback.description = description
         }
 
-        await db.Feedback.update({
-            stars: stars,
-            description: description,
-            status: status
-        }, {
+        await db.Feedback.update(updateFeedback, {
             where: {
                 feedbackId: feedback.feedbackId
             },
@@ -301,7 +279,7 @@ const updateFeedback = (req) => new Promise(async (resolve, reject) => {
 
 const deleteFeedback = (req) => new Promise(async (resolve, reject) => {
     try {
-        const feedbackId = req.params.feedbackId
+        const feedbackId = req.params.id
 
         const feedback = await db.Feedback.findOne({
             where: {
@@ -313,15 +291,13 @@ const deleteFeedback = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `Feedback not found with id ${feedbackId}`,
+                    msg: `Feedback not found!`,
                 }
             })
             return
         }
 
-        await db.Feedback.update({
-            status: STATUS.DEACTIVE
-        }, {
+        await db.Feedback.destroy({
             where: {
                 feedbackId: feedback.feedbackId
             },
@@ -334,8 +310,6 @@ const deleteFeedback = (req) => new Promise(async (resolve, reject) => {
                 msg: "Delete feedback successfully",
             }
         })
-
-
     } catch (error) {
         reject(error);
     }
