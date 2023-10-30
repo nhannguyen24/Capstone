@@ -1,6 +1,7 @@
 const db = require("../models");
 const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
+const STATUS = require("../enums/StatusEnum")
 
 const getAllPointOfInterest = (
     { page, limit, order, poiName, address, status, ...query },
@@ -72,6 +73,9 @@ const getAllPointOfInterest = (
                                                 "updatedAt",
                                                 "status",
                                             ],
+                                        },
+                                        where: {
+                                            status: { [Op.ne]: STATUS.DEACTIVE }
                                         },
                                         include: [
                                             {

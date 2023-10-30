@@ -13,7 +13,7 @@ module.exports = {
 	      allowNull: false,
       },
       distance: {
-        type: Sequelize.FLOAT,
+        type: Sequelize.DECIMAL(18,2),
 	      allowNull: false,
       },
       geoJson: {

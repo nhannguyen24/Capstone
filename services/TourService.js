@@ -46,7 +46,6 @@ const getAllTour = (
                         attributes: {
                             exclude: [
                                 "routeId",
-                                "departureStationId",
                                 "busId",
                                 "tourGuideId",
                                 "driverId",
@@ -256,7 +255,7 @@ const getAllTour = (
 
                         const departureStation = await db.Station.findOne({
                             where: {
-                                departureStationId: tour.departureStationId,
+                                stationId: tour.departureStationId,
                             },
                             attributes: {
                                 exclude: [
@@ -266,10 +265,11 @@ const getAllTour = (
                                 ]
                             }
                         })
-                        tour.dataValues.departureStation = departureStation
+                        tour.dataValues.departureStation = departureStation;
+                        delete tour.dataValues.departureStationId;
                     }
 
-                    redisClient.setEx(`admin_tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}`, 900, JSON.stringify(tours));
+                    redisClient.setEx(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}`, 3600, JSON.stringify(tours));
 
                     resolve({
                         status: tours ? 200 : 404,
