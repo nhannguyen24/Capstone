@@ -22,7 +22,7 @@ const validateOtp = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `OTP not found with id: ${otpId}`,
+                    msg: `OTP not found!`,
                 }
             });
             return

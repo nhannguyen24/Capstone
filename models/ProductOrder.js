@@ -2,7 +2,7 @@
 const {
   Model
 } = require('sequelize');
-const STATUS = require('../enums/StatusEnum')
+const BOOKING_STATUS = require('../enums/BookingStatusEnum')
 module.exports = (sequelize, DataTypes) => {
   class ProductOrder extends Model {
     /**
@@ -56,7 +56,7 @@ module.exports = (sequelize, DataTypes) => {
   ProductOrder.beforeCreate((productOrder, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    productOrder.status = STATUS.DRAFT;
+    productOrder.status = BOOKING_STATUS.DRAFT;
     productOrder.createdAt = currentDate;
     productOrder.updatedAt = currentDate;
   });

@@ -18,6 +18,7 @@ async function deleteExpiredOtp() {
         console.error('Error deleting expired OTPs:', error)
       }
 }
+
 async function deleteUnPaidBooking() {
     try {
         const currentDate = new Date()
@@ -55,7 +56,7 @@ async function deleteUnPaidBooking() {
 }
 
 //At second :00, every 30 minutes starting at minute :00, every hour starting at 00am, of every day
-cron.schedule("0 0/30 0/1 ? * * *", () =>{
+cron.schedule("*/30 * * * *", () =>{
     deleteExpiredOtp()
     deleteUnPaidBooking()
 })

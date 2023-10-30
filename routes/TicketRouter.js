@@ -141,26 +141,23 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createTicket);
  *         name: id
  *         schema:
  *           type: string
- *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
  *         required: true
- *       - in: query
- *         name: tourId
- *         schema:
- *           type: string
- *           example: d406c07b-7f66-4a90-88d1-8c5cfdd34a42
- *       - in: query
- *         name: ticketTypeId
- *         schema:
- *           type: string
- *           example: d406c07b-7f66-4a90-88d1-8c5cfdd34a42
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum:
- *              - Active
- *              - Deactive
- *        
+ *     requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                  ticketTypeId:
+ *                      type: string
+ *                  tourId:
+ *                      type: string
+ *                  status:
+ *                      type: string
+ *                      enum:
+ *                          - Active
+ *                          - Deactive
  *     responses:
  *       200:
  *         description: OK

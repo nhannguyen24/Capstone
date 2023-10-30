@@ -1,7 +1,7 @@
 const controllers = require('../controllers/UserController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isAdmin} = require('../middlewares/VerifyRole');
+const {isAdmin, isLoggedIn, isCustomer} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -133,7 +133,7 @@ router.get("/", verifyToken, isAdmin, controllers.getAllUsers);
  *               items:
  *                 $ref: '#/components/schemas/User'
  */
-router.get("/:id", verifyToken, controllers.getUserById);
+router.get("/:id", verifyToken, isLoggedIn, controllers.getUserById);
 
 /**
  * @swagger
@@ -152,7 +152,6 @@ router.get("/:id", verifyToken, controllers.getUserById);
  *            example:
  *              userName: Nhan
  *              email: abc@gmail.com
- *              password: "123123"
  *              roleId: 58c10546-5d71-47a6-842e-84f5d2f72ec3
  *     responses:
  *       200:
@@ -200,6 +199,34 @@ router.post("/", verifyToken, isAdmin, controllers.createUser);
  *                 $ref: '#/components/schemas/User'
  */
 router.put("/", verifyToken, isAdmin, controllers.updateUser);
+
+/**
+ * @swagger
+ * /api/v1/users/change-password:
+ *   put:
+ *     security: 
+ *         - BearerAuth: []
+ *     summary: Change user password
+ *     tags: [User]
+ *     requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/schemas/User'
+ *            example:
+ *              userId: 0453b1d5-b5cb-4ae3-ac95-8d5c24cb8093
+ *              newPassword: 123123
+ *              confirmPassword: 123456
+ *     responses:
+ *       200:
+ *         description: Change password successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ */
+router.put("/change-password", verifyToken, isCustomer, controllers.updateUserPassword);
 
 // /**
 //  * @swagger

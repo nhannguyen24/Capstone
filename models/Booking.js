@@ -38,6 +38,7 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
     },
     bookingDate: DataTypes.DATE,
+    endPaymentTime: DataTypes.DATE,
     bookingCode: DataTypes.STRING,
     totalPrice: DataTypes.INTEGER,
     customerId: {
@@ -49,21 +50,21 @@ module.exports = (sequelize, DataTypes) => {
     isAttended: DataTypes.BOOLEAN,
     bookingStatus: {
       type: DataTypes.ENUM,
-      values: ["Ongoing", "Canceled", "Finished"],
+      values: ["Draft", "Ongoing", "Canceled", "Finished"],
       validate: {
         isIn: {
-          args: [["Ongoing", "Canceled", "Finished"]],
+          args: [["Draft", "Ongoing", "Canceled", "Finished"]],
           msg: 'Invalid value for booking.status (Ongoing, Canceled, Finished)'
         }
       }
     },
     status: {
       type: DataTypes.ENUM,
-      values: ["Active", "Draft", "Deactive"],
+      values: ["Active", "Deactive"],
       validate: {
         isIn: {
-          args: [["Active", "Draft", "Deactive"]],
-          msg: 'Invalid value for booking.status (Active, Draft, Deactive)'
+          args: [["Active", "Deactive"]],
+          msg: 'Invalid value for booking.status (Active, Deactive)'
         }
       }
     },
@@ -77,9 +78,10 @@ module.exports = (sequelize, DataTypes) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
     const bookingCode = `BO${currentDate.getTime()}`
-
-    booking.status = STATUS.DRAFT;
-    booking.bookingStatus = BOOKING_STATUS.ON_GOING;
+    const currentDateAfter1Hour = new Date()
+    currentDateAfter1Hour.setHours(currentDateAfter1Hour.getHours() + 8)
+    booking.bookingStatus = BOOKING_STATUS.DRAFT;
+    booking.endPaymentTime = currentDateAfter1Hour
     booking.bookingDate = currentDate;
     booking.createdAt = currentDate;
     booking.updatedAt = currentDate;
