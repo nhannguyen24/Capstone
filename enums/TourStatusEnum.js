@@ -1,5 +1,5 @@
 class TourStatusEnum{
-    static NEW = "New"
+    static AVAILABLE = "Available"
     static STARTED = "Started"
     static CANCELED = "Canceled"
     static FINISHED = "Finished"
