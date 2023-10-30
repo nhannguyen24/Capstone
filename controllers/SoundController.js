@@ -56,11 +56,11 @@ const updateFileSound = async (req, res) => {
 
 const deleteFileSound = async (req, res) => {
     try {
-        const {soundIds} = req.query;
-        if(!soundIds) {
-            throw new BadRequestError('Please provide soundIds');
+        const {soundId} = req.query;
+        if(!soundId) {
+            throw new BadRequestError('Please provide soundId');
         }
-        const response = await services.deleteFileSound(req.query.soundIds);
+        const response = await services.deleteFileSound(req.query.soundId);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);

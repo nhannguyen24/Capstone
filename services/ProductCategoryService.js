@@ -132,16 +132,15 @@ const updateProductCategory = ({ productCateId, ...body }) =>
     });
 
 
-const deleteProductCategory = (productCateIds) =>
+const deleteProductCategory = (productCateId) =>
     new Promise(async (resolve, reject) => {
         try {
-            const findProductCategory = await db.ProductCategory.findAll({
+            const findProductCategory = await db.ProductCategory.findOne({
                 raw: true, nest: true,
-                where: { productCateId: productCateIds },
+                where: { productCateId: productCateId },
             });
 
-            for (const productCate of findProductCategory) {
-                if (productCate.status === "Deactive") {
+                if (findProductCategory.status === "Deactive") {
                     resolve({
                         status: 400,
                         data: {
@@ -150,12 +149,11 @@ const deleteProductCategory = (productCateIds) =>
                     });
                     return;
                 }
-            }
 
             const productCates = await db.ProductCategory.update(
                 { status: "Deactive" },
                 {
-                    where: { productCateId: productCateIds },
+                    where: { productCateId: productCateId },
                     individualHooks: true,
                 }
             );

@@ -131,30 +131,28 @@ const updateLanguage = ({ languageId, ...body }) =>
         }
     });
 
-const deleteLanguage = (languageIds) =>
+const deleteLanguage = (languageId) =>
     new Promise(async (resolve, reject) => {
         try {
-            const findLanguage = await db.Language.findAll({
+            const findLanguage = await db.Language.findOne({
                 raw: true, nest: true,
-                where: { languageId: languageIds },
+                where: { languageId: languageId },
             });
 
-            for (const language of findLanguage) {
-                if (language.status === "Deactive") {
-                    resolve({
-                        status: 400,
-                        data: {
-                            msg: "The language already deactive!",
-                        }
-                    });
-                    return;
-                }
+            if (findLanguage.status === "Deactive") {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: "The language already deactive!",
+                    }
+                });
+                return;
             }
 
             const languages = await db.Language.update(
                 { status: "Deactive" },
                 {
-                    where: { languageId: languageIds },
+                    where: { languageId: languageId },
                     individualHooks: true,
                 }
             );

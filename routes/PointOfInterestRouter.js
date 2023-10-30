@@ -195,7 +195,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updatePointOfInterest
  *     summary: Delete the pois by id
  *     tags: [Point Of Interest]
  *     parameters:
- *       - name: poiIds[0]
+ *       - name: poiId
  *         in: query
  *         schema:
  *           type: string

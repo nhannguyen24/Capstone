@@ -69,11 +69,11 @@ const deleteStation = async (req, res) => {
     try {
         // const { error } = joi.object({stationIds}).validate(req.query);
         // if (error) throw new BadRequestError(error.details[0].message);
-        const {stationIds} = req.query;
-        if(!stationIds) {
-            throw new BadRequestError('Please provide stationIds');
+        const {stationId} = req.query;
+        if(!stationId) {
+            throw new BadRequestError('Please provide stationId');
         }
-        const response = await services.deleteStation(req.query.stationIds);
+        const response = await services.deleteStation(req.query.stationId);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);

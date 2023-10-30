@@ -53,7 +53,7 @@ const getAllUsers = ({ page, limit, order, userName, email, status, roleName, ..
             ],
           });
           redisClient.setEx(`user_paging_${page}_${limit}_${order}_${userName}_${email}_${status}_${roleName}`, 3600, JSON.stringify(users));
-          
+
           resolve({
             status: users ? 200 : 404,
             data: {
@@ -204,128 +204,81 @@ const updateUser = ({ userId, ...body }) =>
     }
   });
 
-const updateProfile = (body, userId) =>
+// const updateProfile = (body, userId) =>
+//   new Promise(async (resolve, reject) => {
+//     try {
+//       if (body.userId !== userId) {
+//         resolve({
+//           msg: "Can't update other people's account"
+//         });
+//       } else {
+//         const users = await db.User.update(body, {
+//           where: { userId: userId },
+//           individualHooks: true,
+//         });
+//         resolve({
+//           status: users[0] ? 200 : 400,
+//           data: {
+//             msg:
+//               users[0] > 0
+//                 ? "Update profile successfully"
+//                 : "Cannot update user/ userId not found",
+//           }
+//         });
+//         redisClient.keys('user_paging*', (error, keys) => {
+//           if (error) {
+//             console.error('Error retrieving keys:', error);
+//             return;
+//           }
+//           // Delete each key individually
+//           keys.forEach((key) => {
+//             redisClient.del(key, (deleteError, reply) => {
+//               if (deleteError) {
+//                 console.error(`Error deleting key ${key}:`, deleteError);
+//               } else {
+//                 console.log(`Key ${key} deleted successfully`);
+//               }
+//             });
+//           });
+//         });
+
+//       }
+//     } catch (error) {
+//       reject(error.message);
+//     }
+//   });
+
+const deleteUser = (delUserId, userId) =>
   new Promise(async (resolve, reject) => {
     try {
-      if (body.userId !== userId) {
-        resolve({
-          msg: "Can't update other people's account"
-        });
-      } else {
-        const users = await db.User.update(body, {
-          where: { userId: userId },
-          individualHooks: true,
-        });
-        resolve({
-          status: users[0] ? 200 : 400,
-          data: {
-            msg:
-              users[0] > 0
-                ? "Update profile successfully"
-                : "Cannot update user/ userId not found",
-          }
-        });
-        redisClient.keys('user_paging*', (error, keys) => {
-          if (error) {
-            console.error('Error retrieving keys:', error);
-            return;
-          }
-          // Delete each key individually
-          keys.forEach((key) => {
-            redisClient.del(key, (deleteError, reply) => {
-              if (deleteError) {
-                console.error(`Error deleting key ${key}:`, deleteError);
-              } else {
-                console.log(`Key ${key} deleted successfully`);
-              }
-            });
-          });
-        });
-
-      }
-    } catch (error) {
-      reject(error.message);
-    }
-  });
-
-  const updateUserPassword = (userId, newPassword, confirmPassword, body) =>
-  new Promise(async (resolve, reject) => {
-    try {
-      if (body.userId !== userId) {
-        resolve({
-          status: 403,
-          msg: "Can't update other people's account"
-        });
-      } else {
-        const users = await db.User.update(body, {
-          where: { userId: userId },
-          individualHooks: true,
-        });
-        resolve({
-          status: users[0] ? 200 : 400,
-          data: {
-            msg:
-              users[0] > 0
-                ? "Update profile successfully"
-                : "Cannot update user/ userId not found",
-          }
-        });
-        // redisClient.keys('user_paging*', (error, keys) => {
-        //   if (error) {
-        //     console.error('Error retrieving keys:', error);
-        //     return;
-        //   }
-        //   // Delete each key individually
-        //   keys.forEach((key) => {
-        //     redisClient.del(key, (deleteError, reply) => {
-        //       if (deleteError) {
-        //         console.error(`Error deleting key ${key}:`, deleteError);
-        //       } else {
-        //         console.log(`Key ${key} deleted successfully`);
-        //       }
-        //     });
-        //   });
-        // });
-
-      }
-    } catch (error) {
-      reject(error.message);
-    }
-  });
-
-const deleteUser = (userIds, userId) =>
-  new Promise(async (resolve, reject) => {
-    try {
-      if (userIds.includes(userId)) {
+      if (delUserId == userId) {
         resolve({
           msg: `Cannot delete user/ Account ${userId} is in use`,
         });
       } else {
-        const findUser = await db.User.findAll({
+        const findUser = await db.User.findOne({
           raw: true, nest: true,
-          where: { userId: userIds },
+          where: { userId: delUserId },
         });
 
-        for (const user of findUser) {
-          if (user.status === "Deactive") {
-            resolve({
-              status: 400,
-              data: {
-                msg: "The user already deactive!",
-              }
-            });
-            return;
-          }
+        if (findUser.status === "Deactive") {
+          resolve({
+            status: 400,
+            data: {
+              msg: "The user already deactive!",
+            }
+          });
+          return;
         }
 
         const users = await db.User.update(
           { status: "Deactive" },
           {
-            where: { userId: userIds },
+            where: { userId: delUserId },
             individualHooks: true,
           }
         );
-        console.log(users[0]);
+        // console.log(users[0]);
         resolve({
           status: users[0] > 0 ? 200 : 400,
           data: {
@@ -357,17 +310,45 @@ const deleteUser = (userIds, userId) =>
     }
   });
 
-  function generateRandomString(length) {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let randomString = '';
-  
-    for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * characters.length);
-      randomString += characters.charAt(randomIndex);
+const updateUserPassword = (userId, newPassword, confirmPassword, body) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      if (body.userId !== userId) {
+        resolve({
+          status: 403,
+          msg: "Can't update other people's account"
+        });
+      } else {
+        const users = await db.User.update(body, {
+          where: { userId: userId },
+          individualHooks: true,
+        });
+        resolve({
+          status: users[0] ? 200 : 400,
+          data: {
+            msg:
+              users[0] > 0
+                ? "Update profile successfully"
+                : "Cannot update user/ userId not found",
+          }
+        });
+      }
+    } catch (error) {
+      reject(error.message);
     }
-  
-    return randomString;
+  });
+
+function generateRandomString(length) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let randomString = '';
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    randomString += characters.charAt(randomIndex);
   }
+
+  return randomString;
+}
 
 module.exports = {
   updateUser,
@@ -375,7 +356,6 @@ module.exports = {
   createUser,
   updateUserPassword,
   getAllUsers,
-  updateProfile,
   getUserById
 };
 

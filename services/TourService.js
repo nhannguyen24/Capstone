@@ -71,17 +71,6 @@ const getAllTour = (
                                 },
                             },
                             {
-                                model: db.Station,
-                                as: "departure_station",
-                                attributes: {
-                                    exclude: [
-                                        "createdAt",
-                                        "updatedAt",
-                                        "status",
-                                    ],
-                                },
-                            },
-                            {
                                 model: db.Bus,
                                 as: "tour_bus",
                                 attributes: {
@@ -307,17 +296,6 @@ const getTourById = (tourId) =>
                                 "poiId",
                                 "productId",
                                 "feedbackId",
-                                "createdAt",
-                                "updatedAt",
-                                "status",
-                            ],
-                        },
-                    },
-                    {
-                        model: db.Station,
-                        as: "departure_station",
-                        attributes: {
-                            exclude: [
                                 "createdAt",
                                 "updatedAt",
                                 "status",
@@ -1769,7 +1747,7 @@ const updateTour = ({ images, tourId, ...body }) =>
                             transaction: t
                         });
 
-                        if (body.tourStatus == TOUR_STATUS.ON_TOUR) {
+                        if (body.tourStatus == TOUR_STATUS.STARTED) {
                             await db.TourDetail.update({
                                 status: STATUS.NOTARRIVED,
                             }, {
@@ -1845,16 +1823,15 @@ const updateTour = ({ images, tourId, ...body }) =>
         }
     });
 
-const deleteTour = (tourIds) =>
+const deleteTour = (tourId) =>
     new Promise(async (resolve, reject) => {
         try {
-            const findPonit = await db.Tour.findAll({
+            const tour = await db.Tour.findOne({
                 raw: true, nest: true,
-                where: { tourId: tourIds },
+                where: { tourId: tourId },
             });
 
-            for (const tournt of findPonit) {
-                if (tournt.status === "Deactive") {
+                if (tour.status === "Deactive") {
                     resolve({
                         status: 400,
                         data: {
@@ -1863,12 +1840,11 @@ const deleteTour = (tourIds) =>
                     });
                     return;
                 }
-            }
 
             const tours = await db.Tour.update(
                 { status: "Deactive" },
                 {
-                    where: { tourId: tourIds },
+                    where: { tourId: tourId },
                     individualHooks: true,
                 }
             );

@@ -194,30 +194,28 @@ const updateStation = ({ stationId, ...body }) =>
         }
     });
 
-const deleteStation = (stationIds) =>
+const deleteStation = (stationId) =>
     new Promise(async (resolve, reject) => {
         try {
-            const findStation = await db.Station.findAll({
+            const findStation = await db.Station.findOne({
                 raw: true, nest: true,
-                where: { stationId: stationIds },
+                where: { stationId: stationId },
             });
 
-            for (const station of findStation) {
-                if (station.status === "Deactive") {
-                    resolve({
-                        status: 400,
-                        data: {
-                            msg: "The station already deactive!",
-                        }
-                    });
-                    return;
-                }
+            if (findStation.status === "Deactive") {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: "The station already deactive!",
+                    }
+                });
+                return;
             }
 
             const stations = await db.Station.update(
                 { status: "Deactive" },
                 {
-                    where: { stationId: stationIds },
+                    where: { stationId: stationId },
                     individualHooks: true,
                 }
             );

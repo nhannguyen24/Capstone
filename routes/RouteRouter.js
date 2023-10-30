@@ -195,7 +195,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateRoute);
  *     summary: Delete the routes by id
  *     tags: [Route]
  *     parameters:
- *       - name: routeIds[0]
+ *       - name: routeId
  *         in: query
  *         schema:
  *           type: string

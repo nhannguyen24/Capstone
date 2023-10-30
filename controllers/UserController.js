@@ -97,32 +97,32 @@ const updateUserPassword = async (req, res) => {
     }
 };
 
-const updateProfile = async (req, res) => {
-    try {
-        // const { error } = joi.object({userId}).validate({userId: req.body.userId});
-        // if (error) throw new BadRequestError(error.details[0].message);
-        const {userId} = req.user;
-        if(!userId) {
-            throw new BadRequestError('Please provide userId');
-        }
-        const response = await services.updateProfile(req.body, userId);
-        return res.status(response.status).json(response.data);
-    } catch (error) {
-        console.log(error);
-        throw new InternalServerError(error);
-    }
-};
+// const updateProfile = async (req, res) => {
+//     try {
+//         // const { error } = joi.object({userId}).validate({userId: req.body.userId});
+//         // if (error) throw new BadRequestError(error.details[0].message);
+//         const {userId} = req.user;
+//         if(!userId) {
+//             throw new BadRequestError('Please provide userId');
+//         }
+//         const response = await services.updateProfile(req.body, userId);
+//         return res.status(response.status).json(response.data);
+//     } catch (error) {
+//         console.log(error);
+//         throw new InternalServerError(error);
+//     }
+// };
 
 const deleteUser = async (req, res) => {
     try {
         const {userId} = req.user;
-        const {userIds} = req.query;
+        const {delUserId} = req.query;
         // const { error } = joi.object({userIds}).validate(req.query);
         // if (error) throw new BadRequestError(error.details[0].message);
-        if(!userIds) {
-            throw new BadRequestError('Please provide userIds');
+        if(!delUserId) {
+            throw new BadRequestError('Please provide delUserId');
         }
-        const response = await services.deleteUser(req.query.userIds, userId);
+        const response = await services.deleteUser(req.query.delUserId, userId);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);
@@ -144,4 +144,4 @@ const getUserById = async (req, res) => {
     }
 };
 
-module.exports = {updateUser, deleteUser, createUser, getAllUsers, updateProfile, updateUserPassword, getUserById};
+module.exports = {updateUser, deleteUser, createUser, getAllUsers, updateUserPassword, getUserById};

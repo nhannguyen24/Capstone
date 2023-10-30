@@ -54,11 +54,11 @@ const updateLanguage = async (req, res) => {
 
 const deleteLanguage = async (req, res) => {
     try {
-        const {languageIds} = req.query;
-        if(!languageIds) {
-            throw new BadRequestError('Please provide languageIds');
+        const {languageId} = req.query;
+        if(!languageId) {
+            throw new BadRequestError('Please provide languageId');
         }
-        const response = await services.deleteLanguage(req.query.languageIds);
+        const response = await services.deleteLanguage(req.query.languageId);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);

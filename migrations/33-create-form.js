@@ -29,17 +29,10 @@ module.exports = {
       desireTour: {
         type: Sequelize.STRING,
       },
-      reason: {
-        type: Sequelize.STRING(500),
-        allowNull: false,
-      },
-      file: {
-        type: Sequelize.STRING(1000),
-      },
       status: {
         type: Sequelize.ENUM,
-        values: ["Active", "Accepted", "Declined", "Approved", "Rejected"],
-        defaultValue: 'Active',
+        values: ["Approved", "Pending", "Rejected"],
+        defaultValue: 'Pending',
       },
       createdAt: {
         allowNull: false,

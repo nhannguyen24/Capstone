@@ -83,11 +83,11 @@ const updateTour = async (req, res) => {
 
 const deleteTour = async (req, res) => {
     try {
-        const {tourIds} = req.query;
-        if(!tourIds) {
-            throw new BadRequestError('Please provide tourIds');
+        const {tourId} = req.query;
+        if(!tourId) {
+            throw new BadRequestError('Please provide tourId');
         }
-        const response = await services.deleteTour(req.query.tourIds);
+        const response = await services.deleteTour(req.query.tourId);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);

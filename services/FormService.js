@@ -1,5 +1,6 @@
 const db = require("../models");
 const { Op } = require("sequelize");
+const STATUS = require("../enums/ReportStatusEnum")
 
 const getAllForm = (
     { page, limit, order, userId, changeEmployee, status, ...query }
@@ -68,7 +69,7 @@ const getAllForm = (
             for (const form of forms) {
                 const currentTour = await db.Tour.findOne({
                     raw: true, nest: true,
-                    where: {tourId: form.currentTour},
+                    where: { tourId: form.currentTour },
                     attributes: {
                         exclude: ['createdAt', 'updatedAt']
                     }
@@ -76,7 +77,7 @@ const getAllForm = (
 
                 const desireTour = await db.Tour.findOne({
                     raw: true, nest: true,
-                    where: {tourId: form.desireTour},
+                    where: { tourId: form.desireTour },
                     attributes: {
                         exclude: ['createdAt', 'updatedAt']
                     }
@@ -150,9 +151,9 @@ const createForm = (body, userId) =>
     new Promise(async (resolve, reject) => {
         try {
             const createForm = await db.Form.create(
-                { 
-                    userId: userId, 
-                    ...body 
+                {
+                    userId: userId,
+                    ...body
                 });
 
             resolve({
@@ -175,20 +176,42 @@ const createForm = (body, userId) =>
         }
     });
 
-const updateForm = ({ formId, ...query }) =>
+const updateForm = ({ formId, ...body }) =>
     new Promise(async (resolve, reject) => {
         try {
-            const forms = await db.Form.update(query, {
+            const forms = await db.Form.update(body, {
                 where: { formId },
                 individualHooks: true,
             });
 
+            if (body.status == STATUS.APPROVED) {
+                const form = await db.Form.findOne({
+                    where: { formId: formId },
+                    raw: true,
+                })
+
+                await db.Tour.update({ tourGuideId: form.changeEmployee }, {
+                    where: { formId },
+                    individualHooks: true,
+                });
+
+                resolve({
+                    status: forms[1].length !== 0 ? 200 : 400,
+                    data: {
+                        msg:
+                            forms[1].length !== 0
+                                ? `Form updated/TourGuideId in Tour updated`
+                                : "Cannot update form/ formId not found",
+                    }
+                });
+                return;
+            }
             resolve({
                 status: forms[1].length !== 0 ? 200 : 400,
                 data: {
                     msg:
                         forms[1].length !== 0
-                            ? `Form update`
+                            ? `Form updated`
                             : "Cannot update form/ formId not found",
                 }
             });

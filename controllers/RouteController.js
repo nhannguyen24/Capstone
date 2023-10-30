@@ -60,11 +60,11 @@ const deleteRoute = async (req, res) => {
     try {
         // const { error } = joi.object({routeIds}).validate(req.query);
         // if (error) throw new BadRequestError(error.details[0].message);
-        const {routeIds} = req.query;
-        if(!routeIds) {
-            throw new BadRequestError('Please provide routeIds');
+        const {routeId} = req.query;
+        if(!routeId) {
+            throw new BadRequestError('Please provide routeId');
         }
-        const response = await services.deleteRoute(req.query.routeIds);
+        const response = await services.deleteRoute(req.query.routeId);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);

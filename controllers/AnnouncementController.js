@@ -57,11 +57,11 @@ const updateAnnouncement = async (req, res) => {
 
 const deleteAnnouncement = async (req, res) => {
     try {
-        const {announcementIds} = req.query;
-        if(!announcementIds) {
-            throw new BadRequestError('Please provide announcementIds');
+        const {announcementId} = req.query;
+        if(!announcementId) {
+            throw new BadRequestError('Please provide announcementId');
         }
-        const response = await services.deleteAnnouncement(req.query.announcementIds);
+        const response = await services.deleteAnnouncement(req.query.announcementId);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);

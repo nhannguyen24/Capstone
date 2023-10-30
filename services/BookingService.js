@@ -643,7 +643,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 }
             });
         } else {
-            if (TOUR_STATUS.NOT_STARTED !== tour.tourStatus || STATUS.ACTIVE !== tour.status) {
+            if (TOUR_STATUS.NEW !== tour.tourStatus || STATUS.ACTIVE !== tour.status) {
                 resolve({
                     status: 403,
                     data: {
@@ -917,7 +917,7 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
 
             //Checking if booking is pay
             if (BOOKING_STATUS.ON_GOING === bookingStatus) {
-                if (TOUR_STATUS.NOT_STARTED !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
+                if (TOUR_STATUS.NEW !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
                     resolve({
                         status: 400,
                         data: {
@@ -972,8 +972,8 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                     })
                 }
 
-                if (TOUR_STATUS.NOT_STARTED !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus ||
-                    TOUR_STATUS.ON_TOUR !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
+                if (TOUR_STATUS.NEW !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus ||
+                    TOUR_STATUS.STARTED !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
                     resolve({
                         status: 400,
                         data: {

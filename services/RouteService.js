@@ -518,30 +518,28 @@ const updateRoute = ({ routeId, ...body }) =>
     });
 
 
-const deleteRoute = (routeIds) =>
+const deleteRoute = (routeId) =>
     new Promise(async (resolve, reject) => {
         try {
-            const findRoute = await db.Route.findAll({
+            const findRoute = await db.Route.findOne({
                 raw: true, nest: true,
-                where: { routeId: routeIds },
+                where: { routeId: routeId },
             });
 
-            for (const route of findRoute) {
-                if (route.status === "Deactive") {
-                    resolve({
-                        status: 400,
-                        data: {
-                            msg: "The route already deactive!",
-                        }
-                    });
-                    return;
-                }
+            if (findRoute.status === "Deactive") {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: "The route already deactive!",
+                    }
+                });
+                return;
             }
 
             const routes = await db.Route.update(
                 { status: "Deactive" },
                 {
-                    where: { routeId: routeIds },
+                    where: { routeId: routeId },
                     individualHooks: true,
                 }
             );

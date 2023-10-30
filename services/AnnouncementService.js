@@ -219,29 +219,27 @@ const updateAnnouncement = ({ announcementId, ...body }) =>
     });
 
 
-const deleteAnnouncement = (announcementIds) =>
+const deleteAnnouncement = (announcementId) =>
     new Promise(async (resolve, reject) => {
         try {
-            const findAnnouncement = await db.Announcement.findAll({
+            const findAnnouncement = await db.Announcement.findOne({
                 raw: true, nest: true,
-                where: { announcementId: announcementIds },
+                where: { announcementId: announcementId },
             });
 
-            for (const announcement of findAnnouncement) {
-                if (announcement.status === "Deactive") {
-                    resolve({
-                        status: 400,
-                        data: {
-                            msg: "The announcement already deactive!",
-                        }
-                    });
-                }
+            if (findAnnouncement.status === "Deactive") {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: "The announcement already deactive!",
+                    }
+                });
             }
 
             const announcements = await db.Announcement.update(
                 { status: "Deactive" },
                 {
-                    where: { announcementId: announcementIds },
+                    where: { announcementId: announcementId },
                     individualHooks: true,
                 }
             );

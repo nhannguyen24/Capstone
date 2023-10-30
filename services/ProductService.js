@@ -151,7 +151,7 @@ const createProduct = ({ images, productName, ...body }) =>
                         productId: createProduct[0].productId,
                     });
                 });
-    
+
                 await Promise.all(createImagePromises);
             }
 
@@ -217,14 +217,14 @@ const updateProduct = ({ images, productId, ...body }) =>
                             productId: productId,
                         }
                     });
-    
-                    const createImagePromises = images.map(async ( image ) => {
+
+                    const createImagePromises = images.map(async (image) => {
                         await db.Image.create({
                             image: image,
                             productId: productId,
                         });
                     });
-    
+
                     await Promise.all(createImagePromises);
                 }
 
@@ -261,33 +261,32 @@ const updateProduct = ({ images, productId, ...body }) =>
     });
 
 
-const deleteProduct = (productIds) =>
+const deleteProduct = (productId) =>
     new Promise(async (resolve, reject) => {
         try {
-            const findPonit = await db.Product.findAll({
+            const findProduct = await db.Product.findOne({
                 raw: true, nest: true,
-                where: { productId: productIds },
+                where: { productId: productId },
             });
 
-            for (const product of findPonit) {
-                if (product.status === "Deactive") {
-                    resolve({
-                        status: 400,
-                        data: {
-                            msg: "The product already deactive!",
-                        }
-                    });
-                    return;
-                }
+            if (findProduct.status === "Deactive") {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: "The product already deactive!",
+                    }
+                });
+                return;
             }
 
             const products = await db.Product.update(
                 { status: "Deactive" },
                 {
-                    where: { productId: productIds },
+                    where: { productId: productId },
                     individualHooks: true,
                 }
             );
+
             resolve({
                 status: products[0] > 0 ? 200 : 400,
                 data: {

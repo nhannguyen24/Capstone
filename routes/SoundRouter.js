@@ -182,7 +182,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateFileSound);
  *     summary: Delete the sounds by id
  *     tags: [FileSound]
  *     parameters:
- *       - name: soundIds[0]
+ *       - name: soundId
  *         in: query
  *         schema:
  *           type: string

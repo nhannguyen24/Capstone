@@ -144,7 +144,7 @@ const getFileSoundById = (soundId) =>
         }
     });
 
-const createFileSound = ( body ) =>
+const createFileSound = (body) =>
     new Promise(async (resolve, reject) => {
         try {
             const findLanguage = await db.Language.findOne({
@@ -175,7 +175,7 @@ const createFileSound = ( body ) =>
                 });
             }
 
-            const createFileSound = await db.FileSound.create( body );
+            const createFileSound = await db.FileSound.create(body);
 
             resolve({
                 status: 200,
@@ -230,7 +230,7 @@ const createFileSound = ( body ) =>
         }
     });
 
-const updateFileSound = ( body ) =>
+const updateFileSound = (body) =>
     new Promise(async (resolve, reject) => {
         try {
             const findLanguage = await db.Language.findOne({
@@ -314,30 +314,28 @@ const updateFileSound = ( body ) =>
         }
     });
 
-const deleteFileSound = (soundIds) =>
+const deleteFileSound = (soundId) =>
     new Promise(async (resolve, reject) => {
         try {
-            const findPonit = await db.FileSound.findAll({
+            const findSound = await db.FileSound.findOne({
                 raw: true, nest: true,
-                where: { soundId: soundIds },
+                where: { soundId: soundId },
             });
 
-            for (const sound of findPonit) {
-                if (sound.status === "Deactive") {
-                    resolve({
-                        status: 400,
-                        data: {
-                            msg: "The sound already deactive!",
-                        }
-                    });
-                    return;
-                }
+            if (findSound.status === "Deactive") {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: "The sound already deactive!",
+                    }
+                });
+                return;
             }
 
             const sounds = await db.FileSound.update(
                 { status: "Deactive" },
                 {
-                    where: { soundId: soundIds },
+                    where: { soundId: soundId },
                     individualHooks: true,
                 }
             );

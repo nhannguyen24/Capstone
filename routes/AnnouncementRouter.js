@@ -172,7 +172,7 @@ router.put("/", verifyToken, isManager, controllers.updateAnnouncement);
  *     summary: Delete the announcements by id
  *     tags: [Announcement]
  *     parameters:
- *       - name: announcementIds[0]
+ *       - name: announcementId
  *         in: query
  *         schema:
  *           type: string

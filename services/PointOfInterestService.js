@@ -305,30 +305,28 @@ const updatePointOfInterest = ({ images, poiId, ...body }) =>
     });
 
 
-const deletePointOfInterest = (poiIds) =>
+const deletePointOfInterest = (poiId) =>
     new Promise(async (resolve, reject) => {
         try {
-            const findPonit = await db.PointOfInterest.findAll({
+            const findPoint = await db.PointOfInterest.findOne({
                 raw: true, nest: true,
-                where: { poiId: poiIds },
+                where: { poiId: poiId },
             });
 
-            for (const point of findPonit) {
-                if (point.status === "Deactive") {
-                    resolve({
-                        status: 400,
-                        data: {
-                            msg: "The point of interest already deactive!",
-                        }
-                    });
-                    return;
-                }
+            if (findPoint.status === "Deactive") {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: "The point of interest already deactive!",
+                    }
+                });
+                return;
             }
 
             const pois = await db.PointOfInterest.update(
                 { status: "Deactive" },
                 {
-                    where: { poiId: poiIds },
+                    where: { poiId: poiId },
                     individualHooks: true,
                 }
             );

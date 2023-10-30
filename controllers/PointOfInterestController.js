@@ -63,11 +63,11 @@ const updatePointOfInterest = async (req, res) => {
 
 const deletePointOfInterest = async (req, res) => {
     try {
-        const {poiIds} = req.query;
-        if(!poiIds) {
-            throw new BadRequestError('Please provide poiIds');
+        const {poiId} = req.query;
+        if(!poiId) {
+            throw new BadRequestError('Please provide poiId');
         }
-        const response = await services.deletePointOfInterest(req.query.poiIds);
+        const response = await services.deletePointOfInterest(req.query.poiId);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);
