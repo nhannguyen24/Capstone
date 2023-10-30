@@ -250,15 +250,22 @@ const updateFeedback = (req) => new Promise(async (resolve, reject) => {
             return
         }
 
-        var stars = req.query.stars
+        var stars = parseInt(req.query.stars)
         if (isNaN(stars)) {
             resolve({
                 status: 400,
                 data: {
-                    msg: "Stars need to be a numeric",
+                    msg: "Stars need to be a number",
                 }
             })
-            return
+            if(stars < 1 || stars > 5){
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: "Stars need to be in range of 1 - 5",
+                    }
+                })
+            }
         }
         if (stars === undefined || stars === null) {
             stars = feedback.stars
@@ -319,9 +326,7 @@ const deleteFeedback = (req) => new Promise(async (resolve, reject) => {
             return
         }
 
-        await db.Feedback.update({
-            status: STATUS.DEACTIVE
-        }, {
+        await db.Feedback.destroy({
             where: {
                 feedbackId: feedback.feedbackId
             },

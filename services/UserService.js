@@ -103,13 +103,14 @@ const getUserById = (userId) =>
     }
   });
 
-const createUser = ({ password, ...body }) =>
+const createUser = ({ ...body }) =>
   new Promise(async (resolve, reject) => {
     try {
+      const genPassword = generateRandomString(6)
       const user = await db.User.findOrCreate({
         where: { email: body?.email },
         defaults: {
-          password: hashPassword(password),
+          password: hashPassword(genPassword),
           avatar: "https://cdn-icons-png.flaticon.com/512/147/147144.png",
           maxTour: 10,
           ...body,
@@ -125,7 +126,7 @@ const createUser = ({ password, ...body }) =>
               data: [
                 {
                   email: body.email,
-                  password: password,
+                  password: genPassword,
                 }
               ]
             },
@@ -247,6 +248,51 @@ const updateProfile = (body, userId) =>
     }
   });
 
+  const updateUserPassword = (userId, newPassword, confirmPassword, body) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      if (body.userId !== userId) {
+        resolve({
+          status: 403,
+          msg: "Can't update other people's account"
+        });
+      } else {
+        const users = await db.User.update(body, {
+          where: { userId: userId },
+          individualHooks: true,
+        });
+        resolve({
+          status: users[0] ? 200 : 400,
+          data: {
+            msg:
+              users[0] > 0
+                ? "Update profile successfully"
+                : "Cannot update user/ userId not found",
+          }
+        });
+        // redisClient.keys('user_paging*', (error, keys) => {
+        //   if (error) {
+        //     console.error('Error retrieving keys:', error);
+        //     return;
+        //   }
+        //   // Delete each key individually
+        //   keys.forEach((key) => {
+        //     redisClient.del(key, (deleteError, reply) => {
+        //       if (deleteError) {
+        //         console.error(`Error deleting key ${key}:`, deleteError);
+        //       } else {
+        //         console.log(`Key ${key} deleted successfully`);
+        //       }
+        //     });
+        //   });
+        // });
+
+      }
+    } catch (error) {
+      reject(error.message);
+    }
+  });
+
 const deleteUser = (userIds, userId) =>
   new Promise(async (resolve, reject) => {
     try {
@@ -311,11 +357,23 @@ const deleteUser = (userIds, userId) =>
     }
   });
 
+  function generateRandomString(length) {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let randomString = '';
+  
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      randomString += characters.charAt(randomIndex);
+    }
+  
+    return randomString;
+  }
 
 module.exports = {
   updateUser,
   deleteUser,
   createUser,
+  updateUserPassword,
   getAllUsers,
   updateProfile,
   getUserById

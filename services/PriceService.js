@@ -26,7 +26,7 @@ const getPrices = (req) => new Promise(async (resolve, reject) => {
             offset: offset,
             limit: limit
         });
-        
+
         const totalPrice = await db.Price.count({
             where: whereClause,
         });
@@ -131,28 +131,47 @@ const updatePrice = (req) => new Promise(async (resolve, reject) => {
         }
 
         var ticketTypeId = req.query.ticketTypeId
-        if (ticketTypeId === undefined || ticketTypeId === null || ticketTypeId.trim().length < 1) {
+        let ticketType
+        if (ticketTypeId === undefined || ticketTypeId === null || ticketTypeId.trim().length === 0) {
             ticketTypeId = price.ticketTypeId
-        }
-        const ticketType = await db.TicketType.findOne({
-            where: {
-                ticketTypeId: ticketTypeId
-            }
-        })
-
-        if (!ticketType) {
-            resolve({
-                status: 404,
-                data: {
-                    msg: `TicketType not found with id "${ticketTypeId}"`,
+        } else {
+            ticketType = await db.TicketType.findOne({
+                where: {
+                    ticketTypeId: ticketTypeId
                 }
             })
-            return
+
+            if (!ticketType) {
+                resolve({
+                    status: 404,
+                    data: {
+                        msg: `TicketType not found with id "${ticketTypeId}"`,
+                    }
+                })
+            }
         }
 
-        var amount = req.query.amount
+        var amount = parseInt(req.query.amount)
         if (amount === undefined || amount === null) {
             amount = price.amount
+        } else {
+            if (isNaN(amount)) {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: `Amount need to be a number`,
+                    }
+                })
+            } else {
+                if (amount < 1000) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: `Amount need to be atleast 1000`,
+                        }
+                    })
+                }
+            }
         }
 
         var day = req.query.day
@@ -160,9 +179,25 @@ const updatePrice = (req) => new Promise(async (resolve, reject) => {
             day = price.day
         }
 
+        var status = req.query.status
+        if (status === undefined || status === null) {
+            status = price.status
+        } else {
+            if (STATUS.DEACTIVE === status) {
+                if (STATUS.DEACTIVE !== ticketType.status) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: `Price is currently in use for ticket type ${ticketType.ticketTypeId}`,
+                        }
+                    })
+                }
+            }
+        }
+
         await db.Price.update({
             amount: amount,
-            ticketTypeId: ticketType.ticketTypeId,
+            ticketTypeId: ticketTypeId,
             day: day
         }, {
             where: {
@@ -204,22 +239,35 @@ const deletePrice = (req) => new Promise(async (resolve, reject) => {
             return
         }
 
-        await db.Price.update({
-            status: STATUS.DEACTIVE
-        }, {
+        const ticketType = await db.TicketType.findOne({
             where: {
-                priceId: price.priceId
-            }, individualHooks: true
-        })
-
-        resolve({
-            status: 200,
-            data: {
-                msg: "Delete price successfully",
+                ticketTypeId: price.ticketTypeId
             }
         })
 
+        if (STATUS.DEACTIVE !== ticketType.status) {
+            resolve({
+                status: 400,
+                data: {
+                    msg: `Price is currently in use for ticket type ${ticketType.ticketTypeId}`,
+                }
+            })
+        } else {
+            await db.Price.update({
+                status: STATUS.DEACTIVE
+            }, {
+                where: {
+                    priceId: price.priceId
+                }, individualHooks: true
+            })
 
+            resolve({
+                status: 200,
+                data: {
+                    msg: "Delete price successfully",
+                }
+            })
+        }
     } catch (error) {
         reject(error);
     }

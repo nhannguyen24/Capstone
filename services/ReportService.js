@@ -86,6 +86,15 @@ const createReport = (req) => new Promise(async (resolve, reject) => {
         const title = req.body.title
         const description = req.body.description
 
+        const loggedInUser = req.body.userId
+        if(customerId !== loggedInUser){
+            resolve({
+                status: 404,
+                data: {
+                    msg: `Can not report using other account`
+                }
+            })
+        }
         //check user
         const user = await db.User.findOne({
             where: {
@@ -100,7 +109,6 @@ const createReport = (req) => new Promise(async (resolve, reject) => {
                     msg: `User not found with id: "${customerId}",`
                 }
             })
-            return
         }
 
         const setUpReport = { customerId: user.userId, title: title, description: description, reportStatus: REPORT_STATUS.SUBMITTED }

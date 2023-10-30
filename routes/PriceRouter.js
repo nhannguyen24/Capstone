@@ -164,6 +164,13 @@ router.get("/:id", verifyToken, isAdminOrManager, controllers.getPriceById);
  *              - Holiday
  *              - Weekend
  *              - Normal
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum:
+ *              - Active
+ *              - Deactive
  *        
  *     responses:
  *       200:

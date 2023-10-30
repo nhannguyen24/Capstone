@@ -354,8 +354,6 @@ const getMoMoPaymentResponse = (req) =>
                 const bookingCode = bookingDetail.detail_booking.bookingCode
 
                 const qrDataURL = await qr.toDataURL(`bookingId: ${bookingId}`)
-                console.log("TOUR_TIME", tourDepartureTime)
-                console.log("FORMAT_TIME", formatDepartureDate)
                 const htmlContent = {
                     body: {
                         name: bookingDetail.detail_booking.booking_user.userName,
@@ -395,7 +393,7 @@ const getMoMoPaymentResponse = (req) =>
                 }
 
                 await db.Booking.update({
-                    status: STATUS.ACTIVE
+                    bookingStatus: BOOKING_STATUS.ON_GOING
                 }, {
                     where: {
                         bookingId: bookingId

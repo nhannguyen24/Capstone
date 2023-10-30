@@ -11,7 +11,7 @@ const router = express.Router();
  *   get:
  *     security: 
  *         - BearerAuth: []
- *     summary: Get buses by bus plate
+ *     summary: Get buses
  *     tags: [Bus]
  *     parameters:
  *       - in: query
@@ -57,7 +57,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, controllers.getBuses);
+router.get("/", verifyToken, isAdminOrManager, controllers.getBuses);
 
 
 /**

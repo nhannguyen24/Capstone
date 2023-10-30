@@ -121,6 +121,7 @@ router.get("/", verifyToken, isLoggedIn, controllers.getBookings);
  *         schema:
  *           type: string
  *           enum:
+ *              - Draft
  *              - Ongoing
  *              - Canceled
  *              - Finished
@@ -129,7 +130,6 @@ router.get("/", verifyToken, isLoggedIn, controllers.getBookings);
  *         schema:
  *           type: string
  *           enum:
- *              - Draft
  *              - Active
  *              - Deactive
  *     responses:
@@ -331,6 +331,6 @@ router.put("/:id", controllers.updateBooking);
  *             schema:
  *               type: string
  */
-router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteBooking);
+router.delete("/:id", verifyToken, isCustomer, controllers.deleteBooking);
 
 module.exports = router;

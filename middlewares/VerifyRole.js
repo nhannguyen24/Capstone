@@ -20,6 +20,12 @@ const isCustomer = (req, res, next) => {
     throw new UnauthenticatedError('Require role Customer');
   next();
 };
+const isCustomerOrManager = (req, res, next) => {
+  const { roleName } = req.user;
+  if (roleName !== 'Customer' && roleName !== 'Manager')
+    throw new UnauthenticatedError('Require role Customer or Manager');
+  next();
+};
 
 const isAdminOrManager = (req, res, next) => {
   const { roleName } = req.user;
@@ -53,4 +59,4 @@ const isLoggedIn = (req, res, next) => {
   next();
 };
 
-module.exports = { isAdmin, isManager, isAdminOrManager, isCustomer, isTourguideOrDriver, isLoggedIn, isAdminOrManagerOrTourguideOrDriver };
+module.exports = { isAdmin, isManager, isAdminOrManager, isCustomer, isCustomerOrManager, isTourguideOrDriver, isLoggedIn, isAdminOrManagerOrTourguideOrDriver };

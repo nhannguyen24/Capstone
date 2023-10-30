@@ -618,7 +618,6 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                         msg: `Action not allow, Please validate OTP!`,
                     }
                 });
-                return
             }
         }
 
@@ -643,7 +642,6 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                     msg: `Tour not found with id: ${tickets[0].tourId}`,
                 }
             });
-            return
         } else {
             if (TOUR_STATUS.NOT_STARTED !== tour.tourStatus || STATUS.ACTIVE !== tour.status) {
                 resolve({
@@ -789,7 +787,6 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                         msg: `Product not found with Id: ${e.productId}`,
                     }
                 });
-                return
             }
             if (STATUS.DEACTIVE === product.status) {
                 resolve({
@@ -798,7 +795,6 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                         msg: `Product is Deactive`,
                     }
                 });
-                return
             }
             product.dataValues.quantity = e.quantity
             productList.push(product)
@@ -919,6 +915,7 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                 return
             }
 
+            //Checking if booking is pay
             if (BOOKING_STATUS.ON_GOING === bookingStatus) {
                 if (TOUR_STATUS.NOT_STARTED !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
                     resolve({
@@ -966,6 +963,14 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                     });
                     return
                 }
+                if(BOOKING_STATUS.DRAFT === bookingDetail.detail_booking.bookingStatus){
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: `Booking not pay`,
+                        }
+                    })
+                }
 
                 if (TOUR_STATUS.NOT_STARTED !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus ||
                     TOUR_STATUS.ON_TOUR !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
@@ -975,7 +980,6 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
                             msg: `Cannot update booking status ${bookingStatus} because tour started`,
                         }
                     })
-                    return
                 } else {
                     PaymentService.refundMomo(bookingId, (result) => {
                         if (result.status === 200) {
@@ -995,6 +999,14 @@ const updateBooking = (req) => new Promise(async (resolve, reject) => {
             }
 
             if (BOOKING_STATUS.FINISHED === bookingStatus) {
+                if(BOOKING_STATUS.DRAFT === bookingDetail.detail_booking.bookingStatus){
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: `Booking not pay`,
+                        }
+                    })
+                }
                 if (TOUR_STATUS.FINISHED !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
                     resolve({
                         status: 400,

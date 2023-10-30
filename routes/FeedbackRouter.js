@@ -1,7 +1,7 @@
 const controllers = require('../controllers/FeedbackController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isCustomer, isAdminOrManager, isLoggedIn} = require('../middlewares/VerifyRole');
+const {isCustomer, isAdminOrManager, isLoggedIn, isCustomerOrManager, isManager} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -101,6 +101,8 @@ router.post("/", verifyToken, isCustomer, controllers.createFeedback);
  * @swagger
  * /api/v1/feedbacks/{feedbackId}:
  *   get:
+ *     security: 
+ *         - BearerAuth: []
  *     summary: Get feedback by Id 
  *     tags: [Feedback]
  *     parameters:
@@ -118,7 +120,7 @@ router.post("/", verifyToken, isCustomer, controllers.createFeedback);
  *             schema:
  *               type: object
  */
-router.get("/:feedbackId", controllers.getFeedbackById);
+router.get("/:feedbackId", verifyToken, isManager, controllers.getFeedbackById);
 
 /**
  * @swagger
@@ -136,7 +138,7 @@ router.get("/:feedbackId", controllers.getFeedbackById);
  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
  *         required: true
  *       - in: query
- *         name: star
+ *         name: stars
  *         schema:
  *           type: integer
  *           minimum: 1
@@ -175,7 +177,7 @@ router.get("/:feedbackId", controllers.getFeedbackById);
  *             schema:
  *               type: string
  */
-router.put("/:feedbackId", verifyToken, isLoggedIn, controllers.updateFeedback);
+router.put("/:feedbackId", verifyToken, isCustomerOrManager, controllers.updateFeedback);
 
 /**
  * @swagger
@@ -206,6 +208,6 @@ router.put("/:feedbackId", verifyToken, isLoggedIn, controllers.updateFeedback);
  *             schema:
  *               type: string
  */
-router.delete("/:feedbackId", verifyToken, isLoggedIn, controllers.deleteFeedback);
+router.delete("/:feedbackId", verifyToken, isCustomerOrManager, controllers.deleteFeedback);
 
 module.exports = router;
