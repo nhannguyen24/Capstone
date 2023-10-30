@@ -88,7 +88,7 @@ const updateBus = async (req, res) => {
         const busId = req.params.id || ""
         const busPlate = req.body.busPlate || ""
         const numberSeat = req.body.numberSeat || ""
-        const isDoubleDecker = req.body.isDoubleDecker || ""
+        const isDoubleDecker = req.body.isDoubleDecker
         const status = req.body.status || ""
         const errors = []
         if (busId.trim() === "") {
