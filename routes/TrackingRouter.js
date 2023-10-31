@@ -95,19 +95,25 @@ router.post("/", controllers.createTracking);
 
 /**
  * @swagger
- * /api/v1/trackings/coordinates:
+ * /api/v1/trackings/coordinates/{id}:
  *   put:
  *     security: 
  *         - BearerAuth: []
  *     summary: Update the tracking by id
  *     tags: [Tracking]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Update tracking by id
  *     requestBody:
  *       content:
  *          application/json:
  *            schema:
  *              $ref: '#/components/schemas/Tracking'
  *            example:
- *              trackingId: 8c382e13-8620-460a-bd95-96b1152c1368
  *              latitude: 10.7688046
  *              longitude: 106.6903351
  *              status: Active
@@ -121,6 +127,6 @@ router.post("/", controllers.createTracking);
  *               items:
  *                 $ref: '#/components/schemas/Tracking'
  */
-router.put("/", controllers.updateTracking);
+router.put("/:id", controllers.updateTracking);
 
 module.exports = router;
