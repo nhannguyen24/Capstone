@@ -86,7 +86,7 @@ const upload = multer({ storage: storage });
  *         schema:
  *           type: string
  *           enum: ["Available", "Started", "Canceled", "Finished"]
- *         description: Find tour by address
+ *         description: Find tour by tour status
  *       - name: status
  *         in: query
  *         schema:
