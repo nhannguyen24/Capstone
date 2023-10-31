@@ -145,18 +145,24 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createProduct);
 
 /**
  * @swagger
- * /api/v1/products:
+ * /api/v1/products/{id}:
  *   put:
  *     security: 
  *         - BearerAuth: []
  *     summary: Update the product by id
  *     tags: [Product]
+ *     parameters:
+ *       - in: path
+ *         name: productId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Update product by productId
  *     requestBody:
  *       content:
  *          application/json:
  *            schema:                     
  *                  example:
- *                    productId: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    productName: Bánh mì
  *                    price: 10000
  *                    productCateId: 1aaaeb7d-8671-4987-aa0b-7fdc8c9d192e
@@ -174,11 +180,11 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createProduct);
  *               items:
  *                 $ref: '#/components/schemas/Product'
  */
-router.put("/", verifyToken, isAdminOrManager, controllers.updateProduct);
+router.put("/:id", verifyToken, isAdminOrManager, controllers.updateProduct);
 
 /**
  * @swagger
- * /api/v1/products:
+ * /api/v1/products/{id}:
  *   delete:
  *     security: 
  *         - BearerAuth: []
@@ -186,7 +192,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateProduct);
  *     tags: [Product]
  *     parameters:
  *       - name: productId
- *         in: query
+ *         in: path
  *         schema:
  *           type: string
  *         description: Input productId to delete
@@ -200,6 +206,6 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateProduct);
  *               items:
  *                 $ref: '#/components/schemas/Product'
  */
-router.delete("/", verifyToken, isAdminOrManager, controllers.deleteProduct);
+router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteProduct);
 
 module.exports = router;

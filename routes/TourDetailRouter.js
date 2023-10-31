@@ -80,19 +80,25 @@ router.get("/", verifyToken, controllers.getAllTourDetail);
 
 /**
  * @swagger
- * /api/v1/trackings/stations:
+ * /api/v1/trackings/stations/{id}:
  *   put:
  *     security: 
  *         - BearerAuth: []
  *     summary: Update the tourDetail by id
  *     tags: [Tracking]
+ *     parameters:
+ *       - in: path
+ *         name: tourDetailId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Update tour detail by tourDetailId
  *     requestBody:
  *       content:
  *          application/json:
  *            schema:
  *              $ref: '#/components/schemas/TourDetail'
  *            example:
- *              tourDetailId: 8c382e13-8620-460a-bd95-96b1152c1368
  *              status: Active
  *     responses:
  *       200:
@@ -104,6 +110,6 @@ router.get("/", verifyToken, controllers.getAllTourDetail);
  *               items:
  *                 $ref: '#/components/schemas/TourDetail'
  */
-router.put("/", controllers.updateTourDetail);
+router.put("/:id", controllers.updateTourDetail);
 
 module.exports = router;

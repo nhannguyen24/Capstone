@@ -141,13 +141,19 @@ router.post("/", verifyToken, isManager, controllers.createAnnouncement);
  *         - BearerAuth: []
  *     summary: Update the announcement by id
  *     tags: [Announcement]
+ *     parameters:
+ *       - in: path
+ *         name: announcementId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Update announcement by announcementId
  *     requestBody:
  *       content:
  *          application/json:
  *            schema:
  *              $ref: '#/components/schemas/Announcement'
  *            example:
- *              announcementId: 8c382e13-8620-460a-bd95-96b1152c1368
  *              title: Thông báo
  *              description: Kiểm tra sức khỏe định kì
  *              status: Active
@@ -165,7 +171,7 @@ router.put("/", verifyToken, isManager, controllers.updateAnnouncement);
 
 /**
  * @swagger
- * /api/v1/announcements:
+ * /api/v1/announcements/{id}:
  *   delete:
  *     security: 
  *         - BearerAuth: []
@@ -173,7 +179,7 @@ router.put("/", verifyToken, isManager, controllers.updateAnnouncement);
  *     tags: [Announcement]
  *     parameters:
  *       - name: announcementId
- *         in: query
+ *         in: path
  *         schema:
  *           type: string
  *         description: Input announcementId to delete
@@ -187,6 +193,6 @@ router.put("/", verifyToken, isManager, controllers.updateAnnouncement);
  *               items:
  *                 $ref: '#/components/schemas/Announcement'
  */
-router.delete("/", verifyToken, isManager, controllers.deleteAnnouncement);
+router.delete("/:id", verifyToken, isManager, controllers.deleteAnnouncement);
 
 module.exports = router;

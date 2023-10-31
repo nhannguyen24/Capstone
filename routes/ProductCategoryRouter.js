@@ -131,19 +131,25 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createProductCategor
 
 /**
  * @swagger
- * /api/v1/productCates:
+ * /api/v1/productCates/{id}:
  *   put:
  *     security: 
  *         - BearerAuth: []
  *     summary: Update the productCate by id
  *     tags: [ProductCategory]
+ *     parameters:
+ *       - in: path
+ *         name: productCateId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Update product category by productCateId
  *     requestBody:
  *       content:
  *          application/json:
  *            schema:
  *              $ref: '#/components/schemas/ProductCategory'
  *            example:
- *              productCateId: 8c382e13-8620-460a-bd95-96b1152c1368
  *              productCateName: Thức ăn
  *              status: Active
  *     responses:
@@ -156,11 +162,11 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createProductCategor
  *               items:
  *                 $ref: '#/components/schemas/ProductCategory'
  */
-router.put("/", verifyToken, isAdminOrManager, controllers.updateProductCategory);
+router.put("/:id", verifyToken, isAdminOrManager, controllers.updateProductCategory);
 
 /**
  * @swagger
- * /api/v1/productCates:
+ * /api/v1/productCates/{id}:
  *   delete:
  *     security: 
  *         - BearerAuth: []
@@ -168,7 +174,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateProductCategory
  *     tags: [ProductCategory]
  *     parameters:
  *       - name: productCateId
- *         in: query
+ *         in: path
  *         schema:
  *           type: string
  *         description: Input productCateId to delete
@@ -182,6 +188,6 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateProductCategory
  *               items:
  *                 $ref: '#/components/schemas/ProductCategory'
  */
-router.delete("/", verifyToken, isAdminOrManager, controllers.deleteProductCategory);
+router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteProductCategory);
 
 module.exports = router;

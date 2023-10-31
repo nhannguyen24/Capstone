@@ -150,18 +150,24 @@ router.post("/", verifyToken, isTourguideOrDriver, controllers.createForm);
 
 /**
  * @swagger
- * /api/v1/forms:
+ * /api/v1/forms/{id}:
  *   put:
  *     security: 
  *         - BearerAuth: []
  *     summary: Update the form by id
  *     tags: [Form]
+ *     parameters:
+ *       - in: path
+ *         name: formId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Update form by formId
  *     requestBody:
  *       content:
  *          application/json:
  *            schema:                     
  *                  example:
- *                    formId: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    status: ('Approved','Pending','Rejected')
  *     responses:
  *       200:
@@ -173,6 +179,6 @@ router.post("/", verifyToken, isTourguideOrDriver, controllers.createForm);
  *               items:
  *                 $ref: '#/components/schemas/Form'
  */
-router.put("/", verifyToken, isAdminOrManagerOrTourguideOrDriver, controllers.updateForm);
+router.put("/:id", verifyToken, isAdminOrManagerOrTourguideOrDriver, controllers.updateForm);
 
 module.exports = router;

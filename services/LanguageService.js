@@ -90,14 +90,14 @@ const createLanguage = ({ language, ...body }) =>
         }
     });
 
-const updateLanguage = ({ languageId, ...body }) =>
+const updateLanguage = (id, body) =>
     new Promise(async (resolve, reject) => {
         try {
             const language = await db.Language.findOne({
                 where: {
                     language: body?.language,
                     languageId: {
-                        [Op.ne]: languageId
+                        [Op.ne]: id
                     }
                 }
             })
@@ -111,7 +111,7 @@ const updateLanguage = ({ languageId, ...body }) =>
                 });
             } else {
                 const languages = await db.Language.update(body, {
-                    where: { languageId },
+                    where: { languageId: id },
                     individualHooks: true,
                 });
 
@@ -131,12 +131,12 @@ const updateLanguage = ({ languageId, ...body }) =>
         }
     });
 
-const deleteLanguage = (languageId) =>
+const deleteLanguage = (id) =>
     new Promise(async (resolve, reject) => {
         try {
             const findLanguage = await db.Language.findOne({
                 raw: true, nest: true,
-                where: { languageId: languageId },
+                where: { languageId: id },
             });
 
             if (findLanguage.status === "Deactive") {
@@ -152,7 +152,7 @@ const deleteLanguage = (languageId) =>
             const languages = await db.Language.update(
                 { status: "Deactive" },
                 {
-                    where: { languageId: languageId },
+                    where: { languageId: id },
                     individualHooks: true,
                 }
             );

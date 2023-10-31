@@ -66,11 +66,11 @@ const getAllTourDetail = (
         }
     });
 
-const updateTourDetail = ({ tourDetailId, ...body }) =>
+const updateTourDetail = (id, body) =>
     new Promise(async (resolve, reject) => {
         try {
             const tourDetails = await db.TourDetail.update(body, {
-                where: { tourDetailId },
+                where: { tourDetailId: id },
                 individualHooks: true,
             });
 

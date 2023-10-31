@@ -176,22 +176,22 @@ const createForm = (body, userId) =>
         }
     });
 
-const updateForm = ({ formId, ...body }) =>
+const updateForm = (id, body) =>
     new Promise(async (resolve, reject) => {
         try {
             const forms = await db.Form.update(body, {
-                where: { formId },
+                where: { formId: id },
                 individualHooks: true,
             });
 
             if (body.status == STATUS.APPROVED) {
                 const form = await db.Form.findOne({
-                    where: { formId: formId },
+                    where: { formId: id },
                     raw: true,
                 })
 
                 await db.Tour.update({ tourGuideId: form.changeEmployee }, {
-                    where: { formId },
+                    where: { formId: id },
                     individualHooks: true,
                 });
 

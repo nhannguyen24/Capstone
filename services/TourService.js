@@ -59,7 +59,6 @@ const getAllTour = (
                                     exclude: [
                                         "tourId",
                                         "busId",
-                                        "tourId",
                                         "poiId",
                                         "productId",
                                         "feedbackId",
@@ -306,7 +305,6 @@ const getTourById = (tourId) =>
                             exclude: [
                                 "tourId",
                                 "busId",
-                                "tourId",
                                 "poiId",
                                 "productId",
                                 "feedbackId",
@@ -1593,7 +1591,7 @@ const assignTour = () =>
         }
     });
 
-const updateTour = ({ images, tourId, ...body }) =>
+const updateTour = (id, { images, ...body }) =>
     new Promise(async (resolve, reject) => {
         let transaction;
         try {
@@ -1602,7 +1600,7 @@ const updateTour = ({ images, tourId, ...body }) =>
                     where: {
                         tourName: body?.tourName,
                         tourId: {
-                            [Op.ne]: tourId
+                            [Op.ne]: id
                         }
                     }
                 })
@@ -1651,7 +1649,7 @@ const updateTour = ({ images, tourId, ...body }) =>
                         const findTour = await db.Tour.findOne({
                             raw: true, nest: true,
                             where: {
-                                tourId: tourId
+                                tourId: id
                             },
                         })
                         if (tourGuide) {
@@ -1756,7 +1754,7 @@ const updateTour = ({ images, tourId, ...body }) =>
                             departureDate: body.tDepartureDate ? tDepartureDate : findTour.tDepartureDate,
                             ...body
                         }, {
-                            where: { tourId },
+                            where: { tourId: id, },
                             individualHooks: true,
                             transaction: t
                         });
@@ -1765,7 +1763,7 @@ const updateTour = ({ images, tourId, ...body }) =>
                             await db.TourDetail.update({
                                 status: STATUS.NOTARRIVED,
                             }, {
-                                where: { tourId },
+                                where: { tourId: id, },
                                 individualHooks: true,
                                 transaction: t
                             });
@@ -1784,14 +1782,14 @@ const updateTour = ({ images, tourId, ...body }) =>
                         if (images) {
                             await db.Image.destroy({
                                 where: {
-                                    tourId: tourId,
+                                    tourId: id,
                                 }
                             });
 
                             const createImagePromises = images.map(async (image) => {
                                 await db.Image.create({
                                     image: image,
-                                    tourId: tourId,
+                                    tourId: id,
                                 }, { transaction: t });
                             });
 
@@ -1837,12 +1835,12 @@ const updateTour = ({ images, tourId, ...body }) =>
         }
     });
 
-const deleteTour = (tourId) =>
+const deleteTour = (id) =>
     new Promise(async (resolve, reject) => {
         try {
             const tour = await db.Tour.findOne({
                 raw: true, nest: true,
-                where: { tourId: tourId },
+                where: { tourId: id },
             });
 
                 if (tour.status === "Deactive") {
@@ -1858,7 +1856,7 @@ const deleteTour = (tourId) =>
             const tours = await db.Tour.update(
                 { status: "Deactive" },
                 {
-                    where: { tourId: tourId },
+                    where: { tourId: id },
                     individualHooks: true,
                 }
             );

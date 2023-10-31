@@ -186,14 +186,14 @@ const createProduct = ({ images, productName, ...body }) =>
         }
     });
 
-const updateProduct = ({ images, productId, ...body }) =>
+const updateProduct = (id, { images, ...body }) =>
     new Promise(async (resolve, reject) => {
         try {
             const product = await db.Product.findOne({
                 where: {
                     productName: body?.productName,
                     productId: {
-                        [Op.ne]: productId
+                        [Op.ne]: id
                     }
                 }
             })
@@ -207,21 +207,21 @@ const updateProduct = ({ images, productId, ...body }) =>
                 });
             } else {
                 const products = await db.Product.update(body, {
-                    where: { productId },
+                    where: { productId: id },
                     individualHooks: true,
                 });
 
                 if (images) {
                     await db.Image.destroy({
                         where: {
-                            productId: productId,
+                            productId: id,
                         }
                     });
 
                     const createImagePromises = images.map(async (image) => {
                         await db.Image.create({
                             image: image,
-                            productId: productId,
+                            productId: id,
                         });
                     });
 
@@ -261,12 +261,12 @@ const updateProduct = ({ images, productId, ...body }) =>
     });
 
 
-const deleteProduct = (productId) =>
+const deleteProduct = (id) =>
     new Promise(async (resolve, reject) => {
         try {
             const findProduct = await db.Product.findOne({
                 raw: true, nest: true,
-                where: { productId: productId },
+                where: { productId: id },
             });
 
             if (findProduct.status === "Deactive") {
@@ -282,7 +282,7 @@ const deleteProduct = (productId) =>
             const products = await db.Product.update(
                 { status: "Deactive" },
                 {
-                    where: { productId: productId },
+                    where: { productId: id },
                     individualHooks: true,
                 }
             );

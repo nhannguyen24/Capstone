@@ -137,14 +137,14 @@ const createStation = ({ stationName, ...body }) =>
         }
     });
 
-const updateStation = ({ stationId, ...body }) =>
+const updateStation = (id, body) =>
     new Promise(async (resolve, reject) => {
         try {
             const station = await db.Station.findOne({
                 where: {
                     stationName: body?.stationName,
                     stationId: {
-                        [Op.ne]: stationId
+                        [Op.ne]: id
                     }
                 }
             })
@@ -158,7 +158,7 @@ const updateStation = ({ stationId, ...body }) =>
                 });
             } else {
                 const stations = await db.Station.update(body, {
-                    where: { stationId },
+                    where: { stationId: id },
                     individualHooks: true,
                 });
 
@@ -194,12 +194,12 @@ const updateStation = ({ stationId, ...body }) =>
         }
     });
 
-const deleteStation = (stationId) =>
+const deleteStation = (id) =>
     new Promise(async (resolve, reject) => {
         try {
             const findStation = await db.Station.findOne({
                 raw: true, nest: true,
-                where: { stationId: stationId },
+                where: { stationId: id },
             });
 
             if (findStation.status === "Deactive") {
@@ -215,7 +215,7 @@ const deleteStation = (stationId) =>
             const stations = await db.Station.update(
                 { status: "Deactive" },
                 {
-                    where: { stationId: stationId },
+                    where: { stationId: id },
                     individualHooks: true,
                 }
             );
