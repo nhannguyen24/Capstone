@@ -1,7 +1,5 @@
 const controllers = require('../controllers/OtpController');
 const express = require('express');
-const verifyToken = require('../middlewares/VerifyToken');
-const {isCustomer} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -28,6 +26,7 @@ const router = express.Router();
  *         schema:
  *           type: string
  *           enum:
+ *              - ChangePassword
  *              - GetBookingEmail
  *              - BookingTour
  *              - CancelBooking
@@ -59,6 +58,7 @@ router.get("/", controllers.validateOtp);
  *         schema:
  *           type: string
  *           enum:
+ *              - ChangePassword
  *              - GetBookingEmail
  *              - BookingTour
  *              - CancelBooking
