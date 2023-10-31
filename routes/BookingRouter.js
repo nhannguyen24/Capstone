@@ -67,15 +67,16 @@ const router = express.Router();
  *         schema:
  *           type: string
  *           enum:
+ *              - Draft
  *              - Ongoing
  *              - Canceled
  *              - Finished
+ *         description: Draft (Booking havent pay "Cron Job can auto delete"), Ongoing (User not on tour yet), Canceled (Booking canceled), Finished(Tour Finished)
  *       - in: query
  *         name: status
  *         schema:
  *           type: string
  *           enum:
- *              - Draft
  *              - Active
  *              - Deactive
  *     responses:
@@ -144,10 +145,10 @@ router.get("/", verifyToken, isLoggedIn, controllers.getBookings);
  *         schema:
  *           type: string
  *           enum:
- *              - Draft
  *              - Ongoing
  *              - Canceled
  *              - Finished
+ *         description: Ongoing (User not on tour yet), Canceled (Booking canceled), Finished(Tour Finished)
  *       - in: query
  *         name: status
  *         schema:
@@ -293,6 +294,7 @@ router.post("/", controllers.createBooking);
  *                          - Ongoing
  *                          - Canceled
  *                          - Finished
+ *                  description: Ongoing (User not on tour yet), Canceled (Booking canceled), Finished(Tour Finished)
  *     responses:
  *       200:
  *         description: OK
