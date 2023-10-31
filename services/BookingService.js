@@ -125,7 +125,6 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
         const endDate = req.query.endDate || "";
         const tourId = req.query.tourId || "";
         const bookingStatus = req.query.bookingStatus || "";
-        const status = req.query.status || "";
 
         const whereClause = {};
         const whereClauseTour = {};
@@ -184,10 +183,6 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
         }
         if (bookingStatus !== "") {
             whereClause.bookingStatus = bookingStatus
-        }
-
-        if (status !== "") {
-            whereClause.status = status
         }
 
         if (startDate !== "" && endDate !== "") {
@@ -364,7 +359,6 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
         const endDate = req.query.endDate || "";
         const tourId = req.query.tourId || "";
         const bookingStatus = req.query.bookingStatus || "";
-        const status = req.query.status || "";
 
         let whereClause = {};
         let whereClauseTour = {};
@@ -449,10 +443,6 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
 
         if (bookingStatus !== "") {
             whereClause.bookingStatus = bookingStatus
-        }
-
-        if (status !== "") {
-            whereClause.status = status
         }
 
         if (startDate !== "" && endDate !== "") {
