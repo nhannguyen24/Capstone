@@ -158,11 +158,11 @@ router.post("/", verifyToken, isTourguideOrDriver, controllers.createForm);
  *     tags: [Form]
  *     parameters:
  *       - in: path
- *         name: formId
+ *         name: id
  *         schema:
  *           type: string
  *         required: true
- *         description: Update form by formId
+ *         description: Update form by id
  *     requestBody:
  *       content:
  *          application/json:
