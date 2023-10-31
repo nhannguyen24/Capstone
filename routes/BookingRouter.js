@@ -1,7 +1,7 @@
 const controllers = require('../controllers/BookingController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isAdminOrManager, isCustomer, isLoggedIn} = require('../middlewares/VerifyRole');
+const {isLoggedIn} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -72,13 +72,6 @@ const router = express.Router();
  *              - Canceled
  *              - Finished
  *         description: Draft (Booking havent pay "Cron Job can auto delete"), Ongoing (User not on tour yet), Canceled (Booking canceled), Finished(Tour Finished)
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum:
- *              - Active
- *              - Deactive
  *     responses:
  *       200:
  *         description: OK
@@ -149,13 +142,6 @@ router.get("/", verifyToken, isLoggedIn, controllers.getBookings);
  *              - Canceled
  *              - Finished
  *         description: Ongoing (User not on tour yet), Canceled (Booking canceled), Finished(Tour Finished)
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum:
- *              - Active
- *              - Deactive
  *     responses:
  *       200:
  *         description: OK
