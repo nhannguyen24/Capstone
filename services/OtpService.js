@@ -144,6 +144,10 @@ function generateOtpContent(userName, otpType, otpCode) {
             otpMessage =
                 "We noticed that you requested to <b>Cancel Booking</b> using this email. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>";
             break;
+        case OTP_TYPE.CHANGE_PASSWORD:
+            otpMessage =
+                "We noticed that you requested to <b>Change Password</b>. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>";
+            break;
         default:
             otpMessage = "Default message for unknown OTP type.";
     }

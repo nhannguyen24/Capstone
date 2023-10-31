@@ -57,39 +57,32 @@ const updateUser = async (req, res) => {
 
 const updateUserPassword = async (req, res) => {
     try {
-        let checked = true
-        let errors = []
-        const {userId, newPassword, confirmPassword} = req.body;
-        if(userId.trim() === "" || !userId) {
-            const msg = "User required!"
-            errors.push(msg)
-            checked = false
+        const  errors = []
+        const newPassword = req.body.newPassword || "";
+        const confirmPassword = req.body.confirmPassword || "";
+        if(newPassword.trim() === "") {
+            errors.push("New password required!")
+        } else {
+            if (/\s/.test(newPassword)) {
+                errors.push("Password cannot contain whitespace.");
+            }
+        
+            if (newPassword.length < 6) {
+                errors.push("Password must be at least 6 characters long.");
+            }
         }
-        if(newPassword.trim() === "" || !newPassword) {
-            const msg = "New password required!"
-            errors.push(msg)
-            checked = false
-        }
-        if(confirmPassword.trim() === "" || !confirmPassword) {
-            const msg = "Confirm password required!"
-            errors.push(msg)
-            checked = false
+
+        if(confirmPassword.trim() === "") {
+            errors.push("Confirm password required!")
         }
         if(newPassword !== confirmPassword){
-            const msg = "Both password are not the same!"
-            errors.push(msg)
-            checked = false
+            errors.push("Both password are not the same!")
         }
-        if(checked){
-            const response = await services.updateUserPassword(userId, newPassword, confirmPassword, req.body);
-            //return res.status(response.status).json(response.data);
-            return res.status(400).json({msg: "HAHAHA"});
+        if(errors.length === 0){
+            const response = await services.updateUserPassword(req);
+            return res.status(response.status).json(response.data);
         } else {
-            const data = {
-                status: 400,
-                errors: errors
-            }
-            return res.status(400).json(data);
+            return res.status(400).json(errors);
         }
     } catch (error) {
         console.log(error);

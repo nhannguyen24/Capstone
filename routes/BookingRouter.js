@@ -49,13 +49,13 @@ const router = express.Router();
  *         name: startDate
  *         schema:
  *           type: string
- *           example: 2023-10-23T00:00:00.000Z
+ *           example: 2023-10-23
  *         description: Search after this date
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
- *           example: 2023-10-29T23:59:59.000Z
+ *           example: 2023-10-29
  *         description: Search before this date
  *       - in: query
  *         name: tourId
@@ -126,13 +126,13 @@ router.get("/", verifyToken, isLoggedIn, controllers.getBookings);
  *         name: startDate
  *         schema:
  *           type: string
- *           example: 2023-10-23T00:00:00.000Z
+ *           example: 2023-10-23
  *         description: Search after this date
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
- *           example: 2023-10-29T23:59:59.000Z
+ *           example: 2023-10-29
  *         description: Search before this date
  *       - in: query
  *         name: tourId
