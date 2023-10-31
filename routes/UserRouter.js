@@ -213,11 +213,12 @@ router.put("/", verifyToken, isAdmin, controllers.updateUser);
  *        content:
  *          application/json:
  *            schema:
- *              $ref: '#/components/schemas/User'
- *            example:
- *              userId: 0453b1d5-b5cb-4ae3-ac95-8d5c24cb8093
- *              newPassword: 123123
- *              confirmPassword: 123456
+ *              type: object
+ *              properties: 
+ *                  newPassword:
+ *                      type: string
+ *                  confirmPassword:
+ *                      type: string
  *     responses:
  *       200:
  *         description: Change password successfully

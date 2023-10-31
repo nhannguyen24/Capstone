@@ -3,8 +3,9 @@ const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
 const bcrypt = require('bcryptjs');
 const mailer = require('../utils/MailerUtil');
-
+const OTP_TYPE = require('../enums/OtpTypeEnum')
 const hashPassword = password => bcrypt.hashSync(password, bcrypt.genSaltSync(8));
+const OtpService = require('../services/OtpService')
 
 const getAllUsers = ({ page, limit, order, userName, email, status, roleName, ...query }) =>
   new Promise(async (resolve, reject) => {
@@ -310,30 +311,75 @@ const deleteUser = (delUserId, userId) =>
     }
   });
 
-const updateUserPassword = (userId, newPassword, confirmPassword, body) =>
+const updateUserPassword = (req) =>
   new Promise(async (resolve, reject) => {
     try {
-      if (body.userId !== userId) {
+      const userId = req.user.userId
+      const newPassword = req.body.newPassword
+
+      const user = await db.User.findOne({
+        where: {
+          userId: req.user.userId
+        }
+      })
+      if (!user) {
         resolve({
-          status: 403,
-          msg: "Can't update other people's account"
-        });
+          status: 404,
+          data: {
+            msg: "User not found!"
+          }
+        })
+      }
+      const otp = await db.Otp.findOne({
+        where: {
+          userId: userId,
+          otpType: OTP_TYPE.CHANGE_PASSWORD
+        }
+      })
+      if (!otp) {
+        const data = await OtpService.sendOtpToEmail(user.email, userId, user.userName, OTP_TYPE.CHANGE_PASSWORD)
+        if (data) {
+          resolve(data);
+        } else {
+          resolve({
+            status: 409,
+            data: {
+              msg: `Mail sent failed`,
+            }
+          });
+        }
       } else {
-        const users = await db.User.update(body, {
-          where: { userId: userId },
-          individualHooks: true,
-        });
+        if (!otp.isAllow) {
+          resolve({
+            status: 403,
+            data: {
+              msg: `Action not allow, Please validate OTP!`,
+            }
+          });
+        }
+
+        const updateUser = await db.User.update({
+          password: hashPassword(newPassword)
+        }, {
+          where: {
+            userId: userId
+          }, individualHooks: true
+        })
+
         resolve({
-          status: users[0] ? 200 : 400,
+          status: updateUser[0] ? 200 : 400,
           data: {
             msg:
-              users[0] > 0
-                ? "Update profile successfully"
-                : "Cannot update user/ userId not found",
+              updateUser[0] > 0
+                ? "Change password successfully"
+                : "Cannot change password",
           }
         });
       }
+
+
     } catch (error) {
+      console.log(error)
       reject(error.message);
     }
   });
