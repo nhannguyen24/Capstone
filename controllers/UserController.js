@@ -43,11 +43,11 @@ const updateUser = async (req, res) => {
     try {
         // const { error } = joi.object({userId}).validate({userId: req.body.userId});
         // if (error) throw new BadRequestError(error.details[0].message);
-        const {userId} = req.body;
-        if(!userId) {
-            throw new BadRequestError('Please provide userId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.updateUser(req.body);
+        const response = await services.updateUser(id, req.body);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);
@@ -109,13 +109,13 @@ const updateUserPassword = async (req, res) => {
 const deleteUser = async (req, res) => {
     try {
         const {userId} = req.user;
-        const {delUserId} = req.query;
+        const {id} = req.params;
         // const { error } = joi.object({userIds}).validate(req.query);
         // if (error) throw new BadRequestError(error.details[0].message);
-        if(!delUserId) {
-            throw new BadRequestError('Please provide delUserId');
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.deleteUser(req.query.delUserId, userId);
+        const response = await services.deleteUser(id, userId);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);

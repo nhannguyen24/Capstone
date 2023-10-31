@@ -153,18 +153,24 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createPointOfInteres
 
 /**
  * @swagger
- * /api/v1/points:
+ * /api/v1/points/{id}:
  *   put:
  *     security: 
  *         - BearerAuth: []
  *     summary: Update the point by id
  *     tags: [Point Of Interest]
+ *     parameters:
+ *       - in: path
+ *         name: poiId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Update point of interest by poiId
  *     requestBody:
  *       content:
  *          application/json:
  *            schema:                     
  *                  example:
- *                    poiId: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    poiName: Trạm xe buýt Công viên 23/9
  *                    description: Một trạm tuyệt vời
  *                    address: 187 Phạm Ngũ Lão
@@ -184,11 +190,11 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createPointOfInteres
  *               items:
  *                 $ref: '#/components/schemas/PointOfInterest'
  */
-router.put("/", verifyToken, isAdminOrManager, controllers.updatePointOfInterest);
+router.put("/:id", verifyToken, isAdminOrManager, controllers.updatePointOfInterest);
 
 /**
  * @swagger
- * /api/v1/points:
+ * /api/v1/points/{id}:
  *   delete:
  *     security: 
  *         - BearerAuth: []
@@ -196,7 +202,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updatePointOfInterest
  *     tags: [Point Of Interest]
  *     parameters:
  *       - name: poiId
- *         in: query
+ *         in: path
  *         schema:
  *           type: string
  *         description: Input poiId to delete
@@ -210,6 +216,6 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updatePointOfInterest
  *               items:
  *                 $ref: '#/components/schemas/PointOfInterest'
  */
-router.delete("/", verifyToken, isAdminOrManager, controllers.deletePointOfInterest);
+router.delete("/:id", verifyToken, isAdminOrManager, controllers.deletePointOfInterest);
 
 module.exports = router;

@@ -54,11 +54,11 @@ const updateStation = async (req, res) => {
     try {
         // const { error } = joi.object({stationId}).validate({stationId: req.body.stationId});
         // if (error) throw new BadRequestError(error.details[0].message);
-        const {stationId} = req.body;
-        if(!stationId) {
-            throw new BadRequestError('Please provide stationId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.updateStation(req.body);
+        const response = await services.updateStation(id, req.body);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
@@ -69,11 +69,11 @@ const deleteStation = async (req, res) => {
     try {
         // const { error } = joi.object({stationIds}).validate(req.query);
         // if (error) throw new BadRequestError(error.details[0].message);
-        const {stationId} = req.query;
-        if(!stationId) {
-            throw new BadRequestError('Please provide stationId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.deleteStation(req.query.stationId);
+        const response = await services.deleteStation(id);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);

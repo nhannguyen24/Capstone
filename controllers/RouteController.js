@@ -45,11 +45,11 @@ const updateRoute = async (req, res) => {
     try {
         // const { error } = joi.object({routeId}).validate({routeId: req.body.routeId});
         // if (error) throw new BadRequestError(error.details[0].message);
-        const {routeId} = req.body;
-        if(!routeId) {
-            throw new BadRequestError('Please provide routeId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.updateRoute(req.body);
+        const response = await services.updateRoute(id, req.body);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
@@ -60,11 +60,11 @@ const deleteRoute = async (req, res) => {
     try {
         // const { error } = joi.object({routeIds}).validate(req.query);
         // if (error) throw new BadRequestError(error.details[0].message);
-        const {routeId} = req.query;
-        if(!routeId) {
-            throw new BadRequestError('Please provide routeId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.deleteRoute(req.query.routeId);
+        const response = await services.deleteRoute(id);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);

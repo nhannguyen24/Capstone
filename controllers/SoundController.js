@@ -43,11 +43,11 @@ const createFileSound = async (req, res) => {
 
 const updateFileSound = async (req, res) => {
     try {
-        const {soundId} = req.body;
-        if(!soundId) {
-            throw new BadRequestError('Please provide soundId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.updateFileSound(req.body);
+        const response = await services.updateFileSound(id, req.body);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
@@ -56,11 +56,11 @@ const updateFileSound = async (req, res) => {
 
 const deleteFileSound = async (req, res) => {
     try {
-        const {soundId} = req.query;
-        if(!soundId) {
-            throw new BadRequestError('Please provide soundId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.deleteFileSound(req.query.soundId);
+        const response = await services.deleteFileSound(id);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);

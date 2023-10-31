@@ -13,11 +13,11 @@ const getAllTourDetail = async (req, res) => {
 
 const updateTourDetail = async (req, res) => {
     try {
-        const {tourDetailId} = req.body;
-        if(!tourDetailId) {
-            throw new BadRequestError('Please provide tourDetailId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.updateTourDetail(req.body);
+        const response = await services.updateTourDetail(id, req.body);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);

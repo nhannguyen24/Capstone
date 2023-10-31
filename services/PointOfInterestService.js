@@ -1,6 +1,7 @@
 const db = require("../models");
 const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
+const STATUS = require("../enums/StatusEnum")
 
 const getAllPointOfInterest = (
     { page, limit, order, poiName, address, status, ...query },
@@ -72,6 +73,9 @@ const getAllPointOfInterest = (
                                                 "updatedAt",
                                                 "status",
                                             ],
+                                        },
+                                        where: {
+                                            status: { [Op.ne]: STATUS.DEACTIVE }
                                         },
                                         include: [
                                             {
@@ -147,6 +151,9 @@ const getPointOfInterestById = (poiId) =>
                                 "updatedAt",
                                 "status",
                             ],
+                        },
+                        where: {
+                            status: { [Op.ne]: STATUS.DEACTIVE }
                         },
                         include: [
                             {
@@ -231,14 +238,14 @@ const createPointOfInterest = ({ images, poiName, ...body }) =>
         }
     });
 
-const updatePointOfInterest = ({ images, poiId, ...body }) =>
+const updatePointOfInterest = (id, { images, ...body }) =>
     new Promise(async (resolve, reject) => {
         try {
             const poi = await db.PointOfInterest.findOne({
                 where: {
                     poiName: body?.poiName,
                     poiId: {
-                        [Op.ne]: poiId
+                        [Op.ne]: id
                     }
                 }
             })
@@ -252,21 +259,21 @@ const updatePointOfInterest = ({ images, poiId, ...body }) =>
                 });
             } else {
                 const pois = await db.PointOfInterest.update(body, {
-                    where: { poiId },
+                    where: { poiId: id },
                     individualHooks: true,
                 });
 
                 if (images) {
                     await db.Image.destroy({
                         where: {
-                            poiId: poiId,
+                            poiId: id,
                         }
                     });
 
                     const createImagePromises = images.map(async (image) => {
                         await db.Image.create({
                             image: image,
-                            poiId: poiId,
+                            poiId: id,
                         });
                     });
 
@@ -305,12 +312,12 @@ const updatePointOfInterest = ({ images, poiId, ...body }) =>
     });
 
 
-const deletePointOfInterest = (poiId) =>
+const deletePointOfInterest = (id) =>
     new Promise(async (resolve, reject) => {
         try {
             const findPoint = await db.PointOfInterest.findOne({
                 raw: true, nest: true,
-                where: { poiId: poiId },
+                where: { poiId: id },
             });
 
             if (findPoint.status === "Deactive") {
@@ -326,7 +333,7 @@ const deletePointOfInterest = (poiId) =>
             const pois = await db.PointOfInterest.update(
                 { status: "Deactive" },
                 {
-                    where: { poiId: poiId },
+                    where: { poiId: id },
                     individualHooks: true,
                 }
             );

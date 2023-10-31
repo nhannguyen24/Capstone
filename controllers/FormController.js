@@ -41,11 +41,11 @@ const createForm = async (req, res) => {
 
 const updateForm = async (req, res) => {
     try {
-        const {formId} = req.body;
-        if(!formId) {
-            throw new BadRequestError('Please provide formId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.updateForm(req.body);
+        const response = await services.updateForm(id, req.body);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);

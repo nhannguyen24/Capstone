@@ -152,19 +152,25 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createStation);
 
 /**
  * @swagger
- * /api/v1/stations:
+ * /api/v1/stations/{id}:
  *   put:
  *     security: 
  *         - BearerAuth: []
  *     summary: Update the station by id
  *     tags: [Station]
+ *     parameters:
+ *       - in: path
+ *         name: stationId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Update station by stationId
  *     requestBody:
  *       content:
  *          application/json:
  *            schema:
  *              $ref: '#/components/schemas/Station'
  *            example:
- *              stationId: 8c382e13-8620-460a-bd95-96b1152c1368
  *              stationName: Trạm xe buýt Công viên 23/9
  *              description: Một trạm tuyệt vời
  *              address: 187 Phạm Ngũ Lão
@@ -181,11 +187,11 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createStation);
  *               items:
  *                 $ref: '#/components/schemas/Station'
  */
-router.put("/", verifyToken, isAdminOrManager, controllers.updateStation);
+router.put("/:id", verifyToken, isAdminOrManager, controllers.updateStation);
 
 /**
  * @swagger
- * /api/v1/stations:
+ * /api/v1/stations/{id}:
  *   delete:
  *     security: 
  *         - BearerAuth: []
@@ -193,7 +199,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateStation);
  *     tags: [Station]
  *     parameters:
  *       - name: stationId
- *         in: query
+ *         in: path
  *         schema:
  *           type: string
  *         description: Input stationId to delete
@@ -207,6 +213,6 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateStation);
  *               items:
  *                 $ref: '#/components/schemas/Station'
  */
-router.delete("/", verifyToken, isAdminOrManager, controllers.deleteStation);
+router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteStation);
 
 module.exports = router;

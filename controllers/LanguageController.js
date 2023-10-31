@@ -41,11 +41,11 @@ const createLanguage = async (req, res) => {
 
 const updateLanguage = async (req, res) => {
     try {
-        const {languageId} = req.body;
-        if(!languageId) {
-            throw new BadRequestError('Please provide languageId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.updateLanguage(req.body);
+        const response = await services.updateLanguage(id, req.body);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
@@ -54,11 +54,11 @@ const updateLanguage = async (req, res) => {
 
 const deleteLanguage = async (req, res) => {
     try {
-        const {languageId} = req.query;
-        if(!languageId) {
-            throw new BadRequestError('Please provide languageId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.deleteLanguage(req.query.languageId);
+        const response = await services.deleteLanguage(id);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);

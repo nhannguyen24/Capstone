@@ -167,12 +167,19 @@ router.post("/", verifyToken, isAdmin, controllers.createUser);
 
 /**
  * @swagger
- * /api/v1/users:
+ * /api/v1/users/{id}:
  *   put:
  *     security: 
  *         - BearerAuth: []
  *     summary: Update the user by id
  *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Update user by id
  *     requestBody:
  *        required: true
  *        content:
@@ -180,7 +187,6 @@ router.post("/", verifyToken, isAdmin, controllers.createUser);
  *            schema:
  *              $ref: '#/components/schemas/User'
  *            example:
- *              userId: 0453b1d5-b5cb-4ae3-ac95-8d5c24cb8093
  *              userName: Nhan Nguyen
  *              avatar: https://lh3.googleusercontent.com/a/AEdFTp4508ZdzGjVRFFIwb0ULZXYm5V5_vyRsiKq-cfA=s96-c
  *              birthday: 2003-03-18 
@@ -198,7 +204,7 @@ router.post("/", verifyToken, isAdmin, controllers.createUser);
  *               items:
  *                 $ref: '#/components/schemas/User'
  */
-router.put("/", verifyToken, isAdmin, controllers.updateUser);
+router.put("/:id", verifyToken, isAdmin, controllers.updateUser);
 
 /**
  * @swagger
@@ -264,18 +270,18 @@ router.put("/change-password", verifyToken, isCustomer, controllers.updateUserPa
 
 /**
  * @swagger
- * /api/v1/users:
+ * /api/v1/users/{id}:
  *   delete:
  *     security: 
  *         - BearerAuth: []
  *     summary: Delete the users by id
  *     tags: [User]
  *     parameters:
- *       - name: delUserId
- *         in: query
+ *       - name: id
+ *         in: path
  *         schema:
  *           type: string
- *         description: Input userId to delete
+ *         description: Input id to delete user
  *     responses:
  *       200:
  *         description: Delete the user by id successfully
@@ -286,6 +292,6 @@ router.put("/change-password", verifyToken, isCustomer, controllers.updateUserPa
  *               items:
  *                 $ref: '#/components/schemas/User'
  */
-router.delete("/", verifyToken, isAdmin, controllers.deleteUser);
+router.delete("/:id", verifyToken, isAdmin, controllers.deleteUser);
 
 module.exports = router;

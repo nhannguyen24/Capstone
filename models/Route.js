@@ -30,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
     },
     routeName: DataTypes.STRING,
-    distance: DataTypes.FLOAT,
+    distance: DataTypes.DECIMAL(18,2),
     geoJson: DataTypes.JSON,
     status: {
       type: DataTypes.ENUM,

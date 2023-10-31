@@ -221,18 +221,24 @@ router.post("/upload", upload.single('file'), verifyToken, isAdminOrManager, con
 
 /**
  * @swagger
- * /api/v1/tours:
+ * /api/v1/tours/{id}:
  *   put:
  *     security: 
  *         - BearerAuth: []
  *     summary: Update the tour by id
  *     tags: [Tour]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Update tour by id
  *     requestBody:
  *       content:
  *          application/json:
  *            schema:                     
  *                  example:
- *                    tourId: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    tourName: Chuyến đi tham quan buổi sáng
  *                    description: Một chuyến đi tuyệt vời
  *                    beginBookingDate: 2023-09-21T00:00:00Z
@@ -258,7 +264,7 @@ router.post("/upload", upload.single('file'), verifyToken, isAdminOrManager, con
  *               items:
  *                 $ref: '#/components/schemas/Tour'
  */
-router.put("/", verifyToken, isAdminOrManager, controllers.updateTour);
+router.put("/:id", verifyToken, isAdminOrManager, controllers.updateTour);
 
 /**
  * @swagger
@@ -282,18 +288,18 @@ router.put("/assigned-tours", verifyToken, isAdminOrManager, controllers.assignT
 
 /**
  * @swagger
- * /api/v1/tours:
+ * /api/v1/tours/{id}:
  *   delete:
  *     security: 
  *         - BearerAuth: []
  *     summary: Delete the tours by id
  *     tags: [Tour]
  *     parameters:
- *       - name: tourId
- *         in: query
+ *       - name: id
+ *         in: path
  *         schema:
  *           type: string
- *         description: Input tourId to delete
+ *         description: Input id to delete
  *     responses:
  *       200:
  *         description: Delete the tours by id successfully
@@ -304,6 +310,6 @@ router.put("/assigned-tours", verifyToken, isAdminOrManager, controllers.assignT
  *               items:
  *                 $ref: '#/components/schemas/Tour'
  */
-router.delete("/", verifyToken, isAdminOrManager, controllers.deleteTour);
+router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteTour);
 
 module.exports = router;

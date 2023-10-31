@@ -131,19 +131,25 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createLanguage);
 
 /**
  * @swagger
- * /api/v1/languages:
+ * /api/v1/languages/{id}:
  *   put:
  *     security: 
  *         - BearerAuth: []
  *     summary: Update the language by id
  *     tags: [Language]
+ *     parameters:
+ *       - in: path
+ *         name: languageId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Update language by languageId
  *     requestBody:
  *       content:
  *          application/json:
  *            schema:
  *              $ref: '#/components/schemas/Language'
  *            example:
- *              languageId: 8c382e13-8620-460a-bd95-96b1152c1368
  *              language: vn
  *              status: Active
  *     responses:
@@ -156,11 +162,11 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createLanguage);
  *               items:
  *                 $ref: '#/components/schemas/Language'
  */
-router.put("/", verifyToken, isAdminOrManager, controllers.updateLanguage);
+router.put("/:id", verifyToken, isAdminOrManager, controllers.updateLanguage);
 
 /**
  * @swagger
- * /api/v1/languages:
+ * /api/v1/languages/{id}:
  *   delete:
  *     security: 
  *         - BearerAuth: []
@@ -168,7 +174,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateLanguage);
  *     tags: [Language]
  *     parameters:
  *       - name: languageId
- *         in: query
+ *         in: path
  *         schema:
  *           type: string
  *         description: Input languageId to delete
@@ -182,6 +188,6 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateLanguage);
  *               items:
  *                 $ref: '#/components/schemas/Language'
  */
-router.delete("/", verifyToken, isAdminOrManager, controllers.deleteLanguage);
+router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteLanguage);
 
 module.exports = router;

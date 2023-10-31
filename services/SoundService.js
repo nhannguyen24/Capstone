@@ -230,7 +230,7 @@ const createFileSound = (body) =>
         }
     });
 
-const updateFileSound = (body) =>
+const updateFileSound = (id, body) =>
     new Promise(async (resolve, reject) => {
         try {
             const findLanguage = await db.Language.findOne({
@@ -262,7 +262,7 @@ const updateFileSound = (body) =>
             }
 
             const sounds = await db.FileSound.update(body, {
-                where: { soundId: body.soundId },
+                where: { soundId: id },
                 individualHooks: true,
             });
 
@@ -314,12 +314,12 @@ const updateFileSound = (body) =>
         }
     });
 
-const deleteFileSound = (soundId) =>
+const deleteFileSound = (id) =>
     new Promise(async (resolve, reject) => {
         try {
             const findSound = await db.FileSound.findOne({
                 raw: true, nest: true,
-                where: { soundId: soundId },
+                where: { soundId: id },
             });
 
             if (findSound.status === "Deactive") {
@@ -335,7 +335,7 @@ const deleteFileSound = (soundId) =>
             const sounds = await db.FileSound.update(
                 { status: "Deactive" },
                 {
-                    where: { soundId: soundId },
+                    where: { soundId: id },
                     individualHooks: true,
                 }
             );
@@ -365,6 +365,7 @@ const deleteFileSound = (soundId) =>
                     });
                 });
             });
+            
             redisClient.keys('*pois_*', (error, keys) => {
                 if (error) {
                     console.error('Error retrieving keys:', error);

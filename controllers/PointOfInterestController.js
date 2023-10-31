@@ -50,11 +50,11 @@ const createPointOfInterest = async (req, res) => {
 
 const updatePointOfInterest = async (req, res) => {
     try {
-        const {poiId} = req.body;
-        if(!poiId) {
-            throw new BadRequestError('Please provide poiId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.updatePointOfInterest(req.body);
+        const response = await services.updatePointOfInterest(id, req.body);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
@@ -63,11 +63,11 @@ const updatePointOfInterest = async (req, res) => {
 
 const deletePointOfInterest = async (req, res) => {
     try {
-        const {poiId} = req.query;
-        if(!poiId) {
-            throw new BadRequestError('Please provide poiId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.deletePointOfInterest(req.query.poiId);
+        const response = await services.deletePointOfInterest(id);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);

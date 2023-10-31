@@ -70,11 +70,11 @@ const assignTour = async (req, res) => {
 
 const updateTour = async (req, res) => {
     try {
-        const {tourId} = req.body;
-        if(!tourId) {
-            throw new BadRequestError('Please provide tourId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.updateTour(req.body);
+        const response = await services.updateTour(id, req.body);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
@@ -83,11 +83,11 @@ const updateTour = async (req, res) => {
 
 const deleteTour = async (req, res) => {
     try {
-        const {tourId} = req.query;
-        if(!tourId) {
-            throw new BadRequestError('Please provide tourId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.deleteTour(req.query.tourId);
+        const response = await services.deleteTour(id);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);

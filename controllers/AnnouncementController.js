@@ -44,11 +44,11 @@ const createAnnouncement = async (req, res) => {
 
 const updateAnnouncement = async (req, res) => {
     try {
-        const {announcementId} = req.body;
-        if(!announcementId) {
-            throw new BadRequestError('Please provide announcementId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.updateAnnouncement(req.body);
+        const response = await services.updateAnnouncement(id, req.body);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
@@ -57,11 +57,11 @@ const updateAnnouncement = async (req, res) => {
 
 const deleteAnnouncement = async (req, res) => {
     try {
-        const {announcementId} = req.query;
-        if(!announcementId) {
-            throw new BadRequestError('Please provide announcementId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.deleteAnnouncement(req.query.announcementId);
+        const response = await services.deleteAnnouncement(id);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);

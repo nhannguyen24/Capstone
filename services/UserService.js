@@ -167,11 +167,11 @@ const createUser = ({ ...body }) =>
     }
   });
 
-const updateUser = ({ userId, ...body }) =>
+const updateUser = (id, body) =>
   new Promise(async (resolve, reject) => {
     try {
       const users = await db.User.update(body, {
-        where: { userId },
+        where: { userId: id },
         individualHooks: true,
       });
       resolve({
@@ -180,7 +180,7 @@ const updateUser = ({ userId, ...body }) =>
           msg:
             users[1].length !== 0
               ? `User update`
-              : "Cannot update user/ userId not found",
+              : "Cannot update user/ id not found",
         }
       });
       redisClient.keys('user_paging*', (error, keys) => {
@@ -249,17 +249,17 @@ const updateUser = ({ userId, ...body }) =>
 //     }
 //   });
 
-const deleteUser = (delUserId, userId) =>
+const deleteUser = (id, userId) =>
   new Promise(async (resolve, reject) => {
     try {
-      if (delUserId == userId) {
+      if (id == userId) {
         resolve({
           msg: `Cannot delete user/ Account ${userId} is in use`,
         });
       } else {
         const findUser = await db.User.findOne({
           raw: true, nest: true,
-          where: { userId: delUserId },
+          where: { userId: id },
         });
 
         if (findUser.status === "Deactive") {
@@ -275,7 +275,7 @@ const deleteUser = (delUserId, userId) =>
         const users = await db.User.update(
           { status: "Deactive" },
           {
-            where: { userId: delUserId },
+            where: { userId: id },
             individualHooks: true,
           }
         );

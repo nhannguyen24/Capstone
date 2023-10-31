@@ -144,19 +144,25 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createFileSound);
 
 /**
  * @swagger
- * /api/v1/sounds:
+ * /api/v1/sounds/{id}:
  *   put:
  *     security: 
  *         - BearerAuth: []
  *     summary: Update the sound by id
  *     tags: [FileSound]
+ *     parameters:
+ *       - in: path
+ *         name: soundId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Update file sound by soundId
  *     requestBody:
  *       content:
  *          application/json:
  *            schema:
  *              $ref: '#/components/schemas/FileSound'
  *            example:
- *              soundId: 8c382e13-8620-460a-bd95-96b1152c1368
  *              file: string
  *              languageId: 8c382e13-8620-460a-bd95-96b1152c1368
  *              poiId: 8c382e13-8620-460a-bd95-96b1152c1368
@@ -171,11 +177,11 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createFileSound);
  *               items:
  *                 $ref: '#/components/schemas/FileSound'
  */
-router.put("/", verifyToken, isAdminOrManager, controllers.updateFileSound);
+router.put("/:id", verifyToken, isAdminOrManager, controllers.updateFileSound);
 
 /**
  * @swagger
- * /api/v1/sounds:
+ * /api/v1/sounds/{id}:
  *   delete:
  *     security: 
  *         - BearerAuth: []
@@ -183,7 +189,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateFileSound);
  *     tags: [FileSound]
  *     parameters:
  *       - name: soundId
- *         in: query
+ *         in: path
  *         schema:
  *           type: string
  *         description: Input soundId to delete
@@ -197,6 +203,6 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateFileSound);
  *               items:
  *                 $ref: '#/components/schemas/FileSound'
  */
-router.delete("/", verifyToken, isAdminOrManager, controllers.deleteFileSound);
+router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteFileSound);
 
 module.exports = router;

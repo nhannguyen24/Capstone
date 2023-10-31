@@ -159,19 +159,25 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createRoute);
 
 /**
  * @swagger
- * /api/v1/routes:
+ * /api/v1/routes/{id}:
  *   put:
  *     security: 
  *         - BearerAuth: []
  *     summary: Update the route by id
  *     tags: [Route]
+ *     parameters:
+ *       - in: path
+ *         name: routeId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Update route by routeId
  *     requestBody:
  *       content:
  *          application/json:
  *            schema:
  *              $ref: '#/components/schemas/Route'
  *            example:
- *              routeId: 8c382e13-8620-460a-bd95-96b1152c1368
  *              routeName: Tuyến đường Nha Trang
  *              status: Active
  *     responses:
@@ -184,11 +190,11 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createRoute);
  *               items:
  *                 $ref: '#/components/schemas/Route'
  */
-router.put("/", verifyToken, isAdminOrManager, controllers.updateRoute);
+router.put("/:id", verifyToken, isAdminOrManager, controllers.updateRoute);
 
 /**
  * @swagger
- * /api/v1/routes:
+ * /api/v1/routes/{id}:
  *   delete:
  *     security: 
  *         - BearerAuth: []
@@ -196,7 +202,7 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateRoute);
  *     tags: [Route]
  *     parameters:
  *       - name: routeId
- *         in: query
+ *         in: path
  *         schema:
  *           type: string
  *         description: Input routeId to delete
@@ -210,6 +216,6 @@ router.put("/", verifyToken, isAdminOrManager, controllers.updateRoute);
  *               items:
  *                 $ref: '#/components/schemas/Route'
  */
-router.delete("/", verifyToken, isAdminOrManager, controllers.deleteRoute);
+router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteRoute);
 
 module.exports = router;

@@ -41,11 +41,11 @@ const createProductCategory = async (req, res) => {
 
 const updateProductCategory = async (req, res) => {
     try {
-        const {productCateId} = req.body;
-        if(!productCateId) {
-            throw new BadRequestError('Please provide productCateId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.updateProductCategory(req.body);
+        const response = await services.updateProductCategory(id, req.body);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
@@ -54,11 +54,11 @@ const updateProductCategory = async (req, res) => {
 
 const deleteProductCategory = async (req, res) => {
     try {
-        const {productCateId} = req.query;
-        if(!productCateId) {
-            throw new BadRequestError('Please provide productCateId');
+        const {id} = req.params;
+        if(!id) {
+            throw new BadRequestError('Please provide id');
         }
-        const response = await services.deleteProductCategory(req.query.productCateId);
+        const response = await services.deleteProductCategory(id);
         return res.status(response.status).json(response.data);
     } catch (error) {
         console.log(error);

@@ -91,13 +91,13 @@ const createTracking = (body) =>
         }
     });
 
-const updateTracking = ({ trackingId, ...body }) =>
+const updateTracking = (id, body) =>
     new Promise(async (resolve, reject) => {
         try {
             const tracking = await db.Tracking.findOne({
                 raw: true,
                 where: {
-                    trackingId: trackingId
+                    trackingId: id
                 }
             });
 
@@ -123,7 +123,7 @@ const updateTracking = ({ trackingId, ...body }) =>
             };
 
             await db.Tracking.update({ coordinates: coordinateAfter, ...body }, {
-                where: { trackingId },
+                where: { trackingId: id },
                 individualHooks: true,
             });
 

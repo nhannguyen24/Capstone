@@ -88,7 +88,7 @@ const updateBus = async (req, res) => {
         const busId = req.params.id || ""
         const busPlate = req.body.busPlate || ""
         const numberSeat = req.body.numberSeat || ""
-        const isDoubleDecker = req.body.isDoubleDecker || ""
+        const isDoubleDecker = req.body.isDoubleDecker
         const status = req.body.status || ""
         const errors = []
         if (busId.trim() === "") {
@@ -106,8 +106,10 @@ const updateBus = async (req, res) => {
                     }
                 }
             }
-            if(isDoubleDecker !== true || isDoubleDecker !== false){
-                errors.push("isDoubleDecker needs to be true or false!")
+            if(isDoubleDecker !== null || isDoubleDecker !== undefined){
+                if(isDoubleDecker !== true || isDoubleDecker !== false){
+                    errors.push("isDoubleDecker needs to be true or false!")
+                }
             }
         }
         if (errors.length === 0) {

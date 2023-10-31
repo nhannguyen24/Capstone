@@ -460,14 +460,14 @@ const createRoute = ({ routeName, ...body }) =>
         }
     });
 
-const updateRoute = ({ routeId, ...body }) =>
+const updateRoute = (id, body) =>
     new Promise(async (resolve, reject) => {
         try {
             const route = await db.Route.findOne({
                 where: {
                     routeName: body?.routeName,
                     routeId: {
-                        [Op.ne]: routeId
+                        [Op.ne]: id
                     }
                 }
             })
@@ -481,7 +481,7 @@ const updateRoute = ({ routeId, ...body }) =>
                 });
             } else {
                 const routes = await db.Route.update(body, {
-                    where: { routeId },
+                    where: { routeId: id },
                     individualHooks: true,
                 });
 
@@ -518,12 +518,12 @@ const updateRoute = ({ routeId, ...body }) =>
     });
 
 
-const deleteRoute = (routeId) =>
+const deleteRoute = (id) =>
     new Promise(async (resolve, reject) => {
         try {
             const findRoute = await db.Route.findOne({
                 raw: true, nest: true,
-                where: { routeId: routeId },
+                where: { routeId: id },
             });
 
             if (findRoute.status === "Deactive") {
@@ -539,7 +539,7 @@ const deleteRoute = (routeId) =>
             const routes = await db.Route.update(
                 { status: "Deactive" },
                 {
-                    where: { routeId: routeId },
+                    where: { routeId: id },
                     individualHooks: true,
                 }
             );

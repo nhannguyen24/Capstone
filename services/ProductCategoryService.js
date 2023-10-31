@@ -90,14 +90,14 @@ const createProductCategory = ({ productCateName, ...body }) =>
         }
     });
 
-const updateProductCategory = ({ productCateId, ...body }) =>
+const updateProductCategory = (id, body) =>
     new Promise(async (resolve, reject) => {
         try {
             const productCate = await db.ProductCategory.findOne({
                 where: {
                     productCateName: body?.productCateName,
                     productCateId: {
-                        [Op.ne]: productCateId
+                        [Op.ne]: id
                     }
                 }
             })
@@ -111,7 +111,7 @@ const updateProductCategory = ({ productCateId, ...body }) =>
                 });
             } else {
                 const productCates = await db.ProductCategory.update(body, {
-                    where: { productCateId },
+                    where: { productCateId: id },
                     individualHooks: true,
                 });
 
@@ -125,19 +125,18 @@ const updateProductCategory = ({ productCateId, ...body }) =>
                     }
                 });
             }
-
         } catch (error) {
             reject(error.message);
         }
     });
 
 
-const deleteProductCategory = (productCateId) =>
+const deleteProductCategory = (id) =>
     new Promise(async (resolve, reject) => {
         try {
             const findProductCategory = await db.ProductCategory.findOne({
                 raw: true, nest: true,
-                where: { productCateId: productCateId },
+                where: { productCateId: id },
             });
 
                 if (findProductCategory.status === "Deactive") {
@@ -153,7 +152,7 @@ const deleteProductCategory = (productCateId) =>
             const productCates = await db.ProductCategory.update(
                 { status: "Deactive" },
                 {
-                    where: { productCateId: productCateId },
+                    where: { productCateId: id },
                     individualHooks: true,
                 }
             );
