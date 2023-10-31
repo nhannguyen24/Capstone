@@ -178,10 +178,13 @@ const createForm = (body, userId) =>
 
 const updateForm = (id, body) =>
     new Promise(async (resolve, reject) => {
+        let transaction;
         try {
+            transaction = await db.sequelize.transaction(async (t) => {
             const forms = await db.Form.update(body, {
                 where: { formId: id },
                 individualHooks: true,
+                transaction: t
             });
 
             if (body.status == STATUS.APPROVED) {
@@ -191,8 +194,9 @@ const updateForm = (id, body) =>
                 })
 
                 await db.Tour.update({ tourGuideId: form.changeEmployee }, {
-                    where: { formId: id },
+                    where: { tourId: form.currentTour },
                     individualHooks: true,
+                    transaction: t
                 });
 
                 resolve({
@@ -215,7 +219,13 @@ const updateForm = (id, body) =>
                             : "Cannot update form/ formId not found",
                 }
             });
+            await t.commit();
+        });
         } catch (error) {
+            if (transaction) {
+                // Rollback the transaction in case of an error
+                await transaction.rollback();
+            }
             reject(error.message);
         }
     });
