@@ -698,7 +698,6 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                         msg: `Tour not available for booking!`,
                     }
                 });
-                return
             }
 
             station = await db.Station.findOne({
@@ -793,17 +792,24 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
         const bookingDetails = await db.BookingDetail.findAll({
             raw: true,
             nest: true,
-            include: {
-                model: db.Ticket,
-                as: "booking_detail_ticket",
-                where: {
-                    tourId: tour.tourId,
+            include: [
+                {
+                    model: db.Ticket,
+                    as: "booking_detail_ticket",
+                    where: {
+                        tourId: tour.tourId,
+                    },
                 },
-            },
+                {
+                    model: db.Booking,
+                    as: "detail_booking",
+                    where: {
+                        bookingStatus: BOOKING_STATUS.ON_GOING
+                    },
+                    attributes: ["bookingId"]
+                },
+            ],
             attributes: ["bookingDetailId", "quantity"],
-            where: {
-                bookingStatus: BOOKING_STATUS.ON_GOING
-            }
         })
 
         for (const e of bookingDetails) {
@@ -1030,8 +1036,7 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                     })
                 }
 
-                if (TOUR_STATUS.AVAILABLE !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus ||
-                    TOUR_STATUS.STARTED !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
+                if (TOUR_STATUS.AVAILABLE !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
                     resolve({
                         status: 400,
                         data: {
@@ -1048,6 +1053,10 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                                     bookingId: _bookingId
                                 },
                                 individualHooks: true,
+                            })
+                            db.Transaction.update({
+                                refundAmount: result.refundAmount,
+                                status: STATUS.REFUNDED
                             })
                         }
                         resolve(result)
@@ -1078,17 +1087,32 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
             updateBooking.bookingStatus = _bookingStatus
         }
 
-        if (_isAttended === bookingDetail.detail_booking.isAttended) {
-            resolve({
-                status: 400,
-                data: {
-                    msg: `isAttended is already ${_isAttended}`,
+        /**
+         * Check if the user canceled booking for Attendance
+         */
+        if (_isAttended !== null || _isAttended !== undefined) {
+            if (BOOKING_STATUS.CANCELED === bookingDetail.detail_booking.bookingStatus) {
+                resolve({
+                    status: 403,
+                    data: {
+                        msg: `Cannot take attendance because booking canceled!`,
+                    }
+                })
+            } else {
+                if (_isAttended === bookingDetail.detail_booking.isAttended) {
+                    resolve({
+                        status: 400,
+                        data: {
+                            msg: `isAttended is already ${_isAttended}`,
+                        }
+                    })
+                } else {
+                    updateBooking.isAttended = _isAttended
                 }
-            })
-        } else {
-            updateBooking.isAttended = _isAttended
+            }
         }
-        const updateBookingDetail = {}
+
+        // const updateBookingDetail = {}
         await db.Booking.update(updateBooking, {
             where: {
                 bookingId: _bookingId
@@ -1097,16 +1121,15 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
             transaction: t
         })
 
-        await db.BookingDetail.update(updateBookingDetail, {
-            where: {
-                bookingId: _bookingId
-            },
-            individualHooks: true,
-            transaction: t
-        })
+        // await db.BookingDetail.update(updateBookingDetail, {
+        //     where: {
+        //         bookingId: _bookingId
+        //     },
+        //     individualHooks: true,
+        //     transaction: t
+        // })
 
         await t.commit()
-
         resolve({
             status: 200,
             data: {

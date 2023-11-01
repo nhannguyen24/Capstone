@@ -2,6 +2,7 @@
 const {
   Model
 } = require('sequelize');
+const STATUS = require("../enums/StatusEnum")
 module.exports = (sequelize, DataTypes) => {
   class Transaction extends Model {
     /**
@@ -27,16 +28,17 @@ module.exports = (sequelize, DataTypes) => {
     transactionCode: DataTypes.STRING,
     amount: DataTypes.INTEGER,
     isSuccess: DataTypes.BOOLEAN,
+    refundAmount: DataTypes.INTEGER,
     bookingId: {
       type: DataTypes.UUID
     },
     status: {
       type: DataTypes.ENUM,
-      values: ["Active", "Deactive"],
+      values: [["Draft", "Paid", "Refunded"],],
       validate: {
         isIn: {
-          args: [["Active", "Deactive"]],
-          msg: 'Invalid value for transaction.status (Active, Deactive)'
+          args: [["Draft", "Paid", "Refunded"]],
+          msg: 'Invalid value for transaction.status (Draft, Paid, Refunded)'
         }
       }
     },
@@ -47,6 +49,7 @@ module.exports = (sequelize, DataTypes) => {
   Transaction.beforeCreate((transaction, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
+    transaction.status = STATUS.DRAFT;
     transaction.createdAt = currentDate;
     transaction.updatedAt = currentDate;
   });

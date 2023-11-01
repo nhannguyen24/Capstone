@@ -168,6 +168,13 @@ const refundMomo = async (bookingId, callback) => {
                         msg: `Booking not paid!`,
                     }
                 }
+            } else if(transaction.status === STATUS.REFUNDED){
+                return {
+                    status: 403,
+                    data: {
+                        msg: `Booking already refunded!`,
+                    }
+                }
             }
             let amount = parseInt(transaction.amount)
             var partnerCode = "MOMO"
@@ -245,6 +252,7 @@ const refundMomo = async (bookingId, callback) => {
                             status: 200,
                             data: {
                                 msg: `Refund to booking ${bookingId}`,
+                                refundAmount: amount
                             }
                         });
                     } else {
@@ -390,27 +398,30 @@ const getMoMoPaymentResponse = (req) =>
                     })
                 }
 
-                await db.Booking.update({
+                db.Booking.update({
                     bookingStatus: BOOKING_STATUS.ON_GOING
                 }, {
                     where: {
                         bookingId: bookingId
-                    }
+                    }, individualHooks: true,
                 })
-                await db.BookingDetail.update({
+
+                db.BookingDetail.update({
                     status: STATUS.ACTIVE
                 }, {
                     where: {
                         bookingId: bookingId
-                    }
+                    }, individualHooks: true,
                 })
-                await db.Transaction.update({
+
+                db.Transaction.update({
                     isSuccess: true,
-                    transactionCode: ipnData.transId
+                    transactionCode: ipnData.transId,
+                    status: STATUS.PAID
                 }, {
                     where: {
                         bookingId: bookingId
-                    }
+                    }, individualHooks: true,
                 })
 
                 resolve({
@@ -441,7 +452,7 @@ const getMoMoPaymentResponse = (req) =>
     })
 
 function calculateTotalTime(routeSegments, startTime, departureStationId) {
-    const velocityKmPerHour = 35;
+    const velocityKmPerHour = 20;
     const velocityMetersPerMillisecond = (velocityKmPerHour * 1000) / (60 * 60 * 1000);
 
     let totalSegmentTime = 0;
