@@ -1038,7 +1038,8 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                     })
                 } else {
                     let _refundResult
-                    await PaymentService.refundMomo(_bookingId, (refundResult) => {
+                    PaymentService.refundMomo(_bookingId, (refundResult) => {
+                        console.log(refundResult)
                         if (refundResult.status === 200) {
                             db.Booking.update({
                                 bookingStatus: _bookingStatus,
@@ -1047,7 +1048,6 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                                     bookingId: _bookingId
                                 },
                                 individualHooks: true,
-                                transaction: t
                             });
 
                             db.Transaction.update({
@@ -1058,7 +1058,6 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                                     bookingId: _bookingId
                                 },
                                 individualHooks: true,
-                                transaction: t
                             });
                         }
                         _refundResult = refundResult
