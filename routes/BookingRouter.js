@@ -254,9 +254,9 @@ router.post("/", controllers.createBooking);
 
 /**
  * @swagger
- * /api/v1/bookings/{id}:
+ * /api/v1/bookings/checkin/{id}:
  *   put:
- *     summary: Update booking by id
+ *     summary: Check in When scan QR code
  *     tags: [Booking]
  *     parameters:
  *       - in: path
@@ -264,22 +264,6 @@ router.post("/", controllers.createBooking);
  *         schema:
  *           type: string
  *         required: true
- *     requestBody:
- *       description: Booking data to update
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *              type: object
- *              properties: 
- *                  isAttended: 
- *                      type: boolean
- *                  bookingStatus: 
- *                      type: string
- *                      enum: 
- *                          - Ongoing
- *                          - Canceled
- *                          - Finished
  *     responses:
  *       200:
  *         description: OK
@@ -300,7 +284,41 @@ router.post("/", controllers.createBooking);
  *             schema:
  *               type: string
  */
-router.put("/:id", controllers.updateBooking);
+router.put("/checkin/:id", controllers.checkInQrCode);
+
+/**
+ * @swagger
+ * /api/v1/bookings/cancel/{id}:
+ *   put:
+ *     summary: Cancel booking
+ *     tags: [Booking]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ *       409:
+ *         description: Conflict
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ */
+router.put("/cancel/:id", controllers.cancelBooking);
 
 
 module.exports = router;

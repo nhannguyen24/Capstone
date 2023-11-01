@@ -128,31 +128,44 @@ const createBooking = async (req, res) => {
     }
 };
 
-const updateBooking = async (req, res) => {
+const checkInQrCode = async (req, res) => {
     try {
         const bookingId = req.params.id || ""
-        const bookingStatus = req.body.bookingStatus || ""
-        const isAttended = req.body.isAttended
+
         const errors = []
-        if (isAttended === null) {
-            isAttended === ""
-        }
+
         if (bookingId.trim() === "") {
             errors.push("Id required!")
         }
-        if (bookingStatus === "" && isAttended === "") {
-            errors.push("Update field required!")
-        }
+
         if (errors.length === 0) {
-            const response = await services.updateBooking(bookingId, bookingStatus, isAttended);
+            const response = await services.checkInQrCode(bookingId);
             return res.status(response.status).json(response.data);
         } else {
             return res.status(400).json(errors);
         }
+    } catch (error) {
+        throw new InternalServerError(error);
+    }
+}
+const cancelBooking = async (req, res) => {
+    try {
+        const bookingId = req.params.id || ""
+        const errors = []
 
+        if (bookingId.trim() === "") {
+            errors.push("Id required!")
+        }
+
+        if (errors.length === 0) {
+            const response = await services.cancelBooking(bookingId);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(400).json(errors);
+        }
     } catch (error) {
         throw new InternalServerError(error);
     }
 }
 
-module.exports = { getBookingDetailByBookingId, getBookings, getBookingsByEmail, createBooking, updateBooking }
+module.exports = { getBookingDetailByBookingId, getBookings, getBookingsByEmail, createBooking, checkInQrCode, cancelBooking }
