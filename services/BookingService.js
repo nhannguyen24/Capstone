@@ -891,7 +891,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
     }
 });
 
-const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(async (resolve, reject) => {
+const updateBooking = async (bookingId, bookingStatus, isAttended) => {
     const t = await db.sequelize.transaction();
     try {
         const _bookingId = bookingId
@@ -935,35 +935,33 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
             ]
         })
         if (!bookingDetail) {
-            resolve({
+            return{
                 status: 200,
                 data: {
                     msg: `Booking not found!`,
                 }
-            })
-            return
+            }
         }
         /**
          * Validate Booking Status
          */
         if (_bookingStatus !== "") {
             if (_bookingStatus === bookingDetail.detail_booking.bookingStatus) {
-                resolve({
+                return{
                     status: 400,
                     data: {
                         msg: `Booking status is already ${_bookingStatus}`,
                     }
-                })
+                }
             }
             //Check if tour is already finished
             if (TOUR_STATUS.FINISHED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
-                resolve({
+                return{
                     status: 400,
                     data: {
                         msg: `Cannot update booking status because tour is finished`,
                     }
-                })
-                return
+                }
             }
 
             const transaction = await db.Transaction.findOne({
@@ -973,21 +971,20 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
             })
             if (BOOKING_STATUS.ON_GOING === _bookingStatus) {
                 if (transaction.isSuccess === false) {
-                    resolve({
+                    return {
                         status: 400,
                         data: {
                             msg: `Booking not paid!`,
                         }
-                    })
+                    }
                 }
                 if (TOUR_STATUS.AVAILABLE !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
-                    resolve({
+                    return{
                         status: 400,
                         data: {
                             msg: `Cannot update booking status ${_bookingStatus} because tour started`,
                         }
-                    })
-                    return
+                    }
                 }
             }
 
@@ -1004,45 +1001,42 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                 if (!otp) {
                     const data = await OtpService.sendOtpToEmail(email, userId, userName, OTP_TYPE.CANCEL_BOOKING)
                     if (data) {
-                        resolve(data);
-                        return
+                        return data
                     } else {
-                        resolve({
+                        return {
                             status: 409,
                             data: {
                                 msg: `Mail sent failed`,
                             }
-                        });
-                        return
+                        }
                     }
                 }
 
                 if (!otp.isAllow) {
-                    resolve({
+                    return {
                         status: 403,
                         data: {
                             msg: `Action not allow, Please validate OTP!`,
                         }
-                    });
-                    return
+                    }
                 }
 
                 if (transaction.isSuccess === false) {
-                    resolve({
+                    return {
                         status: 400,
                         data: {
                             msg: `Booking not paid!`,
                         }
-                    })
+                    }
                 }
 
                 if (TOUR_STATUS.AVAILABLE !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
-                    return resolve({
+                    return {
                         status: 400,
                         data: {
                             msg: `Cannot update booking status ${_bookingStatus} because tour started`,
                         }
-                    })
+                    }
                 } else {
                     PaymentService.refundMomo(_bookingId, (result) => {
                         if (result.status === 200) {
@@ -1064,27 +1058,27 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                                 individualHooks: true,
                             })
                         }
-                        return(result)
+                        return result
                     })
                 }
             }
 
             if (BOOKING_STATUS.FINISHED === _bookingStatus) {
                 if (transaction.isSuccess === false) {
-                    return resolve({
+                    return {
                         status: 400,
                         data: {
                             msg: `Booking not paid!`,
                         }
-                    })
+                    }
                 }
                 if (TOUR_STATUS.FINISHED !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
-                    return resolve({
+                    return {
                         status: 400,
                         data: {
                             msg: `Cannot update booking status ${_bookingStatus} because tour not finished`,
                         }
-                    })
+                    }
                 }
             }
             updateBooking.bookingStatus = _bookingStatus
@@ -1095,20 +1089,20 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
          */
         if (_isAttended !== null || _isAttended !== undefined) {
             if (BOOKING_STATUS.CANCELED === bookingDetail.detail_booking.bookingStatus) {
-                return resolve({
+                return {
                     status: 403,
                     data: {
                         msg: `Cannot take attendance because booking canceled!`,
                     }
-                })
+                }
             } else {
                 if (_isAttended === bookingDetail.detail_booking.isAttended) {
-                    return resolve({
+                    return {
                         status: 400,
                         data: {
                             msg: `isAttended is already ${_isAttended}`,
                         }
-                    })
+                    }
                 } else {
                     updateBooking.isAttended = _isAttended
                 }
@@ -1133,17 +1127,16 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
         // })
 
         await t.commit()
-        resolve({
+        return{
             status: 200,
             data: {
                 msg: "Update booking successfully",
             }
-        })
+        }
     } catch (error) {
         await t.rollback()
         console.log(error)
-        reject(error);
     }
-});
+}
 
 module.exports = { getBookingDetailByBookingId, getBookings, getBookingsByEmail, createBooking, updateBooking };
