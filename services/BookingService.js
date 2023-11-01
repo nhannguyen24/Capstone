@@ -1045,6 +1045,7 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                     })
                 } else {
                     PaymentService.refundMomo(_bookingId, (result) => {
+                        console.log(result)
                         if (result.status === 200) {
                             db.Booking.update({
                                 bookingStatus: _bookingStatus,
