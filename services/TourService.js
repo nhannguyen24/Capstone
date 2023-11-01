@@ -1779,13 +1779,40 @@ const updateTour = (id, { images, ...body }) =>
                                 transaction: t
                             });
 
+                            const bookingOfTour = await db.BookingDetail.findAll({
+                                nest: true,
+                                include: [
+                                    {
+                                        model: db.Ticket,
+                                        as: "booking_detail_ticket",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                        where: {
+                                            tourId: { [Op.eq]: findTour.tourId },
+                                        },
+                                    },
+                                ]
+                            })
+
+                            let bookingDetailIdArray = [];
+                            for (const bookingDetail of bookingOfTour) {
+                                bookingDetailIdArray.push(bookingDetail.bookingId);
+                            }
+
                             await db.Booking.update({
-                                status: BOOKING_STATUS.FINISHED,
+                                bookingStatus: BOOKING_STATUS.FINISHED,
                             }, {
-                                where: { 
-                                    tourId: findTour.tourId,
+                                where: {
+                                    bookingId: {
+                                        [Op.in]: bookingDetailIdArray
+                                    },
                                     bookingStatus: BOOKING_STATUS.ON_GOING
-                                 },
+                                },
                                 individualHooks: true,
                                 transaction: t
                             });
@@ -1855,15 +1882,15 @@ const deleteTour = (id) =>
                 where: { tourId: id },
             });
 
-                if (tour.status === "Deactive") {
-                    resolve({
-                        status: 400,
-                        data: {
-                            msg: "The tour already deactive!",
-                        }
-                    });
-                    return;
-                }
+            if (tour.status === "Deactive") {
+                resolve({
+                    status: 400,
+                    data: {
+                        msg: "The tour already deactive!",
+                    }
+                });
+                return;
+            }
 
             const tours = await db.Tour.update(
                 { status: "Deactive" },
