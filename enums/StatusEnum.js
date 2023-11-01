@@ -6,6 +6,9 @@ class StatusEnum {
     static DEACTIVE = "Deactive";
     static NOTARRIVED = "NotArrived";
     static ARRIVED = "Arrived";
+    static PAID = "Paid";
+    static REFUNDED = "Refunded";
+    static DRAFT = "Draft";
 }
 
 module.exports = StatusEnum

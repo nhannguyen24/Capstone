@@ -1,7 +1,7 @@
 const controllers = require('../controllers/BookingController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isAdminOrManager, isCustomer, isLoggedIn} = require('../middlewares/VerifyRole');
+const {isLoggedIn} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -67,17 +67,11 @@ const router = express.Router();
  *         schema:
  *           type: string
  *           enum:
+ *              - Draft
  *              - Ongoing
  *              - Canceled
  *              - Finished
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum:
- *              - Draft
- *              - Active
- *              - Deactive
+ *         description: Draft (Booking havent pay "Cron Job can auto delete"), Ongoing (User not on tour yet), Canceled (Booking canceled), Finished(Tour Finished)
  *     responses:
  *       200:
  *         description: OK
@@ -144,17 +138,10 @@ router.get("/", verifyToken, isLoggedIn, controllers.getBookings);
  *         schema:
  *           type: string
  *           enum:
- *              - Draft
  *              - Ongoing
  *              - Canceled
  *              - Finished
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum:
- *              - Active
- *              - Deactive
+ *         description: Ongoing (User not on tour yet), Canceled (Booking canceled), Finished(Tour Finished)
  *     responses:
  *       200:
  *         description: OK
@@ -223,8 +210,8 @@ router.get("/:id", controllers.getBookingDetailByBookingId);
  *              user: {
  *                  email: tminhquan@gmail.com,
  *                  userName: Trần Minh Quân,
- *                  phone: 0123456789,
- *                  birthday: 2000-09-11
+ *                  phone: "0123456789",
+ *                  birthday: "2000-09-11"
  *              },
  *              products: [
  *                  {
@@ -267,9 +254,9 @@ router.post("/", controllers.createBooking);
 
 /**
  * @swagger
- * /api/v1/bookings/{id}:
+ * /api/v1/bookings/checkin/{id}:
  *   put:
- *     summary: Update booking by id
+ *     summary: Check in When scan QR code
  *     tags: [Booking]
  *     parameters:
  *       - in: path
@@ -277,22 +264,6 @@ router.post("/", controllers.createBooking);
  *         schema:
  *           type: string
  *         required: true
- *     requestBody:
- *       description: Booking data to update
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *              type: object
- *              properties: 
- *                  isAttended: 
- *                      type: boolean
- *                  bookingStatus: 
- *                      type: string
- *                      enum: 
- *                          - Ongoing
- *                          - Canceled
- *                          - Finished
  *     responses:
  *       200:
  *         description: OK
@@ -313,7 +284,41 @@ router.post("/", controllers.createBooking);
  *             schema:
  *               type: string
  */
-router.put("/:id", controllers.updateBooking);
+router.put("/checkin/:id", controllers.checkInQrCode);
+
+/**
+ * @swagger
+ * /api/v1/bookings/cancel/{id}:
+ *   put:
+ *     summary: Cancel booking
+ *     tags: [Booking]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ *       409:
+ *         description: Conflict
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ */
+router.put("/cancel/:id", controllers.cancelBooking);
 
 
 module.exports = router;

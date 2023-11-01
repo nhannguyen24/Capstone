@@ -152,6 +152,11 @@ const refundMomo = async (bookingId, callback) => {
             where: {
                 bookingId: bookingId
             },
+            include: {
+                model: db.Booking,
+                as: "transaction_booking",
+                attributes: ["bookingCode"]
+            }
         })
         if (!transaction) {
             return {
@@ -168,6 +173,13 @@ const refundMomo = async (bookingId, callback) => {
                         msg: `Booking not paid!`,
                     }
                 }
+            } else if(transaction.status === STATUS.REFUNDED){
+                return {
+                    status: 403,
+                    data: {
+                        msg: `Booking already refunded!`,
+                    }
+                }
             }
             let amount = parseInt(transaction.amount)
             var partnerCode = "MOMO"
@@ -175,7 +187,7 @@ const refundMomo = async (bookingId, callback) => {
             var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz"
             var requestId = partnerCode + new Date().getTime()
             var orderId = requestId
-            var description = "Refund calceled booking"
+            var description = "Refund canceled booking"
             var transId = transaction.transactionCode
 
             const departureDate = new Date(bookingDetail.booking_detail_ticket.ticket_tour.departureDate)
@@ -244,7 +256,8 @@ const refundMomo = async (bookingId, callback) => {
                         callback({
                             status: 200,
                             data: {
-                                msg: `Refund to booking ${bookingId}`,
+                                msg: `Refund to booking ${transaction.transaction_booking.bookingCode}`,
+                                refundAmount: amount
                             }
                         });
                     } else {
@@ -252,6 +265,7 @@ const refundMomo = async (bookingId, callback) => {
                             status: 400,
                             data: {
                                 msg: response.message,
+                                refundAmount: amount
                             }
                         });
                     }
@@ -390,27 +404,30 @@ const getMoMoPaymentResponse = (req) =>
                     })
                 }
 
-                await db.Booking.update({
+                db.Booking.update({
                     bookingStatus: BOOKING_STATUS.ON_GOING
                 }, {
                     where: {
                         bookingId: bookingId
-                    }
+                    }, individualHooks: true,
                 })
-                await db.BookingDetail.update({
+
+                db.BookingDetail.update({
                     status: STATUS.ACTIVE
                 }, {
                     where: {
                         bookingId: bookingId
-                    }
+                    }, individualHooks: true,
                 })
-                await db.Transaction.update({
+
+                db.Transaction.update({
                     isSuccess: true,
-                    transactionCode: ipnData.transId
+                    transactionCode: ipnData.transId,
+                    status: STATUS.PAID
                 }, {
                     where: {
                         bookingId: bookingId
-                    }
+                    }, individualHooks: true,
                 })
 
                 resolve({
@@ -441,7 +458,7 @@ const getMoMoPaymentResponse = (req) =>
     })
 
 function calculateTotalTime(routeSegments, startTime, departureStationId) {
-    const velocityKmPerHour = 35;
+    const velocityKmPerHour = 20;
     const velocityMetersPerMillisecond = (velocityKmPerHour * 1000) / (60 * 60 * 1000);
 
     let totalSegmentTime = 0;
