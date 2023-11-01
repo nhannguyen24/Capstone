@@ -2,7 +2,7 @@ const controllers = require('../controllers/TourController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
 const router = express.Router();
-const {isAdminOrManager} = require('../middlewares/VerifyRole');
+const {isAdminOrManager, isAdminOrManagerOrTourguideOrDriver} = require('../middlewares/VerifyRole');
 const multer = require('multer');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -264,7 +264,7 @@ router.post("/upload", upload.single('file'), verifyToken, isAdminOrManager, con
  *               items:
  *                 $ref: '#/components/schemas/Tour'
  */
-router.put("/:id", verifyToken, isAdminOrManager, controllers.updateTour);
+router.put("/:id", verifyToken, isAdminOrManagerOrTourguideOrDriver, controllers.updateTour);
 
 /**
  * @swagger
