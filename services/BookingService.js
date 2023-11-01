@@ -1037,7 +1037,7 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                 }
 
                 if (TOUR_STATUS.AVAILABLE !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
-                    resolve({
+                    return resolve({
                         status: 400,
                         data: {
                             msg: `Cannot update booking status ${_bookingStatus} because tour started`,
@@ -1057,17 +1057,21 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                             db.Transaction.update({
                                 refundAmount: result.refundAmount,
                                 status: STATUS.REFUNDED
+                            }, {
+                                where: {
+                                    bookingId: _bookingId
+                                },
+                                individualHooks: true,
                             })
                         }
-                        resolve(result)
-                        return
+                        return resolve(result)
                     });
                 }
             }
 
             if (BOOKING_STATUS.FINISHED === _bookingStatus) {
                 if (transaction.isSuccess === false) {
-                    resolve({
+                    return resolve({
                         status: 400,
                         data: {
                             msg: `Booking not paid!`,
@@ -1075,13 +1079,12 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                     })
                 }
                 if (TOUR_STATUS.FINISHED !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
-                    resolve({
+                    return resolve({
                         status: 400,
                         data: {
                             msg: `Cannot update booking status ${_bookingStatus} because tour not finished`,
                         }
                     })
-                    return
                 }
             }
             updateBooking.bookingStatus = _bookingStatus
@@ -1092,7 +1095,7 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
          */
         if (_isAttended !== null || _isAttended !== undefined) {
             if (BOOKING_STATUS.CANCELED === bookingDetail.detail_booking.bookingStatus) {
-                resolve({
+                return resolve({
                     status: 403,
                     data: {
                         msg: `Cannot take attendance because booking canceled!`,
@@ -1100,7 +1103,7 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                 })
             } else {
                 if (_isAttended === bookingDetail.detail_booking.isAttended) {
-                    resolve({
+                    return resolve({
                         status: 400,
                         data: {
                             msg: `isAttended is already ${_isAttended}`,
