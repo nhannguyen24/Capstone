@@ -1103,7 +1103,6 @@ const cancelBooking = (bookingId) => new Promise(async (resolve, reject) => {
                         bookingId: _bookingId
                     },
                     individualHooks: true,
-                    transaction: t
                 });
 
                 db.Transaction.update({
@@ -1114,13 +1113,10 @@ const cancelBooking = (bookingId) => new Promise(async (resolve, reject) => {
                         bookingId: _bookingId
                     },
                     individualHooks: true,
-                    transaction: t
                 });
                 resolve(refundResult)
             }
         })
-
-        await t.commit()
     } catch (error) {
         await t.rollback()
         console.log(error)
