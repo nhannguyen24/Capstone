@@ -1259,7 +1259,6 @@ const checkInQrCode = (bookingId) => new Promise(async (resolve, reject) => {
 });
 
 const cancelBooking = (bookingId) => new Promise(async (resolve, reject) => {
-    const t = await db.sequelize.transaction();
     try {
         const _bookingId = bookingId
         const bookingDetail = await db.BookingDetail.findOne({
@@ -1398,7 +1397,6 @@ const cancelBooking = (bookingId) => new Promise(async (resolve, reject) => {
             }
         })
     } catch (error) {
-        await t.rollback()
         console.log(error)
         reject(error);
     }

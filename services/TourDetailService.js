@@ -14,7 +14,7 @@ const getAllTourDetail = (
             queries.limit = flimit;
             if (order) queries.order = [[order]]
             else {
-                queries.order = [['updatedAt', 'DESC']];
+                queries.order = [['index', 'ASC']];
             }
             if (tourId) query.tourId = { [Op.eq]: tourId };
             if (status) query.status = { [Op.eq]: status };

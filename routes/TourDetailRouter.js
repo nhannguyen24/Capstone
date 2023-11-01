@@ -88,11 +88,11 @@ router.get("/", verifyToken, controllers.getAllTourDetail);
  *     tags: [Tracking]
  *     parameters:
  *       - in: path
- *         name: tourDetailId
+ *         name: id
  *         schema:
  *           type: string
  *         required: true
- *         description: Update tour detail by tourDetailId
+ *         description: Update tour detail by id
  *     requestBody:
  *       content:
  *          application/json:
