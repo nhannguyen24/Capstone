@@ -605,12 +605,12 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
     }
 });
 
-const createBooking = (req) => new Promise(async (resolve, reject) => {
+const createBookingWeb = (req) => new Promise(async (resolve, reject) => {
     try {
         const user = req.body.user
         const tickets = req.body.tickets
         const products = req.body.products || []
-        const totalPrice = req.body.totalPrice
+        let totalPrice = req.body.totalPrice
         const birthday = new Date(user.birthday)
         const departureStationId = req.body.departureStationId
         /**
@@ -673,6 +673,8 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
          * Checking if tour, departure station exist
          */
         let station
+        let _routeSegment
+        let _routeSegments = []
         const tour = await db.Tour.findOne({
             where: {
                 tourId: tickets[0].tourId,
@@ -687,7 +689,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `Tour not found with id: ${tickets[0].tourId}`,
+                    msg: `Tour not found!`,
                 }
             });
         } else {
@@ -713,36 +715,46 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                         msg: `Station not found!`,
                     }
                 });
-                return
             }
-            const routeSegment = await db.RouteSegment.findAll({
+
+            const routeSegment = await db.RouteSegment.findOne({
                 raw: true,
-                nest: true,
                 where: {
                     routeId: tour.routeId,
+                    departureStationId: departureStationId,
                     status: STATUS.ACTIVE,
                 },
-                order: [['index', 'ASC']]
             })
-
-            if (!routeSegment || routeSegment.length === 0) {
+            if (!routeSegment) {
                 resolve({
                     status: 404,
                     data: {
                         msg: `Station not found within tour route`,
                     }
                 });
-                return
+            } else {
+                if (routeSegment.index !== 1) {
+                    const routeSegments = await db.RouteSegment.findAll({
+                        raw: true,
+                        where: {
+                            routeId: routeSegment.routeId,
+                        },
+                        order: [['index', 'ASC']]
+                    })
+                    _routeSegments = routeSegments
+                }
+                _routeSegment = routeSegment
             }
         }
 
         /**
          * Checking ticketId and priceId and calculate booked ticket quantity
          */
-        let ticketList = []
+        const ticketList = []
         let seatBookingQuantity = 0
         for (const e of tickets) {
             const ticket = await db.Ticket.findOne({
+                raw: true,
                 where: {
                     ticketId: e.ticketId,
                     tourId: tour.tourId
@@ -758,19 +770,12 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 return
             }
             seatBookingQuantity += e.quantity
-            if (seatBookingQuantity > 6) {
-                resolve({
-                    status: 400,
-                    data: {
-                        msg: `Can only booking maximum of 6 tickets`,
-                    }
-                })
-                return
-            }
 
             const price = await db.Price.findOne({
+                raw: true,
                 where: {
                     priceId: e.priceId,
+                    ticketTypeId: ticket.ticketTypeId
                 }
             })
             if (!price) {
@@ -782,7 +787,8 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 })
                 return
             }
-            ticket.dataValues.ticket_price = price
+            ticket.price = price
+            ticket.quantity = e.quantity
             ticketList.push(ticket)
         }
         /**
@@ -829,6 +835,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
         const productList = []
         for (const e of products) {
             const product = await db.Product.findOne({
+                raw: true,
                 where: {
                     productId: e.productId
                 },
@@ -838,7 +845,7 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 resolve({
                     status: 404,
                     data: {
-                        msg: `Product not found with Id: ${e.productId}`,
+                        msg: `Product not found!`,
                     }
                 });
             }
@@ -846,27 +853,48 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
                 resolve({
                     status: 400,
                     data: {
-                        msg: `Product not availale`,
+                        msg: `Product not availale!`,
                     }
                 });
             }
-            product.dataValues.quantity = e.quantity
+            product.quantity = e.quantity
             productList.push(product)
         }
 
-        /**
+        let totalDistance = 0
+        let distanceToBookedDepartureStation = 0
+        let discountPrice = 0
+        if (_routeSegments.length > 0) {
+            for (const segment of _routeSegments) {
+                if (segment.index < _routeSegment.index) {
+                    distanceToBookedDepartureStation += parseFloat(segment.distance)
+                }
+                totalDistance += parseFloat(segment.distance)
+            }
+            
+            for (const ticket of ticketList) {
+                const pricePerMeter = (ticket.price.amount * ticket.quantity) / parseFloat(totalDistance)
+                discountPrice = discountPrice + (distanceToBookedDepartureStation * pricePerMeter)
+            }
+            
+            for (const product of productList) {
+                discountPrice += (product.quantity * product.price)
+            }
+            totalPrice = discountPrice
+        }
+
+        /** 
          * Begin booking creation process and roll back if error
          */
         let booking
         try {
             await db.sequelize.transaction(async (t) => {
-                booking = await db.Booking.create({ totalPrice: totalPrice, customerId: resultUser[0].dataValues.userId, departureStationId: station.stationId }, { transaction: t });
+                booking = await db.Booking.create({ totalPrice: totalPrice, customerId: resultUser[0].dataValues.userId, departureStationId: station.stationId, bookingStatus: BOOKING_STATUS.DRAFT }, { transaction: t });
 
-                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId }, { transaction: t })
+                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, status: STATUS.DRAFT }, { transaction: t })
 
-                for (let index = 0; index < ticketList.length; index++) {
-                    const e = ticketList[index];
-                    await db.BookingDetail.create({ TicketPrice: e.dataValues.ticket_price.amount, bookingId: booking.bookingId, ticketId: e.dataValues.ticketId, quantity: tickets[index].quantity }, { transaction: t });
+                for (const ticket of ticketList) {
+                    await db.BookingDetail.create({ TicketPrice: ticket.price.amount, bookingId: booking.bookingId, ticketId: ticket.ticketId, quantity: ticket.quantity, status: STATUS.DRAFT }, { transaction: t });
                 }
 
                 for (const e of productList) {
@@ -881,7 +909,259 @@ const createBooking = (req) => new Promise(async (resolve, reject) => {
             status: 201,
             data: {
                 msg: "Please pay to finish booking process",
-                bookingId: booking.bookingId
+                bookingId: booking.bookingId,
+                totalPrice: totalPrice
+            }
+        })
+
+    } catch (error) {
+        console.log(error)
+        reject(error);
+    }
+});
+const createBookingOffline = (req) => new Promise(async (resolve, reject) => {
+    try {
+        const user = req.body.user
+        const tickets = req.body.tickets
+        let totalPrice = req.body.totalPrice
+        const departureStationId = req.body.departureStationId
+        /**
+         * Checking if Admin or Manager not allow to book
+         */
+        let roleId
+        let resultUser
+        if (user.email !== null || user.email !== undefined || user.email.trim() !== "") {
+            resultUser = await db.User.findOrCreate({
+                where: {
+                    email: user.email
+                },
+                defaults: { email: user.email, userName: user.userName, phone: user.phone, roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3" }
+            })
+            roleId = resultUser[0].dataValues.roleId
+        } else {
+            resultUser = await db.User.create({ userName: user.userName, phone: user.phone, roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3" })
+            roleId = "58c10546-5d71-47a6-842e-84f5d2f72ec3"
+        }
+
+        if ("58c10546-5d71-47a6-842e-84f5d2f72ec3" !== roleId) {
+            resolve({
+                status: 403,
+                data: {
+                    msg: `Role not allow for this action`,
+                }
+            });
+            return
+        }
+
+        /**
+         * Checking if tour, departure station exist
+         */
+        let station
+        let _routeSegment
+        let _routeSegments = []
+        const tour = await db.Tour.findOne({
+            where: {
+                tourId: tickets[0].tourId,
+            },
+            include: {
+                model: db.Bus,
+                as: "tour_bus",
+                attributes: ["busId", "numberSeat"]
+            }
+        })
+        if (!tour) {
+            resolve({
+                status: 404,
+                data: {
+                    msg: `Tour not found!`,
+                }
+            });
+        } else {
+            if (TOUR_STATUS.AVAILABLE !== tour.tourStatus || STATUS.ACTIVE !== tour.status) {
+                resolve({
+                    status: 403,
+                    data: {
+                        msg: `Tour not available for booking!`,
+                    }
+                });
+            }
+
+            station = await db.Station.findOne({
+                where: {
+                    stationId: departureStationId
+                }
+            })
+
+            if (!station) {
+                resolve({
+                    status: 404,
+                    data: {
+                        msg: `Station not found!`,
+                    }
+                });
+            }
+
+            const routeSegment = await db.RouteSegment.findOne({
+                raw: true,
+                where: {
+                    routeId: tour.routeId,
+                    departureStationId: departureStationId,
+                    status: STATUS.ACTIVE,
+                },
+            })
+
+            if (!routeSegment) {
+                resolve({
+                    status: 404,
+                    data: {
+                        msg: `Station not found within tour route`,
+                    }
+                });
+            } else {
+                if (routeSegment.index !== 1) {
+                    const routeSegments = await db.RouteSegment.findAll({
+                        raw: true,
+                        where: {
+                            routeId: routeSegment.routeId,
+                        },
+                        order: [['index', 'ASC']]
+                    })
+                    _routeSegments = routeSegments
+                }
+                _routeSegment = routeSegment
+            }
+        }
+
+        /**
+         * Checking ticketId and priceId and calculate booked ticket quantity
+         */
+        let ticketList = []
+        let seatBookingQuantity = 0
+        for (const e of tickets) {
+            const ticket = await db.Ticket.findOne({
+                raw: true,
+                where: {
+                    ticketId: e.ticketId,
+                    tourId: tour.tourId
+                }
+            })
+            if (!ticket) {
+                resolve({
+                    status: 404,
+                    data: {
+                        msg: `Ticket not found!`,
+                    }
+                })
+                return
+            }
+            seatBookingQuantity += e.quantity
+
+            const price = await db.Price.findOne({
+                raw: true,
+                where: {
+                    priceId: e.priceId,
+                    ticketTypeId: ticket.ticketTypeId
+                }
+            })
+            if (!price) {
+                resolve({
+                    status: 404,
+                    data: {
+                        msg: `Price not found!`,
+                    }
+                })
+                return
+            }
+            ticket.price = price
+            ticket.quantity = e.quantity
+            ticketList.push(ticket)
+        }
+
+        /**
+         * Begin checking available seat of a Bus
+        */
+        let totalBookedSeat = 0
+        const bookingDetails = await db.BookingDetail.findAll({
+            raw: true,
+            nest: true,
+            include: [
+                {
+                    model: db.Ticket,
+                    as: "booking_detail_ticket",
+                    where: {
+                        tourId: tour.tourId,
+                    },
+                },
+                {
+                    model: db.Booking,
+                    as: "detail_booking",
+                    where: {
+                        bookingStatus: BOOKING_STATUS.ON_GOING
+                    },
+                    attributes: ["bookingId"]
+                },
+            ],
+            attributes: ["bookingDetailId", "quantity"],
+        })
+
+        for (const e of bookingDetails) {
+            totalBookedSeat += e.quantity
+        }
+
+        if (seatBookingQuantity + totalBookedSeat > tour.tour_bus.numberSeat) {
+            const availableSeats = tour.tour_bus.numberSeat - totalBookedSeat;
+            resolve({
+                status: 400,
+                data: {
+                    msg: `Tickets available ${availableSeats}, but you requested ${seatBookingQuantity}`,
+                }
+            });
+        }
+
+        /**
+         * Calculate distance for money
+         */
+        let totalDistance = 0
+        let distanceToBookedDepartureStation = 0
+        let discountPrice = 0
+        if (_routeSegments.length > 0) {
+            for (const segment of _routeSegments) {
+                if (segment.index < _routeSegment.index) {
+                    distanceToBookedDepartureStation += parseFloat(segment.distance)
+                }
+                totalDistance += parseFloat(segment.distance)
+            }
+            
+            for (const ticket of ticketList) {
+                const pricePerMeter = (ticket.price.amount * ticket.quantity) / parseFloat(totalDistance)
+                discountPrice = discountPrice + (distanceToBookedDepartureStation * pricePerMeter)
+            }
+            
+            totalPrice = discountPrice
+        }
+        /**
+         * Begin booking creation process and roll back if error
+         */
+        let booking
+        try {
+            await db.sequelize.transaction(async (t) => {
+                booking = await db.Booking.create({ totalPrice: totalPrice, customerId: resultUser.userId, departureStationId: station.stationId, bookingStatus: BOOKING_STATUS.ON_GOING }, { transaction: t });
+
+                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, status: STATUS.PAID }, { transaction: t })
+
+                for (const ticket of ticketList) {
+                    await db.BookingDetail.create({ TicketPrice: ticket.price.amount, bookingId: booking.bookingId, ticketId: ticket.ticketId, quantity: ticket.quantity, status: STATUS.ACTIVE }, { transaction: t });
+                }
+            })
+        } catch (error) {
+            console.log(error)
+        }
+
+        resolve({
+            status: 201,
+            data: {
+                msg: "Booking tickets successfuly",
+                totalPrice: totalPrice
             }
         })
 
@@ -1122,4 +1402,4 @@ const cancelBooking = (bookingId) => new Promise(async (resolve, reject) => {
     }
 });
 
-module.exports = { getBookingDetailByBookingId, getBookings, getBookingsByEmail, createBooking, checkInQrCode, cancelBooking };
+module.exports = { getBookingDetailByBookingId, getBookings, getBookingsByEmail, createBookingWeb, createBookingOffline, checkInQrCode, cancelBooking };

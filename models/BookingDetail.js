@@ -57,7 +57,6 @@ module.exports = (sequelize, DataTypes) => {
   BookingDetail.beforeCreate((bookingDetail, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    bookingDetail.status = BOOKING_STATUS.DRAFT;
     bookingDetail.createdAt = currentDate;
     bookingDetail.updatedAt = currentDate;
   });

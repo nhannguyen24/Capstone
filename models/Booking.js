@@ -80,7 +80,6 @@ module.exports = (sequelize, DataTypes) => {
     const bookingCode = `BO${currentDate.getTime()}`
     const currentDateAfter1Hour = new Date()
     currentDateAfter1Hour.setHours(currentDateAfter1Hour.getHours() + 8)
-    booking.bookingStatus = BOOKING_STATUS.DRAFT;
     booking.endPaymentTime = currentDateAfter1Hour
     booking.bookingDate = currentDate;
     booking.createdAt = currentDate;
