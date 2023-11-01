@@ -49,7 +49,6 @@ module.exports = (sequelize, DataTypes) => {
   Transaction.beforeCreate((transaction, options) => {
     const currentDate = new Date();
     currentDate.setHours(currentDate.getHours() + 7);
-    transaction.status = STATUS.DRAFT;
     transaction.createdAt = currentDate;
     transaction.updatedAt = currentDate;
   });

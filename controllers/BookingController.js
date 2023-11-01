@@ -97,7 +97,7 @@ const getBookingsByEmail = async (req, res) => {
         throw new InternalServerError(error);
     }
 };
-const createBooking = async (req, res) => {
+const createBookingWeb = async (req, res) => {
     try {
         const errors = []
         const totalPrice = req.body.totalPrice || ""
@@ -118,7 +118,37 @@ const createBooking = async (req, res) => {
         }
 
         if (errors.length === 0) {
-            const response = await services.createBooking(req);
+            const response = await services.createBookingWeb(req);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(400).json(errors);
+        }
+    } catch (error) {
+        throw new InternalServerError(error);
+    }
+};
+const createBookingOffline = async (req, res) => {
+    try {
+        const errors = []
+        const totalPrice = req.body.totalPrice || ""
+        const departureStationId = req.body.departureStationId || ""
+        if(totalPrice === ""){
+            errors.push("totalPrice required!")
+        } else {
+            if(isNaN(totalPrice)){
+                errors.push("totalPrice needs to be a number")
+            } else {
+                if(parseInt(totalPrice) < 1000){
+                    errors.push("totalPrice needs to be atleast 1000")
+                }
+            }
+        }
+        if(departureStationId.trim() === ""){
+            errors.push("departureStationId required!")
+        }
+
+        if (errors.length === 0) {
+            const response = await services.createBookingOffline(req);
             return res.status(response.status).json(response.data);
         } else {
             return res.status(400).json(errors);
@@ -168,4 +198,4 @@ const cancelBooking = async (req, res) => {
     }
 }
 
-module.exports = { getBookingDetailByBookingId, getBookings, getBookingsByEmail, createBooking, checkInQrCode, cancelBooking }
+module.exports = { getBookingDetailByBookingId, getBookings, getBookingsByEmail, createBookingWeb, createBookingOffline, checkInQrCode, cancelBooking }

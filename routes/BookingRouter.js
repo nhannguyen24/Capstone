@@ -183,9 +183,9 @@ router.get("/:id", controllers.getBookingDetailByBookingId);
 
 /**
  * @swagger
- * /api/v1/bookings:
+ * /api/v1/bookings/web:
  *   post:
- *     summary: Create new booking
+ *     summary: Create new booking for web booking
  *     tags: [Booking]
  *     requestBody:
  *        required: true
@@ -250,7 +250,69 @@ router.get("/:id", controllers.getBookingDetailByBookingId);
  *             schema:
  *               type: string
  */
-router.post("/", controllers.createBooking);
+router.post("/web", controllers.createBookingWeb);
+
+/**
+ * @swagger
+ * /api/v1/bookings/offline:
+ *   post:
+ *     summary: Create new booking for offline booking
+ *     tags: [Booking]
+ *     requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                  totalPrice:
+ *                      type: integer
+ *                  departureStationId:
+ *                      type: string
+ *                  user:
+ *                      type: object
+ *                  tickets:
+ *                      type: array
+ *            example: {
+ *              totalPrice: 70000,
+ *              departureStationId: 267aa90c-763c-406e-a7bc-944eae45020d,
+ *              user: {
+ *                  email: tminhquan@gmail.com,
+ *                  userName: Trần Minh Quân,
+ *                  phone: "0123456789",
+ *              },
+ *              tickets: [
+ *                  {
+ *                      ticketId: 06bec4fd-d3aa-418d-af37-c5037dc313aa,
+ *                      ticketTypeId: 3355c24a-741c-4e3b-9d2a-fa43c4c950c5,  
+ *                      tourId: d16d6812-3772-4f72-a3fb-c7a617397c3c,
+ *                      priceId: cfa845b9-3182-4322-932d-05a6284e6928,
+ *                      quantity: 1
+ *                  },
+ *                  {
+ *                      ticketId: 2b4e447c-289a-4dc3-be4b-01d955e05578,
+ *                      ticketTypeId: 99f73c58-7c81-4152-90f9-21e50637e9c8,  
+ *                      tourId: d16d6812-3772-4f72-a3fb-c7a617397c3c,
+ *                      priceId: 83bdc7a1-c77e-46c7-b8f0-de7fd4bf5859,
+ *                      quantity: 1
+ *                  },
+ *              ]
+ *            }
+ *     responses:
+ *       201:
+ *         description: CREATED
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ */
+router.post("/offline", controllers.createBookingOffline);
 
 /**
  * @swagger
