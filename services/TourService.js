@@ -4,6 +4,7 @@ const redisClient = require("../config/RedisConfig");
 const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
 const DAY_ENUM = require("../enums/PriceDayEnum")
+const BOOKING_STATUS = require("../enums/BookingStatusEnum")
 const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
 const readXlsxFile = require('read-excel-file/node')
 
@@ -1774,6 +1775,17 @@ const updateTour = (id, { images, ...body }) =>
                                 status: STATUS.ACTIVE,
                             }, {
                                 where: { busId: findTour.busId },
+                                individualHooks: true,
+                                transaction: t
+                            });
+
+                            await db.Booking.update({
+                                status: BOOKING_STATUS.FINISHED,
+                            }, {
+                                where: { 
+                                    tourId: findTour.tourId,
+                                    bookingStatus: BOOKING_STATUS.ON_GOING
+                                 },
                                 individualHooks: true,
                                 transaction: t
                             });
