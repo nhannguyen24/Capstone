@@ -210,8 +210,8 @@ router.get("/:id", controllers.getBookingDetailByBookingId);
  *              user: {
  *                  email: tminhquan@gmail.com,
  *                  userName: Trần Minh Quân,
- *                  phone: 0123456789,
- *                  birthday: 2000-09-11
+ *                  phone: "0123456789",
+ *                  birthday: "2000-09-11"
  *              },
  *              products: [
  *                  {
@@ -280,7 +280,6 @@ router.post("/", controllers.createBooking);
  *                          - Ongoing
  *                          - Canceled
  *                          - Finished
- *                  description: Ongoing (User not on tour yet), Canceled (Booking canceled), Finished(Tour Finished)
  *     responses:
  *       200:
  *         description: OK
