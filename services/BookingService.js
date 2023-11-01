@@ -1039,7 +1039,7 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                         }
                     })
                 } else {
-                    const refundResult = await new Promise(async (resolve) => {
+                    const refundResult = await new Promise((resolve) => {
                         PaymentService.refundMomo(_bookingId, (result) => {
                             resolve(result);
                         });
