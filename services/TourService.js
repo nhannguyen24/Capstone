@@ -32,6 +32,8 @@ const getAllTour = (
                     else {
                         queries.order = [
                             ['updatedAt', 'DESC'],
+                            [{ model: db.Route, as: 'tour_route' }, { model: db.RouteSegment, as: 'route_segment' }, 'index', 'ASC'],
+                            [{ model: db.Route, as: 'tour_route' }, { model: db.RouteSegment, as: 'route_segment' }, { model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
                         ];
                     }
                     if (tourName) query.tourName = { [Op.substring]: tourName };
@@ -297,6 +299,8 @@ const getTourById = (tourId) =>
                 },
                 order: [
                     ['updatedAt', 'DESC'],
+                    [{ model: db.Route, as: 'tour_route' }, { model: db.RouteSegment, as: 'route_segment' }, 'index', 'ASC'],
+                    [{ model: db.Route, as: 'tour_route' }, { model: db.RouteSegment, as: 'route_segment' }, { model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
                 ],
                 include: [
                     {
