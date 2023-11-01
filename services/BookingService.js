@@ -897,12 +897,6 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
         const _bookingId = bookingId
         const _bookingStatus = bookingStatus
         const _isAttended = isAttended
-        let returnData = {
-            status: 200,
-            data: {
-                msg: "Update booking successfully",
-            }
-        }
         const updateBooking = {}
         const bookingDetail = await db.BookingDetail.findOne({
             where: {
@@ -940,33 +934,33 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
             ]
         })
         if (!bookingDetail) {
-            returnData = {
+            resolve({
                 status: 200,
                 data: {
                     msg: `Booking not found!`,
                 }
-            }
+            })
         }
         /**
          * Validate Booking Status
          */
         if (_bookingStatus !== "") {
             if (_bookingStatus === bookingDetail.detail_booking.bookingStatus) {
-                returnData = {
+                resolve({
                     status: 400,
                     data: {
                         msg: `Booking status is already ${_bookingStatus}`,
                     }
-                }
+                })
             }
             //Check if tour is already finished
             if (TOUR_STATUS.FINISHED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
-                returnData = {
+                resolve({
                     status: 400,
                     data: {
                         msg: `Cannot update booking status because tour is finished`,
                     }
-                }
+                })
             }
 
             const transaction = await db.Transaction.findOne({
@@ -976,20 +970,20 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
             })
             if (BOOKING_STATUS.ON_GOING === _bookingStatus) {
                 if (transaction.isSuccess === false) {
-                    returnData = {
+                    resolve({
                         status: 400,
                         data: {
                             msg: `Booking not paid!`,
                         }
-                    }
+                    })
                 }
                 if (TOUR_STATUS.AVAILABLE !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
-                    returnData = {
+                    resolve({
                         status: 400,
                         data: {
                             msg: `Cannot update booking status ${_bookingStatus} because tour started`,
                         }
-                    }
+                    })
                 }
             }
 
@@ -1006,42 +1000,42 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                 if (!otp) {
                     const data = await OtpService.sendOtpToEmail(email, userId, userName, OTP_TYPE.CANCEL_BOOKING)
                     if (data) {
-                        returnData = data
+                        resolve(data)
                     } else {
-                        returnData = {
+                        resolve({
                             status: 409,
                             data: {
                                 msg: `Mail sent failed`,
                             }
-                        }
+                        })
                     }
                 }
 
                 if (!otp.isAllow) {
-                    returnData = {
+                    resolve({
                         status: 403,
                         data: {
                             msg: `Action not allow, Please validate OTP!`,
                         }
-                    }
+                    })
                 }
 
                 if (transaction.isSuccess === false) {
-                    returnData = {
+                    resolve({
                         status: 400,
                         data: {
                             msg: `Booking not paid!`,
                         }
-                    }
+                    })
                 }
 
                 if (TOUR_STATUS.AVAILABLE !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
-                    returnData = {
+                    resolve({
                         status: 400,
                         data: {
                             msg: `Cannot update booking status ${_bookingStatus} because tour started`,
                         }
-                    }
+                    })
                 } else {
                     let _refundResult
                     await PaymentService.refundMomo(_bookingId, (refundResult) => {
@@ -1120,7 +1114,6 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
             }
         }
 
-        // const updateBookingDetail = {}
         await db.Booking.update(updateBooking, {
             where: {
                 bookingId: _bookingId
@@ -1128,14 +1121,6 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
             individualHooks: true,
             transaction: t
         })
-
-        // await db.BookingDetail.update(updateBookingDetail, {
-        //     where: {
-        //         bookingId: _bookingId
-        //     },
-        //     individualHooks: true,
-        //     transaction: t
-        // })
 
         await t.commit()
         resolve(returnData)
