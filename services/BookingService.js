@@ -1044,29 +1044,32 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                         }
                     })
                 } else {
-                    PaymentService.refundMomo(_bookingId, (result) => {
-                        console.log(result)
-                        if (result.status === 200) {
-                            db.Booking.update({
-                                bookingStatus: _bookingStatus,
-                            }, {
-                                where: {
-                                    bookingId: _bookingId
-                                },
-                                individualHooks: true,
-                            })
-                            db.Transaction.update({
-                                refundAmount: result.refundAmount,
-                                status: STATUS.REFUNDED
-                            }, {
-                                where: {
-                                    bookingId: _bookingId
-                                },
-                                individualHooks: true,
-                            })
-                        }
-                        return resolve(result)
-                    });
+                    try {
+                        PaymentService.refundMomo(_bookingId, (result) => {
+                            if (result.status === 200) {
+                                db.Booking.update({
+                                    bookingStatus: _bookingStatus,
+                                }, {
+                                    where: {
+                                        bookingId: _bookingId
+                                    },
+                                    individualHooks: true,
+                                })
+                                db.Transaction.update({
+                                    refundAmount: result.data.refundAmount,
+                                    status: STATUS.REFUNDED
+                                }, {
+                                    where: {
+                                        bookingId: _bookingId
+                                    },
+                                    individualHooks: true,
+                                })
+                            }
+                            resolve(result)
+                        })
+                    } catch (error) {
+                        console.log(error)
+                    }
                 }
             }
 
