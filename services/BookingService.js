@@ -1044,32 +1044,28 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                         }
                     })
                 } else {
-                    try {
-                        PaymentService.refundMomo(_bookingId, (result) => {
-                            if (result.status === 200) {
-                                db.Booking.update({
-                                    bookingStatus: _bookingStatus,
-                                }, {
-                                    where: {
-                                        bookingId: _bookingId
-                                    },
-                                    individualHooks: true,
-                                })
-                                db.Transaction.update({
-                                    refundAmount: result.data.refundAmount,
-                                    status: STATUS.REFUNDED
-                                }, {
-                                    where: {
-                                        bookingId: _bookingId
-                                    },
-                                    individualHooks: true,
-                                })
-                            }
-                            resolve(result)
-                        })
-                    } catch (error) {
-                        console.log(error)
-                    }
+                    PaymentService.refundMomo(_bookingId, (result) => {
+                        if (result.status === 200) {
+                            db.Booking.update({
+                                bookingStatus: _bookingStatus,
+                            }, {
+                                where: {
+                                    bookingId: _bookingId
+                                },
+                                individualHooks: true,
+                            })
+                            db.Transaction.update({
+                                refundAmount: result.data.refundAmount,
+                                status: STATUS.REFUNDED
+                            }, {
+                                where: {
+                                    bookingId: _bookingId
+                                },
+                                individualHooks: true,
+                            })
+                        }
+                        return(result)
+                    })
                 }
             }
 
@@ -1143,7 +1139,6 @@ const updateBooking = (bookingId, bookingStatus, isAttended) => new Promise(asyn
                 msg: "Update booking successfully",
             }
         })
-
     } catch (error) {
         await t.rollback()
         console.log(error)
