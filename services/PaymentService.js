@@ -152,6 +152,11 @@ const refundMomo = async (bookingId, callback) => {
             where: {
                 bookingId: bookingId
             },
+            include: {
+                model: db.Booking,
+                as: "transaction_booking",
+                attributes: ["bookingCode"]
+            }
         })
         if (!transaction) {
             return {
@@ -182,7 +187,7 @@ const refundMomo = async (bookingId, callback) => {
             var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz"
             var requestId = partnerCode + new Date().getTime()
             var orderId = requestId
-            var description = "Refund calceled booking"
+            var description = "Refund canceled booking"
             var transId = transaction.transactionCode
 
             const departureDate = new Date(bookingDetail.booking_detail_ticket.ticket_tour.departureDate)
@@ -251,7 +256,7 @@ const refundMomo = async (bookingId, callback) => {
                         callback({
                             status: 200,
                             data: {
-                                msg: `Refund to booking ${bookingId}`,
+                                msg: `Refund to booking ${transaction.transaction_booking.bookingCode}`,
                                 refundAmount: amount
                             }
                         });
@@ -260,6 +265,7 @@ const refundMomo = async (bookingId, callback) => {
                             status: 400,
                             data: {
                                 msg: response.message,
+                                refundAmount: amount
                             }
                         });
                     }
