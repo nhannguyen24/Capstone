@@ -76,13 +76,12 @@ const updateTicket = async (req, res) => {
         const errors = []
         const ticketId = req.params.id || ""
         const ticketTypeId = req.body.ticketTypeId || ""
-        const tourId = req.body.tourId || ""
         const status = req.body.status || ""
 
         if(ticketId.trim() === ""){
             errors.push("Id required!")
         }
-        if(ticketTypeId.trim() === "" && tourId.trim() === "" && status.trim() === ""){
+        if(ticketTypeId.trim() === "" && status.trim() === ""){
             errors.push("Update field required!")
         }
 

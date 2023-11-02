@@ -2,7 +2,7 @@ const controllers = require('../controllers/FormController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
 const router = express.Router();
-const {isAdminOrManager, isTourguideOrDriver, isAdminOrManagerOrTourguideOrDriver} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 /**
  * @swagger
@@ -146,7 +146,7 @@ router.get("/:id", verifyToken, controllers.getFormById);
  *               items:
  *                 $ref: '#/components/schemas/Form'
  */
-router.post("/", verifyToken, isTourguideOrDriver, controllers.createForm);
+router.post("/", verifyToken, roleAuthen(["TourGuide", "Driver"]), controllers.createForm);
 
 /**
  * @swagger
@@ -179,6 +179,6 @@ router.post("/", verifyToken, isTourguideOrDriver, controllers.createForm);
  *               items:
  *                 $ref: '#/components/schemas/Form'
  */
-router.put("/:id", verifyToken, isAdminOrManagerOrTourguideOrDriver, controllers.updateForm);
+router.put("/:id", verifyToken, roleAuthen(["TourGuide", "Driver", "Manager"]), controllers.updateForm);
 
 module.exports = router;

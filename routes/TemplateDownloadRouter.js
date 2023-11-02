@@ -2,7 +2,7 @@ const controllers = require('../controllers/TemplateDownloadController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
 const router = express.Router();
-const {isAdminOrManager} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 /**
  * @swagger
@@ -20,6 +20,6 @@ const {isAdminOrManager} = require('../middlewares/VerifyRole');
  *             schema:
  *               type: string
  */
-router.get("/", verifyToken, isAdminOrManager, controllers.downloadTourTemplate);
+router.get("/", verifyToken, roleAuthen(["Manager"]), controllers.downloadTourTemplate);
 
 module.exports = router;

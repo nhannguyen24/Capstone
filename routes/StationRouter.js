@@ -2,7 +2,7 @@ const controllers = require('../controllers/StationController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
 const router = express.Router();
-const {isAdminOrManager} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 /**
  * @swagger
@@ -148,7 +148,7 @@ router.get("/:id", verifyToken, controllers.getStationById);
  *               items:
  *                 $ref: '#/components/schemas/Station'
  */
-router.post("/", verifyToken, isAdminOrManager, controllers.createStation);
+router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createStation);
 
 /**
  * @swagger
@@ -187,7 +187,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createStation);
  *               items:
  *                 $ref: '#/components/schemas/Station'
  */
-router.put("/:id", verifyToken, isAdminOrManager, controllers.updateStation);
+router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updateStation);
 
 /**
  * @swagger
@@ -213,6 +213,6 @@ router.put("/:id", verifyToken, isAdminOrManager, controllers.updateStation);
  *               items:
  *                 $ref: '#/components/schemas/Station'
  */
-router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteStation);
+router.delete("/:id", verifyToken, roleAuthen(["Manager"]), controllers.deleteStation);
 
 module.exports = router;

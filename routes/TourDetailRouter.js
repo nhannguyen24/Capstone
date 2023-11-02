@@ -2,7 +2,6 @@ const controllers = require('../controllers/TourDetailController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
 const router = express.Router();
-const {isAdminOrManager} = require('../middlewares/VerifyRole');
 
 /**
  * @swagger

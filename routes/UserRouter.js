@@ -1,7 +1,7 @@
 const controllers = require('../controllers/UserController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isAdmin, isLoggedIn, isCustomer} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -107,7 +107,7 @@ const router = express.Router();
  *               items:
  *                 $ref: '#/components/schemas/User'
  */
-router.get("/", verifyToken, isAdmin, controllers.getAllUsers);
+router.get("/", verifyToken, roleAuthen(["Admin"]), controllers.getAllUsers);
 
 /**
  * @swagger
@@ -133,7 +133,7 @@ router.get("/", verifyToken, isAdmin, controllers.getAllUsers);
  *               items:
  *                 $ref: '#/components/schemas/User'
  */
-router.get("/:id", verifyToken, isLoggedIn, controllers.getUserById);
+router.get("/:id", verifyToken, roleAuthen(["Admin", "Driver", "TourGuide", "Manager", "Customer"]), controllers.getUserById);
 
 /**
  * @swagger
@@ -163,7 +163,7 @@ router.get("/:id", verifyToken, isLoggedIn, controllers.getUserById);
  *               items:
  *                 $ref: '#/components/schemas/User'
  */
-router.post("/", verifyToken, isAdmin, controllers.createUser);
+router.post("/", verifyToken, roleAuthen(["Admin"]), controllers.createUser);
 
 /**
  * @swagger
@@ -204,7 +204,7 @@ router.post("/", verifyToken, isAdmin, controllers.createUser);
  *               items:
  *                 $ref: '#/components/schemas/User'
  */
-router.put("/:id", verifyToken, isAdmin, controllers.updateUser);
+router.put("/:id", verifyToken, roleAuthen(["Admin"]), controllers.updateUser);
 
 /**
  * @swagger
@@ -233,7 +233,7 @@ router.put("/:id", verifyToken, isAdmin, controllers.updateUser);
  *             schema:
  *               type: string
  */
-router.put("/change-password", verifyToken, isCustomer, controllers.updateUserPassword);
+router.put("/change-password", verifyToken, roleAuthen(["Customer"]), controllers.updateUserPassword);
 
 // /**
 //  * @swagger
@@ -292,6 +292,6 @@ router.put("/change-password", verifyToken, isCustomer, controllers.updateUserPa
  *               items:
  *                 $ref: '#/components/schemas/User'
  */
-router.delete("/:id", verifyToken, isAdmin, controllers.deleteUser);
+router.delete("/:id", verifyToken, roleAuthen(["Admin"]), controllers.deleteUser);
 
 module.exports = router;

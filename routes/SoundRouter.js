@@ -2,7 +2,7 @@ const controllers = require('../controllers/SoundController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
 const router = express.Router();
-const {isAdminOrManager} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 /**
  * @swagger
@@ -140,7 +140,7 @@ router.get("/:id", verifyToken, controllers.getFileSoundById);
  *               items:
  *                 $ref: '#/components/schemas/FileSound'
  */
-router.post("/", verifyToken, isAdminOrManager, controllers.createFileSound);
+router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createFileSound);
 
 /**
  * @swagger
@@ -177,7 +177,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createFileSound);
  *               items:
  *                 $ref: '#/components/schemas/FileSound'
  */
-router.put("/:id", verifyToken, isAdminOrManager, controllers.updateFileSound);
+router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updateFileSound);
 
 /**
  * @swagger
@@ -203,6 +203,6 @@ router.put("/:id", verifyToken, isAdminOrManager, controllers.updateFileSound);
  *               items:
  *                 $ref: '#/components/schemas/FileSound'
  */
-router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteFileSound);
+router.delete("/:id", verifyToken, roleAuthen(["Manager"]), controllers.deleteFileSound);
 
 module.exports = router;

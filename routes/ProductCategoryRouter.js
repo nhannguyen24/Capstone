@@ -2,7 +2,7 @@ const controllers = require('../controllers/ProductCategoryController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
 const router = express.Router();
-const {isAdminOrManager} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 /**
  * @swagger
@@ -127,7 +127,7 @@ router.get("/:id", verifyToken, controllers.getProductCategoryById);
  *               items:
  *                 $ref: '#/components/schemas/ProductCategory'
  */
-router.post("/", verifyToken, isAdminOrManager, controllers.createProductCategory);
+router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createProductCategory);
 
 /**
  * @swagger
@@ -162,7 +162,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createProductCategor
  *               items:
  *                 $ref: '#/components/schemas/ProductCategory'
  */
-router.put("/:id", verifyToken, isAdminOrManager, controllers.updateProductCategory);
+router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updateProductCategory);
 
 /**
  * @swagger
@@ -188,6 +188,6 @@ router.put("/:id", verifyToken, isAdminOrManager, controllers.updateProductCateg
  *               items:
  *                 $ref: '#/components/schemas/ProductCategory'
  */
-router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteProductCategory);
+router.delete("/:id", verifyToken, roleAuthen(["Manager"]), controllers.deleteProductCategory);
 
 module.exports = router;

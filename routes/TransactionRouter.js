@@ -1,7 +1,7 @@
 const controllers = require('../controllers/TransactionController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const { isAdminOrManager, isLoggedIn} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -63,7 +63,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isLoggedIn, controllers.getTransactions);
+router.get("/", verifyToken, roleAuthen(["Manager", "Customer"]), controllers.getTransactions);
 
 /**
  * @swagger
@@ -89,7 +89,7 @@ router.get("/", verifyToken, isLoggedIn, controllers.getTransactions);
  *             schema:
  *               type: object
  */
-router.get("/:id", verifyToken, isLoggedIn, controllers.getTransactionById);
+router.get("/:id", verifyToken, roleAuthen(["Manager", "Customer"]), controllers.getTransactionById);
 
 
 module.exports = router;
