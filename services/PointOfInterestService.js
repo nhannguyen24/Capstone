@@ -64,35 +64,33 @@ const getAllPointOfInterest = (
                                             ],
                                         },
                                     },
-                                    {
-                                        model: db.FileSound,
-                                        as: "poi_sound",
-                                        attributes: {
-                                            exclude: [
-                                                "createdAt",
-                                                "updatedAt",
-                                                "status",
-                                            ],
-                                        },
-                                        where: {
-                                            status: { [Op.ne]: STATUS.DEACTIVE }
-                                        },
-                                        include: [
-                                            {
-                                                model: db.Language,
-                                                as: "sound_language",
-                                                attributes: {
-                                                    exclude: [
-                                                        "createdAt",
-                                                        "updatedAt",
-                                                        "status",
-                                                    ],
-                                                },
-                                            }
-                                        ]
-                                    },
                                 ]
                             });
+
+                            for (const point of pois) {
+                                const soundOfPoint = await db.FileSound.findAll({
+                                    nest: true, 
+                                    where: {
+                                        status: { [Op.ne]: STATUS.DEACTIVE },
+                                        poiId: point.poiId
+                                    },
+                                    include: [
+                                        {
+                                            model: db.Language,
+                                            as: "sound_language",
+                                            attributes: {
+                                                exclude: [
+                                                    "createdAt",
+                                                    "updatedAt",
+                                                    "status",
+                                                ],
+                                            },
+                                        }
+                                    ]
+                                })
+
+                                point.dataValues.poi_sound = soundOfPoint;
+                            }
 
                             if (roleName !== "Admin") {
                                 redisClient.setEx(`pois_${page}_${limit}_${order}_${poiName}_${address}_${status}`, 3600, JSON.stringify(pois));
@@ -142,35 +140,34 @@ const getPointOfInterestById = (poiId) =>
                             ],
                         },
                     },
-                    {
-                        model: db.FileSound,
-                        as: "poi_sound",
-                        attributes: {
-                            exclude: [
-                                "createdAt",
-                                "updatedAt",
-                                "status",
-                            ],
-                        },
-                        where: {
-                            status: { [Op.ne]: STATUS.DEACTIVE }
-                        },
-                        include: [
-                            {
-                                model: db.Language,
-                                as: "sound_language",
-                                attributes: {
-                                    exclude: [
-                                        "createdAt",
-                                        "updatedAt",
-                                        "status",
-                                    ],
-                                },
-                            }
-                        ]
-                    },
                 ]
             });
+
+            for (const point of poi) {
+                const soundOfPoint = await db.FileSound.findAll({
+                    nest: true, 
+                    where: {
+                        status: { [Op.ne]: STATUS.DEACTIVE },
+                        poiId: point.poiId
+                    },
+                    include: [
+                        {
+                            model: db.Language,
+                            as: "sound_language",
+                            attributes: {
+                                exclude: [
+                                    "createdAt",
+                                    "updatedAt",
+                                    "status",
+                                ],
+                            },
+                        }
+                    ]
+                })
+
+                point.dataValues.poi_sound = soundOfPoint;
+            }
+            
             resolve({
                 status: poi ? 200 : 404,
                 data: {
