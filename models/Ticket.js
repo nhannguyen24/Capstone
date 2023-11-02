@@ -28,6 +28,8 @@ module.exports = (sequelize, DataTypes) => {
         otherKey: 'bookingId',
         as: "ticket_booking",
       });
+
+      Ticket.hasMany(models.BookingDetail, { as: 'ticket_booking_detail', foreignKey: 'ticketId'});
     }
   }
   Ticket.init({
