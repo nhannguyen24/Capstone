@@ -827,13 +827,13 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             transaction: t
                         });
 
-                        await db.Bus.update({
-                            status: STATUS.ONGOING,
-                        }, {
-                            where: { busId: chosenBus.busId },
-                            individualHooks: true,
-                            transaction: t
-                        });
+                        // await db.Bus.update({
+                        //     status: STATUS.ONGOING,
+                        // }, {
+                        //     where: { busId: chosenBus.busId },
+                        //     individualHooks: true,
+                        //     transaction: t
+                        // });
                     } else {
                         createTour = await db.Tour.findOrCreate({
                             where: {
