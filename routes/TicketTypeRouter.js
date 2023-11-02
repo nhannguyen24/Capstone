@@ -1,7 +1,7 @@
 const controllers = require('../controllers/TicketTypeController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isAdmin, isAdminOrManager} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -22,7 +22,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isAdminOrManager, controllers.getTicketTypes);
+router.get("/", verifyToken, roleAuthen(["Manager"]), controllers.getTicketTypes);
 
 /**
  * @swagger
@@ -47,7 +47,7 @@ router.get("/", verifyToken, isAdminOrManager, controllers.getTicketTypes);
  *             schema:
  *               type: object
  */
-router.get("/:id", verifyToken, isAdminOrManager, controllers.getTicketTypeById);
+router.get("/:id", verifyToken, roleAuthen(["Manager"]), controllers.getTicketTypeById);
 
 
 /**
@@ -88,7 +88,7 @@ router.get("/:id", verifyToken, isAdminOrManager, controllers.getTicketTypeById)
  *             schema:
  *               type: object
  */
-router.post("/", verifyToken, isAdminOrManager, controllers.createTicketType);
+router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createTicketType);
 
 /**
  * @swagger
@@ -129,31 +129,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createTicketType);
  *             schema:
  *               type: string
  */
-router.put("/:id", verifyToken, isAdminOrManager, controllers.updateTicketType);
+router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updateTicketType);
 
-// /**
-//  * @swagger
-//  * /api/v1/ticket-types/{id}:
-//  *   delete:
-//  *     security: 
-//  *         - BearerAuth: []
-//  *     summary: Update ticket-type status by id
-//  *     tags: [Ticket Type]
-//  *     parameters:
-//  *       - in: path
-//  *         name: id
-//  *         schema:
-//  *           type: string
-//  *           example: 7dc19b05-7f0b-409d-ab57-23cdcf728aa3
-//  *         required: true
-//  *     responses:
-//  *       200:
-//  *         description: OK
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: object
-//  */
-// router.delete("/:id", verifyToken, isAdmin, controllers.deleteTicketType);
 
 module.exports = router;

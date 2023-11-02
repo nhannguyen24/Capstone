@@ -1,7 +1,7 @@
 const controllers = require('../controllers/PriceController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isAdminOrManager} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -56,7 +56,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isAdminOrManager, controllers.getPrices);
+router.get("/", verifyToken, roleAuthen(["Manager"]), controllers.getPrices);
 
 /**
  * @swagger
@@ -104,7 +104,7 @@ router.get("/", verifyToken, isAdminOrManager, controllers.getPrices);
  *             schema:
  *               type: object
  */
-router.post("/", verifyToken, isAdminOrManager, controllers.createPrice);
+router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createPrice);
 
 /**
  * @swagger
@@ -129,7 +129,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createPrice);
  *             schema:
  *               type: object
  */
-router.get("/:id", verifyToken, isAdminOrManager, controllers.getPriceById);
+router.get("/:id", verifyToken, roleAuthen(["Manager"]), controllers.getPriceById);
 /**
  * @swagger
  * /api/v1/prices/{id}:
@@ -181,6 +181,6 @@ router.get("/:id", verifyToken, isAdminOrManager, controllers.getPriceById);
  *             schema:
  *               type: object
  */
-router.put("/:id", verifyToken, isAdminOrManager, controllers.updatePrice);
+router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updatePrice);
 
 module.exports = router;

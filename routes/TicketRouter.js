@@ -1,7 +1,7 @@
 const controllers = require('../controllers/TicketController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isAdmin, isAdminOrManager} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -49,7 +49,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isAdminOrManager, controllers.getTickets);
+router.get("/", verifyToken, roleAuthen(["Manager"]), controllers.getTickets);
 
 /**
  * @swagger
@@ -80,7 +80,7 @@ router.get("/", verifyToken, isAdminOrManager, controllers.getTickets);
  *             schema:
  *               type: string
  */
-router.get("/:id", verifyToken, isAdminOrManager, controllers.getTicketById);
+router.get("/:id", verifyToken, roleAuthen(["Manager"]), controllers.getTicketById);
 
 /**
  * @swagger
@@ -126,7 +126,7 @@ router.get("/:id", verifyToken, isAdminOrManager, controllers.getTicketById);
  *             schema:
  *               type: object
  */
-router.post("/", verifyToken, isAdminOrManager, controllers.createTicket);
+router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createTicket);
 
 /**
  * @swagger
@@ -150,8 +150,6 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createTicket);
  *              type: object
  *              properties:
  *                  ticketTypeId:
- *                      type: string
- *                  tourId:
  *                      type: string
  *                  status:
  *                      type: string
@@ -178,7 +176,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createTicket);
  *             schema:
  *               type: object
  */
-router.put("/:id", verifyToken, isAdminOrManager, controllers.updateTicket);
+router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updateTicket);
 
 /**
  * @swagger
@@ -215,6 +213,6 @@ router.put("/:id", verifyToken, isAdminOrManager, controllers.updateTicket);
  *             schema:
  *               type: object
  */
-router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteTicket);
+router.delete("/:id", verifyToken, roleAuthen(["Manager"]), controllers.deleteTicket);
 
 module.exports = router;

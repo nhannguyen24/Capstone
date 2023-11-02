@@ -2,7 +2,7 @@ const controllers = require('../controllers/TourController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
 const router = express.Router();
-const {isAdminOrManager, isAdminOrManagerOrTourguideOrDriver} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 const multer = require('multer');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -187,7 +187,7 @@ router.get("/:id", controllers.getTourById);
  *               items:
  *                 $ref: '#/components/schemas/Tour'
  */
-router.post("/", verifyToken, isAdminOrManager, controllers.createTour);
+router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createTour);
 
 /**
  * @swagger
@@ -217,7 +217,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createTour);
  *               items:
  *                 $ref: '#/components/schemas/Tour'
  */
-router.post("/upload", upload.single('file'), verifyToken, isAdminOrManager, controllers.createTourByFile);
+router.post("/upload", upload.single('file'), verifyToken, roleAuthen(["Manager"]), controllers.createTourByFile);
 
 /**
  * @swagger
@@ -264,7 +264,7 @@ router.post("/upload", upload.single('file'), verifyToken, isAdminOrManager, con
  *               items:
  *                 $ref: '#/components/schemas/Tour'
  */
-router.put("/:id", verifyToken, isAdminOrManagerOrTourguideOrDriver, controllers.updateTour);
+router.put("/:id", verifyToken, roleAuthen(["Manager", "TourGuide", "Driver"]), controllers.updateTour);
 
 /**
  * @swagger
@@ -284,7 +284,7 @@ router.put("/:id", verifyToken, isAdminOrManagerOrTourguideOrDriver, controllers
  *               items:
  *                 $ref: '#/components/schemas/Tour'
  */
-router.put("/assigned-tours", verifyToken, isAdminOrManager, controllers.assignTour);
+router.put("/assigned-tours", verifyToken, roleAuthen(["Manager"]), controllers.assignTour);
 
 /**
  * @swagger
@@ -310,6 +310,6 @@ router.put("/assigned-tours", verifyToken, isAdminOrManager, controllers.assignT
  *               items:
  *                 $ref: '#/components/schemas/Tour'
  */
-router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteTour);
+router.delete("/:id", verifyToken, roleAuthen(["Manager"]), controllers.deleteTour);
 
 module.exports = router;

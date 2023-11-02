@@ -1,7 +1,7 @@
 const controllers = require('../controllers/ReportController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isCustomer, isAdminOrManager, isLoggedIn} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -49,7 +49,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isLoggedIn, controllers.getReports);
+router.get("/", verifyToken, roleAuthen(["Manager", "Customer", "TourGuide", "Driver"]), controllers.getReports);
 
 /**
  * @swagger
@@ -74,7 +74,7 @@ router.get("/", verifyToken, isLoggedIn, controllers.getReports);
  *             schema:
  *               type: object
  */
-router.get("/:id", verifyToken, isLoggedIn, controllers.getReportsById);
+router.get("/:id", verifyToken, roleAuthen(["Manager", "Customer", "TourGuide", "Driver"]), controllers.getReportsById);
 
 /**
  * @swagger
@@ -117,7 +117,7 @@ router.get("/:id", verifyToken, isLoggedIn, controllers.getReportsById);
  *             schema:
  *               type: object
  */
-router.post("/", verifyToken, isLoggedIn, controllers.createReport);
+router.post("/", verifyToken, roleAuthen(["Manager", "Customer", "TourGuide", "Driver"]), controllers.createReport);
 
 /**
  * @swagger
@@ -170,6 +170,6 @@ router.post("/", verifyToken, isLoggedIn, controllers.createReport);
  *             schema:
  *               type: string
  */
-router.put("/:id", verifyToken, isAdminOrManager, controllers.updateReport);
+router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updateReport);
 
 module.exports = router;

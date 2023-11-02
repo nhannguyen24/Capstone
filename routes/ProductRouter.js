@@ -2,7 +2,7 @@ const controllers = require('../controllers/ProductController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
 const router = express.Router();
-const {isAdminOrManager} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 /**
  * @swagger
@@ -141,7 +141,7 @@ router.get("/:id", verifyToken, controllers.getProductById);
  *               items:
  *                 $ref: '#/components/schemas/Product'
  */
-router.post("/", verifyToken, isAdminOrManager, controllers.createProduct);
+router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createProduct);
 
 /**
  * @swagger
@@ -180,7 +180,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createProduct);
  *               items:
  *                 $ref: '#/components/schemas/Product'
  */
-router.put("/:id", verifyToken, isAdminOrManager, controllers.updateProduct);
+router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updateProduct);
 
 /**
  * @swagger
@@ -206,6 +206,6 @@ router.put("/:id", verifyToken, isAdminOrManager, controllers.updateProduct);
  *               items:
  *                 $ref: '#/components/schemas/Product'
  */
-router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteProduct);
+router.delete("/:id", verifyToken, roleAuthen(["Manager"]), controllers.deleteProduct);
 
 module.exports = router;

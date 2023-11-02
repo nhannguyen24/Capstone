@@ -43,7 +43,7 @@ const validateOtp = (req) => new Promise(async (resolve, reject) => {
         const otpMatches = await bcrypt.compare(otpCode, otp.otpCode);
         if (!otpMatches) {
             resolve({
-                status: 400,
+                status: 401,
                 data: {
                     msg: `Incorrect OTP!`,
                 }
@@ -60,7 +60,7 @@ const validateOtp = (req) => new Promise(async (resolve, reject) => {
         })
 
         resolve({
-            status: 200,
+            status: 202,
             data: {
                 msg: `OTP validation success`,
             }
@@ -112,9 +112,9 @@ const sendOtpToEmail = async (email, userId, fullName, otpType) => {
         }
 
         return {
-            status: 200,
+            status: 403,
             data: {
-                msg: `Otp sent to email: ${email} `,
+                msg: `Otp required! A new otp sent to email: ${email}`,
                 otp: { otpId: otp.otpId, otpType: otpType }
             }
         };

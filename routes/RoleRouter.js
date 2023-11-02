@@ -1,7 +1,7 @@
 const controllers = require('../controllers/RoleController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isAdmin} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -48,6 +48,6 @@ const router = express.Router();
  *               items:
  *                 $ref: '#/components/schemas/Role'
  */
-router.get("/", verifyToken, isAdmin, controllers.getAllRoles);
+router.get("/", verifyToken, roleAuthen(["Admin"]), controllers.getAllRoles);
 
 module.exports = router;

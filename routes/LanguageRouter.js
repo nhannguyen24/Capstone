@@ -2,7 +2,7 @@ const controllers = require('../controllers/LanguageController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
 const router = express.Router();
-const {isAdminOrManager} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 /**
  * @swagger
@@ -127,7 +127,7 @@ router.get("/:id", verifyToken, controllers.getLanguageById);
  *               items:
  *                 $ref: '#/components/schemas/Language'
  */
-router.post("/", verifyToken, isAdminOrManager, controllers.createLanguage);
+router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createLanguage);
 
 /**
  * @swagger
@@ -162,7 +162,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createLanguage);
  *               items:
  *                 $ref: '#/components/schemas/Language'
  */
-router.put("/:id", verifyToken, isAdminOrManager, controllers.updateLanguage);
+router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updateLanguage);
 
 /**
  * @swagger
@@ -188,6 +188,6 @@ router.put("/:id", verifyToken, isAdminOrManager, controllers.updateLanguage);
  *               items:
  *                 $ref: '#/components/schemas/Language'
  */
-router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteLanguage);
+router.delete("/:id", verifyToken, roleAuthen(["Manager"]), controllers.deleteLanguage);
 
 module.exports = router;

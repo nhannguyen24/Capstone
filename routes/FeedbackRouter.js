@@ -1,7 +1,7 @@
 const controllers = require('../controllers/FeedbackController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isCustomer, isAdminOrManager, isLoggedIn, isCustomerOrManager, isManager} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -95,7 +95,7 @@ router.get("/", controllers.getFeedbacks);
  *             schema:
  *               type: object
  */
-router.post("/", verifyToken, isCustomer, controllers.createFeedback);
+router.post("/", verifyToken, roleAuthen(["Customer"]), controllers.createFeedback);
 
 /**
  * @swagger
@@ -120,7 +120,7 @@ router.post("/", verifyToken, isCustomer, controllers.createFeedback);
  *             schema:
  *               type: object
  */
-router.get("/:id", verifyToken, isManager, controllers.getFeedbackById);
+router.get("/:id", verifyToken, roleAuthen(["Manager"]), controllers.getFeedbackById);
 
 /**
  * @swagger
@@ -173,7 +173,7 @@ router.get("/:id", verifyToken, isManager, controllers.getFeedbackById);
  *             schema:
  *               type: string
  */
-router.put("/:id", verifyToken, isCustomerOrManager, controllers.updateFeedback);
+router.put("/:id", verifyToken, roleAuthen(["Manager", "Customer"]), controllers.updateFeedback);
 
 /**
  * @swagger
@@ -204,6 +204,6 @@ router.put("/:id", verifyToken, isCustomerOrManager, controllers.updateFeedback)
  *             schema:
  *               type: string
  */
-router.delete("/:id", verifyToken, isCustomerOrManager, controllers.deleteFeedback);
+router.delete("/:id", verifyToken, roleAuthen(["Manager", "Customer"]), controllers.deleteFeedback);
 
 module.exports = router;

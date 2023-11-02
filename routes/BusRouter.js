@@ -1,7 +1,7 @@
 const controllers = require('../controllers/BusController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isAdminOrManager} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -57,7 +57,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isAdminOrManager, controllers.getBuses);
+router.get("/", verifyToken, roleAuthen(["Manager"]), controllers.getBuses);
 
 
 /**
@@ -106,7 +106,7 @@ router.get("/", verifyToken, isAdminOrManager, controllers.getBuses);
  *             schema:
  *               type: object
  */
-router.post("/", verifyToken, isAdminOrManager, controllers.createBus);
+router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createBus);
 
 /**
  * @swagger
@@ -131,7 +131,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createBus);
  *             schema:
  *               type: object
  */
-router.get("/:id", verifyToken, isAdminOrManager, controllers.getBusById);
+router.get("/:id", verifyToken, roleAuthen(["Manager"]), controllers.getBusById);
 
 /**
  * @swagger
@@ -186,7 +186,7 @@ router.get("/:id", verifyToken, isAdminOrManager, controllers.getBusById);
  *             schema:
  *               type: string
  */
-router.put("/:id", verifyToken, isAdminOrManager, controllers.updateBus);
+router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updateBus);
 
 /**
  * @swagger
@@ -223,6 +223,6 @@ router.put("/:id", verifyToken, isAdminOrManager, controllers.updateBus);
  *             schema:
  *               type: string
  */
-router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteBus);
+router.delete("/:id", verifyToken, roleAuthen(["Manager"]), controllers.deleteBus);
 
 module.exports = router;

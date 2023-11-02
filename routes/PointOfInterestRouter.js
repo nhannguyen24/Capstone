@@ -2,7 +2,7 @@ const controllers = require('../controllers/PointOfInterestController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
 const router = express.Router();
-const {isAdminOrManager} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 /**
  * @swagger
@@ -149,7 +149,7 @@ router.get("/:id", verifyToken, controllers.getPointOfInterestById);
  *               items:
  *                 $ref: '#/components/schemas/PointOfInterest'
  */
-router.post("/", verifyToken, isAdminOrManager, controllers.createPointOfInterest);
+router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createPointOfInterest);
 
 /**
  * @swagger
@@ -190,7 +190,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createPointOfInteres
  *               items:
  *                 $ref: '#/components/schemas/PointOfInterest'
  */
-router.put("/:id", verifyToken, isAdminOrManager, controllers.updatePointOfInterest);
+router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updatePointOfInterest);
 
 /**
  * @swagger
@@ -216,6 +216,6 @@ router.put("/:id", verifyToken, isAdminOrManager, controllers.updatePointOfInter
  *               items:
  *                 $ref: '#/components/schemas/PointOfInterest'
  */
-router.delete("/:id", verifyToken, isAdminOrManager, controllers.deletePointOfInterest);
+router.delete("/:id", verifyToken, roleAuthen(["Manager"]), controllers.deletePointOfInterest);
 
 module.exports = router;

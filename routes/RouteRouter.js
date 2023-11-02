@@ -2,7 +2,7 @@ const controllers = require('../controllers/RouteController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
 const router = express.Router();
-const {isAdminOrManager} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 /**
  * @swagger
@@ -155,7 +155,7 @@ router.get("/:id", verifyToken, controllers.getRouteById);
  *               items:
  *                 $ref: '#/components/schemas/Route'
  */
-router.post("/", verifyToken, isAdminOrManager, controllers.createRoute);
+router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createRoute);
 
 /**
  * @swagger
@@ -190,7 +190,7 @@ router.post("/", verifyToken, isAdminOrManager, controllers.createRoute);
  *               items:
  *                 $ref: '#/components/schemas/Route'
  */
-router.put("/:id", verifyToken, isAdminOrManager, controllers.updateRoute);
+router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updateRoute);
 
 /**
  * @swagger
@@ -216,6 +216,6 @@ router.put("/:id", verifyToken, isAdminOrManager, controllers.updateRoute);
  *               items:
  *                 $ref: '#/components/schemas/Route'
  */
-router.delete("/:id", verifyToken, isAdminOrManager, controllers.deleteRoute);
+router.delete("/:id", verifyToken, roleAuthen(["Manager"]), controllers.deleteRoute);
 
 module.exports = router;

@@ -2,7 +2,7 @@ const controllers = require('../controllers/AnnouncementController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
 const router = express.Router();
-const {isManager, isAdminOrManagerOrTourguideOrDriver} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 /**
  * @swagger
@@ -76,7 +76,7 @@ const {isManager, isAdminOrManagerOrTourguideOrDriver} = require('../middlewares
  *               items:
  *                 $ref: '#/components/schemas/Announcement'
  */
-router.get("/", verifyToken, isAdminOrManagerOrTourguideOrDriver, controllers.getAllAnnouncement);
+router.get("/", verifyToken, roleAuthen(["Manager", "TourGuide", "Driver"]), controllers.getAllAnnouncement);
 
 /**
  * @swagger
@@ -102,7 +102,7 @@ router.get("/", verifyToken, isAdminOrManagerOrTourguideOrDriver, controllers.ge
  *               items:
  *                 $ref: '#/components/schemas/Announcement'
  */
-router.get("/:id", verifyToken, isAdminOrManagerOrTourguideOrDriver, controllers.getAnnouncementById);
+router.get("/:id", verifyToken, roleAuthen(["Manager", "TourGuide", "Driver"]), controllers.getAnnouncementById);
 
 /**
  * @swagger
@@ -131,7 +131,7 @@ router.get("/:id", verifyToken, isAdminOrManagerOrTourguideOrDriver, controllers
  *               items:
  *                 $ref: '#/components/schemas/Announcement'
  */
-router.post("/", verifyToken, isManager, controllers.createAnnouncement);
+router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createAnnouncement);
 
 /**
  * @swagger
@@ -167,7 +167,7 @@ router.post("/", verifyToken, isManager, controllers.createAnnouncement);
  *               items:
  *                 $ref: '#/components/schemas/Announcement'
  */
-router.put("/", verifyToken, isManager, controllers.updateAnnouncement);
+router.put("/", verifyToken, roleAuthen(["Manager"]), controllers.updateAnnouncement);
 
 /**
  * @swagger
@@ -193,6 +193,6 @@ router.put("/", verifyToken, isManager, controllers.updateAnnouncement);
  *               items:
  *                 $ref: '#/components/schemas/Announcement'
  */
-router.delete("/:id", verifyToken, isManager, controllers.deleteAnnouncement);
+router.delete("/:id", verifyToken, roleAuthen(["Manager"]), controllers.deleteAnnouncement);
 
 module.exports = router;

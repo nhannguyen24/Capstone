@@ -1,7 +1,7 @@
 const controllers = require('../controllers/BookingController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {isLoggedIn} = require('../middlewares/VerifyRole');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -80,7 +80,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, isLoggedIn, controllers.getBookings);
+router.get("/", verifyToken, roleAuthen(["Manager", "TourGuide", "Customer"]), controllers.getBookings);
 
 /**
  * @swagger
@@ -256,6 +256,8 @@ router.post("/web", controllers.createBookingWeb);
  * @swagger
  * /api/v1/bookings/offline:
  *   post:
+ *     security: 
+ *         - BearerAuth: []
  *     summary: Create new booking for offline booking
  *     tags: [Booking]
  *     requestBody:
@@ -312,7 +314,7 @@ router.post("/web", controllers.createBookingWeb);
  *             schema:
  *               type: string
  */
-router.post("/offline", controllers.createBookingOffline);
+router.post("/offline", verifyToken, roleAuthen(["TourGuide"]), controllers.createBookingOffline);
 
 /**
  * @swagger
@@ -346,7 +348,7 @@ router.post("/offline", controllers.createBookingOffline);
  *             schema:
  *               type: string
  */
-router.put("/checkin/:id", controllers.checkInQrCode);
+router.put("/checkin/:id", verifyToken, roleAuthen(["Manager", "TourGuide"]), controllers.checkInQrCode);
 
 /**
  * @swagger
