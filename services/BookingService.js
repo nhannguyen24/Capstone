@@ -611,7 +611,6 @@ const createBookingWeb = (req) => new Promise(async (resolve, reject) => {
         const tickets = req.body.tickets
         const products = req.body.products || []
         let totalPrice = req.body.totalPrice
-        const birthday = new Date(user.birthday)
         const departureStationId = req.body.departureStationId
         /**
          * Checking if Admin or Manager not allow to book
@@ -620,7 +619,7 @@ const createBookingWeb = (req) => new Promise(async (resolve, reject) => {
             where: {
                 email: user.email
             },
-            defaults: { email: user.email, userName: user.userName, phone: user.phone, birthday: birthday, roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3" }
+            defaults: { email: user.email, userName: user.userName, phone: user.phone, roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3" }
         })
         if ("58c10546-5d71-47a6-842e-84f5d2f72ec3" !== resultUser[0].dataValues.roleId) {
             resolve({
@@ -1123,7 +1122,6 @@ const createBookingOffline = (req) => new Promise(async (resolve, reject) => {
          */
         let totalDistance = 0
         let distanceToBookedDepartureStation = 0
-        let discountPrice = 0
         if (_routeSegments.length > 0) {
             for (const segment of _routeSegments) {
                 if (segment.index < _routeSegment.index) {
@@ -1131,13 +1129,15 @@ const createBookingOffline = (req) => new Promise(async (resolve, reject) => {
                 }
                 totalDistance += parseFloat(segment.distance)
             }
-            
-            for (const ticket of ticketList) {
-                const pricePerMeter = (ticket.price.amount * ticket.quantity) / parseFloat(totalDistance)
-                discountPrice = discountPrice + (distanceToBookedDepartureStation * pricePerMeter)
+            const discountPercentage  = parseFloat(distanceToBookedDepartureStation) / parseFloat(totalDistance)
+            /**
+             * 0.5 = 50%
+             */
+            if(discountPercentage >= 0.5){
+                totalPrice = totalPrice * discountPercentage
+            } else {
+                totalPrice = totalPrice * discountPercentage
             }
-            
-            totalPrice = discountPrice
         }
         /**
          * Begin booking creation process and roll back if error
@@ -1145,12 +1145,12 @@ const createBookingOffline = (req) => new Promise(async (resolve, reject) => {
         let booking
         try {
             await db.sequelize.transaction(async (t) => {
-                booking = await db.Booking.create({ totalPrice: totalPrice, customerId: resultUser.userId, departureStationId: station.stationId, bookingStatus: BOOKING_STATUS.ON_GOING }, { transaction: t });
+                booking = await db.Booking.create({ totalPrice: totalPrice, customerId: resultUser.userId, departureStationId: station.stationId, isAttended: true, bookingStatus: BOOKING_STATUS.DRAFT }, { transaction: t });
 
-                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, status: STATUS.PAID }, { transaction: t })
+                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, status: STATUS.DRAFT }, { transaction: t })
 
                 for (const ticket of ticketList) {
-                    await db.BookingDetail.create({ TicketPrice: ticket.price.amount, bookingId: booking.bookingId, ticketId: ticket.ticketId, quantity: ticket.quantity, status: STATUS.ACTIVE }, { transaction: t });
+                    await db.BookingDetail.create({ TicketPrice: ticket.price.amount, bookingId: booking.bookingId, ticketId: ticket.ticketId, quantity: ticket.quantity, status: STATUS.DRAFT }, { transaction: t });
                 }
             })
         } catch (error) {
@@ -1160,7 +1160,8 @@ const createBookingOffline = (req) => new Promise(async (resolve, reject) => {
         resolve({
             status: 201,
             data: {
-                msg: "Booking tickets successfuly",
+                msg: "Please pay to finish booking process",
+                bookingId: booking.bookingId,
                 totalPrice: totalPrice
             }
         })
@@ -1298,7 +1299,7 @@ const cancelBooking = (bookingId) => new Promise(async (resolve, reject) => {
         })
         if (!bookingDetail) {
             resolve({
-                status: 200,
+                status: 404,
                 data: {
                     msg: `Booking not found!`,
                 }

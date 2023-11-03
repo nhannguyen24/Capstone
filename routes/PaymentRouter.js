@@ -38,6 +38,28 @@ const router = express.Router();
  */
 router.post("/", controllers.paymentMomo);
 
+/**
+ * @swagger
+ * /api/v1/payments/offline:
+ *   put:
+ *     summary: Pay booking offline
+ *     tags: [Payment]
+ *     parameters:
+ *       - in: query
+ *         name: bookingId
+ *         schema:
+ *           type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ */
+router.put("/offline", controllers.paymentOffline);
+
 router.post("/momo-ipn", controllers.getPaymentMomo);
 
 module.exports = router;
