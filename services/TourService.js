@@ -1,5 +1,5 @@
 const db = require("../models");
-const { Op } = require("sequelize");
+const { Op, sequelize } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
 const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
@@ -269,6 +269,26 @@ const getAllTour = (
                         })
                         tour.dataValues.departureStation = departureStation;
                         delete tour.dataValues.departureStationId;
+
+                        const feedbacks = await db.Feedback.findAll({
+                            where: {
+                                routeId: tour.tour_route.routeId,
+                                status: STATUS.ACTIVE
+                            },
+                            attributes: {
+                                exclude: ["userId"]
+                            }
+                        })
+
+                        let totalStars = 0
+                        let avgStars = 0
+                        if(feedbacks.length > 0){
+                            for(const feedback of feedbacks){
+                                totalStars += feedback.stars
+                            }
+                            avgStars = totalStars / feedbacks.length
+                        }
+                        tour.dataValues.avgStars = avgStars
                     }
 
                     redisClient.setEx(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}`, 3600, JSON.stringify(tours));
@@ -502,6 +522,23 @@ const getTourById = (tourId) =>
                 // Now, departureDate holds the endTime
                 const endDate = departureDate.toISOString();
                 tour.dataValues.endDate = endDate;
+
+                const feedbacks = await db.Feedback.findAll({
+                    where: {
+                        routeId: tour.tour_route.routeId,
+                        status: STATUS.ACTIVE
+                    },
+                    include: {
+                        model: db.User,
+                        as: "feedback_user",
+                        attributes: ["userName"]
+                    },
+                    attributes: {
+                        exclude: ["userId"]
+                    }
+                })
+
+                tour.dataValues.feedbacks = feedbacks
             }
 
             resolve({

@@ -10,6 +10,18 @@ const paymentMomo = async (req, res) => {
         throw new InternalServerError(error);
     }
 }
+const paymentOffline = async (req, res) => {
+    try {
+        const bookingId = req.query.bookingId || ""
+        if(bookingId.trim() === ""){
+            throw BadRequestError("bookingId required!")
+        }
+        const response = await services.paymentOffline(bookingId);
+        return res.status(response.status).json(response.data);
+    } catch (error) {
+        throw new InternalServerError(error);
+    }
+}
 
 const getPaymentMomo = async (req, res) => {
     try {
@@ -20,4 +32,4 @@ const getPaymentMomo = async (req, res) => {
     }
 }
 
-module.exports = { paymentMomo, getPaymentMomo }
+module.exports = { paymentMomo, getPaymentMomo, paymentOffline }

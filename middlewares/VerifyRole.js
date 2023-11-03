@@ -3,7 +3,6 @@ const { UnauthenticatedError } = require('../errors/Index');
 const roleAuthen = (roles) => {
   return (req, res, next) => {
     const { roleName } = req.user;
-    console.log(roleName)
     if (roles.length === 0) {
       next();
     } else {
