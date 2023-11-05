@@ -475,4 +475,93 @@ function calculateTotalTime(routeSegments, startTime, departureStationId) {
     return new Date(totalTime);
 }
 
-module.exports = { createMoMoPaymentRequest, refundMomo, getMoMoPaymentResponse }
+const paymentOffline = (bookingId) => new Promise(async (resolve, reject) => {
+    try {
+        const _bookingId = bookingId
+        const bookingDetail = await db.BookingDetail.findOne({
+            where: {
+                bookingId: _bookingId
+            },
+            attributes: ["bookingDetailId"],
+            include: [
+                {
+                    model: db.Booking,
+                    as: "detail_booking",
+                    where: {
+                        bookingId: _bookingId
+                    },
+                }
+            ]
+        })
+        if (!bookingDetail) {
+            resolve({
+                status: 404,
+                data: {
+                    msg: `Booking not found!`,
+                }
+            })
+        }
+
+        const transaction = await db.Transaction.findOne({
+            where: {
+                bookingId: _bookingId
+            }
+        })
+
+        if(!transaction){
+            resolve({
+                status: 404,
+                data: {
+                    msg: `Booking not found!`,
+                }
+            })
+        } else {
+            if(transaction.isSuccess){
+                resolve({
+                    status: 403,
+                    data: {
+                        msg: `Booking paid!`,
+                    }
+                }) 
+            } else {
+                db.Booking.update({
+                    bookingStatus: BOOKING_STATUS.ON_GOING
+                }, {
+                    where: {
+                        bookingId: bookingId
+                    }, individualHooks: true,
+                })
+
+                db.BookingDetail.update({
+                    status: STATUS.ACTIVE
+                }, {
+                    where: {
+                        bookingId: bookingId
+                    }, individualHooks: true,
+                })
+
+                db.Transaction.update({
+                    isSuccess: true,
+                    status: STATUS.PAID
+                }, {
+                    where: {
+                        bookingId: bookingId
+                    }, individualHooks: true,
+                })
+
+                resolve({
+                    status: 200,
+                    data: {
+                        msg: 'Payment processed successfully'
+                    }
+                })
+            }
+        }
+        
+    } catch (error) {
+        console.log(error)
+        reject(error);
+    }
+});
+
+module.exports = { createMoMoPaymentRequest, refundMomo, getMoMoPaymentResponse, paymentOffline }
