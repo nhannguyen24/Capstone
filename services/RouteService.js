@@ -175,6 +175,7 @@ const getAllRoute = (
                             } else {
                                 redisClient.setEx(`admin_routes_${page}_${limit}_${order}_${routeName}_${status}_${tour}`, 3600, JSON.stringify(routes));
                             }
+                            
                             resolve({
                                 status: routes ? 200 : 404,
                                 data: {
@@ -445,7 +446,7 @@ const createRoute = ({ routeName, ...body }) =>
                         });
                     });
                 });
-
+                
             });
 
         } catch (error) {
@@ -511,6 +512,7 @@ const updateRoute = (id, body) =>
                         });
                     });
                 });
+                
             }
         } catch (error) {
             reject(error.message);
@@ -570,7 +572,7 @@ const deleteRoute = (id) =>
                     });
                 });
             });
-
+            
         } catch (error) {
             reject(error);
         }

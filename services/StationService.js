@@ -53,6 +53,7 @@ const getAllStation = (
                             } else {
                                 redisClient.setEx(`admin_stations_${page}_${limit}_${order}_${stationName}_${address}_${status}`, 3600, JSON.stringify(stations));
                             }
+                            
                             resolve({
                                 status: stations ? 200 : 404,
                                 data: {
@@ -131,6 +132,7 @@ const createStation = ({ stationName, ...body }) =>
                     });
                 });
             });
+            
 
         } catch (error) {
             reject(error);
@@ -188,6 +190,7 @@ const updateStation = (id, body) =>
                         });
                     });
                 });
+                
             }
         } catch (error) {
             reject(error.message);
@@ -245,7 +248,7 @@ const deleteStation = (id) =>
                     });
                 });
             });
-
+            
         } catch (error) {
             reject(error);
         }

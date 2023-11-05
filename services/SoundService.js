@@ -80,6 +80,7 @@ const getAllFileSound = (
                             } else {
                                 redisClient.setEx(`admin_sounds_${page}_${limit}_${order}_${status}_${poiId}_${languageId}`, 3600, JSON.stringify(sounds));
                             }
+                            
                             resolve({
                                 status: sounds ? 200 : 404,
                                 data: {
@@ -217,7 +218,7 @@ const createFileSound = (body) =>
                     });
                 });
             });
-
+            
         } catch (error) {
             resolve({
                 status: 400,
@@ -292,7 +293,7 @@ const updateFileSound = (id, body) =>
                     });
                 });
             });
-
+            
             redisClient.keys('*pois_*', (error, keys) => {
                 if (error) {
                     console.error('Error retrieving keys:', error);
@@ -309,6 +310,7 @@ const updateFileSound = (id, body) =>
                     });
                 });
             });
+            
         } catch (error) {
             reject(error.message);
         }
@@ -382,7 +384,7 @@ const deleteFileSound = (id) =>
                     });
                 });
             });
-
+            
         } catch (error) {
             reject(error);
         }

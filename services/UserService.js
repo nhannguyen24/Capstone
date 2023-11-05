@@ -54,6 +54,7 @@ const getAllUsers = ({ page, limit, order, userName, email, status, roleName, ..
             ],
           });
           redisClient.setEx(`user_paging_${page}_${limit}_${order}_${userName}_${email}_${status}_${roleName}`, 3600, JSON.stringify(users));
+          
 
           resolve({
             status: users ? 200 : 404,
@@ -162,6 +163,7 @@ const createUser = ({ ...body }) =>
           });
         });
       });
+      
     } catch (error) {
       reject(error);
     }
@@ -199,7 +201,7 @@ const updateUser = (id, body) =>
           });
         });
       });
-
+      
     } catch (error) {
       reject(error.message);
     }
@@ -305,6 +307,7 @@ const deleteUser = (id, userId) =>
             });
           });
         });
+        
       }
     } catch (error) {
       reject(error);
@@ -377,6 +380,23 @@ const updateUserPassword = (req) =>
         });
       }
 
+      redisClient.keys('user_paging*', (error, keys) => {
+        if (error) {
+          console.error('Error retrieving keys:', error);
+          return;
+        }
+        // Delete each key individually
+        keys.forEach((key) => {
+          redisClient.del(key, (deleteError, reply) => {
+            if (deleteError) {
+              console.error(`Error deleting key ${key}:`, deleteError);
+            } else {
+              console.log(`Key ${key} deleted successfully`);
+            }
+          });
+        });
+      });
+      
 
     } catch (error) {
       console.log(error)

@@ -54,6 +54,11 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  *         schema:
  *           type: string
  *         description: Find form by change employee id
+ *       - name: createdDate
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Find form by create date (2023-11-10)
  *       - name: status
  *         in: query
  *         schema:

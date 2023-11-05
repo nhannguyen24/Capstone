@@ -64,6 +64,7 @@ const getAllAnnouncement = (
                             } else {
                                 redisClient.setEx(`admin_announcements_${page}_${limit}_${order}_${title}_${status}`, 3600, JSON.stringify(announcements));
                             }
+                            
                             resolve({
                                 status: announcements ? 200 : 404,
                                 data: {
@@ -152,7 +153,7 @@ const createAnnouncement = ({ title, ...body }, userId) =>
                     });
                 });
             });
-
+            
         } catch (error) {
             reject(error);
         }
@@ -212,6 +213,7 @@ const updateAnnouncement = ({ announcementId, ...body }) =>
                         });
                     });
                 });
+                
             }
         } catch (error) {
             reject(error.message);
@@ -269,7 +271,7 @@ const deleteAnnouncement = (announcementId) =>
                     });
                 });
             });
-
+            
         } catch (error) {
             reject(error);
         }
