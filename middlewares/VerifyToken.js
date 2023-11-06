@@ -9,7 +9,7 @@ const auth = (req, res, next) => {
     throw new UnauthenticatedError("Authentication invalid");
   }
   const token = authHeader.split(" ")[1];
-    const user = jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    const verify = jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
         if (err) {
           const isChecked = err instanceof TokenExpiredError;
           if (!isChecked) throw new UnauthenticatedError("Access token invalid");
