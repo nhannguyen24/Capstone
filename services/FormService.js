@@ -3,7 +3,7 @@ const { Op } = require("sequelize");
 const STATUS = require("../enums/ReportStatusEnum")
 
 const getAllForm = (
-    { page, limit, order, userId, changeEmployee, status, ...query }
+    { page, limit, order, userId, changeEmployee, status, createdDate, ...query }
 ) =>
     new Promise(async (resolve, reject) => {
         try {
@@ -19,6 +19,7 @@ const getAllForm = (
             if (userId) query.userId = { [Op.eq]: userId };
             if (changeEmployee) query.changeEmployee = { [Op.eq]: changeEmployee };
             if (status) query.status = { [Op.eq]: status };
+            if (createdDate) query.createdDate = { [Op.gte]: createdDate };
             const forms = await db.Form.findAll({
                 where: query,
                 ...queries,

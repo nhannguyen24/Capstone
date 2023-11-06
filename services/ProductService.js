@@ -72,6 +72,7 @@ const getAllProduct = (
                             } else {
                                 redisClient.setEx(`admin_products_${page}_${limit}_${order}_${productName}_${status}_${productCateId}`, 3600, JSON.stringify(products));
                             }
+                            
                             resolve({
                                 status: products ? 200 : 404,
                                 data: {
@@ -180,7 +181,7 @@ const createProduct = ({ images, productName, ...body }) =>
                     });
                 });
             });
-
+            
         } catch (error) {
             reject(error);
         }
@@ -254,6 +255,7 @@ const updateProduct = (id, { images, ...body }) =>
                         });
                     });
                 });
+                
             }
         } catch (error) {
             reject(error.message);
@@ -313,7 +315,7 @@ const deleteProduct = (id) =>
                     });
                 });
             });
-
+            
         } catch (error) {
             reject(error);
         }

@@ -9,11 +9,11 @@ const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", 
 const readXlsxFile = require('read-excel-file/node')
 
 const getAllTour = (
-    { page, limit, order, tourName, address, tourStatus, status, routeId, tourGuideId, driverId, ...query }
+    { page, limit, order, tourName, address, tourStatus, status, routeId, tourGuideId, driverId, departureDate, endDate, ...query }
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}`, async (error, tour) => {
+            redisClient.get(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}_${departureDate}_${endDate}`, async (error, tour) => {
                 if (tour != null && tour != "") {
                     resolve({
                         status: 200,
@@ -42,6 +42,8 @@ const getAllTour = (
                     if (status) query.status = { [Op.eq]: status };
                     if (tourGuideId) query.tourGuideId = { [Op.eq]: tourGuideId };
                     if (driverId) query.driverId = { [Op.eq]: driverId };
+                    if (departureDate) query.departureDate = { [Op.gte]: departureDate };
+                    if (endDate) query.departureDate = { [Op.lte]: endDate };
 
                     const tours = await db.Tour.findAll({
                         where: query,
@@ -291,8 +293,8 @@ const getAllTour = (
                         tour.dataValues.avgStars = avgStars
                     }
 
-                    redisClient.setEx(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}`, 3600, JSON.stringify(tours));
-
+                    redisClient.setEx(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}_${departureDate}_${endDate}`, 3600, JSON.stringify(tours));
+                    
                     resolve({
                         status: tours ? 200 : 404,
                         data: {
@@ -301,7 +303,6 @@ const getAllTour = (
                         }
                     });
                 }
-
             })
         } catch (error) {
             reject(error);
@@ -985,21 +986,25 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             tour: createTour[1] ? createTour[0].dataValues : null,
                             assignResult: availableTourGuide.length > 0 && availableDriver.length > 0 && availableBuses.length > 0 && createTour[1]
                                 ? "Assign employee to tour successfully!"
-                                : 'Cannot employee to tour',
+                                : 'Cannot assign employee to tour',
                         }
                     });
+
                     redisClient.keys('*tours_*', (error, keys) => {
                         if (error) {
                             console.error('Error retrieving keys:', error);
                             return;
                         }
-                        // Delete each key individually
+                        // Insert new tour into each key individually
                         keys.forEach((key) => {
-                            redisClient.del(key, (deleteError, reply) => {
-                                if (deleteError) {
-                                    console.error(`Error deleting key ${key}:`, deleteError);
+                            redisClient.get(key, (error, tour) => {
+                                if (error) {
+                                    console.error(`Error getting key ${key}:`, error);
                                 } else {
-                                    console.log(`Key ${key} deleted successfully`);
+                                    // console.log(`Key ${key} deleted successfully`);
+                                    let arrayTours = JSON.parse(tour);
+                                    let newArrayTour = [createTour[0].dataValues, ...arrayTours]
+                                    redisClient.setEx(key, 3600, JSON.stringify(newArrayTour));
                                 }
                             });
                         });
@@ -1321,6 +1326,23 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
             }
             i++
         }
+        redisClient.keys('*tours_*', (error, keys) => {
+            if (error) {
+                console.error('Error retrieving keys:', error);
+                return;
+            }
+            // Delete each key individually
+            keys.forEach((key) => {
+                redisClient.del(key, (deleteError, reply) => {
+                    if (deleteError) {
+                        console.error(`Error deleting key ${key}:`, deleteError);
+                    } else {
+                        console.log(`Key ${key} deleted successfully`);
+                    }
+                });
+            });
+        });
+        
         await t.commit();
         resolve({
             status: 201,
@@ -1610,6 +1632,7 @@ const assignTour = () =>
                             });
                         });
                     });
+                    
                 }
 
                 resolve({
@@ -1902,6 +1925,7 @@ const updateTour = (id, { images, ...body }) =>
                                 });
                             });
                         });
+                        
                     }
                 }
                 await t.commit();

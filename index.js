@@ -41,9 +41,10 @@ const options = {
       },
     },
     tags: [
-      { name: "Auth" },
+      { name: "Authentication" },
       { name: "User" },
       { name: "Tour" }, 
+      { name: "Route" },
       { name: "Template" }, 
       { name: "Booking" }, 
       { name: "OTP" }, 

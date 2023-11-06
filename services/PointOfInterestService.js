@@ -97,6 +97,7 @@ const getAllPointOfInterest = (
                             } else {
                                 redisClient.setEx(`admin_pois_${page}_${limit}_${order}_${poiName}_${address}_${status}`, 3600, JSON.stringify(pois));
                             }
+                            
                             resolve({
                                 status: pois ? 200 : 404,
                                 data: {
@@ -229,7 +230,7 @@ const createPointOfInterest = ({ images, poiName, ...body }) =>
                     });
                 });
             });
-
+            
         } catch (error) {
             reject(error);
         }
@@ -302,6 +303,7 @@ const updatePointOfInterest = (id, { images, ...body }) =>
                         });
                     });
                 });
+                
             }
         } catch (error) {
             reject(error.message);
@@ -360,7 +362,7 @@ const deletePointOfInterest = (id) =>
                     });
                 });
             });
-
+            
         } catch (error) {
             reject(error);
         }

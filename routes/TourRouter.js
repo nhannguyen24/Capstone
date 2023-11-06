@@ -81,6 +81,16 @@ const upload = multer({ storage: storage });
  *         schema:
  *           type: string
  *         description: Find tour by driverId
+ *       - name: departureDate
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Find tour by departure date (2023-11-10)
+ *       - name: endDate
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Find tour by end date (2023-11-10)
  *       - name: tourStatus
  *         in: query
  *         schema:
@@ -187,7 +197,7 @@ router.get("/:id", controllers.getTourById);
  *               items:
  *                 $ref: '#/components/schemas/Tour'
  */
-router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createTour);
+router.post("/", verifyToken, roleAuthen(["Admin", "Manager"]), controllers.createTour);
 
 /**
  * @swagger
