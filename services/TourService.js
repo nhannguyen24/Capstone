@@ -990,25 +990,43 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                         }
                     });
 
+                    // redisClient.keys('*tours_*', (error, keys) => {
+                    //     if (error) {
+                    //         console.error('Error retrieving keys:', error);
+                    //         return;
+                    //     }
+                    //     // Insert new tour into each key individually
+                    //     keys.forEach((key) => {
+                    //         redisClient.get(key, (error, tour) => {
+                    //             if (error) {
+                    //                 console.error(`Error getting key ${key}:`, error);
+                    //             } else {
+                    //                 // console.log(`Key ${key} deleted successfully`);
+                    //                 let arrayTours = JSON.parse(tour);
+                    //                 let newArrayTour = [createTour[0].dataValues, ...arrayTours]
+                    //                 redisClient.setEx(key, 3600, JSON.stringify(newArrayTour));
+                    //             }
+                    //         });
+                    //     });
+                    // });
+
                     redisClient.keys('*tours_*', (error, keys) => {
                         if (error) {
                             console.error('Error retrieving keys:', error);
                             return;
                         }
-                        // Insert new tour into each key individually
+                        // Delete each key individually
                         keys.forEach((key) => {
-                            redisClient.get(key, (error, tour) => {
-                                if (error) {
-                                    console.error(`Error getting key ${key}:`, error);
+                            redisClient.del(key, (deleteError, reply) => {
+                                if (deleteError) {
+                                    console.error(`Error deleting key ${key}:`, deleteError);
                                 } else {
-                                    // console.log(`Key ${key} deleted successfully`);
-                                    let arrayTours = JSON.parse(tour);
-                                    let newArrayTour = [createTour[0].dataValues, ...arrayTours]
-                                    redisClient.setEx(key, 3600, JSON.stringify(newArrayTour));
+                                    console.log(`Key ${key} deleted successfully`);
                                 }
                             });
                         });
                     });
+                    
                 }
                 await t.commit();
             });
@@ -2468,21 +2486,38 @@ const cloneTour = (id, body) =>
                             }
                         });
 
+                        // redisClient.keys('*tours_*', (error, keys) => {
+                        //     if (error) {
+                        //         console.error('Error retrieving keys:', error);
+                        //         return;
+                        //     }
+                        //     // Insert new tour into each key individually
+                        //     keys.forEach((key) => {
+                        //         redisClient.get(key, (error, tour) => {
+                        //             if (error) {
+                        //                 console.error(`Error getting key ${key}:`, error);
+                        //             } else {
+                        //                 // console.log(`Key ${key} deleted successfully`);
+                        //                 let arrayTours = JSON.parse(tour);
+                        //                 let newArrayTour = [createTour.dataValues, ...arrayTours]
+                        //                 redisClient.setEx(key, 3600, JSON.stringify(newArrayTour));
+                        //             }
+                        //         });
+                        //     });
+                        // });
+
                         redisClient.keys('*tours_*', (error, keys) => {
                             if (error) {
                                 console.error('Error retrieving keys:', error);
                                 return;
                             }
-                            // Insert new tour into each key individually
+                            // Delete each key individually
                             keys.forEach((key) => {
-                                redisClient.get(key, (error, tour) => {
-                                    if (error) {
-                                        console.error(`Error getting key ${key}:`, error);
+                                redisClient.del(key, (deleteError, reply) => {
+                                    if (deleteError) {
+                                        console.error(`Error deleting key ${key}:`, deleteError);
                                     } else {
-                                        // console.log(`Key ${key} deleted successfully`);
-                                        let arrayTours = JSON.parse(tour);
-                                        let newArrayTour = [createTour.dataValues, ...arrayTours]
-                                        redisClient.setEx(key, 3600, JSON.stringify(newArrayTour));
+                                        console.log(`Key ${key} deleted successfully`);
                                     }
                                 });
                             });
