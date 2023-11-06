@@ -1,9 +1,9 @@
 const db = require('../models')
 const { Op } = require('sequelize')
-const cron = require('node-cron')
 const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
 const BOOKING_STATUS = require("../enums/BookingStatusEnum")
+const PaymentService = require('../services/PaymentService')
 
 async function deleteExpiredOtp() {
   console.log("Delete expired otp starting...")
@@ -52,11 +52,7 @@ async function cancelTourAndRefundIfUnderbooked() {
     if (tours.length === 0) {
       console.log("No under booked tour were found.")
     } else {
-      // tours.map((tourId) => {
-      //   console.log(tourId)
-      // })
-      console.log(tours)
-      //for (const tourId of tours) {
+      for (const tour of tours) {
         const bookings = await db.BookingDetail.findAll({
           raw: true,
           nest: true,
@@ -65,7 +61,7 @@ async function cancelTourAndRefundIfUnderbooked() {
               model: db.Ticket,
               as: "booking_detail_ticket",
               where: {
-                tourId: '067a26be-f5dd-4d53-892b-f45104113f98'
+                tourId: tour.tourId
               }
             },
             {
@@ -77,10 +73,18 @@ async function cancelTourAndRefundIfUnderbooked() {
               }
             }
           ],
-          //group: "bookingId"
         })
-        //console.log(bookings)
-      //}
+
+        var totalBookedTickets = 0
+        bookings.map((booking) => {
+          totalBookedTickets += booking.quantity
+        })
+
+        if(totalBookedTickets < 5){
+          console.log("Cancel Tour and Refund for tour: ", tour.tourId)
+          PaymentService.refundMomo()
+        }
+      }
     }
   } catch (error) {
     console.error('Error cancel and refund under booked tours:', error)

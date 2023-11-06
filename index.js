@@ -45,8 +45,8 @@ const options = {
       { name: "User" },
       { name: "Tour" }, 
       { name: "Route" },
-      { name: "Template" }, 
       { name: "Booking" }, 
+      { name: "Template" }, 
       { name: "OTP" }, 
       { name: "Payment" }, 
       { name: "Transaction" }, 
@@ -74,7 +74,7 @@ const start = () => {
         deleteExpiredOtp()
         deleteUnPaidBooking()
       })
-      // cron.schedule('*/2 * * * *', () => {
+      // cron.schedule('* * * * *', () => {
       //   cancelTourAndRefundIfUnderbooked()
       // })
     });
