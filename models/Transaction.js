@@ -27,7 +27,6 @@ module.exports = (sequelize, DataTypes) => {
     },
     transactionCode: DataTypes.STRING,
     amount: DataTypes.INTEGER,
-    isSuccess: DataTypes.BOOLEAN,
     refundAmount: DataTypes.INTEGER,
     bookingId: {
       type: DataTypes.UUID

@@ -54,7 +54,7 @@ const getAllUsers = ({ page, limit, order, userName, email, status, roleName, ..
             ],
           });
           redisClient.setEx(`user_paging_${page}_${limit}_${order}_${userName}_${email}_${status}_${roleName}`, 3600, JSON.stringify(users));
-          
+
 
           resolve({
             status: users ? 200 : 404,
@@ -163,7 +163,7 @@ const createUser = ({ ...body }) =>
           });
         });
       });
-      
+
     } catch (error) {
       reject(error);
     }
@@ -201,7 +201,7 @@ const updateUser = (id, body) =>
           });
         });
       });
-      
+
     } catch (error) {
       reject(error.message);
     }
@@ -307,7 +307,7 @@ const deleteUser = (id, userId) =>
             });
           });
         });
-        
+
       }
     } catch (error) {
       reject(error);
@@ -333,52 +333,52 @@ const updateUserPassword = (req) =>
           }
         })
       }
-      const otp = await db.Otp.findOne({
+      // const otp = await db.Otp.findOne({
+      //   where: {
+      //     userId: userId,
+      //     otpType: OTP_TYPE.CHANGE_PASSWORD
+      //   }
+      // })
+      // if (!otp) {
+      //   const data = await OtpService.sendOtpToEmail(user.email, userId, user.userName, OTP_TYPE.CHANGE_PASSWORD)
+      //   if (data) {
+      //     resolve(data);
+      //   } else {
+      //     resolve({
+      //       status: 409,
+      //       data: {
+      //         msg: `Mail sent failed`,
+      //       }
+      //     });
+      //   }
+      // }
+      // if (!otp.isAllow) {
+      //   resolve({
+      //     status: 403,
+      //     data: {
+      //       msg: `Action not allow, Please validate OTP!`,
+      //     }
+      //   });
+      // }
+
+      const updateUser = await db.User.update({
+        password: hashPassword(newPassword)
+      }, {
         where: {
-          userId: userId,
-          otpType: OTP_TYPE.CHANGE_PASSWORD
-        }
+          userId: userId
+        }, individualHooks: true
       })
-      if (!otp) {
-        const data = await OtpService.sendOtpToEmail(user.email, userId, user.userName, OTP_TYPE.CHANGE_PASSWORD)
-        if (data) {
-          resolve(data);
-        } else {
-          resolve({
-            status: 409,
-            data: {
-              msg: `Mail sent failed`,
-            }
-          });
-        }
-      } else {
-        if (!otp.isAllow) {
-          resolve({
-            status: 403,
-            data: {
-              msg: `Action not allow, Please validate OTP!`,
-            }
-          });
-        }
 
-        const updateUser = await db.User.update({
-          password: hashPassword(newPassword)
-        }, {
-          where: {
-            userId: userId
-          }, individualHooks: true
-        })
+      resolve({
+        status: updateUser[0] ? 200 : 400,
+        data: {
+          msg:
+            updateUser[0] > 0
+              ? "Change password successfully"
+              : "Cannot change password",
+        }
+      });
 
-        resolve({
-          status: updateUser[0] ? 200 : 400,
-          data: {
-            msg:
-              updateUser[0] > 0
-                ? "Change password successfully"
-                : "Cannot change password",
-          }
-        });
-      }
 
       redisClient.keys('user_paging*', (error, keys) => {
         if (error) {
@@ -396,7 +396,7 @@ const updateUserPassword = (req) =>
           });
         });
       });
-      
+
 
     } catch (error) {
       console.log(error)
