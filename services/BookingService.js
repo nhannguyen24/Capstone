@@ -81,7 +81,7 @@ const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject)
             where: {
                 bookingId: booking.bookingId
             },
-            attributes: ["transactionId", "amount", "refundAmount", "isSuccess", "status"]
+            attributes: ["transactionId", "amount", "refundAmount", "status"]
         })
 
         const productOrder = await db.ProductOrder.findAll({
@@ -310,7 +310,7 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
                     where: {
                         bookingId: bookingId
                     },
-                    attributes: ["transactionId", "amount", "refundAmount", "isSuccess", "status"]
+                    attributes: ["transactionId", "amount", "refundAmount", "status"]
                 })
                 if (bookingDetails.length > 1) {
                     for (let i = 0; i < bookingDetails.length; i++) {
@@ -421,38 +421,38 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
             whereClause.customerId = user.userId;
         }
 
-        const otp = await db.Otp.findOne({
-            where: {
-                otpType: OTP_TYPE.GET_BOOKING_EMAIL,
-                userId: user.userId
-            }
-        })
+        // const otp = await db.Otp.findOne({
+        //     where: {
+        //         otpType: OTP_TYPE.GET_BOOKING_EMAIL,
+        //         userId: user.userId
+        //     }
+        // })
 
-        if (!otp) {
-            const data = await OtpService.sendOtpToEmail(user.email, user.userId, user.userName, OTP_TYPE.GET_BOOKING_EMAIL)
-            if (data) {
-                resolve(data);
-                return
-            } else {
-                resolve({
-                    status: 409,
-                    data: {
-                        msg: `Mail sent failed`,
-                    }
-                });
-                return
-            }
-        }
+        // if (!otp) {
+        //     const data = await OtpService.sendOtpToEmail(user.email, user.userId, user.userName, OTP_TYPE.GET_BOOKING_EMAIL)
+        //     if (data) {
+        //         resolve(data);
+        //         return
+        //     } else {
+        //         resolve({
+        //             status: 409,
+        //             data: {
+        //                 msg: `Mail sent failed`,
+        //             }
+        //         });
+        //         return
+        //     }
+        // }
 
-        if (!otp.isAllow) {
-            resolve({
-                status: 403,
-                data: {
-                    msg: `Action not allow, Please validate OTP!`,
-                }
-            });
-            return
-        }
+        // if (!otp.isAllow) {
+        //     resolve({
+        //         status: 403,
+        //         data: {
+        //             msg: `Action not allow, Please validate OTP!`,
+        //         }
+        //     });
+        //     return
+        // }
 
         if (bookingCode.trim() !== "") {
             whereClause.bookingCode = {
@@ -607,7 +607,7 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
                     where: {
                         bookingId: bookingId
                     },
-                    attributes: ["transactionId", "amount", "refundAmount", "isSuccess", "status"]
+                    attributes: ["transactionId", "amount", "refundAmount", "status"]
                 })
                 if (bookingDetails.length > 1) {
                     for (let i = 0; i < bookingDetails.length; i++) {
@@ -1408,36 +1408,36 @@ const cancelBooking = (bookingId) => new Promise(async (resolve, reject) => {
         const userId = bookingDetail.detail_booking.booking_user.userId
         const email = bookingDetail.detail_booking.booking_user.email
         const userName = bookingDetail.detail_booking.booking_user.userName
-        const otp = await db.Otp.findOne({
-            where: {
-                otpType: OTP_TYPE.CANCEL_BOOKING,
-                userId: bookingDetail.detail_booking.booking_user.userId
-            }
-        })
-        if (!otp) {
-            const data = await OtpService.sendOtpToEmail(email, userId, userName, OTP_TYPE.CANCEL_BOOKING)
-            if (data) {
-                resolve(data)
-            } else {
-                resolve({
-                    status: 409,
-                    data: {
-                        msg: `Mail sent failed`,
-                    }
-                })
-            }
-        }
+        // const otp = await db.Otp.findOne({
+        //     where: {
+        //         otpType: OTP_TYPE.CANCEL_BOOKING,
+        //         userId: bookingDetail.detail_booking.booking_user.userId
+        //     }
+        // })
+        // if (!otp) {
+        //     const data = await OtpService.sendOtpToEmail(email, userId, userName, OTP_TYPE.CANCEL_BOOKING)
+        //     if (data) {
+        //         resolve(data)
+        //     } else {
+        //         resolve({
+        //             status: 409,
+        //             data: {
+        //                 msg: `Mail sent failed`,
+        //             }
+        //         })
+        //     }
+        // }
 
-        if (!otp.isAllow) {
-            resolve({
-                status: 403,
-                data: {
-                    msg: `Action not allow, Please validate OTP!`,
-                }
-            })
-        }
+        // if (!otp.isAllow) {
+        //     resolve({
+        //         status: 403,
+        //         data: {
+        //             msg: `Action not allow, Please validate OTP!`,
+        //         }
+        //     })
+        // }
 
-        if (transaction.isSuccess === false) {
+        if (transaction.status === STATUS.DRAFT) {
             resolve({
                 status: 400,
                 data: {
@@ -1447,7 +1447,6 @@ const cancelBooking = (bookingId) => new Promise(async (resolve, reject) => {
         }
 
         PaymentService.refundMomo(_bookingId, (refundResult) => {
-            console.log(refundResult)
             if (refundResult.status !== 200) {
                 resolve(refundResult)
             } else {

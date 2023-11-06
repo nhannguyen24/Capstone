@@ -36,7 +36,7 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
                 })
                 return
             } else {
-                if (transaction.isSuccess === true) {
+                if (transaction.status === STATUS.PAID) {
                     resolve({
                         status: 400,
                         data: {
@@ -166,11 +166,11 @@ const refundMomo = async (bookingId, callback) => {
                 }
             }
         } else {
-            if (transaction.isSuccess === false) {
+            if (transaction.status === STATUS.DRAFT) {
                 return {
                     status: 403,
                     data: {
-                        msg: `Booking not paid!`,
+                        msg: `Transaction not paid!`,
                     }
                 }
             } else if(transaction.status === STATUS.REFUNDED){
@@ -421,7 +421,6 @@ const getMoMoPaymentResponse = (req) =>
                 })
 
                 db.Transaction.update({
-                    isSuccess: true,
                     transactionCode: ipnData.transId,
                     status: STATUS.PAID
                 }, {
@@ -433,7 +432,7 @@ const getMoMoPaymentResponse = (req) =>
                 resolve({
                     status: 200,
                     data: {
-                        msg: 'Payment processed successfully'
+                        msg: 'Payment process successfully'
                     }
                 })
             } else {
@@ -512,11 +511,11 @@ const paymentOffline = (bookingId) => new Promise(async (resolve, reject) => {
             resolve({
                 status: 404,
                 data: {
-                    msg: `Booking not found!`,
+                    msg: `Transaction not found!`,
                 }
             })
         } else {
-            if(transaction.isSuccess){
+            if(transaction.status === STATUS.PAID){
                 resolve({
                     status: 403,
                     data: {
@@ -541,7 +540,6 @@ const paymentOffline = (bookingId) => new Promise(async (resolve, reject) => {
                 })
 
                 db.Transaction.update({
-                    isSuccess: true,
                     status: STATUS.PAID
                 }, {
                     where: {
