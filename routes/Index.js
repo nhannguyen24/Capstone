@@ -27,7 +27,7 @@ const sound = require('./SoundRouter');
 const templateDownload = require('./TemplateDownloadRouter');
 
 const form = require('./FormRouter');
-
+const statictics = require('./TourDetailRouter');
 const trackingStation = require('./TourDetailRouter');
 const trackingCoordinate = require('./TrackingRouter');
 
@@ -70,6 +70,7 @@ const initRoutes = (app) => {
     app.use('/api/v1/forms', form);
     app.use('/api/v1/trackings/stations', trackingStation);
     app.use('/api/v1/trackings/coordinates', trackingCoordinate);
+    app.use('/api/v1/statistics', statictics);
 
 
     // app.post('/api/v1/payments/momo-ipn');

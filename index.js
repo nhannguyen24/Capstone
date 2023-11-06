@@ -1,5 +1,6 @@
 require("dotenv").config();
-
+const cron = require('node-cron');
+const {deleteExpiredOtp, deleteUnPaidBooking, cancelTourAndRefundIfUnderbooked} = require('./BackgroundJobs/jobScheduling')
 const express = require("express");
 const app = express();
 const cors = require("cors");
@@ -68,6 +69,13 @@ const start = () => {
   try {
     app.listen(PORT, () => {
       console.log(`Server is listening on ${PORT}...`);
+      cron.schedule('*/30 * * * *', () => {
+        deleteExpiredOtp()
+        deleteUnPaidBooking()
+      })
+      // cron.schedule('*/2 * * * *', () => {
+      //   cancelTourAndRefundIfUnderbooked()
+      // })
     });
   } catch (error) {
     console.log(error);
