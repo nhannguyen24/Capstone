@@ -59,7 +59,7 @@ const createTicket = async (req, res) => {
         }
         if(tourId.trim() === ""){
             errors.push("tourId required!")
-        }
+        }  
         if (errors.length === 0) {
             const response = await services.createTicket(req);
             return res.status(response.status).json(response.data);

@@ -1,8 +1,9 @@
 const db = require('../models');
 const { Op, sequelize } = require('sequelize');
-const REPORT_STATUS = require("../enums/ReportStatusEnum")
+const REPORT_STATUS = require("../enums/ReportStatusEnum");
+const { StatusCodes } = require('http-status-codes');
 
-const getReports = (req) => new Promise(async (resolve, reject) => {
+const getReports = async (req) => {
     try {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
@@ -22,8 +23,26 @@ const getReports = (req) => new Promise(async (resolve, reject) => {
                     model: db.User,
                     as: "report_user",
                     attributes: ["userId", "userName"],
+                    include: {
+                        model: db.Role,
+                        as: "user_role",
+                        attributes: ["roleId", "roleName"],
+                    }
+                },
+                {
+                    model: db.User,
+                    as: "response_user",
+                    attributes: ["userId", "userName"],
+                    include: {
+                        model: db.Role,
+                        as: "user_role",
+                        attributes: ["roleId", "roleName"],
+                    }
                 },
             ],
+            attributes: {
+                exclude: ["reportUserId", "responseUserId"]
+            },
             limit: limit,
             offset: offset
         });
@@ -31,8 +50,8 @@ const getReports = (req) => new Promise(async (resolve, reject) => {
             where: whereClause,
         });
 
-        resolve({
-            status: 200,
+        return{
+            status: StatusCodes.OK,
             data: {
                 msg: `Get reports successfully`,
                 paging: {
@@ -42,14 +61,14 @@ const getReports = (req) => new Promise(async (resolve, reject) => {
                 },
                 reports: reports,
             },
-        });
+        }
 
     } catch (error) {
-        reject(error);
+        console.error(error);
     }
-});
+}
 
-const getReportsById = (req) => new Promise(async (resolve, reject) => {
+const getReportsById = async (req) => {
     try {
         const reportId = req.params.id
         const report = await db.Report.findOne({
@@ -65,74 +84,87 @@ const getReportsById = (req) => new Promise(async (resolve, reject) => {
             ],
         });
 
-        resolve({
-            status: report ? 200 : 404,
+        return{
+            status: report ? StatusCodes.OK : StatusCodes.NOT_FOUND,
             data: report ? {
                 msg: `Get report successfully`,
                 report: report
             } : {
                 msg: `No report found with Id: ${reportId}`,
             }
-        });
-
+        }
     } catch (error) {
-        reject(error);
+        console.error(error);
     }
-});
+}
 
-const createReport = (req) => new Promise(async (resolve, reject) => {
+const createReport = async (req) => {
     try {
-        const customerId = req.body.customerId
+        const reportUserId = req.body.reportUserId
         const title = req.body.title
         const description = req.body.description
 
-        const loggedInUser = req.body.userId
-        if(customerId !== loggedInUser){
-            resolve({
-                status: 404,
+        const loggedInUser = req.user.userId
+        if(reportUserId !== loggedInUser){
+            return{
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Cannot report using other account`
                 }
-            })
+            }
         }
         //check user
         const user = await db.User.findOne({
             where: {
-                userId: customerId
+                userId: reportUserId
             }
         })
 
         if (!user) {
-            resolve({
-                status: 404,
+            return{
+                status: StatusCodes.NOT_FOUND,
                 data: {
-                    msg: `User not found!",`
+                    msg: `User not found!`
                 }
-            })
+            }
         }
 
-        const setUpReport = { customerId: user.userId, title: title, description: description, reportStatus: REPORT_STATUS.SUBMITTED }
+        const setUpReport = { reportUserId: reportUserId, title: title, description: description, reportStatus: REPORT_STATUS.SUBMITTED }
         const report = await db.Report.create(setUpReport);
 
-        resolve({
-            status: report ? 201 : 400,
+        return{
+            status: report ? StatusCodes.CREATED : StatusCodes.BAD_REQUEST,
             data: {
                 msg: report ? 'Create report successfully' : 'Failed to create report',
                 report: report
             }
-        });
+        }
     } catch (error) {
-        reject(error);
+        console.error(error);
     }
-});
+}
 
-const updateReport = (req) => new Promise(async (resolve, reject) => {
+const updateReport = async (req) => {
     const t = await db.sequelize.transaction();
     try {
         const reportId = req.params.id || ""
+        const responseUserId = req.body.responseUserId || ""
         const response = req.body.response || ""
         const reportStatus = req.body.reportStatus || ""
 
+        const user = await db.User.findOne({
+            where: {
+                userId: responseUserId
+            }
+        })
+        if(!user){
+            return {
+                status: StatusCodes.NOT_FOUND,
+                data: {
+                    msg: "Response user not found!"
+                }
+            }
+        }
         const updateReport = {}
         const report = await db.Report.findOne({
             where: {
@@ -141,13 +173,27 @@ const updateReport = (req) => new Promise(async (resolve, reject) => {
         })
 
         if (!report) {
-            resolve({
-                status: 404,
+            return{
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Report not found!`,
                 }
-            })
-            return
+            }
+        }
+
+        if(report.responseUserId !== null || report.responseUserId !== undefined){
+            if(report.responseUserId !== responseUserId){
+                return{
+                    status: StatusCodes.FORBIDDEN,
+                    data: {
+                        msg: `A response from another manager has been recorded for this report!`,
+                    }
+                }
+            }
+        }
+
+        if (responseUserId !== "") {
+            updateReport.responseUserId = responseUserId
         }
 
         if (response !== "") {
@@ -168,17 +214,16 @@ const updateReport = (req) => new Promise(async (resolve, reject) => {
 
         await t.commit()
 
-        resolve({
-            status: 200,
+        return{
+            status: StatusCodes.OK,
             data: {
                 msg: "Update report successfully",
             }
-        })
-
+        }
     } catch (error) {
         await t.rollback()
-        reject(error);
+        console.error(error);
     }
-});
+}
 
 module.exports = { getReports, getReportsById, createReport, updateReport };

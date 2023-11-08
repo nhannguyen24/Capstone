@@ -1,8 +1,10 @@
 const db = require('../models');
 const { Op } = require('sequelize');
 const STATUS = require("../enums/StatusEnum")
-const DAY = require("../enums/PriceDayEnum")
-const getPrices = (req) => new Promise(async (resolve, reject) => {
+const DAY = require("../enums/PriceDayEnum");
+const { StatusCodes } = require('http-status-codes');
+
+const getPrices = async (req) => {
     try {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
@@ -31,8 +33,8 @@ const getPrices = (req) => new Promise(async (resolve, reject) => {
             where: whereClause,
         });
 
-        resolve({
-            status: 200,
+        return{
+            status: StatusCodes.OK,
             data: {
                 msg: `Get prices successfully`,
                 paging: {
@@ -42,14 +44,14 @@ const getPrices = (req) => new Promise(async (resolve, reject) => {
                 },
                 prices: prices
             }
-        });
+        }
 
     } catch (error) {
-        reject(error);
+        console.error(error);
     }
-});
+}
 
-const getPriceById = (req) => new Promise(async (resolve, reject) => {
+const getPriceById = async (req) =>{
     try {
         const priceId = req.params.id
         const price = await db.Price.findOne({
@@ -58,8 +60,8 @@ const getPriceById = (req) => new Promise(async (resolve, reject) => {
             }
         });
 
-        resolve({
-            status: price ? 200 : 404,
+        return{
+            status: price ? StatusCodes.OK : StatusCodes.NOT_FOUND,
             data: price ? {
                 msg: `Get price successfully`,
                 price: price
@@ -67,14 +69,13 @@ const getPriceById = (req) => new Promise(async (resolve, reject) => {
                 msg: `Price not found`,
                 price: {}
             }
-        });
-
+        }
     } catch (error) {
-        reject(error);
+        console.error(error);
     }
-});
+}
 
-const createPrice = (req) => new Promise(async (resolve, reject) => {
+const createPrice = async (req) =>{
     try {
         const amount = req.body.amount
         const ticketTypeId = req.body.ticketTypeId
@@ -87,30 +88,29 @@ const createPrice = (req) => new Promise(async (resolve, reject) => {
         })
 
         if (!ticketType) {
-            resolve({
-                status: 404,
+            return{
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `TicketType not found with id "${ticketTypeId}"`,
                 }
-            })
-            return
+            }
         }
 
         const price = await db.Price.create({ ticketTypeId: ticketTypeId, amount: amount, day: day });
 
-        resolve({
-            status: 201,
+        return{
+            status: StatusCodes.CREATED,
             data: {
                 msg: 'Create price successfully',
                 price: price
             }
-        });
+        }
     } catch (error) {
-        reject(error);
+        console.error(error);
     }
-});
+}
 
-const updatePrice = (req) => new Promise(async (resolve, reject) => {
+const updatePrice = async (req) => {
     const t = await db.sequelize.transaction();
     try {
         const priceId = req.params.id
@@ -128,12 +128,12 @@ const updatePrice = (req) => new Promise(async (resolve, reject) => {
         })
 
         if (!price) {
-            resolve({
-                status: 404,
+            return{
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Price not found!`,
                 }
-            })
+            }
         }
 
         if (amount !== "") {
@@ -152,17 +152,16 @@ const updatePrice = (req) => new Promise(async (resolve, reject) => {
 
         await t.commit()
 
-        resolve({
-            status: 200,
+        return{
+            status: StatusCodes.OK,
             data: {
                 msg: "Update price successfully",
             }
-        })
-
+        }
     } catch (error) {
         await t.rollback()
-        reject(error);
+        console.error(error);
     }
-});
+}
 
 module.exports = { getPrices, getPriceById, createPrice, updatePrice };

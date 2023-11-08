@@ -53,20 +53,20 @@ const getReportsById = async (req, res) => {
 const createReport = async (req, res) => {
     try {
         const errors = []
-        const customerId = req.body.customerId || ""
-        const title = req.body.reponse || ""
-        const description = req.body.reponse || ""
+        const reportUserId = req.body.reportUserId || ""
+        const title = req.body.title || ""
+        const description = req.body.description || ""
 
-        if (customerId.trim() === "") {
-            errors.push("customerId required!")
+        if (reportUserId.trim() === "") {
+            errors.push("Report user required!")
         }
 
         if(title.trim() === ""){
-            errors.push("title required!")
+            errors.push("Title required!")
         }
 
         if(description.trim() === ""){
-            errors.push("description required!")
+            errors.push("Description required!")
         }
 
         if (errors.length === 0) {
@@ -84,11 +84,15 @@ const updateReport = async (req, res) => {
     try {
         const errors = []
         const reportId = req.params.id || ""
+        const responseUserId = req.body.responseUserId || ""
         const response = req.body.reponse || ""
         const reportStatus = req.body.reportStatus || ""
 
         if (reportId.trim() === "") {
             errors.push("Id required!")
+        }
+        if (responseUserId.trim() === "") {
+            errors.push("Response User required!")
         }
         if(response === "" && reportStatus === ""){
             errors.push("Update field required!")
