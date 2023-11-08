@@ -8,8 +8,7 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  * @swagger
  * /api/v1/download:
  *   get:
- *     security:
- *       - BearerAuth: []
+
  *     summary: Get excel template for create tour
  *     tags: [Template]
  *     responses:
@@ -20,6 +19,6 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  *             schema:
  *               type: string
  */
-router.get("/", verifyToken, roleAuthen(["Manager"]), controllers.downloadTourTemplate);
+router.get("/", controllers.downloadTourTemplate);
 
 module.exports = router;

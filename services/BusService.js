@@ -1,8 +1,9 @@
 const db = require('../models');
 const { Op } = require('sequelize');
-const STATUS = require("../enums/StatusEnum")
+const STATUS = require("../enums/StatusEnum");
+const { StatusCodes } = require('http-status-codes');
 
-const getBuses = (req) => new Promise(async (resolve, reject) => {
+const getBuses = async (req) => {
     try {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
@@ -58,8 +59,8 @@ const getBuses = (req) => new Promise(async (resolve, reject) => {
             where: whereClause,
         });
 
-        resolve({
-            status: 200,
+        return{
+            status: StatusCodes.OK,
             data: {
                 msg: `Get buses successfully`,
                 paging: {
@@ -69,14 +70,13 @@ const getBuses = (req) => new Promise(async (resolve, reject) => {
                 },
                 buses: buses
             }
-        });
-
+        }
     } catch (error) {
-        reject(error);
+        console.log(error);
     }
-});
+}
 
-const getBusById = (req) => new Promise(async (resolve, reject) => {
+const getBusById = async (req) => {
     try {
         const busId = req.params.id
 
@@ -104,8 +104,8 @@ const getBusById = (req) => new Promise(async (resolve, reject) => {
             ],
         });
 
-        resolve({
-            status: bus ? 200 : 404,
+        return{
+            status: bus ? StatusCodes.OK : StatusCodes.NOT_FOUND,
             data: bus ? {
                 msg: `Get bus successfully`,
                 bus: bus
@@ -113,14 +113,13 @@ const getBusById = (req) => new Promise(async (resolve, reject) => {
                 msg: `Bus not found`,
                 bus: {}
             }
-        });
-
+        }
     } catch (error) {
-        reject(error);
+        console.log(error);
     }
-});
+}
 
-const createBus = (req) => new Promise(async (resolve, reject) => {
+const createBus = async (req) => {
     try {
         const busPlate = req.query.busPlate
         const seat = req.query.numberSeat
@@ -137,19 +136,19 @@ const createBus = (req) => new Promise(async (resolve, reject) => {
             busId: bus.dataValues.busId,
         });
 
-        resolve({
-            status: created ? 201 : 400,
+        return{
+            status: created ? StatusCodes.CREATED : StatusCodes.BAD_REQUEST,
             data: {
                 msg: created ? 'Create bus successfully' : 'Bus already exists',
                 bus: bus
             }
-        });
+        }
     } catch (error) {
-        reject(error);
+        console.log(error);
     }
-});
+}
 
-const updateBus = (req) => new Promise(async (resolve, reject) => {
+const updateBus = async (req) => {
     const t = await db.sequelize.transaction();
     try {
         const busId = req.params.id
@@ -167,12 +166,12 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
         })
 
         if (!bus) {
-            resolve({
-                status: 404,
+            return{
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Bus not found!`,
                 }
-            })
+            }
         }
 
         if (busPlate !== "") {
@@ -183,12 +182,12 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
                 }
             })
             if (bus) {
-                resolve({
-                    status: 400,
+                return{
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: `Bus plate already existed!`,
                     }
-                })
+                }
             }
         }
 
@@ -202,12 +201,12 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
 
         if (status !== "") {
             if (bus.status === status) {
-                resolve({
-                    status: 400,
+                return{
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: `Bus status is already ${bus.status}`,
                     }
-                })
+                }
             }
             if (STATUS.DEACTIVE == status) {
                 const tour = await db.Tour.findOne({
@@ -221,13 +220,13 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
                 })
 
                 if (tour) {
-                    resolve({
-                        status: 409,
+                    return{
+                        status: StatusCodes.CONFLICT,
                         data: {
                             msg: `Cannot update bus status because currently has on going tour`,
                             tour: tour
                         }
-                    })
+                    }
                 }
             }
             updateBus.status = status
@@ -243,20 +242,20 @@ const updateBus = (req) => new Promise(async (resolve, reject) => {
 
         await t.commit()
 
-        resolve({
-            status: 200,
+        return{
+            status: StatusCodes.OK,
             data: {
                 msg: "Update bus successfully",
             }
-        })
+        }
 
     } catch (error) {
         await t.rollback()
-        reject(error);
+        console.log(error);
     }
-});
+}
 
-const deleteBus = (req) => new Promise(async (resolve, reject) => {
+const deleteBus = async (req) => {
     try {
         const busId = req.params.id
 
@@ -267,13 +266,12 @@ const deleteBus = (req) => new Promise(async (resolve, reject) => {
         })
 
         if (!bus) {
-            resolve({
-                status: 404,
+            return{
+                status: StatusCodes.NOT_FOUND,
                 data: {
-                    msg: `Bus not found with id ${busId}`,
+                    msg: `Bus not found!`,
                 }
-            })
-            return
+            }
         }
 
         const tour = await db.Tour.findOne({
@@ -287,14 +285,13 @@ const deleteBus = (req) => new Promise(async (resolve, reject) => {
         })
 
         if (tour) {
-            resolve({
-                status: 409,
+            return{
+                status: StatusCodes.CONFLICT,
                 data: {
                     msg: `Cannot update bus status to Deactive because it currently has ongoing tour`,
                     tour: tour
                 }
-            })
-            return
+            }
         }
 
         await db.Bus.update({
@@ -306,17 +303,15 @@ const deleteBus = (req) => new Promise(async (resolve, reject) => {
             individualHooks: true,
         })
 
-        resolve({
-            status: 200,
+        return{
+            status: StatusCodes.OK,
             data: {
                 msg: "Delete bus successfully",
             }
-        })
-
-
+        }
     } catch (error) {
-        reject(error);
+        console.log(error);
     }
-});
+}
 
 module.exports = { getBuses, getBusById, createBus, updateBus, deleteBus };

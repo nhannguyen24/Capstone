@@ -2,10 +2,11 @@ const db = require('../models');
 const { Op } = require('sequelize');
 const OTP_TYPE = require("../enums/OtpTypeEnum")
 const mailer = require("../utils/MailerUtil")
+const { StatusCodes } = require('http-status-codes');
 const bcrypt = require('bcryptjs');
 const hashOtpCode = otpCode => bcrypt.hashSync(otpCode, bcrypt.genSaltSync(8));
 
-const validateOtp = (req) => new Promise(async (resolve, reject) => {
+const validateOtp = async (req) => {
     try {
         const otpId = req.query.otpId
         const otpCode = req.query.otpCode
@@ -19,36 +20,33 @@ const validateOtp = (req) => new Promise(async (resolve, reject) => {
         });
 
         if (!otp) {
-            resolve({
-                status: 404,
+            return{
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `OTP not found!`,
                 }
-            });
-            return
+            }
         }
 
         const currentDate = new Date()
         currentDate.setHours(currentDate.getHours() + 7)
 
         if (otp.timeExpired < currentDate) {
-            resolve({
-                status: 410,
+            return{
+                status: StatusCodes.GONE,
                 data: {
                     msg: `OTP expired!`,
                 }
-            });
-            return
+            }
         }
         const otpMatches = await bcrypt.compare(otpCode, otp.otpCode);
         if (!otpMatches) {
-            resolve({
-                status: 401,
+            return{
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Incorrect OTP!`,
                 }
-            });
-            return
+            }
         }
         await db.Otp.update({
             isAllow: true,
@@ -59,17 +57,16 @@ const validateOtp = (req) => new Promise(async (resolve, reject) => {
             , individualHooks: true
         })
 
-        resolve({
-            status: 202,
+        return{
+            status: StatusCodes.ACCEPTED,
             data: {
                 msg: `OTP validation success`,
             }
-        });
-
+        }
     } catch (error) {
-        reject(error);
+        console.error(error);
     }
-});
+}
 
 const sendOtpToEmail = async (email, userId, fullName, otpType) => {
     try {
@@ -112,7 +109,7 @@ const sendOtpToEmail = async (email, userId, fullName, otpType) => {
         }
 
         return {
-            status: 403,
+            status: StatusCodes.CREATED,
             data: {
                 msg: `Otp required! A new otp sent to email: ${email}`,
                 otp: { otpId: otp.otpId, otpType: otpType }

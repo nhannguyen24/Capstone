@@ -1,23 +1,24 @@
 const db = require('../models');
 const { Op } = require('sequelize');
-const STATUS = require("../enums/StatusEnum")
+const STATUS = require("../enums/StatusEnum");
+const { StatusCodes } = require('http-status-codes');
 
-const getTicketTypes = (req) => new Promise(async (resolve, reject) => {
+const getTicketTypes = async (req) => {
     try {
         const ticketTypes = await db.TicketType.findAll();
-        resolve({
-            status: 200,
+        return {
+            status: StatusCodes.OK,
             data: {
                 msg: `Get list of ticket types successfully`,
                 ticketTypes: ticketTypes
             }
-        });
+        }
     } catch (error) {
-        reject(error);
+        console.error(error);
     }
-});
+}
 
-const getTicketTypeById = (req) => new Promise(async (resolve, reject) => {
+const getTicketTypeById = async (req) => {
     try {
         const ticketTypeId = req.params.id
         const ticketType = await db.TicketType.findOne({
@@ -25,8 +26,8 @@ const getTicketTypeById = (req) => new Promise(async (resolve, reject) => {
                 ticketTypeId: ticketTypeId
             }
         });
-        resolve({
-            status: ticketType ? 200 : 404,
+        return {
+            status: ticketType ? StatusCodes.OK : StatusCodes.NOT_FOUND,
             data: ticketType ? {
                 msg: `Get ticket type successfully`,
                 ticketType: ticketType
@@ -34,14 +35,14 @@ const getTicketTypeById = (req) => new Promise(async (resolve, reject) => {
                 msg: `Ticket type not found!`,
                 ticketType: {}
             }
-        });
+        }
 
     } catch (error) {
-        reject(error);
+        console.error(error);
     }
-});
+}
 
-const createTicketType = (req) => new Promise(async (resolve, reject) => {
+const createTicketType = async (req) => {
     try {
         const ticketTypeName = req.body.ticketTypeName
         const description = req.body.description
@@ -55,19 +56,19 @@ const createTicketType = (req) => new Promise(async (resolve, reject) => {
             defaults: { ticketTypeName: ticketTypeName, description: description }
         });
 
-        resolve({
-            status: created ? 201 : 400,
+        return {
+            status: created ? StatusCodes.CREATED : StatusCodes.BAD_REQUEST,
             data: {
                 msg: created ? 'Create ticket type successfully' : 'Ticket type already exists',
                 ticketType: ticketType
             }
-        });
+        }
     } catch (error) {
-        reject(error);
+        console.error(error)
     }
-});
+}
 
-const updateTicketType = (req) => new Promise(async (resolve, reject) => {
+const updateTicketType = async (req) => {
     const t = await db.sequelize.transaction();
     try {
         const ticketTypeId = req.params.id
@@ -82,15 +83,14 @@ const updateTicketType = (req) => new Promise(async (resolve, reject) => {
         })
 
         if (!ticketType) {
-            resolve({
-                status: 404,
+            return {
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Ticket Type not found!`,
                 }
-            })
+            }
         }
 
-        
         if (ticketTypeName !== "") {
             const ticketType = await db.TicketType.findOne({
                 where: {
@@ -99,18 +99,17 @@ const updateTicketType = (req) => new Promise(async (resolve, reject) => {
                     }
                 }
             })
-    
+
             if (ticketType) {
-                resolve({
-                    status: 400,
+                return {
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: `Name existed`,
                     }
-                })
-                return
-            } else {
-                updateTicketType.ticketTypeName = ticketTypeName
+                }
             }
+            updateTicketType.ticketTypeName = ticketTypeName
+
         }
 
         if (description !== "") {
@@ -125,17 +124,16 @@ const updateTicketType = (req) => new Promise(async (resolve, reject) => {
 
         await t.commit()
 
-        resolve({
-            status: 200,
+        return {
+            status: StatusCodes.OK,
             data: {
                 msg: "Update ticket type successfully",
             }
-        })
-
+        }
     } catch (error) {
         await t.rollback()
-        reject(error);
+        console.error(error);
     }
-});
+}
 
 module.exports = { getTicketTypes, getTicketTypeById, createTicketType, updateTicketType };

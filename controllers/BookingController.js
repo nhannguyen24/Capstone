@@ -161,15 +161,19 @@ const createBookingOffline = async (req, res) => {
 const checkInQrCode = async (req, res) => {
     try {
         const bookingId = req.params.id || ""
+        const tourId = req.query.tourId || ""
 
         const errors = []
 
         if (bookingId.trim() === "") {
             errors.push("Id required!")
         }
+        if (tourId.trim() === "") {
+            errors.push("tourId required!")
+        }
 
         if (errors.length === 0) {
-            const response = await services.checkInQrCode(bookingId);
+            const response = await services.checkInQrCode(bookingId, tourId);
             return res.status(response.status).json(response.data);
         } else {
             return res.status(400).json(errors);
