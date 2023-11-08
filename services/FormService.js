@@ -188,7 +188,7 @@ const updateForm = (id, body) =>
                 transaction: t
             });
 
-            if (body.status == STATUS.ACCEPTED) {
+            if (body.status == STATUS.APPROVED) {
                 const form = await db.Form.findOne({
                     where: { formId: id },
                     raw: true,
@@ -196,6 +196,12 @@ const updateForm = (id, body) =>
 
                 await db.Tour.update({ tourGuideId: form.changeEmployee }, {
                     where: { tourId: form.currentTour },
+                    individualHooks: true,
+                    transaction: t
+                });
+
+                await db.Tour.update({ tourGuideId: form.userId }, {
+                    where: { tourId: form.desireTour },
                     individualHooks: true,
                     transaction: t
                 });
