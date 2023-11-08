@@ -54,8 +54,8 @@ const createReport = async (req, res) => {
     try {
         const errors = []
         const customerId = req.body.customerId || ""
-        const title = req.body.reponse || ""
-        const description = req.body.reponse || ""
+        const title = req.body.title || ""
+        const description = req.body.description || ""
 
         if (customerId.trim() === "") {
             errors.push("customerId required!")
