@@ -23,8 +23,26 @@ const getReports = async (req) => {
                     model: db.User,
                     as: "report_user",
                     attributes: ["userId", "userName"],
+                    include: {
+                        model: db.Role,
+                        as: "user_role",
+                        attributes: ["roleId", "roleName"],
+                    }
+                },
+                {
+                    model: db.User,
+                    as: "response_user",
+                    attributes: ["userId", "userName"],
+                    include: {
+                        model: db.Role,
+                        as: "user_role",
+                        attributes: ["roleId", "roleName"],
+                    }
                 },
             ],
+            attributes: {
+                exclude: ["reportUserId", "responseUserId"]
+            },
             limit: limit,
             offset: offset
         });
@@ -82,12 +100,12 @@ const getReportsById = async (req) => {
 
 const createReport = async (req) => {
     try {
-        const customerId = req.body.customerId
+        const reportUserId = req.body.reportUserId
         const title = req.body.title
         const description = req.body.description
 
-        const loggedInUser = req.body.userId
-        if(customerId !== loggedInUser){
+        const loggedInUser = req.user.userId
+        if(reportUserId !== loggedInUser){
             return{
                 status: StatusCodes.NOT_FOUND,
                 data: {
@@ -98,7 +116,7 @@ const createReport = async (req) => {
         //check user
         const user = await db.User.findOne({
             where: {
-                userId: customerId
+                userId: reportUserId
             }
         })
 
@@ -111,7 +129,7 @@ const createReport = async (req) => {
             }
         }
 
-        const setUpReport = { customerId: user.userId, title: title, description: description, reportStatus: REPORT_STATUS.SUBMITTED }
+        const setUpReport = { reportUserId: reportUserId, title: title, description: description, reportStatus: REPORT_STATUS.SUBMITTED }
         const report = await db.Report.create(setUpReport);
 
         return{
@@ -130,9 +148,23 @@ const updateReport = async (req) => {
     const t = await db.sequelize.transaction();
     try {
         const reportId = req.params.id || ""
+        const responseUserId = req.body.responseUserId || ""
         const response = req.body.response || ""
         const reportStatus = req.body.reportStatus || ""
 
+        const user = await db.User.findOne({
+            where: {
+                userId: responseUserId
+            }
+        })
+        if(!user){
+            return {
+                status: StatusCodes.NOT_FOUND,
+                data: {
+                    msg: "Response user not found!"
+                }
+            }
+        }
         const updateReport = {}
         const report = await db.Report.findOne({
             where: {
@@ -147,6 +179,21 @@ const updateReport = async (req) => {
                     msg: `Report not found!`,
                 }
             }
+        }
+
+        if(report.responseUserId !== null || report.responseUserId !== undefined){
+            if(report.responseUserId !== responseUserId){
+                return{
+                    status: StatusCodes.FORBIDDEN,
+                    data: {
+                        msg: `A response from another manager has been recorded for this report!`,
+                    }
+                }
+            }
+        }
+
+        if (responseUserId !== "") {
+            updateReport.responseUserId = responseUserId
         }
 
         if (response !== "") {

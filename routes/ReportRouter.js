@@ -91,7 +91,7 @@ router.get("/:id", verifyToken, roleAuthen(["Manager", "Customer", "TourGuide", 
  *            schema:
  *              type: object
  *              properties:
- *                  customerId:
+ *                  reportUserId:
  *                      type: string
  *                  title:
  *                      type: string
@@ -99,7 +99,7 @@ router.get("/:id", verifyToken, roleAuthen(["Manager", "Customer", "TourGuide", 
  *                      type: string
  *            example:
  *              {
- *                  customerId: 224e8a10-4933-486d-8df2-b799905cde83,
+ *                  reportUserId: ,
  *                  title: Viết tiêu đề ngắn gọn,
  *                  description: Mô tả,
  *              }
@@ -125,7 +125,7 @@ router.post("/", verifyToken, roleAuthen(["Manager", "Customer", "TourGuide", "D
  *   put:
  *     security: 
  *         - BearerAuth: []
- *     summary: Update report by id
+ *     summary: Manager response to report user
  *     tags: [Report]
  *     parameters:
  *       - in: path
@@ -141,6 +141,8 @@ router.post("/", verifyToken, roleAuthen(["Manager", "Customer", "TourGuide", "D
  *           schema:
  *              type: object
  *              properties: 
+ *                  responseUserId: 
+ *                      type: string
  *                  response: 
  *                      type: string
  *                  reportStatus: 
