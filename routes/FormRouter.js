@@ -63,7 +63,7 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  *         in: query
  *         schema:
  *           type: string
- *           enum: ["Active", "Approved", "Rejected"]
+ *           enum: ["Active", "Approved", "Accepted","Rejected"]
  *         description: Find form by status
  *       - name: page
  *         in: query
