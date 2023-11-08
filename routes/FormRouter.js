@@ -173,7 +173,7 @@ router.post("/", verifyToken, roleAuthen(["TourGuide", "Driver"]), controllers.c
  *          application/json:
  *            schema:                     
  *                  example:
- *                    status: ('Approved','Pending','Rejected')
+ *                    status: ('Approved', 'Accepted', 'Pending', 'Rejected')
  *     responses:
  *       200:
  *         description: Update the form successfully
