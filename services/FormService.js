@@ -188,29 +188,29 @@ const updateForm = (id, body) =>
                 transaction: t
             });
 
-            // if (body.status == STATUS.APPROVED) {
-            //     const form = await db.Form.findOne({
-            //         where: { formId: id },
-            //         raw: true,
-            //     })
+            if (body.status == STATUS.ACCEPTED) {
+                const form = await db.Form.findOne({
+                    where: { formId: id },
+                    raw: true,
+                })
 
-            //     await db.Tour.update({ tourGuideId: form.changeEmployee }, {
-            //         where: { tourId: form.currentTour },
-            //         individualHooks: true,
-            //         transaction: t
-            //     });
+                await db.Tour.update({ tourGuideId: form.changeEmployee }, {
+                    where: { tourId: form.currentTour },
+                    individualHooks: true,
+                    transaction: t
+                });
 
-            //     resolve({
-            //         status: forms[1].length !== 0 ? 200 : 400,
-            //         data: {
-            //             msg:
-            //                 forms[1].length !== 0
-            //                     ? `Form updated/TourGuideId in Tour updated`
-            //                     : "Cannot update form/ formId not found",
-            //         }
-            //     });
-            //     return;
-            // }
+                resolve({
+                    status: forms[1].length !== 0 ? 200 : 400,
+                    data: {
+                        msg:
+                            forms[1].length !== 0
+                                ? `Form updated/TourGuideId in Tour updated`
+                                : "Cannot update form/ formId not found",
+                    }
+                });
+                return;
+            }
             resolve({
                 status: forms[1].length !== 0 ? 200 : 400,
                 data: {
