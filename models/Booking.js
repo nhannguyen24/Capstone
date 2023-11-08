@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         as: "booking_departure_station",
       });
 
-      Booking.hasMany(models.Transaction, { as: 'booking_transaction', foreignKey: 'bookingId' });
+      Booking.hasOne(models.Transaction, { as: 'booking_transaction', foreignKey: 'bookingId' });
 
       Booking.belongsToMany(models.TicketType, {
         through: 'BookingDetail',

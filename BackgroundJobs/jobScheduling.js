@@ -38,7 +38,7 @@ async function cancelTourAndRefundIfUnderbooked() {
   try {
     const currentDate = new Date()
     currentDate.setHours(currentDate.getHours() + 7)
-    const tours = await db.Tour.findAll({
+    const tours = await db.Tour.count({
       raw: true,
       where: {
         endBookingDate: {
@@ -61,7 +61,7 @@ async function cancelTourAndRefundIfUnderbooked() {
               model: db.Ticket,
               as: "booking_detail_ticket",
               where: {
-                tourId: tour.tourId
+                tourId: tour.tourId,
               }
             },
             {
@@ -80,9 +80,52 @@ async function cancelTourAndRefundIfUnderbooked() {
           totalBookedTickets += booking.quantity
         })
 
-        if(totalBookedTickets < 5){
-          console.log("Cancel Tour and Refund for tour: ", tour.tourId)
-          PaymentService.refundMomo()
+        if (totalBookedTickets < 5) {
+          const transaction = await db.Transaction.findOne({
+            where: {
+              bookingId: bookings.bookingId
+            }
+          })
+
+          const amount = parseInt(transaction.amount)
+          PaymentService.refundMomo(bookings.bookingId, amount, (refundResult) => {
+            if (refundResult.status !== 200) {
+              console.log(refundResult)
+            } else {
+              db.Booking.update({
+                bookingStatus: BOOKING_STATUS.CANCELED,
+              }, {
+                where: {
+                  bookingId: bookings.bookingId
+                },
+                individualHooks: true,
+              });
+
+              db.Transaction.update({
+                refundAmount: refundResult.data.refundAmount,
+                status: STATUS.REFUNDED
+              }, {
+                where: {
+                  bookingId: bookings.bookingId
+                },
+                individualHooks: true,
+              });
+              console.log(refundResult)
+            }
+          })
+          await db.Tour.update(
+            {
+              tourStatus: TOUR_STATUS.CANCELED
+            },
+            {
+              where: {
+                tourId: tour.tourId
+              },
+              individualHooks: true,
+            }
+          )
+          console.log("Tour Status Update", tour.tourId)
+
         }
       }
     }
@@ -99,7 +142,7 @@ async function deleteUnPaidBooking() {
     currentDate.setHours(currentDate.getHours() + 6)
     await db.Transaction.destroy({
       where: {
-        isSuccess: false,
+        status: STATUS.DRAFT,
         updatedAt: {
           [Op.lte]: currentDate,
         },

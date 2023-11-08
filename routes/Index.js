@@ -27,7 +27,7 @@ const sound = require('./SoundRouter');
 const templateDownload = require('./TemplateDownloadRouter');
 
 const form = require('./FormRouter');
-const statictics = require('./TourDetailRouter');
+const statictics = require('./StatisticRouter');
 const trackingStation = require('./TourDetailRouter');
 const trackingCoordinate = require('./TrackingRouter');
 

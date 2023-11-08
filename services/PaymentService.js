@@ -118,7 +118,7 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
             reject(error)
         }
     })
-const refundMomo = async (bookingId, callback) => {
+const refundMomo = async (bookingId, amount, callback) => {
     try {
         const bookingDetail = await db.BookingDetail.findOne({
             raw: true,
@@ -181,7 +181,7 @@ const refundMomo = async (bookingId, callback) => {
                     }
                 }
             }
-            let amount = parseInt(transaction.amount)
+            let _amount = parseInt(amount)
             var partnerCode = "MOMO"
             var accessKey = "F8BBA842ECF85"
             var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz"
@@ -190,27 +190,9 @@ const refundMomo = async (bookingId, callback) => {
             var description = "Refund canceled booking"
             var transId = transaction.transactionCode
 
-            const departureDate = new Date(bookingDetail.booking_detail_ticket.ticket_tour.departureDate)
-            const currentDate = new Date()
-            currentDate.setHours(currentDate.getHours() + 7)
-            const timeDifference = departureDate - currentDate
-            const twoDaysInMillis = 2 * 24 * 60 * 60 * 1000 // 2 days in milliseconds
-            const oneDayInMillis = 24 * 60 * 60 * 1000 // 1 day in milliseconds
-            if (timeDifference <= oneDayInMillis) {
-                return {
-                    status: 403,
-                    data: {
-                        msg: "Cancel within last day or when tour started will not get refund",
-                    }
-                }
-            } else if (timeDifference <= twoDaysInMillis) {
-                amount = amount * 75 / 100
-            } else {
-                amount = amount * 80 / 100
-            }
             var rawSignature =
                 "accessKey=" + accessKey +
-                "&amount=" + amount +
+                "&amount=" + _amount +
                 "&description=" + description +
                 "&orderId=" + orderId +
                 "&partnerCode=" + partnerCode +
@@ -225,7 +207,7 @@ const refundMomo = async (bookingId, callback) => {
                 partnerCode: partnerCode,
                 accessKey: accessKey,
                 requestId: requestId,
-                amount: amount,
+                amount: _amount,
                 orderId: orderId,
                 description: description,
                 transId: transId,
@@ -257,15 +239,15 @@ const refundMomo = async (bookingId, callback) => {
                             status: 200,
                             data: {
                                 msg: `Refund to booking ${transaction.transaction_booking.bookingCode}`,
-                                refundAmount: amount
+                                refundAmount: _amount
                             }
                         });
                     } else {
                         callback({
                             status: 400,
                             data: {
-                                msg: response.message,
-                                refundAmount: amount
+                                msg: `${response.message} for booking ${transaction.transaction_booking.bookingCode}`,
+                                refundAmount: _amount
                             }
                         });
                     }

@@ -2,8 +2,8 @@ const db = require('../models');
 const { Op, sequelize } = require('sequelize');
 const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
-
-const getFeedbacks = (req) => new Promise(async (resolve, reject) => {
+const { StatusCodes } = require('http-status-codes');
+const getFeedbacks = async (req) => {
     try {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
@@ -48,8 +48,8 @@ const getFeedbacks = (req) => new Promise(async (resolve, reject) => {
             where: whereClause,
         });
 
-        resolve({
-            status: 200,
+        return{
+            status: StatusCodes.OK,
             data: {
                 msg: `Get list of feedbacks successfully`,
                 paging: {
@@ -59,14 +59,14 @@ const getFeedbacks = (req) => new Promise(async (resolve, reject) => {
                 },
                 feedbacks: feedbacks
             }
-        });
+        }
 
     } catch (error) {
-        reject(error);
+        console.log(error);
     }
-});
+}
 
-const getFeedbackById = (req) => new Promise(async (resolve, reject) => {
+const getFeedbackById = async (req) => {
     try {
         const feedbackId = req.params.id
         const feedback = await db.Feedback.findOne({
@@ -87,22 +87,22 @@ const getFeedbackById = (req) => new Promise(async (resolve, reject) => {
             ],
         });
 
-        resolve({
-            status: feedback ? 200 : 404,
+        return{
+            status: feedback ? StatusCodes.OK : StatusCodes.NOT_FOUND,
             data: feedback ? {
                 msg: `Get feedbacks successfully`,
                 feedback: feedback
             } : {
                 msg: `No feedbacks found!`,
             }
-        });
+        }
 
     } catch (error) {
-        reject(error);
+        console.log(error);
     }
-});
+}
 
-const createFeedback = (req) => new Promise(async (resolve, reject) => {
+const createFeedback = async (req) => {
     const t = await db.sequelize.transaction();
     try {
         const customerId = req.body.customerId
@@ -118,13 +118,12 @@ const createFeedback = (req) => new Promise(async (resolve, reject) => {
         })
 
         if (!user) {
-            resolve({
-                status: 404,
+            return{
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `User not found!",`
                 }
-            })
-            return
+            }
         }
 
         //check route
@@ -135,13 +134,12 @@ const createFeedback = (req) => new Promise(async (resolve, reject) => {
         })
 
         if (!route) {
-            resolve({
-                status: 404,
+            return{
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Route not found!",`
                 }
-            })
-            return
+            }
         }
 
         //Check if the user has gone on a tour
@@ -190,13 +188,12 @@ const createFeedback = (req) => new Promise(async (resolve, reject) => {
         })
 
         if (!isGoneOnTour) {
-            resolve({
-                status: 403,
+            return{
+                status: StatusCodes.FORBIDDEN,
                 data: {
                     msg: 'Not gone on tour or tour not finished',
                 }
-            });
-            return
+            }
         }
 
         const [feedback, created] = await db.Feedback.findOrCreate({ 
@@ -208,20 +205,20 @@ const createFeedback = (req) => new Promise(async (resolve, reject) => {
             });
 
         await t.commit()
-        resolve({
-            status: created ? 201 : 400,
+        return{
+            status: created ? StatusCodes.CREATED : StatusCodes.BAD_REQUEST,
             data: {
                 msg: created ? 'Create feedback successfully' : 'Customer already left feedback for this route',
                 feedback: created ? feedback : "" 
             }
-        });
+        }
     } catch (error) {
         await t.rollback()
-        reject(error);
+        console.log(error);
     }
-});
+}
 
-const updateFeedback = (req) => new Promise(async (resolve, reject) => {
+const updateFeedback = async (req) => {
     const t = await db.sequelize.transaction();
     try {
         const feedbackId = req.params.id
@@ -237,13 +234,12 @@ const updateFeedback = (req) => new Promise(async (resolve, reject) => {
         })
 
         if (!feedback) {
-            resolve({
-                status: 404,
+            return{
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Feedback not found!`,
                 }
-            })
-            return
+            }
         }
 
         if (stars !== "") {
@@ -263,21 +259,20 @@ const updateFeedback = (req) => new Promise(async (resolve, reject) => {
         })
 
         await t.commit()
-
-        resolve({
-            status: 200,
+        return{
+            status: StatusCodes.OK,
             data: {
                 msg: "Update feedback successfully",
             }
-        })
+        }
 
     } catch (error) {
         await t.rollback()
-        reject(error);
+        console.log(error);
     }
-});
+}
 
-const deleteFeedback = (req) => new Promise(async (resolve, reject) => {
+const deleteFeedback = async (req) => {
     try {
         const feedbackId = req.params.id
 
@@ -288,13 +283,12 @@ const deleteFeedback = (req) => new Promise(async (resolve, reject) => {
         })
 
         if (!feedback) {
-            resolve({
-                status: 404,
+            return{
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Feedback not found!`,
                 }
-            })
-            return
+            }
         }
 
         await db.Feedback.destroy({
@@ -304,16 +298,15 @@ const deleteFeedback = (req) => new Promise(async (resolve, reject) => {
             individualHooks: true,
         })
 
-        resolve({
-            status: 200,
+        return{
+            status: StatusCodes.OK,
             data: {
                 msg: "Delete feedback successfully",
             }
-        })
+        }
     } catch (error) {
-        reject(error);
+        console.log(error);
     }
-});
-
+}
 
 module.exports = { getFeedbacks, getFeedbackById, createFeedback, updateFeedback, deleteFeedback };

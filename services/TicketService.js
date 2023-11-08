@@ -2,9 +2,10 @@ const db = require('../models');
 const { Op } = require('sequelize');
 const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
-const DAY_ENUM = require("../enums/PriceDayEnum")
+const DAY_ENUM = require("../enums/PriceDayEnum");
+const { StatusCodes } = require('http-status-codes');
 const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
-const getTickets = (req) => new Promise(async (resolve, reject) => {
+const getTickets = async (req) => {
     try {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
@@ -74,8 +75,8 @@ const getTickets = (req) => new Promise(async (resolve, reject) => {
             e.dataValues.ticket_type.dataValues.price = price
         }
 
-        resolve({
-            status: 200,
+        return {
+            status: StatusCodes.OK,
             data: {
                 msg: `Get list of tickets successfully`,
                 paging: {
@@ -85,14 +86,14 @@ const getTickets = (req) => new Promise(async (resolve, reject) => {
                 },
                 tickets: tickets
             }
-        });
+        }
 
     } catch (error) {
-        reject(error);
+        console.error(error);
     }
-});
+}
 
-const getTicketById = (req) => new Promise(async (resolve, reject) => {
+const getTicketById = async (req) => {
     try {
         const ticketId = req.params.id
         const ticket = await db.Ticket.findOne({
@@ -139,8 +140,8 @@ const getTicketById = (req) => new Promise(async (resolve, reject) => {
         })
         ticket.dataValues.ticket_type.dataValues.price = price
 
-        resolve({
-            status: ticket ? 200 : 404,
+        return {
+            status: ticket ? StatusCodes.OK : StatusCodes.NOT_FOUND,
             data: ticket ? {
                 msg: `Get ticket successfully`,
                 ticket: ticket
@@ -148,14 +149,13 @@ const getTicketById = (req) => new Promise(async (resolve, reject) => {
                 msg: `Ticket not found`,
                 ticket: []
             }
-        });
-
+        }
     } catch (error) {
-        reject(error);
+        console.error(error);
     }
-});
+}
 
-const createTicket = (req) => new Promise(async (resolve, reject) => {
+const createTicket = async (req) => {
     try {
         const ticketTypeId = req.body.ticketTypeId
         const tourId = req.body.tourId
@@ -166,37 +166,34 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
             }
         })
         if (!tour) {
-            resolve({
-                status: 404,
+            return {
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Tour not found!`,
                 }
-            })
-            return
-        } else {
-            if (TOUR_STATUS.AVAILABLE !== tour.tourStatus || STATUS.DEACTIVE === tour.status) {
-                resolve({
-                    status: 409,
-                    data: {
-                        msg: `Tour started or Deactive`,
-                    }
-                })
-                return
             }
         }
+        if (TOUR_STATUS.AVAILABLE !== tour.tourStatus || STATUS.DEACTIVE === tour.status) {
+            return {
+                status: StatusCodes.CONFLICT,
+                data: {
+                    msg: `Tour started or Deactive`,
+                }
+            }
+        }
+
         const ticketType = await db.TicketType.findOne({
             where: {
                 ticketTypeId: ticketTypeId
             }
         })
         if (!ticketType) {
-            resolve({
-                status: 404,
+            return {
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Ticket type not found!`,
                 }
-            })
-            return
+            }
         }
 
         let day = DAY_ENUM.NORMAL
@@ -219,35 +216,33 @@ const createTicket = (req) => new Promise(async (resolve, reject) => {
             }
         })
         if (!price) {
-            resolve({
-                status: 409,
+            return {
+                status: StatusCodes.CONFLICT,
                 data: {
                     msg: `Ticket type doesn't have a price for day: ${tour.departureDate}(${day})`,
                 }
-            })
-            return
-        } else {
-            const [ticket, created] = await db.Ticket.findOrCreate({
-                where: {
-                    ticketTypeId: ticketTypeId,
-                    tourId: tourId
-                },
-                defaults: { ticketTypeId: ticketTypeId, tourId: tourId }
-            });
-            resolve({
-                status: created ? 201 : 400,
-                data: {
-                    msg: created ? `Create ticket successfully for tour: ${tourId}` : `Ticket already exists in tour: ${tourId}`,
-                    ticket: created ? ticket : {}
-                }
-            });
+            }
+        }
+        const [ticket, created] = await db.Ticket.findOrCreate({
+            where: {
+                ticketTypeId: ticketTypeId,
+                tourId: tourId
+            },
+            defaults: { ticketTypeId: ticketTypeId, tourId: tourId }
+        });
+        return {
+            status: created ? StatusCodes.CREATED : StatusCodes.BAD_REQUEST,
+            data: {
+                msg: created ? `Create ticket successfully for tour: ${tourId}` : `Ticket already exists in tour: ${tourId}`,
+                ticket: created ? ticket : {}
+            }
         }
     } catch (error) {
-        reject(error);
+        console.error(error);
     }
-});
+}
 
-const updateTicket = (req) => new Promise(async (resolve, reject) => {
+const updateTicket = async (req) => {
     const t = await db.sequelize.transaction();
     try {
         const ticketId = req.params.id
@@ -269,90 +264,85 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
         });
 
         if (!ticket) {
-            resolve({
-                status: 404,
+            return {
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Ticket not found!`,
                 }
-            })
-            return
-        } 
+            }
+        }
 
-        if(ticketTypeId.trim() !== ""){
+        if (ticketTypeId.trim() !== "") {
             const ticketType = await db.TicketType.findOne({
                 where: {
                     ticketTypeId: ticketTypeId
                 }
             })
 
-            if(!ticketType){
-                resolve({
-                    status: 404,
-                    data:{
+            if (!ticketType) {
+                return {
+                    status: StatusCodes.NOT_FOUND,
+                    data: {
                         msg: `Ticket type not found!`
-                    }
-                })
-            } else {
-                let day = DAY_ENUM.NORMAL
-                const tourDepartureDate = new Date(ticket.ticket_tour.departureDate)
-                const dayOfWeek = tourDepartureDate.getDay()
-                if (dayOfWeek === 0 || dayOfWeek === 6) {
-                    day = DAY_ENUM.WEEKEND
-                }
-                const date = tourDepartureDate.getDate()
-                const month = tourDepartureDate.getMonth()
-                const dateMonth = `${date}-${month}`
-                if (dateMonth.includes(SPECIAL_DAY)) {
-                    day = DAY_ENUM.HOLIDAY
-                }
-
-                const price = await db.Price.findOne({
-                    where: {
-                        ticketTypeId: ticketTypeId,
-                        day: day,
-                    }
-                })
-                if (!price) {
-                    resolve({
-                        status: 409,
-                        data: {
-                            msg: `Ticket type doesn't have a price for day: ${tourDepartureDate}`,
-                        }
-                    })
-                    return
-                } else {
-                    const dupTicket = await db.Ticket.findOne({
-                        where: {
-                            tourId: ticket.tourId,
-                            ticketTypeId: ticketType.ticketTypeId,
-                            status: STATUS.ACTIVE
-                        },
-                    });
-    
-                    if(dupTicket){
-                        resolve({
-                            status: 400,
-                            data:{
-                                msg: `Ticket Type existed in tour!`
-                            }
-                        })
-                    } else {
-                        updateTicket.ticketTypeId = ticketTypeId
                     }
                 }
             }
+            let day = DAY_ENUM.NORMAL
+            const tourDepartureDate = new Date(ticket.ticket_tour.departureDate)
+            const dayOfWeek = tourDepartureDate.getDay()
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                day = DAY_ENUM.WEEKEND
+            }
+            const date = tourDepartureDate.getDate()
+            const month = tourDepartureDate.getMonth()
+            const dateMonth = `${date}-${month}`
+            if (dateMonth.includes(SPECIAL_DAY)) {
+                day = DAY_ENUM.HOLIDAY
+            }
+
+            const price = await db.Price.findOne({
+                where: {
+                    ticketTypeId: ticketTypeId,
+                    day: day,
+                }
+            })
+            if (!price) {
+                return {
+                    status: StatusCodes.CONFLICT,
+                    data: {
+                        msg: `Ticket type doesn't have a price for day: ${tourDepartureDate}`,
+                    }
+                }
+            }
+            const dupTicket = await db.Ticket.findOne({
+                where: {
+                    tourId: ticket.tourId,
+                    ticketTypeId: ticketType.ticketTypeId,
+                    status: STATUS.ACTIVE
+                },
+            })
+
+            if (dupTicket) {
+                return {
+                    status: StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg: `Ticket Type existed in tour!`
+                    }
+                }
+            }
+            updateTicket.ticketTypeId = ticketTypeId
         }
 
         if (status.trim() !== "") {
-            if(ticket.status === status){
-                resolve({
-                    status: 400,
+            if (ticket.status === status) {
+                return {
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: `Status is already ${status}`,
                     }
-                })
-                return
-            } else if (STATUS.DEACTIVE === status) {
+                }
+            } 
+            if (STATUS.DEACTIVE === status) {
                 const tickets = await db.Ticket.findAll({
                     where: {
                         tourId: tourId,
@@ -361,20 +351,16 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
                 })
 
                 if (tickets.length < 2) {
-                    resolve({
-                        status: 400,
+                    return {
+                        status: StatusCodes.BAD_REQUEST,
                         data: {
                             msg: `Cannot update ticket status to "Deactive" because tour ${tour.tourId} need to has atleast 1 available ticket`,
-    
+
                         }
-                    })
-                    return
+                    }
                 }
             }
         }
-
-        
-
 
         await db.Ticket.update(updateTicket, {
             where: {
@@ -384,20 +370,19 @@ const updateTicket = (req) => new Promise(async (resolve, reject) => {
 
         await t.commit()
 
-        resolve({
-            status: 200,
+        return {
+            status: StatusCodes.OK,
             data: {
                 msg: "Update ticket successfully",
             }
-        })
-
+        }
     } catch (error) {
         await t.rollback()
-        reject(error);
+        console.error(error);
     }
-});
+}
 
-const deleteTicket = (req) => new Promise(async (resolve, reject) => {
+const deleteTicket = async (req) => {
     try {
         const ticketId = req.params.id
         const ticket = await db.Ticket.findOne({
@@ -406,13 +391,12 @@ const deleteTicket = (req) => new Promise(async (resolve, reject) => {
             }
         })
         if (!ticket) {
-            resolve({
-                status: 404,
+            return {
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Ticket not found with id ${ticketId}`,
                 }
-            })
-            return
+            }
         }
 
         const tickets = await db.Ticket.findAll({
@@ -423,13 +407,12 @@ const deleteTicket = (req) => new Promise(async (resolve, reject) => {
 
         const activeTickets = tickets.filter((ticket) => ticket.status === STATUS.ACTIVE)
         if (activeTickets.length < 2) {
-            resolve({
-                status: 409,
+            return {
+                status: StatusCodes.CONFLICT,
                 data: {
                     msg: `Cannot delete ticket because tour ${tour.tourId} need to has atleast 1 available ticket`,
                 }
-            })
-            return
+            }
         }
 
         await db.Ticket.update({
@@ -441,17 +424,15 @@ const deleteTicket = (req) => new Promise(async (resolve, reject) => {
             individualHooks: true
         })
 
-        resolve({
-            status: 200,
+        return {
+            status: StatusCodes.OK,
             data: {
                 msg: "Delete ticket successfully",
             }
-        })
-
+        }
     } catch (error) {
-        reject(error);
+        console.error(error);
     }
-});
-
+}
 
 module.exports = { getTickets, getTicketById, createTicket, updateTicket, deleteTicket };

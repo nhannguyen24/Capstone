@@ -1,7 +1,8 @@
+const { StatusCodes } = require('http-status-codes');
 const db = require('../models');
 const { Op } = require('sequelize');
 
-const getTransactions = (req) => new Promise(async (resolve, reject) => {
+const getTransactions = async (req) => {
     try {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
@@ -54,8 +55,8 @@ const getTransactions = (req) => new Promise(async (resolve, reject) => {
             where: whereClause,
         });
 
-        resolve({
-            status: 200,
+        return{
+            status: StatusCodes.OK,
             data: {
                 msg: `Get transactions successfully`,
                 paging: {
@@ -65,13 +66,14 @@ const getTransactions = (req) => new Promise(async (resolve, reject) => {
                 },
                 transactions: transactions
             }
-        });
+        }
 
     } catch (error) {
-        reject(error);
+        console.error(error);
     }
-});
-const getTransactionById = (req) => new Promise(async (resolve, reject) => {
+}
+
+const getTransactionById = async (req) => {
     try {
         const transactionId = req.params.id
         const transactions = await db.Transaction.findOne({
@@ -92,17 +94,17 @@ const getTransactionById = (req) => new Promise(async (resolve, reject) => {
             }
         });
 
-        resolve({
-            status: 200,
+        return{
+            status: StatusCodes.OK,
             data: {
                 msg: `Get list of transactions successfully`,
                 transactions: transactions
             }
-        });
+        }
 
     } catch (error) {
-        reject(error);
+        console.error(error);
     }
-});
+}
 
 module.exports = { getTransactions, getTransactionById };

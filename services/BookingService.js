@@ -1,5 +1,6 @@
 const db = require('../models');
 const { Op } = require('sequelize');
+const { StatusCodes } = require('http-status-codes');
 const BOOKING_STATUS = require("../enums/BookingStatusEnum")
 const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
@@ -7,7 +8,7 @@ const OTP_TYPE = require("../enums/OtpTypeEnum")
 const OtpService = require("./OtpService")
 const PaymentService = require("./PaymentService")
 
-const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject) => {
+const getBookingDetailByBookingId = async (req) => {
     try {
         const bookingId = req.params.id
 
@@ -35,14 +36,12 @@ const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject)
         })
 
         if (!booking) {
-            resolve({
-                status: 404,
+            return {
+                status: StatusCodes.NOT_FOUND,
                 data: {
-                    msg: `Booking not found with ID: ${bookingId}`,
-                    booking: {}
+                    msg: `Booking not found!`,
                 }
-            });
-            return
+            }
         }
 
         const bookingDetails = await db.BookingDetail.findAll({
@@ -101,19 +100,19 @@ const getBookingDetailByBookingId = (req) => new Promise(async (resolve, reject)
 
         booking.booking_detail = bookingDetails
         booking.booking_transaction = transaction
-        resolve({
-            status: 200,
+        return {
+            status: StatusCodes.OK,
             data: {
                 msg: 'Get Booking detail successfully',
                 booking: booking,
             },
-        });
+        }
     } catch (error) {
-        reject(error);
+        console.log(error);
     }
-});
+}
 
-const getBookings = (req) => new Promise(async (resolve, reject) => {
+const getBookings = async (req) => {
     try {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
@@ -138,13 +137,12 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
             });
 
             if (!user) {
-                resolve({
-                    status: 404,
+                return {
+                    status: StatusCodes.NOT_FOUND,
                     data: {
                         msg: `Customer not found with Id: ${customerId}`,
                     }
-                });
-                return;
+                }
             }
             whereClause.customerId = customerId;
         }
@@ -164,13 +162,12 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
                 attributes: ["tourId"]
             })
             if (!tour) {
-                resolve({
-                    status: 404,
+                return {
+                    status: StatusCodes.NOT_FOUND,
                     data: {
                         msg: `Tour not found with Id: ${tourId}`,
                     }
-                });
-                return;
+                }
             } else {
                 whereClauseTour.tourId = tourId
             }
@@ -226,9 +223,6 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
                     model: db.Booking,
                     as: "detail_booking",
                     where: whereClause,
-                    order: [
-                        ["updatedAt", "DESC"]
-                    ],
                     include: [
                         {
                             model: db.User,
@@ -371,8 +365,8 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
         })
 
         const totalBooking = _bookingDetails.length
-        resolve({
-            status: 200,
+        return {
+            status: StatusCodes.OK,
             data: {
                 msg: `Get Bookings successfully`,
                 paging: {
@@ -382,13 +376,13 @@ const getBookings = (req) => new Promise(async (resolve, reject) => {
                 },
                 bookings: listBooking,
             }
-        });
+        }
     } catch (error) {
-        reject(error);
+        console.log(error);
     }
-});
+}
 
-const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
+const getBookingsByEmail = async (req) => {
     try {
         const email = req.query.email
         const page = parseInt(req.query.page)
@@ -410,13 +404,12 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
         })
 
         if (!user) {
-            resolve({
-                status: 404,
+            return {
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Customer not found!`,
                 }
-            });
-            return
+            }
         } else {
             whereClause.customerId = user.userId;
         }
@@ -435,7 +428,7 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
         //         return
         //     } else {
         //         resolve({
-        //             status: 409,
+        //             status: StatusCodes.CONFLICT,
         //             data: {
         //                 msg: `Mail sent failed`,
         //             }
@@ -446,7 +439,7 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
 
         // if (!otp.isAllow) {
         //     resolve({
-        //         status: 403,
+        //         status: StatusCodes.FORBIDDEN,
         //         data: {
         //             msg: `Action not allow, Please validate OTP!`,
         //         }
@@ -469,13 +462,12 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
                 attributes: ["tourId"]
             })
             if (!tour) {
-                resolve({
-                    status: 404,
+                return {
+                    status: StatusCodes.NOT_FOUND,
                     data: {
                         msg: `Tour not found!`,
                     }
-                });
-                return;
+                }
             } else {
                 whereClauseTour.tourId = tourId
             }
@@ -668,8 +660,8 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
 
         const totalBooking = _bookingDetails.length
 
-        resolve({
-            status: 200,
+        return {
+            status: StatusCodes.OK,
             data: {
                 msg: `Get bookings successfully`,
                 paging: {
@@ -679,14 +671,13 @@ const getBookingsByEmail = (req) => new Promise(async (resolve, reject) => {
                 },
                 bookings: listBooking
             }
-        });
-
+        }
     } catch (error) {
-        reject(error);
+        console.log(error);
     }
-});
+}
 
-const createBookingWeb = (req) => new Promise(async (resolve, reject) => {
+const createBookingWeb = async (req) => {
     try {
         const user = req.body.user
         const tickets = req.body.tickets
@@ -703,13 +694,12 @@ const createBookingWeb = (req) => new Promise(async (resolve, reject) => {
             defaults: { email: user.email, userName: user.userName, phone: user.phone, roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3" }
         })
         if ("58c10546-5d71-47a6-842e-84f5d2f72ec3" !== resultUser[0].dataValues.roleId) {
-            resolve({
-                status: 403,
+            return {
+                status: StatusCodes.FORBIDDEN,
                 data: {
                     msg: `Role not allow for this action`,
                 }
-            });
-            return
+            }
         }
 
         /**
@@ -724,7 +714,7 @@ const createBookingWeb = (req) => new Promise(async (resolve, reject) => {
 
         // if (!otp) {
         //     resolve({
-        //         status: 403,
+        //         status: StatusCodes.FORBIDDEN,
         //         data: {
         //             msg: `Action not allow, Please validate OTP!`,
         //         }
@@ -734,7 +724,7 @@ const createBookingWeb = (req) => new Promise(async (resolve, reject) => {
 
         // if (!otp.isAllow) {
         //     resolve({
-        //         status: 403,
+        //         status: StatusCodes.FORBIDDEN,
         //         data: {
         //             msg: `Action not allow, Please validate OTP!`,
         //         }
@@ -760,65 +750,64 @@ const createBookingWeb = (req) => new Promise(async (resolve, reject) => {
             }
         })
         if (!tour) {
-            resolve({
-                status: 404,
+            return {
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Tour not found!`,
                 }
-            });
+            }
+        }
+        if (TOUR_STATUS.AVAILABLE !== tour.tourStatus || STATUS.ACTIVE !== tour.status) {
+            return {
+                status: StatusCodes.FORBIDDEN,
+                data: {
+                    msg: `Tour not available for booking!`,
+                }
+            }
+        }
+
+        station = await db.Station.findOne({
+            where: {
+                stationId: departureStationId
+            }
+        })
+
+        if (!station) {
+            return {
+                status: StatusCodes.NOT_FOUND,
+                data: {
+                    msg: `Station not found!`,
+                }
+            }
+        }
+
+        const routeSegment = await db.RouteSegment.findOne({
+            raw: true,
+            where: {
+                routeId: tour.routeId,
+                departureStationId: departureStationId,
+                status: STATUS.ACTIVE,
+            },
+        })
+        if (!routeSegment) {
+            return {
+                status: StatusCodes.NOT_FOUND,
+                data: {
+                    msg: `Station not found within tour route`,
+                }
+            }
         } else {
-            if (TOUR_STATUS.AVAILABLE !== tour.tourStatus || STATUS.ACTIVE !== tour.status) {
-                resolve({
-                    status: 403,
-                    data: {
-                        msg: `Tour not available for booking!`,
-                    }
-                });
+            if (routeSegment.index !== 1) {
+                const routeSegments = await db.RouteSegment.findAll({
+                    raw: true,
+                    where: {
+                        routeId: routeSegment.routeId,
+                    },
+                    order: [['index', 'ASC']]
+                })
+                _routeSegments = routeSegments
             }
-
-            station = await db.Station.findOne({
-                where: {
-                    stationId: departureStationId
-                }
-            })
-
-            if (!station) {
-                resolve({
-                    status: 404,
-                    data: {
-                        msg: `Station not found!`,
-                    }
-                });
-            }
-
-            const routeSegment = await db.RouteSegment.findOne({
-                raw: true,
-                where: {
-                    routeId: tour.routeId,
-                    departureStationId: departureStationId,
-                    status: STATUS.ACTIVE,
-                },
-            })
-            if (!routeSegment) {
-                resolve({
-                    status: 404,
-                    data: {
-                        msg: `Station not found within tour route`,
-                    }
-                });
-            } else {
-                if (routeSegment.index !== 1) {
-                    const routeSegments = await db.RouteSegment.findAll({
-                        raw: true,
-                        where: {
-                            routeId: routeSegment.routeId,
-                        },
-                        order: [['index', 'ASC']]
-                    })
-                    _routeSegments = routeSegments
-                }
-                _routeSegment = routeSegment
-            }
+            _routeSegment = routeSegment
         }
 
         /**
@@ -835,13 +824,12 @@ const createBookingWeb = (req) => new Promise(async (resolve, reject) => {
                 }
             })
             if (!ticket) {
-                resolve({
-                    status: 404,
+                return {
+                    status: StatusCodes.NOT_FOUND,
                     data: {
                         msg: `Ticket not found!`,
                     }
-                })
-                return
+                }
             }
             seatBookingQuantity += e.quantity
 
@@ -853,13 +841,12 @@ const createBookingWeb = (req) => new Promise(async (resolve, reject) => {
                 }
             })
             if (!price) {
-                resolve({
-                    status: 404,
+                return {
+                    status: StatusCodes.NOT_FOUND,
                     data: {
                         msg: `Price not found!`,
                     }
-                })
-                return
+                }
             }
             ticket.price = price
             ticket.quantity = e.quantity
@@ -898,12 +885,12 @@ const createBookingWeb = (req) => new Promise(async (resolve, reject) => {
 
         if (seatBookingQuantity + totalBookedSeat > tour.tour_bus.numberSeat) {
             const availableSeats = tour.tour_bus.numberSeat - totalBookedSeat;
-            resolve({
-                status: 400,
+            return {
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Tickets available ${availableSeats}, but you requested ${seatBookingQuantity}`,
                 }
-            });
+            }
         }
 
         const productList = []
@@ -916,20 +903,20 @@ const createBookingWeb = (req) => new Promise(async (resolve, reject) => {
                 attributes: ["productId", "price"]
             })
             if (!product) {
-                resolve({
-                    status: 404,
+                return {
+                    status: StatusCodes.NOT_FOUND,
                     data: {
                         msg: `Product not found!`,
                     }
-                });
+                }
             }
             if (STATUS.DEACTIVE === product.status) {
-                resolve({
-                    status: 400,
+                return {
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: `Product not availale!`,
                     }
-                });
+                }
             }
             product.quantity = e.quantity
             productList.push(product)
@@ -979,21 +966,19 @@ const createBookingWeb = (req) => new Promise(async (resolve, reject) => {
             console.log(error)
         }
 
-        resolve({
-            status: 201,
+        return {
+            status: StatusCodes.CREATED,
             data: {
                 msg: "Please pay to finish booking process",
                 bookingId: booking.bookingId,
                 totalPrice: totalPrice
             }
-        })
-
+        }
     } catch (error) {
         console.log(error)
-        reject(error);
     }
-});
-const createBookingOffline = (req) => new Promise(async (resolve, reject) => {
+}
+const createBookingOffline = async (req) => {
     try {
         const user = req.body.user
         const tickets = req.body.tickets
@@ -1018,13 +1003,12 @@ const createBookingOffline = (req) => new Promise(async (resolve, reject) => {
         }
 
         if ("58c10546-5d71-47a6-842e-84f5d2f72ec3" !== roleId) {
-            resolve({
-                status: 403,
+            return {
+                status: StatusCodes.FORBIDDEN,
                 data: {
                     msg: `Role not allow for this action`,
                 }
-            });
-            return
+            }
         }
 
         /**
@@ -1044,67 +1028,65 @@ const createBookingOffline = (req) => new Promise(async (resolve, reject) => {
             }
         })
         if (!tour) {
-            resolve({
-                status: 404,
+            return {
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Tour not found!`,
                 }
-            });
-        } else {
-            if (TOUR_STATUS.AVAILABLE !== tour.tourStatus || STATUS.ACTIVE !== tour.status) {
-                resolve({
-                    status: 403,
-                    data: {
-                        msg: `Tour not available for booking!`,
-                    }
-                });
-            }
-
-            station = await db.Station.findOne({
-                where: {
-                    stationId: departureStationId
-                }
-            })
-
-            if (!station) {
-                resolve({
-                    status: 404,
-                    data: {
-                        msg: `Station not found!`,
-                    }
-                });
-            }
-
-            const routeSegment = await db.RouteSegment.findOne({
-                raw: true,
-                where: {
-                    routeId: tour.routeId,
-                    departureStationId: departureStationId,
-                    status: STATUS.ACTIVE,
-                },
-            })
-
-            if (!routeSegment) {
-                resolve({
-                    status: 404,
-                    data: {
-                        msg: `Station not found within tour route`,
-                    }
-                });
-            } else {
-                if (routeSegment.index !== 1) {
-                    const routeSegments = await db.RouteSegment.findAll({
-                        raw: true,
-                        where: {
-                            routeId: routeSegment.routeId,
-                        },
-                        order: [['index', 'ASC']]
-                    })
-                    _routeSegments = routeSegments
-                }
-                _routeSegment = routeSegment
             }
         }
+        if (TOUR_STATUS.AVAILABLE !== tour.tourStatus || STATUS.ACTIVE !== tour.status) {
+            return {
+                status: StatusCodes.FORBIDDEN,
+                data: {
+                    msg: `Tour not available for booking!`,
+                }
+            }
+        }
+
+        station = await db.Station.findOne({
+            where: {
+                stationId: departureStationId
+            }
+        })
+
+        if (!station) {
+            return {
+                status: StatusCodes.NOT_FOUND,
+                data: {
+                    msg: `Station not found!`,
+                }
+            }
+        }
+
+        const routeSegment = await db.RouteSegment.findOne({
+            raw: true,
+            where: {
+                routeId: tour.routeId,
+                departureStationId: departureStationId,
+                status: STATUS.ACTIVE,
+            },
+        })
+
+        if (!routeSegment) {
+            return {
+                status: StatusCodes.NOT_FOUND,
+                data: {
+                    msg: `Station not found within tour route`,
+                }
+            }
+        }
+        if (routeSegment.index !== 1) {
+            const routeSegments = await db.RouteSegment.findAll({
+                raw: true,
+                where: {
+                    routeId: routeSegment.routeId,
+                },
+                order: [['index', 'ASC']]
+            })
+            _routeSegments = routeSegments
+        }
+        _routeSegment = routeSegment
 
         /**
          * Checking ticketId and priceId and calculate booked ticket quantity
@@ -1120,13 +1102,12 @@ const createBookingOffline = (req) => new Promise(async (resolve, reject) => {
                 }
             })
             if (!ticket) {
-                resolve({
-                    status: 404,
+                return{
+                    status: StatusCodes.NOT_FOUND,
                     data: {
                         msg: `Ticket not found!`,
                     }
-                })
-                return
+                }
             }
             seatBookingQuantity += e.quantity
 
@@ -1138,13 +1119,12 @@ const createBookingOffline = (req) => new Promise(async (resolve, reject) => {
                 }
             })
             if (!price) {
-                resolve({
-                    status: 404,
+                return{
+                    status: StatusCodes.NOT_FOUND,
                     data: {
                         msg: `Price not found!`,
                     }
-                })
-                return
+                }
             }
             ticket.price = price
             ticket.quantity = e.quantity
@@ -1184,12 +1164,12 @@ const createBookingOffline = (req) => new Promise(async (resolve, reject) => {
 
         if (seatBookingQuantity + totalBookedSeat > tour.tour_bus.numberSeat) {
             const availableSeats = tour.tour_bus.numberSeat - totalBookedSeat;
-            resolve({
-                status: 400,
+            return{
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Tickets available ${availableSeats}, but you requested ${seatBookingQuantity}`,
                 }
-            });
+            }
         }
 
         /**
@@ -1232,30 +1212,41 @@ const createBookingOffline = (req) => new Promise(async (resolve, reject) => {
             console.log(error)
         }
 
-        resolve({
-            status: 201,
+        return{
+            status: StatusCodes.CREATED,
             data: {
                 msg: "Please pay to finish booking process",
                 bookingId: booking.bookingId,
                 totalPrice: totalPrice
             }
-        })
-
+        }
     } catch (error) {
         console.log(error)
-        reject(error);
-    }
-});
 
-const checkInQrCode = (bookingId) => new Promise(async (resolve, reject) => {
+    }
+}
+
+const checkInQrCode = async (bookingId, tourId) => {
     const t = await db.sequelize.transaction();
     try {
-        const _bookingId = bookingId
-        const bookingDetail = await db.BookingDetail.findOne({
+        const tour = await db.Tour.findOne({
             where: {
-                bookingId: _bookingId
-            },
+                tourId: tourId
+            }
+        })
+        if (!tour) {
+            return {
+                status: StatusCodes.NOT_FOUND,
+                data: {
+                    msg: `Tour not found!`,
+                }
+            }
+        }
+        const bookingDetail = await db.BookingDetail.findOne({
             attributes: ["bookingDetailId"],
+            where: {
+                bookingId: bookingId
+            },
             include: [
                 {
                     model: db.Ticket,
@@ -1264,77 +1255,91 @@ const checkInQrCode = (bookingId) => new Promise(async (resolve, reject) => {
                     include: {
                         model: db.Tour,
                         as: "ticket_tour",
-                        attributes: ["tourId", "tourStatus"]
+                        attributes: ["tourId", "departureDate", "tourStatus"],
                     }
                 },
                 {
                     model: db.Booking,
                     as: "detail_booking",
-                    where: {
-                        bookingId: _bookingId
-                    },
                 }
             ]
         })
 
         if (!bookingDetail) {
-            resolve({
-                status: 404,
+            return {
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Booking not found!`,
                 }
-            })
+            }
         }
-
-        if (bookingDetail.detail_booking.isAttended === true) {
-            resolve({
-                status: 400,
+        if (bookingDetail.booking_detail_ticket.ticket_tour.tourId !== tourId) {
+            return {
+                status: StatusCodes.FORBIDDEN,
                 data: {
-                    msg: `Booking already attended!`,
+                    msg: `Booking belong to different tour!`,
                 }
-            })
-        }
-
-        if (BOOKING_STATUS.CANCELED === bookingDetail.detail_booking.bookingStatus) {
-            resolve({
-                status: 400,
-                data: {
-                    msg: `Cannot take attendance because booking is canceled!`,
-                }
-            })
+            }
         }
         if (TOUR_STATUS.FINISHED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus || TOUR_STATUS.CANCELED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
-            resolve({
-                status: 400,
+            return {
+                status: StatusCodes.FORBIDDEN,
                 data: {
                     msg: `Cannot take attendance because tour is finished or canceled!`,
                 }
-            })
+            }
+        }
+        if (BOOKING_STATUS.CANCELED === bookingDetail.detail_booking.bookingStatus) {
+            return {
+                status: StatusCodes.FORBIDDEN,
+                data: {
+                    msg: `Cannot take attendance because booking is canceled!`,
+                }
+            }
+        }
+        const currentDate = new Date()
+        currentDate.setHours(currentDate.getHours() + 7)
+        const thirtyMinutesBeforeDepartureDate = new Date(bookingDetail.booking_detail_ticket.ticket_tour.departureDate)
+        thirtyMinutesBeforeDepartureDate.setMinutes(thirtyMinutesBeforeDepartureDate.getMinutes() - 30)
+        if (thirtyMinutesBeforeDepartureDate > currentDate) {
+            return {
+                status: StatusCodes.FORBIDDEN,
+                data: {
+                    msg: `Check-in is allowed only 30 minutes before the tour departure time.`,
+                }
+            }
         }
 
+        if (bookingDetail.detail_booking.isAttended === true) {
+            return {
+                status: StatusCodes.FORBIDDEN,
+                data: {
+                    msg: `Booking already attended!`,
+                }
+            }
+        }
         await db.Booking.update({ isAttended: true }, {
             where: {
-                bookingId: _bookingId
+                bookingId: bookingId
             },
             individualHooks: true,
             transaction: t
         })
 
         await t.commit()
-        resolve({
-            status: 200,
+        return {
+            status: StatusCodes.OK,
             data: {
                 msg: `Attendance taken successfully!`,
             }
-        })
+        }
     } catch (error) {
         await t.rollback()
         console.log(error)
-        reject(error);
     }
-});
+};
 
-const cancelBooking = (bookingId) => new Promise(async (resolve, reject) => {
+const cancelBooking = async (bookingId) => {
     try {
         const _bookingId = bookingId
         const bookingDetail = await db.BookingDetail.findOne({
@@ -1350,15 +1355,12 @@ const cancelBooking = (bookingId) => new Promise(async (resolve, reject) => {
                     include: {
                         model: db.Tour,
                         as: "ticket_tour",
-                        attributes: ["tourId", "tourStatus"]
+                        attributes: ["tourId", "tourName", "departureDate", "tourStatus"],
                     }
                 },
                 {
                     model: db.Booking,
                     as: "detail_booking",
-                    where: {
-                        bookingId: _bookingId
-                    },
                     include: [
                         {
                             model: db.User,
@@ -1373,30 +1375,30 @@ const cancelBooking = (bookingId) => new Promise(async (resolve, reject) => {
             ]
         })
         if (!bookingDetail) {
-            resolve({
-                status: 404,
+            return{
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Booking not found!`,
                 }
-            })
+            }
         }
 
         if (BOOKING_STATUS.CANCELED === bookingDetail.detail_booking.bookingStatus) {
-            resolve({
-                status: 400,
+            return{
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Booking already ${BOOKING_STATUS.CANCELED}`,
                 }
-            })
+            }
         }
 
-        if (TOUR_STATUS.FINISHED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus || TOUR_STATUS.AVAILABLE !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
-            resolve({
-                status: 400,
+        if (TOUR_STATUS.AVAILABLE !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
+            return{
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Cannot cancel because tour finished or started`,
                 }
-            })
+            }
         }
 
         const transaction = await db.Transaction.findOne({
@@ -1420,7 +1422,7 @@ const cancelBooking = (bookingId) => new Promise(async (resolve, reject) => {
         //         resolve(data)
         //     } else {
         //         resolve({
-        //             status: 409,
+        //             status: StatusCodes.CONFLICT,
         //             data: {
         //                 msg: `Mail sent failed`,
         //             }
@@ -1430,25 +1432,44 @@ const cancelBooking = (bookingId) => new Promise(async (resolve, reject) => {
 
         // if (!otp.isAllow) {
         //     resolve({
-        //         status: 403,
+        //         status: StatusCodes.FORBIDDEN,
         //         data: {
         //             msg: `Action not allow, Please validate OTP!`,
         //         }
         //     })
         // }
 
-        if (transaction.status === STATUS.DRAFT) {
-            resolve({
-                status: 400,
+        if (STATUS.DRAFT === transaction.status) {
+            return{
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Booking not paid!`,
                 }
-            })
+            }
+        }
+        var amount = parseInt(transaction.amount)
+        const departureDate = new Date(bookingDetail.booking_detail_ticket.ticket_tour.departureDate)
+        const currentDate = new Date()
+        currentDate.setHours(currentDate.getHours() + 7)
+        const timeDifference = departureDate - currentDate
+        const twoDaysInMillis = 2 * 24 * 60 * 60 * 1000 // 2 days in milliseconds
+        const oneDayInMillis = 24 * 60 * 60 * 1000 // 1 day in milliseconds
+        if (timeDifference <= oneDayInMillis) {
+            return {
+                status: StatusCodes.FORBIDDEN,
+                data: {
+                    msg: "Cancel within last day or when tour started will not get refund",
+                }
+            }
+        } else if (timeDifference <= twoDaysInMillis) {
+            amount = amount * 75 / 100
+        } else {
+            amount = amount * 80 / 100
         }
 
-        PaymentService.refundMomo(_bookingId, (refundResult) => {
-            if (refundResult.status !== 200) {
-                resolve(refundResult)
+        PaymentService.refundMomo(_bookingId, amount, (refundResult) => {
+            if (refundResult.status !== StatusCodes.OK) {
+                return refundResult
             } else {
                 db.Booking.update({
                     bookingStatus: BOOKING_STATUS.CANCELED,
@@ -1468,13 +1489,12 @@ const cancelBooking = (bookingId) => new Promise(async (resolve, reject) => {
                     },
                     individualHooks: true,
                 });
-                resolve(refundResult)
+                return refundResult
             }
         })
     } catch (error) {
         console.log(error)
-        reject(error);
     }
-});
+}
 
 module.exports = { getBookingDetailByBookingId, getBookings, getBookingsByEmail, createBookingWeb, createBookingOffline, checkInQrCode, cancelBooking };
