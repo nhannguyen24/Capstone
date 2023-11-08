@@ -12,9 +12,14 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Report.belongsTo(models.User, {
-        foreignKey: "customerId",
+        foreignKey: "reportUserId",
         targetKey: 'userId',
         as: "report_user",
+      });
+      Report.belongsTo(models.User, {
+        foreignKey: "responseUserId",
+        targetKey: 'userId',
+        as: "response_user",
       });
     }
   }
@@ -27,7 +32,10 @@ module.exports = (sequelize, DataTypes) => {
     title: DataTypes.STRING,
     description: DataTypes.STRING,
     response: DataTypes.STRING,
-    customerId: {
+    reportUserId: {
+      type: DataTypes.UUID
+    },
+    responseUserId: {
       type: DataTypes.UUID
     },
     reportStatus: {
