@@ -86,7 +86,7 @@ const createReport = async (req) => {
         const title = req.body.title
         const description = req.body.description
 
-        const loggedInUser = req.body.userId
+        const loggedInUser = req.user.userId
         if(customerId !== loggedInUser){
             return{
                 status: StatusCodes.NOT_FOUND,
