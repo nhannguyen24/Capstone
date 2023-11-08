@@ -38,7 +38,7 @@ async function cancelTourAndRefundIfUnderbooked() {
   try {
     const currentDate = new Date()
     currentDate.setHours(currentDate.getHours() + 7)
-    const tours = await db.Tour.count({
+    const tours = await db.Tour.findAll({
       raw: true,
       where: {
         endBookingDate: {
