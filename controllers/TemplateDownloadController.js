@@ -98,7 +98,7 @@ const copyAndModifyExcelInMemory = async (mainFilePath, ticketTypes, routeNames)
                 }
                 const cellValidation = {
                     type: 'list',
-                    formulae: ['"true,false"'],
+                    formulae: ['"x,"'],
                 };
                 cell.dataValidation = cellValidation;
             }
@@ -113,11 +113,6 @@ const copyAndModifyExcelInMemory = async (mainFilePath, ticketTypes, routeNames)
             };
             routeCell.dataValidation = routeValidation;
         }
-
-
-        ticketTypes.map((ticketType) => {
-
-        })
 
         const buffer = await workbook.xlsx.writeBuffer();
 
