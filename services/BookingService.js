@@ -989,18 +989,20 @@ const createBookingOffline = async (req) => {
          * Checking if Admin or Manager not allow to book
          */
         let roleId
-        let resultUser
+        let userId
         if (user.email !== null || user.email !== undefined || user.email.trim() !== "") {
-            resultUser = await db.User.findOrCreate({
+            const resultUser = await db.User.findOrCreate({
                 where: {
                     email: user.email
                 },
                 defaults: { email: user.email, userName: user.userName, phone: user.phone, roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3" }
             })
             roleId = resultUser[0].dataValues.roleId
+            userId = resultUser[0].userId
         } else {
-            resultUser = await db.User.create({ userName: user.userName, phone: user.phone, roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3" })
+            const resultUser = await db.User.create({ userName: user.userName, phone: user.phone, roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3" })
             roleId = "58c10546-5d71-47a6-842e-84f5d2f72ec3"
+            userId = resultUser.userId
         }
 
         if ("58c10546-5d71-47a6-842e-84f5d2f72ec3" !== roleId) {
@@ -1201,7 +1203,7 @@ const createBookingOffline = async (req) => {
         let booking
         try {
             await db.sequelize.transaction(async (t) => {
-                booking = await db.Booking.create({ totalPrice: totalPrice, customerId: resultUser.userId, departureStationId: station.stationId, isAttended: true, bookingStatus: BOOKING_STATUS.DRAFT }, { transaction: t });
+                booking = await db.Booking.create({ totalPrice: totalPrice, customerId: userId, departureStationId: station.stationId, isAttended: true, bookingStatus: BOOKING_STATUS.DRAFT }, { transaction: t });
 
                 await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, status: STATUS.DRAFT }, { transaction: t })
 
