@@ -4,6 +4,7 @@ const { StatusCodes } = require('http-status-codes');
 const BOOKING_STATUS = require("../enums/BookingStatusEnum")
 const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
+const TRANSACTION_TYPE = require("../enums/TransactionTypeEnum")
 const OTP_TYPE = require("../enums/OtpTypeEnum")
 const OtpService = require("./OtpService")
 const PaymentService = require("./PaymentService")
@@ -80,7 +81,7 @@ const getBookingDetailByBookingId = async (req) => {
             where: {
                 bookingId: booking.bookingId
             },
-            attributes: ["transactionId", "amount", "refundAmount", "status"]
+            attributes: ["transactionId", "amount", "refundAmount", "transactionType", "status"]
         })
 
         const productOrder = await db.ProductOrder.findAll({
@@ -304,7 +305,7 @@ const getBookings = async (req) => {
                     where: {
                         bookingId: bookingId
                     },
-                    attributes: ["transactionId", "amount", "refundAmount", "status"]
+                    attributes: ["transactionId", "amount", "refundAmount", "transactionType", "status"]
                 })
                 if (bookingDetails.length > 1) {
                     for (let i = 0; i < bookingDetails.length; i++) {
@@ -599,7 +600,7 @@ const getBookingsByEmail = async (req) => {
                     where: {
                         bookingId: bookingId
                     },
-                    attributes: ["transactionId", "amount", "refundAmount", "status"]
+                    attributes: ["transactionId", "amount", "refundAmount", "transactionType", "status"]
                 })
                 if (bookingDetails.length > 1) {
                     for (let i = 0; i < bookingDetails.length; i++) {
@@ -952,7 +953,7 @@ const createBookingWeb = async (req) => {
             await db.sequelize.transaction(async (t) => {
                 booking = await db.Booking.create({ totalPrice: totalPrice, customerId: resultUser[0].dataValues.userId, departureStationId: station.stationId, bookingStatus: BOOKING_STATUS.DRAFT }, { transaction: t });
 
-                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, status: STATUS.DRAFT }, { transaction: t })
+                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, transactionType: TRANSACTION_TYPE.MOMO, status: STATUS.DRAFT }, { transaction: t })
 
                 for (const ticket of ticketList) {
                     await db.BookingDetail.create({ TicketPrice: ticket.price.amount, bookingId: booking.bookingId, ticketId: ticket.ticketId, quantity: ticket.quantity, status: STATUS.DRAFT }, { transaction: t });
@@ -1208,7 +1209,7 @@ const createBookingOffline = async (req) => {
             await db.sequelize.transaction(async (t) => {
                 booking = await db.Booking.create({ totalPrice: totalPrice, customerId: userId, departureStationId: station.stationId, isAttended: true, bookingStatus: BOOKING_STATUS.DRAFT }, { transaction: t });
 
-                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, status: STATUS.DRAFT }, { transaction: t })
+                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, transactionType: TRANSACTION_TYPE.CASH, status: STATUS.DRAFT }, { transaction: t })
 
                 for (const ticket of ticketList) {
                     await db.BookingDetail.create({ TicketPrice: ticket.price.amount, bookingId: booking.bookingId, ticketId: ticket.ticketId, quantity: ticket.quantity, status: STATUS.DRAFT }, { transaction: t });
