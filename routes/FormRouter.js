@@ -63,7 +63,7 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  *         in: query
  *         schema:
  *           type: string
- *           enum: ["Active", "Approved", "Rejected"]
+ *           enum: ["Active", "Approved", "Accepted","Rejected"]
  *         description: Find form by status
  *       - name: page
  *         in: query
@@ -173,7 +173,7 @@ router.post("/", verifyToken, roleAuthen(["TourGuide", "Driver"]), controllers.c
  *          application/json:
  *            schema:                     
  *                  example:
- *                    status: ('Approved','Pending','Rejected')
+ *                    status: ('Approved', 'Accepted', 'Pending', 'Rejected')
  *     responses:
  *       200:
  *         description: Update the form successfully

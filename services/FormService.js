@@ -200,6 +200,12 @@ const updateForm = (id, body) =>
                     transaction: t
                 });
 
+                await db.Tour.update({ tourGuideId: form.userId }, {
+                    where: { tourId: form.desireTour },
+                    individualHooks: true,
+                    transaction: t
+                });
+
                 resolve({
                     status: forms[1].length !== 0 ? 200 : 400,
                     data: {
