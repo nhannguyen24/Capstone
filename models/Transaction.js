@@ -26,6 +26,16 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
     },
     transactionCode: DataTypes.STRING,
+    transactionType: {
+      type: DataTypes.ENUM,
+      values: [["MOMO", "Cash"],],
+      validate: {
+        isIn: {
+          args: [["MOMO", "Cash"]],
+          msg: 'Invalid value for transaction.type (MOMO, Cash)'
+        }
+      }
+    },
     amount: DataTypes.INTEGER,
     refundAmount: DataTypes.INTEGER,
     bookingId: {
