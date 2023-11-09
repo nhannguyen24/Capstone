@@ -2,6 +2,7 @@ const path = require('path');
 const ExcelJS = require('exceljs');
 const db = require("../models");
 const STATUS = require("../enums/StatusEnum")
+const FirebaseService = require('../middlewares/FirebaseService')
 const downloadTourTemplate = async (req, res) => {
     try {
         const fileName = 'Tour create template.xlsx';
@@ -24,10 +25,16 @@ const downloadTourTemplate = async (req, res) => {
 
         const routeNames = [`"${routes.map(route => route.routeName).join(',')}"`]
         const buffer = await copyAndModifyExcelInMemory(filePath, ticketTypes, routeNames)
-
-        res.setHeader('Content-disposition', `attachment; filename=${fileName}`)
-        res.setHeader('Content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        res.end(buffer)
+        const file = {
+            fieldname: 'file',
+            originalname: fileName,
+            encoding: '7bit',
+            mimetype: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            buffer: buffer,
+            size: buffer.length,
+        };
+        req.file = file
+        FirebaseService.uploadFile(req, res)
     } catch (error) {
         console.log(error)
     }
