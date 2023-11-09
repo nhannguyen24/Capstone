@@ -11,10 +11,6 @@ const router = express.Router();
  *     tags: [Statistic]
  *     parameters:
  *      - in: query
- *        name: time
- *        schema:
- *          type: string
- *      - in: query
  *        name: startDate
  *        schema:
  *          type: string
@@ -33,15 +29,6 @@ const router = express.Router();
  *        style: form
  *        explode: false
  *        description: "Allowed values: Ongoing, Canceled, Finished"
- *      - in: query
- *        name: tourStatus
- *        schema:
- *          type: array
- *          items: 
- *              type: string
- *        style: form
- *        explode: false
- *        description: "Allowed values: Available, Started, Canceled, Finished"
  *     responses:
  *       200:
  *         description: OK
@@ -51,5 +38,19 @@ const router = express.Router();
  *               type: object
  */
 router.get("/", controllers.getStatistics);
-
+/*
+ *      - in: query
+ *        name: tourStatus
+ *        schema:
+ *          type: array
+ *          items: 
+ *              type: string
+ *        style: form
+ *        explode: false
+ *        description: "Allowed values: Available, Started, Canceled, Finished"
+ *      - in: query
+ *        name: time
+ *        schema:
+ *          type: string
+ */
 module.exports = router;

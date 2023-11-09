@@ -139,6 +139,11 @@ const getStatistics = async (req) => {
                 totalCancelTour: totalCancelTours,
             } : {
                 msg: `Could not find any statistics based on your request.`,
+                totalBookedTickets: totalBookedTickets,
+                totalCancelTickets: totalCancelTickets,
+                totalMoneyEarned: totalMoneyEarned,
+                totalCreatedTour: totalCreatedTours,
+                totalCancelTour: totalCancelTours,
             }
         }
     } catch (error) {

@@ -8,8 +8,7 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  * @swagger
  * /api/v1/download:
  *   get:
-
- *     summary: Get excel template for create tour
+ *     summary: Get excel template for creating a tour
  *     tags: [Template]
  *     responses:
  *       200:
@@ -17,7 +16,15 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  *         content:
  *           application/json:
  *             schema:
- *               type: string
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: A message indicating that the file is ready for download.
+ *                 downloadUrl:
+ *                   type: string
+ *                   format: uri
+ *                   description: The URL for downloading the Excel template for creating a tour.
  */
 router.get("/", controllers.downloadTourTemplate);
 

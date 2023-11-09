@@ -43,7 +43,7 @@ const createTicketType = async (req, res) => {
 const updateTicketType = async (req, res) => {
     try {
         const errors = []
-        const ticketTypeId = req.body.id || ""
+        const ticketTypeId = req.params.id || ""
         const ticketTypeName = req.body.ticketTypeName || ""
         const description = req.body.description || ""
         if(ticketTypeId.trim() === ""){
