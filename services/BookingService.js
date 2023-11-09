@@ -1105,7 +1105,7 @@ const createBookingOffline = async (req) => {
                 }
             })
             if (!ticket) {
-                return{
+                return {
                     status: StatusCodes.NOT_FOUND,
                     data: {
                         msg: `Ticket not found!`,
@@ -1122,7 +1122,7 @@ const createBookingOffline = async (req) => {
                 }
             })
             if (!price) {
-                return{
+                return {
                     status: StatusCodes.NOT_FOUND,
                     data: {
                         msg: `Price not found!`,
@@ -1167,7 +1167,7 @@ const createBookingOffline = async (req) => {
 
         if (seatBookingQuantity + totalBookedSeat > tour.tour_bus.numberSeat) {
             const availableSeats = tour.tour_bus.numberSeat - totalBookedSeat;
-            return{
+            return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Tickets available ${availableSeats}, but you requested ${seatBookingQuantity}`,
@@ -1191,11 +1191,14 @@ const createBookingOffline = async (req) => {
             /**
              * 0.5 = 50%
              */
-            if (discountPercentage >= 0.5) {
-                totalPrice = totalPrice * discountPercentage
-            } else {
-                totalPrice = totalPrice * discountPercentage
+            if (discountPercentage !== 0) {
+                if (discountPercentage >= 0.5) {
+                    totalPrice = totalPrice * discountPercentage
+                } else {
+                    totalPrice = totalPrice * discountPercentage
+                }
             }
+
         }
         /**
          * Begin booking creation process and roll back if error
@@ -1215,7 +1218,7 @@ const createBookingOffline = async (req) => {
             console.log(error)
         }
 
-        return{
+        return {
             status: StatusCodes.CREATED,
             data: {
                 msg: "Please pay to finish booking process",
@@ -1377,7 +1380,7 @@ const cancelBooking = async (bookingId) => {
             ]
         })
         if (!bookingDetail) {
-            return{
+            return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Booking not found!`,
@@ -1386,7 +1389,7 @@ const cancelBooking = async (bookingId) => {
         }
 
         if (BOOKING_STATUS.CANCELED === bookingDetail.detail_booking.bookingStatus) {
-            return{
+            return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Booking already ${BOOKING_STATUS.CANCELED}`,
@@ -1395,7 +1398,7 @@ const cancelBooking = async (bookingId) => {
         }
 
         if (TOUR_STATUS.AVAILABLE !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
-            return{
+            return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Cannot cancel because tour finished or started`,
@@ -1442,7 +1445,7 @@ const cancelBooking = async (bookingId) => {
         // }
 
         if (STATUS.DRAFT === transaction.status) {
-            return{
+            return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Booking not paid!`,
