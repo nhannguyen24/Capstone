@@ -978,6 +978,7 @@ const createBookingWeb = async (req) => {
         console.log(error)
     }
 }
+
 const createBookingOffline = async (req) => {
     try {
         const user = req.body.user
@@ -1035,7 +1036,7 @@ const createBookingOffline = async (req) => {
                 }
             }
         }
-        if (TOUR_STATUS.AVAILABLE !== tour.tourStatus || STATUS.ACTIVE !== tour.status) {
+        if (TOUR_STATUS.AVAILABLE !== tour.tourStatus) {
             return {
                 status: StatusCodes.FORBIDDEN,
                 data: {
@@ -1222,7 +1223,6 @@ const createBookingOffline = async (req) => {
         }
     } catch (error) {
         console.log(error)
-
     }
 }
 

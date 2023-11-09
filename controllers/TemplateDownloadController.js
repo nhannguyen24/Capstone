@@ -19,7 +19,7 @@ const downloadTourTemplate = async (req, res) => {
                 status: STATUS.ACTIVE
             },
             order: [["createdAt", "DESC"]],
-            attributes: ["ticketTypeName"],
+            attributes: ["ticketTypeName", "description"],
         })
 
         const routeNames = [`"${routes.map(route => route.routeName).join(',')}"`]
@@ -44,6 +44,9 @@ const copyAndModifyExcelInMemory = async (mainFilePath, ticketTypes, routeNames)
             for (let i = 0; i < ticketLength; i++) {
                 const ticketRow = worksheet.getRow(3);
                 const ticketCell = ticketRow.getCell(9 + i);
+
+                const ticketDescriptionRow = worksheet.getRow(17 + i);
+                const ticketDescriptionCell = ticketDescriptionRow.getCell(9);
                 ticketCell.style = {
                     fill: {
                         type: 'pattern',
@@ -69,6 +72,17 @@ const copyAndModifyExcelInMemory = async (mainFilePath, ticketTypes, routeNames)
                 };
                 ticketCell.value = ticketTypes[i].ticketTypeName
 
+                ticketDescriptionCell.style = {
+                    font: {
+                        name: 'Calibri',
+                        size: 12,
+                        color: { argb: '000000' },
+                        bold: true
+                    },
+                }
+
+                ticketDescriptionCell.value = `${ticketTypes[i].ticketTypeName}: ${ticketTypes[i].description}`
+
                 const row = worksheet.getRow(rowNum);
                 const cell = row.getCell(9 + i);
                 cell.style.alignment = {
@@ -92,6 +106,11 @@ const copyAndModifyExcelInMemory = async (mainFilePath, ticketTypes, routeNames)
             };
             routeCell.dataValidation = routeValidation;
         }
+
+
+        ticketTypes.map((ticketType) => {
+
+        })
 
         const buffer = await workbook.xlsx.writeBuffer();
 
