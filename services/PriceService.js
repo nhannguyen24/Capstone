@@ -1,6 +1,7 @@
 const db = require('../models');
 const { Op } = require('sequelize');
 const STATUS = require("../enums/StatusEnum")
+const TOUR_STATUS = require("../enums/TourStatusEnum")
 const DAY = require("../enums/PriceDayEnum");
 const { StatusCodes } = require('http-status-codes');
 
@@ -25,6 +26,13 @@ const getPrices = async (req) => {
         const prices = await db.Price.findAll({
             where: whereClause,
             order: [["updatedAt", "DESC"]],
+            include: {
+                model: db.TicketType,
+                as: "price_ticket_type",
+                attributes: {
+                    exclude: ["createdAt", "updatedAt"]
+                }
+            },
             offset: offset,
             limit: limit
         });
@@ -132,6 +140,40 @@ const updatePrice = async (req) => {
                 status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Price not found!`,
+                }
+            }
+        }
+        const ticket = await db.Ticket.findOne({
+            include: [
+                {
+                    model: db.TicketType,
+                    as: "ticket_type",
+                    where: {
+                        ticketTypeId: ticketTypeId
+                    },
+                    include: {
+                        model: db.Price,
+                        as: "ticket_type_price",
+                        where: {
+                            priceId: priceId
+                        }
+                    }
+                },
+                {
+                    model: db.Tour,
+                    as: "ticket_tour",
+                    where: {
+                        tourStatus: TOUR_STATUS.AVAILABLE
+                    }
+                }
+            ]
+        })
+
+        if(ticket){
+            return {
+                status: StatusCodes.BAD_REQUEST,
+                data: {
+                    msg: "Price in use for a ticket in an active tour",
                 }
             }
         }

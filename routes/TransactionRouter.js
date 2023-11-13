@@ -42,6 +42,14 @@ const router = express.Router();
  *           type: string
  *         description: Search by transaction code
  *       - in: query
+ *         name: transactionType
+ *         schema:
+ *           type: string       
+ *           enum: 
+ *              - MOMO
+ *              - Cash
+ *         description: Search by transaction type
+ *       - in: query
  *         name: isSuccess
  *         schema:
  *           type: boolean

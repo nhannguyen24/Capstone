@@ -33,13 +33,6 @@ const router = express.Router();
  *         schema:
  *           type: string
  *         description: Search feedback by route
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: 
- *              - Active
- *              - Deactive
  *     responses:
  *       200:
  *         description: OK
@@ -148,11 +141,6 @@ router.get("/:id", verifyToken, roleAuthen(["Manager"]), controllers.getFeedback
  *                      type: integer
  *                  description: 
  *                      type: string
- *                  status: 
- *                      type: string
- *                      enum: 
- *                          - Active
- *                          - Deactive
  *     responses:
  *       200:
  *         description: OK

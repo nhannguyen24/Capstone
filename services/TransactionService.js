@@ -9,6 +9,7 @@ const getTransactions = async (req) => {
         const offset = (page - 1) * limit
         const bookingId = req.query.bookingId || ""
         const transactionCode = req.query.transactionCode || ""
+        const transactionType = req.query.transactionType || ""
         const isSuccess = req.query.isSuccess || ""
         const status = req.query.status || ""
 
@@ -16,6 +17,10 @@ const getTransactions = async (req) => {
 
         if(transactionCode.trim() !== ""){
             whereClause.transactionCode = transactionCode
+        }
+
+        if(transactionType.trim() !== ""){
+            whereClause.transactionType = transactionType
         }
         
         if(bookingId.trim() !== ""){

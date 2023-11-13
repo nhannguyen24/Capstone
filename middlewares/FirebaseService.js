@@ -11,7 +11,6 @@ const uploadFile = async (req, res) => {
     if (!req.file) {
       throw new NotFoundError("No files found");
     }
-
     const blob = firebase.bucket.file(req.file.originalname);
 
     const blobWriter = blob.createWriteStream({

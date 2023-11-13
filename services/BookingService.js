@@ -4,6 +4,7 @@ const { StatusCodes } = require('http-status-codes');
 const BOOKING_STATUS = require("../enums/BookingStatusEnum")
 const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
+const TRANSACTION_TYPE = require("../enums/TransactionTypeEnum")
 const OTP_TYPE = require("../enums/OtpTypeEnum")
 const OtpService = require("./OtpService")
 const PaymentService = require("./PaymentService")
@@ -80,7 +81,7 @@ const getBookingDetailByBookingId = async (req) => {
             where: {
                 bookingId: booking.bookingId
             },
-            attributes: ["transactionId", "amount", "refundAmount", "status"]
+            attributes: ["transactionId", "amount", "refundAmount", "transactionType", "status"]
         })
 
         const productOrder = await db.ProductOrder.findAll({
@@ -304,7 +305,7 @@ const getBookings = async (req) => {
                     where: {
                         bookingId: bookingId
                     },
-                    attributes: ["transactionId", "amount", "refundAmount", "status"]
+                    attributes: ["transactionId", "amount", "refundAmount", "transactionType", "status"]
                 })
                 if (bookingDetails.length > 1) {
                     for (let i = 0; i < bookingDetails.length; i++) {
@@ -599,7 +600,7 @@ const getBookingsByEmail = async (req) => {
                     where: {
                         bookingId: bookingId
                     },
-                    attributes: ["transactionId", "amount", "refundAmount", "status"]
+                    attributes: ["transactionId", "amount", "refundAmount", "transactionType", "status"]
                 })
                 if (bookingDetails.length > 1) {
                     for (let i = 0; i < bookingDetails.length; i++) {
@@ -952,7 +953,7 @@ const createBookingWeb = async (req) => {
             await db.sequelize.transaction(async (t) => {
                 booking = await db.Booking.create({ totalPrice: totalPrice, customerId: resultUser[0].dataValues.userId, departureStationId: station.stationId, bookingStatus: BOOKING_STATUS.DRAFT }, { transaction: t });
 
-                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, status: STATUS.DRAFT }, { transaction: t })
+                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, transactionType: TRANSACTION_TYPE.MOMO, status: STATUS.DRAFT }, { transaction: t })
 
                 for (const ticket of ticketList) {
                     await db.BookingDetail.create({ TicketPrice: ticket.price.amount, bookingId: booking.bookingId, ticketId: ticket.ticketId, quantity: ticket.quantity, status: STATUS.DRAFT }, { transaction: t });
@@ -978,6 +979,7 @@ const createBookingWeb = async (req) => {
         console.log(error)
     }
 }
+
 const createBookingOffline = async (req) => {
     try {
         const user = req.body.user
@@ -988,18 +990,20 @@ const createBookingOffline = async (req) => {
          * Checking if Admin or Manager not allow to book
          */
         let roleId
-        let resultUser
+        let userId
         if (user.email !== null || user.email !== undefined || user.email.trim() !== "") {
-            resultUser = await db.User.findOrCreate({
+            const resultUser = await db.User.findOrCreate({
                 where: {
                     email: user.email
                 },
                 defaults: { email: user.email, userName: user.userName, phone: user.phone, roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3" }
             })
             roleId = resultUser[0].dataValues.roleId
+            userId = resultUser[0].userId
         } else {
-            resultUser = await db.User.create({ userName: user.userName, phone: user.phone, roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3" })
+            const resultUser = await db.User.create({ userName: user.userName, phone: user.phone, roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3" })
             roleId = "58c10546-5d71-47a6-842e-84f5d2f72ec3"
+            userId = resultUser.userId
         }
 
         if ("58c10546-5d71-47a6-842e-84f5d2f72ec3" !== roleId) {
@@ -1035,7 +1039,7 @@ const createBookingOffline = async (req) => {
                 }
             }
         }
-        if (TOUR_STATUS.AVAILABLE !== tour.tourStatus || STATUS.ACTIVE !== tour.status) {
+        if (TOUR_STATUS.AVAILABLE !== tour.tourStatus) {
             return {
                 status: StatusCodes.FORBIDDEN,
                 data: {
@@ -1102,7 +1106,7 @@ const createBookingOffline = async (req) => {
                 }
             })
             if (!ticket) {
-                return{
+                return {
                     status: StatusCodes.NOT_FOUND,
                     data: {
                         msg: `Ticket not found!`,
@@ -1119,7 +1123,7 @@ const createBookingOffline = async (req) => {
                 }
             })
             if (!price) {
-                return{
+                return {
                     status: StatusCodes.NOT_FOUND,
                     data: {
                         msg: `Price not found!`,
@@ -1164,7 +1168,7 @@ const createBookingOffline = async (req) => {
 
         if (seatBookingQuantity + totalBookedSeat > tour.tour_bus.numberSeat) {
             const availableSeats = tour.tour_bus.numberSeat - totalBookedSeat;
-            return{
+            return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Tickets available ${availableSeats}, but you requested ${seatBookingQuantity}`,
@@ -1188,11 +1192,14 @@ const createBookingOffline = async (req) => {
             /**
              * 0.5 = 50%
              */
-            if (discountPercentage >= 0.5) {
-                totalPrice = totalPrice * discountPercentage
-            } else {
-                totalPrice = totalPrice * discountPercentage
+            if (discountPercentage !== 0) {
+                if (discountPercentage >= 0.5) {
+                    totalPrice = totalPrice * discountPercentage
+                } else {
+                    totalPrice = totalPrice * discountPercentage
+                }
             }
+
         }
         /**
          * Begin booking creation process and roll back if error
@@ -1200,9 +1207,9 @@ const createBookingOffline = async (req) => {
         let booking
         try {
             await db.sequelize.transaction(async (t) => {
-                booking = await db.Booking.create({ totalPrice: totalPrice, customerId: resultUser.userId, departureStationId: station.stationId, isAttended: true, bookingStatus: BOOKING_STATUS.DRAFT }, { transaction: t });
+                booking = await db.Booking.create({ totalPrice: totalPrice, customerId: userId, departureStationId: station.stationId, isAttended: true, bookingStatus: BOOKING_STATUS.DRAFT }, { transaction: t });
 
-                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, status: STATUS.DRAFT }, { transaction: t })
+                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, transactionType: TRANSACTION_TYPE.CASH, status: STATUS.DRAFT }, { transaction: t })
 
                 for (const ticket of ticketList) {
                     await db.BookingDetail.create({ TicketPrice: ticket.price.amount, bookingId: booking.bookingId, ticketId: ticket.ticketId, quantity: ticket.quantity, status: STATUS.DRAFT }, { transaction: t });
@@ -1212,7 +1219,7 @@ const createBookingOffline = async (req) => {
             console.log(error)
         }
 
-        return{
+        return {
             status: StatusCodes.CREATED,
             data: {
                 msg: "Please pay to finish booking process",
@@ -1222,7 +1229,6 @@ const createBookingOffline = async (req) => {
         }
     } catch (error) {
         console.log(error)
-
     }
 }
 
@@ -1375,7 +1381,7 @@ const cancelBooking = async (bookingId) => {
             ]
         })
         if (!bookingDetail) {
-            return{
+            return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Booking not found!`,
@@ -1384,7 +1390,7 @@ const cancelBooking = async (bookingId) => {
         }
 
         if (BOOKING_STATUS.CANCELED === bookingDetail.detail_booking.bookingStatus) {
-            return{
+            return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Booking already ${BOOKING_STATUS.CANCELED}`,
@@ -1393,7 +1399,7 @@ const cancelBooking = async (bookingId) => {
         }
 
         if (TOUR_STATUS.AVAILABLE !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
-            return{
+            return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Cannot cancel because tour finished or started`,
@@ -1440,7 +1446,7 @@ const cancelBooking = async (bookingId) => {
         // }
 
         if (STATUS.DRAFT === transaction.status) {
-            return{
+            return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Booking not paid!`,

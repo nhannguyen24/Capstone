@@ -1,15 +1,17 @@
 const controllers = require('../controllers/TemplateDownloadController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const router = express.Router();
 const {roleAuthen} = require('../middlewares/VerifyRole');
+
+const router = express.Router();
 
 /**
  * @swagger
  * /api/v1/download:
  *   get:
-
- *     summary: Get excel template for create tour
+ *     security: 
+ *         - BearerAuth: []
+ *     summary: Get excel template for creating a tour
  *     tags: [Template]
  *     responses:
  *       200:
@@ -17,8 +19,12 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  *         content:
  *           application/json:
  *             schema:
- *               type: string
+ *               type: object
+ *               properties:
+ *                 url:
+ *                   type: string
+ *                   description: FILE URL.
  */
-router.get("/", controllers.downloadTourTemplate);
+router.get("/",  verifyToken, roleAuthen(["Manager"]), controllers.downloadTourTemplate);
 
 module.exports = router;

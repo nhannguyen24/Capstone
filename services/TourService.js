@@ -1045,6 +1045,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
         const uploadedFile = req.file
         let tours = []
         let errors = []
+        let createdTour = []
 
         const ticketList = await db.TicketType.findAll({
             where: {
@@ -1063,7 +1064,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                 let rowError = []
                 let tickets = []
                 for (let i = 0; i < ticketList.length; i++) {
-                    let ticket = { ticketName: rows[2][8 + i], isSelect: rows[j][8 + i] !== null ? rows[j][8 + i] : false }
+                    let ticket = { ticketName: rows[2][8 + i], isSelect: rows[j][8 + i] !== null && rows[j][8 + i] === "x" ? true : false }
                     if (rows[j][8 + i]) {
                         isValidTicket = true
                     }
@@ -1149,7 +1150,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                         isValidRow = false;
                     }
                     if (isValidTicket == false) {
-                        let error = `Tour need to has atleast 1 ticket set to true`
+                        let error = `Tour need to has atleast 1 ticket choosen`
                         rowError.push(error)
                         isValidRow = false;
                     }
@@ -1264,6 +1265,8 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                 errors.push({ line: i, tourError: error })
                 i++
                 continue
+            }else {
+                createdTour.push(createTour.tourName)
             }
             const tourJson = createTour.toJSON();
 
@@ -1367,6 +1370,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
             status: 201,
             data: {
                 msg: `Create tour using excel file successfully`,
+                createdTour: createdTour,
                 errors: errors,
             }
         });
