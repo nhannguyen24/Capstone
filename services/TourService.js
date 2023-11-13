@@ -1,12 +1,12 @@
 const db = require("../models");
 const { Op, sequelize } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
-const STATUS = require("../enums/StatusEnum")
-const TOUR_STATUS = require("../enums/TourStatusEnum")
-const DAY_ENUM = require("../enums/PriceDayEnum")
-const BOOKING_STATUS = require("../enums/BookingStatusEnum")
-const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
-const readXlsxFile = require('read-excel-file/node')
+const STATUS = require("../enums/StatusEnum");
+const TOUR_STATUS = require("../enums/TourStatusEnum");
+const DAY_ENUM = require("../enums/PriceDayEnum");
+const BOOKING_STATUS = require("../enums/BookingStatusEnum");
+const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"];
+const readXlsxFile = require('read-excel-file/node');
 
 const getAllTour = (
     { page, limit, order, tourName, address, tourStatus, status, routeId, tourGuideId, driverId, departureDate, endDate, ...query }
@@ -1257,6 +1257,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                 routeId: route.routeId,
                 departureStationId: routeSegment.departureStationId
             }
+            
             const createTour = await db.Tour.create(setUpTour, { transaction: t })
             if (!createTour) {
                 let error = `Error create tour: ${tour.tourName} `
