@@ -7,13 +7,13 @@ const { StatusCodes } = require('http-status-codes');
 
 const getStatistics = async (req) => {
     try {
-        const time = req.query.time
         const startDate = req.query.startDate || ""
         const endDate = req.query.endDate || ""
         const bookingStatus = req.query.bookingStatus
-        const tourStatus = req.query.tourStatus
+        const routeId = req.query.routeId || ""
 
         var whereClause = {}
+        var whereClauseRoute = {}
         var whereClauseTour = {}
         const currentDate = new Date()
         currentDate.setHours(currentDate.getHours() + 7)
@@ -24,12 +24,10 @@ const getStatistics = async (req) => {
                 [Op.in]: bookingStatusArray
             }
         }
-        // if (tourStatus !== null && tourStatus !== undefined) {
-        //     const tourStatusArray = tourStatus.split(',')
-        //     whereClauseTour.tourStatus = {
-        //         [Op.in]: tourStatusArray
-        //     }
-        // }
+
+        if (routeId !== "") {
+            whereClauseRoute.routeId = routeId
+        }
 
         if (startDate !== "" && endDate !== "") {
             const _startDate = new Date(startDate)
@@ -41,11 +39,17 @@ const getStatistics = async (req) => {
                 whereClauseTour.createdAt = {
                     [Op.between]: [endDate + "T00:00:00.000Z", startDate + "T23:59:59.000Z"]
                 }
+                whereClauseRoute.createdAt = {
+                    [Op.between]: [endDate + "T00:00:00.000Z", startDate + "T23:59:59.000Z"]
+                }
             } else {
                 whereClause.bookingDate = {
                     [Op.between]: [startDate + "T00:00:00.000Z", endDate + "T23:59:59.000Z"]
                 }
                 whereClauseTour.createdAt = {
+                    [Op.between]: [startDate + "T00:00:00.000Z", endDate + "T23:59:59.000Z"]
+                }
+                whereClauseRoute.createdAt = {
                     [Op.between]: [startDate + "T00:00:00.000Z", endDate + "T23:59:59.000Z"]
                 }
             }
@@ -57,6 +61,9 @@ const getStatistics = async (req) => {
                 whereClauseTour.createdAt = {
                     [Op.gte]: startDate + "T00:00:00.000Z"
                 }
+                whereClauseRoute.createdAt = {
+                    [Op.gte]: startDate + "T00:00:00.000Z"
+                }
             }
             if (endDate !== "") {
                 whereClause.bookingDate = {
@@ -65,34 +72,120 @@ const getStatistics = async (req) => {
                 whereClauseTour.createdAt = {
                     [Op.lte]: endDate + "T23:59:59.000Z"
                 }
+                whereClauseRoute.createdAt = {
+                    [Op.lte]: endDate + "T23:59:59.000Z"
+                }
             }
         }
 
-        // if (time !== null && time !== undefined) {
-        //     whereClause2 = {
-        //         [Op.and]: [
-        //             db.sequelize.where(db.sequelize.fn("YEAR", db.sequelize.col("bookingDate")), currentDate.getFullYear())
-        //         ]
-        //     }
-        // }
-
-        const bookingDetails = await db.BookingDetail.findAll({
-            include: {
-                model: db.Booking,
-                as: "detail_booking",
-                where: whereClause,
-                include: {
-                    model: db.Transaction,
-                    as: "booking_transaction",
-                    attributes: {
-                        exclude: ["bookingId"]
+        const bookingDetails = await db.BookingDetail.findOne({
+            include: [
+                {
+                    model: db.Booking,
+                    as: "detail_booking",
+                    where: whereClause,
+                    include: {
+                        model: db.Transaction,
+                        as: "booking_transaction",
+                        attributes: {
+                            exclude: ["bookingId"]
+                        }
                     }
                 }
-            },
+            ],
             attributes: {
                 exclude: ["bookingId"]
             }
         })
+        if (routeId !== "") {
+            const route = await db.Route.findOne({
+                where: {
+                    routeId: routeId
+                }
+            })
+
+            if(!route){
+                return {
+                    status: StatusCodes.NOT_FOUND,
+                    data: {
+                        msg: "Route not found!"
+                    }
+                }
+            }
+
+            const tours = await db.Tour.findAll({
+                raw: true,
+                nest: true,
+                where: whereClauseRoute,
+                include: {
+                    model: db.Ticket,
+                    as: "tour_ticket",
+                    include: {
+                        model: db.BookingDetail,
+                        as: "ticket_booking_detail",
+                        include: {
+                            model: db.Booking,
+                            as: "detail_booking",
+                            include: {
+                                model: db.Transaction,
+                                as: "booking_transaction"
+                            }
+                        }
+                    }
+                }
+            })
+            var totalBookedTickets = 0
+            var totalCancelTickets = 0
+            var totalMoneyEarned = 0
+            var totalCreatedTours = 0
+            var totalCancelTours = 0
+            if (tours.length > 1) {
+                const duplicateBookingId = new Set();
+                const duplicateTourId = new Set();
+                tours.map((tour) => {
+                    if (tour.tour_ticket.ticket_booking_detail.bookingDetailId !== null) {
+                        if (duplicateBookingId.has(tour.tour_ticket.ticket_booking_detail.bookingId)) {
+                            if (BOOKING_STATUS.CANCELED === tour.tour_ticket.ticket_booking_detail.detail_booking.bookingStatus) {
+                                totalCancelTickets += tour.tour_ticket.ticket_booking_detail.quantity
+                            } else {
+                                totalBookedTickets += tour.tour_ticket.ticket_booking_detail.quantity
+                            }
+
+                            if (STATUS.REFUNDED === tour.tour_ticket.ticket_booking_detail.detail_booking.booking_transaction.status) {
+                                if (tour.tour_ticket.ticket_booking_detail.detail_booking.booking_transaction.refundAmount !== 0) {
+                                    totalMoneyEarned += (tour.tour_ticket.ticket_booking_detail.detail_booking.booking_transaction.amount - tour.tour_ticket.ticket_booking_detail.detail_booking.booking_transaction.refundAmount)
+                                } else {
+                                    totalMoneyEarned += tour.tour_ticket.ticket_booking_detail.detail_booking.booking_transaction.amount
+                                }
+                            } else {
+                                totalMoneyEarned += tour.tour_ticket.ticket_booking_detail.detail_booking.totalPrice
+                            }
+                        } else {
+                            duplicateBookingId.add(tour.tour_ticket.ticket_booking_detail.bookingId)
+                        }
+                    }
+                    if (duplicateTourId.has(tour.tourId)) {
+                        if (TOUR_STATUS.CANCELED === tour.tourStatus) {
+                            totalCancelTours++
+                        }
+                        totalCreatedTours++
+                    } else {
+                        duplicateTourId.add(tour.tourId)
+                    }
+                })
+            }
+            return {
+                status: StatusCodes.OK,
+                data: {
+                    msg: `Get statistic successfully`,
+                    totalBookedTickets: totalBookedTickets,
+                    totalCancelTickets: totalCancelTickets,
+                    totalMoneyEarned: totalMoneyEarned,
+                    totalCreatedTour: totalCreatedTours,
+                    totalCancelTour: totalCancelTours,
+                }
+            }
+        }
 
         var totalCreatedTours = 0
         var totalCancelTours = 0

@@ -1,13 +1,16 @@
 const controllers = require('../controllers/TemplateDownloadController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const router = express.Router();
 const {roleAuthen} = require('../middlewares/VerifyRole');
+
+const router = express.Router();
 
 /**
  * @swagger
  * /api/v1/download:
  *   get:
+ *     security: 
+ *         - BearerAuth: []
  *     summary: Get excel template for creating a tour
  *     tags: [Template]
  *     responses:
@@ -18,14 +21,10 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  *             schema:
  *               type: object
  *               properties:
- *                 msg:
+ *                 url:
  *                   type: string
- *                   description: A message indicating that the file is ready for download.
- *                 downloadUrl:
- *                   type: string
- *                   format: uri
- *                   description: The URL for downloading the Excel template for creating a tour.
+ *                   description: FILE URL.
  */
-router.get("/", controllers.downloadTourTemplate);
+router.get("/",  verifyToken, roleAuthen(["Manager"]), controllers.downloadTourTemplate);
 
 module.exports = router;

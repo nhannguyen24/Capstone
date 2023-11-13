@@ -1,10 +1,10 @@
-const db = require('../models');
-const { Op } = require('sequelize');
+const db = require('../models')
+const { Op } = require('sequelize')
 const OTP_TYPE = require("../enums/OtpTypeEnum")
 const mailer = require("../utils/MailerUtil")
-const { StatusCodes } = require('http-status-codes');
-const bcrypt = require('bcryptjs');
-const hashOtpCode = otpCode => bcrypt.hashSync(otpCode, bcrypt.genSaltSync(8));
+const { StatusCodes } = require('http-status-codes')
+const bcrypt = require('bcryptjs')
+const hashOtpCode = otpCode => bcrypt.hashSync(otpCode, bcrypt.genSaltSync(8))
 
 const validateOtp = async (req) => {
     try {
@@ -17,10 +17,10 @@ const validateOtp = async (req) => {
                 otpId: otpId,
                 otpType: otpType
             }
-        });
+        })
 
         if (!otp) {
-            return{
+            return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `OTP not found!`,
@@ -32,16 +32,16 @@ const validateOtp = async (req) => {
         currentDate.setHours(currentDate.getHours() + 7)
 
         if (otp.timeExpired < currentDate) {
-            return{
+            return {
                 status: StatusCodes.GONE,
                 data: {
                     msg: `OTP expired!`,
                 }
             }
         }
-        const otpMatches = await bcrypt.compare(otpCode, otp.otpCode);
+        const otpMatches = await bcrypt.compare(otpCode, otp.otpCode)
         if (!otpMatches) {
-            return{
+            return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Incorrect OTP!`,
@@ -57,14 +57,14 @@ const validateOtp = async (req) => {
             , individualHooks: true
         })
 
-        return{
+        return {
             status: StatusCodes.ACCEPTED,
             data: {
                 msg: `OTP validation success`,
             }
         }
     } catch (error) {
-        console.error(error);
+        console.error(error)
     }
 }
 
@@ -88,6 +88,16 @@ const sendOtpToEmail = async (email, userId, fullName, otpType) => {
         })
 
         const htmlContent = generateOtpContent(userId ? fullName : user.userName, otpType, otpCode)
+
+        if (!htmlContent) {
+            return {
+                status: StatusCodes.BAD_REQUEST,
+                data: {
+                    msg: "Unknown OTP TYPE",
+                },
+            };
+        }
+
         mailer.sendMail(email, "OTP Code Confirmation", htmlContent)
 
         let otp
@@ -111,44 +121,50 @@ const sendOtpToEmail = async (email, userId, fullName, otpType) => {
         return {
             status: StatusCodes.CREATED,
             data: {
-                msg: `Otp required! A new otp sent to email: ${email}`,
+                msg: `A new otp sent to email: ${email}`,
                 otp: { otpId: otp.otpId, otpType: otpType }
             }
-        };
+        }
 
     } catch (error) {
-        console.error("Error sending OTP:", error);
+        console.error("Error sending OTP:", error)
     }
-};
+}
 
 function generateRandomOtpCode() {
     return Math.floor(100000 + Math.random() * 899999).toString()
 }
 
 function generateOtpContent(userName, otpType, otpCode) {
-    let otpMessage;
+    let otpMessage
 
     switch (otpType) {
         case OTP_TYPE.GET_BOOKING_EMAIL:
             otpMessage =
-                "We noticed that you requested to <b>View Your Booking History</b> using this email. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>.";
-            break;
+                "We noticed that you requested to <b>View Your Booking History</b> using this email. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>."
+            break
         case OTP_TYPE.BOOKING_TOUR:
             otpMessage =
-                "We noticed that you requested a <b>Tour Booking</b> using this email. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>";
-            break;
+                "We noticed that you requested a <b>Tour Booking</b> using this email. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>"
+            break
         case OTP_TYPE.CANCEL_BOOKING:
             otpMessage =
-                "We noticed that you requested to <b>Cancel Booking</b> using this email. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>";
-            break;
+                "We noticed that you requested to <b>Cancel Booking</b> using this email. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>"
+            break
         case OTP_TYPE.CHANGE_PASSWORD:
             otpMessage =
-                "We noticed that you requested to <b>Change Password</b>. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>";
-            break;
+                "We noticed that you requested to <b>Change Password</b>. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>"
+            break
+        case OTP_TYPE.FORGOT_PASSWORD:
+            otpMessage =
+                "We noticed that you <b>Forgot Your Password</b>. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>"
+            break
         default:
-            otpMessage = "Default message for unknown OTP type.";
+            return undefined
     }
-
+    if (!otpMessage) {
+        return undefined
+    }
     return {
         body: {
             name: userName,
@@ -164,7 +180,8 @@ function generateOtpContent(userName, otpType, otpCode) {
             outro: "If you did not request this OTP, no further action is required on your part.",
             signature: 'Sincerely'
         }
-    };
+    }
+
 }
 
-module.exports = { validateOtp, sendOtpToEmail };
+module.exports = { validateOtp, sendOtpToEmail }

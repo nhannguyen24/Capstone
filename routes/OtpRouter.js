@@ -30,6 +30,7 @@ const router = express.Router();
  *              - GetBookingEmail
  *              - BookingTour
  *              - CancelBooking
+ *              - ForgotPassword
  *         required: true
  *     responses:
  *       200:
@@ -62,6 +63,7 @@ router.get("/", controllers.validateOtp);
  *              - GetBookingEmail
  *              - BookingTour
  *              - CancelBooking
+ *              - ForgotPassword
  *         required: true
  *     responses:
  *       200:
