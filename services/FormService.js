@@ -1,6 +1,7 @@
 const db = require("../models");
 const { Op } = require("sequelize");
-const STATUS = require("../enums/ReportStatusEnum")
+const STATUS = require("../enums/ReportStatusEnum");
+const { StatusCodes } = require("http-status-codes");
 
 const getAllForm = (
     { page, limit, order, userId, changeEmployee, status, createdDate, ...query }
@@ -90,7 +91,7 @@ const getAllForm = (
             }
 
             resolve({
-                status: forms ? 200 : 404,
+                status: forms ? StatusCodes.OK : StatusCodes.NOT_FOUND,
                 data: {
                     msg: forms ? "Got forms" : "Cannot find forms",
                     forms: forms,
@@ -137,7 +138,7 @@ const getFormById = (formId) =>
                 ]
             });
             resolve({
-                status: form ? 200 : 404,
+                status: form ? StatusCodes.OK : StatusCodes.NOT_FOUND,
                 data: {
                     msg: form ? "Got form" : `Cannot find form with id: ${formId}`,
                     form: form,
@@ -158,7 +159,7 @@ const createForm = (body, userId) =>
                 });
 
             resolve({
-                status: 200,
+                status: StatusCodes.OK,
                 data: {
                     msg: "Create new form successfully",
                     form: createForm.dataValues,
@@ -167,7 +168,7 @@ const createForm = (body, userId) =>
 
         } catch (error) {
             resolve({
-                status: 400,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     error: error.message,
                     msg: "Cannot create new form",
@@ -207,7 +208,7 @@ const updateForm = (id, body) =>
                 });
 
                 resolve({
-                    status: forms[1].length !== 0 ? 200 : 400,
+                    status: forms[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                     data: {
                         msg:
                             forms[1].length !== 0
@@ -218,7 +219,7 @@ const updateForm = (id, body) =>
                 return;
             }
             resolve({
-                status: forms[1].length !== 0 ? 200 : 400,
+                status: forms[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                 data: {
                     msg:
                         forms[1].length !== 0

@@ -1,7 +1,5 @@
 const services = require('../services/RouteService');
-const {BadRequestError, InternalServerError} = require('../errors/Index');
-// const joi = require('joi');
-// const {routeId, routeIds} = require('../helpers/joi_schema');
+const {InternalServerError} = require('../errors/Index');
 
 const getAllRoute = async (req, res) => {
     try {
@@ -16,11 +14,18 @@ const getAllRoute = async (req, res) => {
 const getRouteById = async (req, res) => {
     try {
         const { id: routeId } = req.params;
-        if(!routeId) {
-            throw new BadRequestError('Please provide routeId');
+        const errors = [];
+
+        if(routeId.trim() === "") {
+            errors.push('Please provide routeId');
         }
-        const response = await services.getRouteById(routeId);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.getRouteById(routeId);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error.message);
@@ -29,12 +34,19 @@ const getRouteById = async (req, res) => {
 
 const createRoute = async (req, res) => {
     try {
-        const {routeName, address, latitude, longitude} = req.body;
-        if(!routeName) {
-            throw new BadRequestError('Please provide routeName');
+        const {routeName} = req.body;
+        const errors = [];
+
+        if(routeName.trim() === "") {
+            errors.push('Please provide routeName');
         }
-        const response = await services.createRoute(req.body);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.createRoute(req.body);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         console.log('aa', error);
         throw new InternalServerError(error);
@@ -43,14 +55,19 @@ const createRoute = async (req, res) => {
 
 const updateRoute = async (req, res) => {
     try {
-        // const { error } = joi.object({routeId}).validate({routeId: req.body.routeId});
-        // if (error) throw new BadRequestError(error.details[0].message);
         const {id} = req.params;
-        if(!id) {
-            throw new BadRequestError('Please provide id');
+        const errors = [];
+
+        if(id.trim() === "") {
+            errors.push('Please provide id');
         }
-        const response = await services.updateRoute(id, req.body);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.updateRoute(id, req.body);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         throw new InternalServerError(error);
     }
@@ -58,14 +75,19 @@ const updateRoute = async (req, res) => {
 
 const deleteRoute = async (req, res) => {
     try {
-        // const { error } = joi.object({routeIds}).validate(req.query);
-        // if (error) throw new BadRequestError(error.details[0].message);
         const {id} = req.params;
-        if(!id) {
-            throw new BadRequestError('Please provide id');
+        const errors = [];
+
+        if(id.trim() === "") {
+            errors.push('Please provide id');
         }
-        const response = await services.deleteRoute(id);
-        return res.status(response.status).json(response.data);
+        
+        if (errors.length == 0) {
+            const response = await services.deleteRoute(id);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error);

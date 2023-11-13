@@ -1,7 +1,5 @@
 const services = require('../services/StationService');
-const {BadRequestError, InternalServerError} = require('../errors/Index');
-// const joi = require('joi');
-// const {stationId, stationIds} = require('../helpers/joi_schema');
+const {InternalServerError} = require('../errors/Index');
 
 const getAllStation = async (req, res) => {
     try {
@@ -16,11 +14,18 @@ const getAllStation = async (req, res) => {
 const getStationById = async (req, res) => {
     try {
         const { id: stationId } = req.params;
-        if(!stationId) {
-            throw new BadRequestError('Please provide stationId');
+        const errors = [];
+
+        if(stationId.trim() === "") {
+            errors.push('Please provide stationId');
         }
-        const response = await services.getStationById(stationId);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.getStationById(stationId);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error.message);
@@ -30,20 +35,27 @@ const getStationById = async (req, res) => {
 const createStation = async (req, res) => {
     try {
         const {stationName, address, latitude, longitude} = req.body;
-        if(!stationName) {
-            throw new BadRequestError('Please provide stationName');
+        const errors = [];
+
+        if(stationName.trim() === "") {
+            errors.push('Please provide stationName');
         }
-        if(!address) {
-            throw new BadRequestError('Please provide address');
+        if(address.trim() === "") {
+            errors.push('Please provide address');
         }
-        if(!latitude) {
-            throw new BadRequestError('Please provide latitude');
+        if(latitude.trim() === "") {
+            errors.push('Please provide latitude');
         }
-        if(!longitude) {
-            throw new BadRequestError('Please provide longitude');
+        if(longitude.trim() === "") {
+            errors.push('Please provide longitude');
         }
-        const response = await services.createStation(req.body);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.createStation(req.body);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error);
@@ -52,14 +64,19 @@ const createStation = async (req, res) => {
 
 const updateStation = async (req, res) => {
     try {
-        // const { error } = joi.object({stationId}).validate({stationId: req.body.stationId});
-        // if (error) throw new BadRequestError(error.details[0].message);
         const {id} = req.params;
-        if(!id) {
-            throw new BadRequestError('Please provide id');
+        const errors = [];
+
+        if(id.trim() === "") {
+            errors.push('Please provide id');
         }
-        const response = await services.updateStation(id, req.body);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.updateStation(id, req.body);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         throw new InternalServerError(error);
     }
@@ -67,14 +84,19 @@ const updateStation = async (req, res) => {
 
 const deleteStation = async (req, res) => {
     try {
-        // const { error } = joi.object({stationIds}).validate(req.query);
-        // if (error) throw new BadRequestError(error.details[0].message);
         const {id} = req.params;
-        if(!id) {
-            throw new BadRequestError('Please provide id');
+        const errors = [];
+
+        if(id.trim() === "") {
+            errors.push('Please provide id');
         }
-        const response = await services.deleteStation(id);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.deleteStation(id);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error);

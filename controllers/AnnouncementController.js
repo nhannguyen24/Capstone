@@ -1,5 +1,5 @@
 const services = require('../services/AnnouncementService');
-const {BadRequestError, InternalServerError} = require('../errors/Index');
+const {InternalServerError} = require('../errors/Index');
 
 const getAllAnnouncement = async (req, res) => {
     try {
@@ -14,12 +14,18 @@ const getAllAnnouncement = async (req, res) => {
 const getAnnouncementById = async (req, res) => {
     try {
         const { id: announcementId } = req.params;
-        console.log(req.params);
-        if(!announcementId) {
-            throw new BadRequestError('Please provide announcementId');
+        const errors = [];
+
+        if(announcementId.trim() === "") {
+            errors.push('Please provide announcementId');
         }
-        const response = await services.getAnnouncementById(announcementId);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.getAnnouncementById(announcementId);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error.message);
@@ -30,12 +36,18 @@ const createAnnouncement = async (req, res) => {
     try {
         const {title} = req.body;
         const { userId } = req.user;
-        if(!title) {
-            throw new BadRequestError('Please provide title');
+        const errors = [];
+
+        if(title.trim() === "") {
+            errors.push('Please provide title');
         }
-        console.log(title);
-        const response = await services.createAnnouncement(req.body, userId);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.createAnnouncement(req.body, userId);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error);
@@ -45,11 +57,18 @@ const createAnnouncement = async (req, res) => {
 const updateAnnouncement = async (req, res) => {
     try {
         const {id} = req.params;
-        if(!id) {
-            throw new BadRequestError('Please provide id');
+        const errors = [];
+
+        if(id.trim() === "") {
+            errors.push('Please provide id');
         }
-        const response = await services.updateAnnouncement(id, req.body);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.updateAnnouncement(id, req.body);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         throw new InternalServerError(error);
     }
@@ -58,11 +77,18 @@ const updateAnnouncement = async (req, res) => {
 const deleteAnnouncement = async (req, res) => {
     try {
         const {id} = req.params;
-        if(!id) {
-            throw new BadRequestError('Please provide id');
+        const errors = [];
+
+        if(id.trim() === "") {
+            errors.push('Please provide id');
         }
-        const response = await services.deleteAnnouncement(id);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.deleteAnnouncement(id);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error);

@@ -1,6 +1,7 @@
 const db = require("../models");
 const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
+const { StatusCodes } = require("http-status-codes");
 
 const getAllRoute = (
     { page, limit, order, routeName, status, tour, ...query },
@@ -177,7 +178,7 @@ const getAllRoute = (
                             }
                             
                             resolve({
-                                status: routes ? 200 : 404,
+                                status: routes ? 200 : StatusCodes.NOT_FOUND,
                                 data: {
                                     msg: routes ? "Got routes" : "Cannot find routes",
                                     routes: routes,
@@ -303,7 +304,7 @@ const getRouteById = (routeId) =>
                 ],
             });
             resolve({
-                status: route ? 200 : 404,
+                status: route ? 200 : StatusCodes.NOT_FOUND,
                 data: {
                     msg: route ? "Got route" : `Cannot find route with id: ${routeId}`,
                     route: route,
@@ -328,7 +329,7 @@ const createRoute = ({ routeName, ...body }) =>
 
                     if (!findDepartureStation) {
                         return resolve({
-                            status: 400,
+                            status: StatusCodes.BAD_REQUEST,
                             data: {
                                 msg: "Departure station Id not found!",
                             },
@@ -343,7 +344,7 @@ const createRoute = ({ routeName, ...body }) =>
 
                     if (!findEndStation) {
                         return resolve({
-                            status: 400,
+                            status: StatusCodes.BAD_REQUEST,
                             data: {
                                 msg: "End station Id not found!",
                             },
@@ -360,7 +361,7 @@ const createRoute = ({ routeName, ...body }) =>
 
                             if (!findPoint) {
                                 return resolve({
-                                    status: 400,
+                                    status: StatusCodes.BAD_REQUEST,
                                     data: {
                                         msg: "Point of interest Id not found!",
                                     },
@@ -384,7 +385,7 @@ const createRoute = ({ routeName, ...body }) =>
 
                 if (!createRoute[1]) {
                     return resolve({
-                        status: 400,
+                        status: StatusCodes.BAD_REQUEST,
                         data: {
                             msg: "Cannot create new route/Route name already exists"
                         }
@@ -475,7 +476,7 @@ const updateRoute = (id, body) =>
 
             if (route !== null) {
                 resolve({
-                    status: 409,
+                    status: StatusCodes.CONFLICT,
                     data: {
                         msg: "Route name already exists"
                     }
@@ -487,7 +488,7 @@ const updateRoute = (id, body) =>
                 });
 
                 resolve({
-                    status: routes[1].length !== 0 ? 200 : 400,
+                    status: routes[1].length !== 0 ? 200 : StatusCodes.BAD_REQUEST,
                     data: {
                         msg:
                             routes[1].length !== 0
@@ -530,7 +531,7 @@ const deleteRoute = (id) =>
 
             if (findRoute.status === "Deactive") {
                 resolve({
-                    status: 400,
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: "The route already deactive!",
                     }
@@ -547,7 +548,7 @@ const deleteRoute = (id) =>
             );
 
             resolve({
-                status: routes[0] > 0 ? 200 : 400,
+                status: routes[0] > 0 ? 200 : StatusCodes.BAD_REQUEST,
                 data: {
                     msg:
                         routes[0] > 0

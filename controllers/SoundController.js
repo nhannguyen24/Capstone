@@ -1,7 +1,5 @@
 const services = require('../services/SoundService');
-const {BadRequestError, InternalServerError} = require('../errors/Index');
-// const joi = require('joi');
-// const {soundId, soundIds} = require('../helpers/joi_schema');
+const {InternalServerError} = require('../errors/Index');
 
 const getAllFileSound = async (req, res) => {
     try {
@@ -16,11 +14,18 @@ const getAllFileSound = async (req, res) => {
 const getFileSoundById = async (req, res) => {
     try {
         const { id: soundId } = req.params;
-        if(!soundId) {
-            throw new BadRequestError('Please provide soundId');
+        const errors = [];
+
+        if(soundId.trim() === "") {
+            errors.push('Please provide soundId');
         }
-        const response = await services.getFileSoundById(soundId);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.getFileSoundById(soundId);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error.message);
@@ -30,11 +35,18 @@ const getFileSoundById = async (req, res) => {
 const createFileSound = async (req, res) => {
     try {
         const {file} = req.body;
-        if(!file) {
-            throw new BadRequestError('Please provide file');
+        const errors = [];
+
+        if(file.trim() === "") {
+            errors.push('Please provide file');
         }
-        const response = await services.createFileSound(req.body);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.createFileSound(req.body);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error);
@@ -44,11 +56,18 @@ const createFileSound = async (req, res) => {
 const updateFileSound = async (req, res) => {
     try {
         const {id} = req.params;
-        if(!id) {
-            throw new BadRequestError('Please provide id');
+        const errors = [];
+
+        if(id.trim() === "") {
+            errors.push('Please provide id');
         }
-        const response = await services.updateFileSound(id, req.body);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.updateFileSound(id, req.body);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         throw new InternalServerError(error);
     }
@@ -57,11 +76,18 @@ const updateFileSound = async (req, res) => {
 const deleteFileSound = async (req, res) => {
     try {
         const {id} = req.params;
-        if(!id) {
-            throw new BadRequestError('Please provide id');
+        const errors = [];
+
+        if(id.trim() === "") {
+            errors.push('Please provide id');
         }
-        const response = await services.deleteFileSound(id);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.deleteFileSound(id);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error);

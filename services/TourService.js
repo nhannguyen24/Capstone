@@ -1,5 +1,5 @@
 const db = require("../models");
-const { Op, sequelize } = require("sequelize");
+const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
 const STATUS = require("../enums/StatusEnum");
 const TOUR_STATUS = require("../enums/TourStatusEnum");
@@ -7,6 +7,7 @@ const DAY_ENUM = require("../enums/PriceDayEnum");
 const BOOKING_STATUS = require("../enums/BookingStatusEnum");
 const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"];
 const readXlsxFile = require('read-excel-file/node');
+const { StatusCodes } = require("http-status-codes");
 
 const getAllTour = (
     { page, limit, order, tourName, address, tourStatus, status, routeId, tourGuideId, driverId, departureDate, endDate, ...query }
@@ -16,7 +17,7 @@ const getAllTour = (
             redisClient.get(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}_${departureDate}_${endDate}`, async (error, tour) => {
                 if (tour != null && tour != "") {
                     resolve({
-                        status: 200,
+                        status: StatusCodes.OK,
                         data: {
                             msg: "Got tours",
                             tours: JSON.parse(tour),
@@ -296,7 +297,7 @@ const getAllTour = (
                     redisClient.setEx(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}_${departureDate}_${endDate}`, 3600, JSON.stringify(tours));
 
                     resolve({
-                        status: tours ? 200 : 404,
+                        status: tours ? StatusCodes.OK : StatusCodes.NOT_FOUND,
                         data: {
                             msg: tours ? "Got tours" : "Cannot find tours",
                             tours: tours,
@@ -543,7 +544,7 @@ const getTourById = (tourId) =>
             }
 
             resolve({
-                status: tours.length > 0 ? 200 : 404,
+                status: tours.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
                 data: {
                     msg: tours.length > 0 ? "Got tour" : `Cannot find tour with id: ${tourId}`,
                     tour: tours,
@@ -585,7 +586,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
 
                 if (!station) {
                     resolve({
-                        status: 400,
+                        status: StatusCodes.BAD_REQUEST,
                         data: {
                             msg: "Route Id not found"
                         }
@@ -617,7 +618,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
 
                 if (currentDate > tourBeginBookingDate) {
                     resolve({
-                        status: 400,
+                        status: StatusCodes.BAD_REQUEST,
                         data: {
                             msg: "Begin booking date can't be earlier than current date"
                         }
@@ -625,7 +626,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                     return;
                 } else if (tourBeginBookingDate >= tourEndBookingDate) {
                     resolve({
-                        status: 400,
+                        status: StatusCodes.BAD_REQUEST,
                         data: {
                             msg: "Begin booking date can't be later than End booking date",
                         }
@@ -633,7 +634,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                     return;
                 } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
                     resolve({
-                        status: 400,
+                        status: StatusCodes.BAD_REQUEST,
                         data: {
                             msg: "End booking date must be 24 hours earlier than Departure date",
                         }
@@ -697,7 +698,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
 
                     if (findBusActive.length == 0) {
                         resolve({
-                            status: 400,
+                            status: StatusCodes.BAD_REQUEST,
                             data: {
                                 msg: 'There are no buses active'
                             }
@@ -735,7 +736,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
 
                     if (findTourguide.length == 0) {
                         resolve({
-                            status: 400,
+                            status: StatusCodes.BAD_REQUEST,
                             data: {
                                 msg: 'There are no tour guide available'
                             }
@@ -745,7 +746,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
 
                     if (findDriver.length == 0) {
                         resolve({
-                            status: 400,
+                            status: StatusCodes.BAD_REQUEST,
                             data: {
                                 msg: 'There are no driver available'
                             }
@@ -899,7 +900,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
 
                         if (!ticketType) {
                             resolve({
-                                status: 404,
+                                status: StatusCodes.NOT_FOUND,
                                 data: {
                                     msg: `Ticket type not found with id ${ticketTypeId}`,
                                 }
@@ -907,7 +908,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                         }
                         if (STATUS.DEACTIVE == ticketType.status) {
                             resolve({
-                                status: 409,
+                                status: StatusCodes.CONFLICT,
                                 data: {
                                     msg: `Ticket type is "Deactive"`,
                                 }
@@ -936,7 +937,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                         })
                         if (!price) {
                             resolve({
-                                status: 409,
+                                status: StatusCodes.CONFLICT,
                                 data: {
                                     msg: `Ticket type doesn't have a price for day`,
                                 }
@@ -978,7 +979,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                     }
 
                     resolve({
-                        status: createTour[1] ? 200 : 400,
+                        status: createTour[1] ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                         data: {
                             msg: createTour[1]
                                 ? "Create new tour successfully"
@@ -1447,7 +1448,7 @@ const assignTour = () =>
 
                 if (findTourActive.length == 0) {
                     resolve({
-                        status: 400,
+                        status: StatusCodes.BAD_REQUEST,
                         data: {
                             msg: 'There are no tours active'
                         }
@@ -1464,7 +1465,7 @@ const assignTour = () =>
 
                 if (findBusActive.length == 0) {
                     resolve({
-                        status: 400,
+                        status: StatusCodes.BAD_REQUEST,
                         data: {
                             msg: 'There are no buses active'
                         }
@@ -1502,7 +1503,7 @@ const assignTour = () =>
 
                 if (findTourguide.length == 0) {
                     resolve({
-                        status: 400,
+                        status: StatusCodes.BAD_REQUEST,
                         data: {
                             msg: 'There are no tour guide available'
                         }
@@ -1512,7 +1513,7 @@ const assignTour = () =>
 
                 if (findDriver.length == 0) {
                     resolve({
-                        status: 400,
+                        status: StatusCodes.BAD_REQUEST,
                         data: {
                             msg: 'There are no driver available'
                         }
@@ -1659,7 +1660,7 @@ const assignTour = () =>
                 }
 
                 resolve({
-                    status: 200,
+                    status: StatusCodes.OK,
                     data: {
                         msg:
                             findTourNotScheduled.length == 0
@@ -1695,7 +1696,7 @@ const updateTour = (id, { images, ...body }) =>
 
                 if (tour !== null) {
                     resolve({
-                        status: 409,
+                        status: StatusCodes.CONFLICT,
                         data: {
                             msg: "Tour name already exists"
                         }
@@ -1709,7 +1710,7 @@ const updateTour = (id, { images, ...body }) =>
 
                     if (currentDate > tourBeginBookingDate) {
                         resolve({
-                            status: 400,
+                            status: StatusCodes.BAD_REQUEST,
                             data: {
                                 msg: "Begin booking date can't be earlier than current date"
                             }
@@ -1717,7 +1718,7 @@ const updateTour = (id, { images, ...body }) =>
                         return;
                     } else if (tourBeginBookingDate >= tourEndBookingDate) {
                         resolve({
-                            status: 400,
+                            status: StatusCodes.BAD_REQUEST,
                             data: {
                                 msg: "Begin booking date can't be later than End booking date",
                             }
@@ -1725,7 +1726,7 @@ const updateTour = (id, { images, ...body }) =>
                         return;
                     } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
                         resolve({
-                            status: 400,
+                            status: StatusCodes.BAD_REQUEST,
                             data: {
                                 msg: "End booking date must be 24 hours earlier than Departure date",
                             }
@@ -1769,7 +1770,7 @@ const updateTour = (id, { images, ...body }) =>
 
                             if (checkDuplicatedTime) {
                                 resolve({
-                                    status: 400,
+                                    status: StatusCodes.BAD_REQUEST,
                                     data: {
                                         msg: "Tour guide time is duplicated",
                                     }
@@ -1805,7 +1806,7 @@ const updateTour = (id, { images, ...body }) =>
                             })
                             if (checkDuplicatedTime) {
                                 resolve({
-                                    status: 400,
+                                    status: StatusCodes.BAD_REQUEST,
                                     data: {
                                         msg: "Driver time is duplicated",
                                     }
@@ -1923,7 +1924,7 @@ const updateTour = (id, { images, ...body }) =>
                         }
 
                         resolve({
-                            status: tours[1].length !== 0 ? 200 : 400,
+                            status: tours[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                             data: {
                                 msg:
                                     tours[1].length !== 0
@@ -1972,7 +1973,7 @@ const deleteTour = (id) =>
 
             if (tour.status === "Deactive") {
                 resolve({
-                    status: 400,
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: "The tour already deactive!",
                     }
@@ -1988,7 +1989,7 @@ const deleteTour = (id) =>
                 }
             );
             resolve({
-                status: tours[0] > 0 ? 200 : 400,
+                status: tours[0] > 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                 data: {
                     msg:
                         tours[0] > 0
@@ -2078,7 +2079,7 @@ const cloneTour = (id, body) =>
 
                 if (tours.length <= 0) {
                     resolve({
-                        status: 404,
+                        status: StatusCodes.NOT_FOUND,
                         data: {
                             msg: `Cannot find tour with id: ${id}`
                         }
@@ -2131,7 +2132,7 @@ const cloneTour = (id, body) =>
 
                     if (currentDate > tourBeginBookingDate) {
                         resolve({
-                            status: 400,
+                            status: StatusCodes.BAD_REQUEST,
                             data: {
                                 msg: "Begin booking date can't be earlier than current date"
                             }
@@ -2139,7 +2140,7 @@ const cloneTour = (id, body) =>
                         return;
                     } else if (tourBeginBookingDate >= tourEndBookingDate) {
                         resolve({
-                            status: 400,
+                            status: StatusCodes.BAD_REQUEST,
                             data: {
                                 msg: "Begin booking date can't be later than End booking date",
                             }
@@ -2147,7 +2148,7 @@ const cloneTour = (id, body) =>
                         return;
                     } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
                         resolve({
-                            status: 400,
+                            status: StatusCodes.BAD_REQUEST,
                             data: {
                                 msg: "End booking date must be 24 hours earlier than Departure date",
                             }
@@ -2209,7 +2210,7 @@ const cloneTour = (id, body) =>
 
                         if (findBusActive.length == 0) {
                             resolve({
-                                status: 400,
+                                status: StatusCodes.BAD_REQUEST,
                                 data: {
                                     msg: 'There are no buses active'
                                 }
@@ -2247,7 +2248,7 @@ const cloneTour = (id, body) =>
 
                         if (findTourguide.length == 0) {
                             resolve({
-                                status: 400,
+                                status: StatusCodes.BAD_REQUEST,
                                 data: {
                                     msg: 'There are no tour guide available'
                                 }
@@ -2257,7 +2258,7 @@ const cloneTour = (id, body) =>
 
                         if (findDriver.length == 0) {
                             resolve({
-                                status: 400,
+                                status: StatusCodes.BAD_REQUEST,
                                 data: {
                                     msg: 'There are no driver available'
                                 }
@@ -2399,7 +2400,7 @@ const cloneTour = (id, body) =>
 
                             if (!ticketType) {
                                 resolve({
-                                    status: 404,
+                                    status: StatusCodes.NOT_FOUND,
                                     data: {
                                         msg: `Ticket type not found with id ${ticket.ticket_type.ticketTypeId}`,
                                     }
@@ -2408,7 +2409,7 @@ const cloneTour = (id, body) =>
                             }
                             if (STATUS.DEACTIVE == ticketType.status) {
                                 resolve({
-                                    status: 409,
+                                    status: StatusCodes.CONFLICT,
                                     data: {
                                         msg: `Ticket type is "Deactive"`,
                                     }
@@ -2438,7 +2439,7 @@ const cloneTour = (id, body) =>
                             })
                             if (!price) {
                                 resolve({
-                                    status: 409,
+                                    status: StatusCodes.CONFLICT,
                                     data: {
                                         msg: `Ticket type doesn't have a price for day`,
                                     }
@@ -2479,7 +2480,7 @@ const cloneTour = (id, body) =>
                             }
                         }
                         resolve({
-                            status: createTour ? 200 : 400,
+                            status: createTour ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                             data: {
                                 msg: createTour
                                     ? "Create new tour successfully"
@@ -2534,7 +2535,7 @@ const cloneTour = (id, body) =>
 
         } catch (error) {
             resolve({
-                status: 400,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     error: error.message,
                     msg: "Cannot clone new tour",

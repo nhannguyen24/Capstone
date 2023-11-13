@@ -1,5 +1,6 @@
 const db = require("../models");
 const { Op } = require("sequelize");
+const { StatusCodes } = require("http-status-codes");
 
 const getAllTourDetail = (
     { page, limit, order, tourId, status, ...query },
@@ -54,7 +55,7 @@ const getAllTourDetail = (
             });
 
             resolve({
-                status: tourDetails ? 200 : 404,
+                status: tourDetails ? StatusCodes.OK : StatusCodes.NOT_FOUND,
                 data: {
                     msg: tourDetails ? "Got tourDetails" : "Cannot find tourDetails",
                     tourDetails: tourDetails,
@@ -75,7 +76,7 @@ const updateTourDetail = (id, body) =>
             });
 
             resolve({
-                status: tourDetails[1].length !== 0 ? 200 : 400,
+                status: tourDetails[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                 data: {
                     msg:
                         tourDetails[1].length !== 0

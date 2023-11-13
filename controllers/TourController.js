@@ -1,5 +1,6 @@
 const services = require('../services/TourService');
 const { BadRequestError, InternalServerError } = require('../errors/Index');
+const { StatusCodes } = require("http-status-codes");
 
 const getAllTour = async (req, res) => {
     try {
@@ -13,11 +14,19 @@ const getAllTour = async (req, res) => {
 const getTourById = async (req, res) => {
     try {
         const { id: tourId } = req.params;
-        if (!tourId) {
-            throw new BadRequestError('Please provide tourId');
+        const errors = [];
+
+        if (tourId.trim() === "") {
+            errors.push('Please provide tourId');
         }
-        const response = await services.getTourById(tourId);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.getTourById(tourId);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
+        
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error.message);
@@ -27,14 +36,22 @@ const getTourById = async (req, res) => {
 const createTour = async (req, res) => {
     try {
         const { tourName, routeId } = req.body;
-        if (!tourName) {
-            throw new BadRequestError('Please provide tourName');
+        const errors = [];
+
+        if (tourName.trim() === "") {
+            errors.push('Please provide tourName');
         }
-        if (!routeId) {
-            throw new BadRequestError('Please provide routeId');
+        if (routeId.trim() === "") {
+            errors.push('Please provide routeId');
         }
-        const response = await services.createTour(req.body);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.createTour(req.body);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
+        
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error);
@@ -44,7 +61,7 @@ const createTour = async (req, res) => {
 const createTourByFile = async (req, res) => {
     try {
         const uploadedFile = req.file;
-        if (!uploadedFile) {
+        if (uploadedFile.trim() === "") {
             throw new BadRequestError('File Excel required');
         }
         const fileName = uploadedFile.originalname
@@ -71,11 +88,18 @@ const assignTour = async (req, res) => {
 const updateTour = async (req, res) => {
     try {
         const { id } = req.params;
-        if (!id) {
-            throw new BadRequestError('Please provide id');
+        const errors = [];
+
+        if (id.trim() === "") {
+            errors.push('Please provide id');
         }
-        const response = await services.updateTour(id, req.body);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.updateTour(id, req.body);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         throw new InternalServerError(error);
     }
@@ -84,11 +108,18 @@ const updateTour = async (req, res) => {
 const deleteTour = async (req, res) => {
     try {
         const { id } = req.params;
-        if (!id) {
-            throw new BadRequestError('Please provide id');
+        const errors = [];
+
+        if (id.trim() === "") {
+            errors.push('Please provide id');
         }
-        const response = await services.deleteTour(id);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.deleteTour(id);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error);
@@ -98,11 +129,18 @@ const deleteTour = async (req, res) => {
 const cloneTour = async (req, res) => {
     try {
         const { id } = req.params;
-        if (!id) {
-            throw new BadRequestError('Please provide id');
+        const errors = [];
+
+        if (id.trim() === "") {
+            errors.push('Please provide id');
         }
-        const response = await services.cloneTour(id, req.body);
-        return res.status(response.status).json(response.data);
+        
+        if (errors.length == 0) {
+            const response = await services.cloneTour(id, req.body);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error.message);

@@ -1,7 +1,8 @@
 const db = require("../models");
 const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
-const STATUS = require("../enums/StatusEnum")
+const STATUS = require("../enums/StatusEnum");
+const { StatusCodes } = require("http-status-codes");
 
 const getAllPointOfInterest = (
     { page, limit, order, poiName, address, status, ...query },
@@ -12,7 +13,7 @@ const getAllPointOfInterest = (
             redisClient.get(`pois_${page}_${limit}_${order}_${poiName}_${address}_${status}`, async (error, poi) => {
                 if (poi != null && poi != "" && roleName != 'Admin') {
                     resolve({
-                        status: 200,
+                        status: StatusCodes.OK,
                         data: {
                             msg: "Got pois",
                             pois: JSON.parse(poi),
@@ -22,7 +23,7 @@ const getAllPointOfInterest = (
                     redisClient.get(`admin_pois_${page}_${limit}_${order}_${poiName}_${address}_${status}`, async (error, adminPointOfInterest) => {
                         if (adminPointOfInterest != null && adminPointOfInterest != "") {
                             resolve({
-                                status: 200,
+                                status: StatusCodes.OK,
                                 data: {
                                     msg: "Got pois",
                                     pois: JSON.parse(adminPointOfInterest),
@@ -99,7 +100,7 @@ const getAllPointOfInterest = (
                             }
                             
                             resolve({
-                                status: pois ? 200 : 404,
+                                status: pois ? StatusCodes.OK : StatusCodes.NOT_FOUND,
                                 data: {
                                     msg: pois ? "Got pois" : "Cannot find pois",
                                     pois: pois,
@@ -170,7 +171,7 @@ const getPointOfInterestById = (poiId) =>
             }
             
             resolve({
-                status: poi ? 200 : 404,
+                status: poi ? StatusCodes.OK : StatusCodes.NOT_FOUND,
                 data: {
                     msg: poi ? "Got poi" : `Cannot find poi with id: ${poiId}`,
                     poi: poi,
@@ -206,7 +207,7 @@ const createPointOfInterest = ({ images, poiName, ...body }) =>
             }
 
             resolve({
-                status: createPointOfInterest[1] ? 200 : 400,
+                status: createPointOfInterest[1] ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                 data: {
                     msg: createPointOfInterest[1]
                         ? "Create new poi successfully"
@@ -250,7 +251,7 @@ const updatePointOfInterest = (id, { images, ...body }) =>
 
             if (poi !== null) {
                 resolve({
-                    status: 409,
+                    status: StatusCodes.CONFLICT,
                     data: {
                         msg: "PointOfInterest name already exists"
                     }
@@ -278,7 +279,7 @@ const updatePointOfInterest = (id, { images, ...body }) =>
                     await Promise.all(createImagePromises);
                 }
                 resolve({
-                    status: pois[1].length !== 0 ? 200 : 400,
+                    status: pois[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                     data: {
                         msg:
                             pois[1].length !== 0
@@ -321,7 +322,7 @@ const deletePointOfInterest = (id) =>
 
             if (findPoint.status === "Deactive") {
                 resolve({
-                    status: 400,
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: "The point of interest already deactive!",
                     }
@@ -337,7 +338,7 @@ const deletePointOfInterest = (id) =>
                 }
             );
             resolve({
-                status: pois[0] > 0 ? 200 : 400,
+                status: pois[0] > 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                 data: {
                     msg:
                         pois[0] > 0

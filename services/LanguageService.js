@@ -1,5 +1,6 @@
 const db = require("../models");
 const { Op } = require("sequelize");
+const { StatusCodes } = require("http-status-codes");
 
 const getAllLanguage = (
     { page, limit, order, language, address, status, ...query },
@@ -27,7 +28,7 @@ const getAllLanguage = (
             });
 
             resolve({
-                status: languages ? 200 : 404,
+                status: languages ? StatusCodes.OK : StatusCodes.NOT_FOUND,
                 data: {
                     msg: languages ? "Got languages" : "Cannot find languages",
                     languages: languages,
@@ -51,7 +52,7 @@ const getLanguageById = (languageId) =>
                 }
             });
             resolve({
-                status: language ? 200 : 404,
+                status: language ? StatusCodes.OK : StatusCodes.NOT_FOUND,
                 data: {
                     msg: language ? "Got language" : `Cannot find language with id: ${languageId}`,
                     language: language,
@@ -76,7 +77,7 @@ const createLanguage = ({ language, ...body }) =>
             });
 
             resolve({
-                status: createLanguage[1] ? 200 : 400,
+                status: createLanguage[1] ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                 data: {
                     msg: createLanguage[1]
                         ? "Create new language successfully"
@@ -104,7 +105,7 @@ const updateLanguage = (id, body) =>
 
             if (language !== null) {
                 resolve({
-                    status: 409,
+                    status: StatusCodes.CONFLICT,
                     data: {
                         msg: "Language name already exists"
                     }
@@ -116,7 +117,7 @@ const updateLanguage = (id, body) =>
                 });
 
                 resolve({
-                    status: languages[1].length !== 0 ? 200 : 400,
+                    status: languages[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                     data: {
                         msg:
                             languages[1].length !== 0
@@ -141,7 +142,7 @@ const deleteLanguage = (id) =>
 
             if (findLanguage.status === "Deactive") {
                 resolve({
-                    status: 400,
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: "The language already deactive!",
                     }
@@ -157,7 +158,7 @@ const deleteLanguage = (id) =>
                 }
             );
             resolve({
-                status: languages[0] > 0 ? 200 : 400,
+                status: languages[0] > 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                 data: {
                     msg:
                         languages[0] > 0

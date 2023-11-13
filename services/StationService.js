@@ -1,6 +1,7 @@
 const db = require("../models");
 const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
+const { StatusCodes } = require("http-status-codes");
 
 const getAllStation = (
     { page, limit, order, stationName, address, status, ...query },
@@ -11,7 +12,7 @@ const getAllStation = (
             redisClient.get(`stations_${page}_${limit}_${order}_${stationName}_${address}_${status}`, async (error, station) => {
                 if (station != null && station != "" && roleName != 'Admin') {
                     resolve({
-                        status: 200,
+                        status: StatusCodes.OK,
                         data: {
                             msg: "Got stations",
                             stations: JSON.parse(station),
@@ -21,7 +22,7 @@ const getAllStation = (
                     redisClient.get(`admin_stations_${page}_${limit}_${order}_${stationName}_${address}_${status}`, async (error, adminStation) => {
                         if (adminStation != null && adminStation != "") {
                             resolve({
-                                status: 200,
+                                status: StatusCodes.OK,
                                 data: {
                                     msg: "Got stations",
                                     stations: JSON.parse(adminStation),
@@ -55,7 +56,7 @@ const getAllStation = (
                             }
                             
                             resolve({
-                                status: stations ? 200 : 404,
+                                status: stations ? StatusCodes.OK : StatusCodes.NOT_FOUND,
                                 data: {
                                     msg: stations ? "Got stations" : "Cannot find stations",
                                     stations: stations,
@@ -83,7 +84,7 @@ const getStationById = (stationId) =>
                 }
             });
             resolve({
-                status: station ? 200 : 404,
+                status: station ? StatusCodes.OK : StatusCodes.NOT_FOUND,
                 data: {
                     msg: station ? "Got station" : `Cannot find station with id: ${stationId}`,
                     station: station,
@@ -108,7 +109,7 @@ const createStation = ({ stationName, ...body }) =>
             });
 
             resolve({
-                status: createStation[1] ? 200 : 400,
+                status: createStation[1] ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                 data: {
                     msg: createStation[1]
                         ? "Create new station successfully"
@@ -153,7 +154,7 @@ const updateStation = (id, body) =>
 
             if (station !== null) {
                 resolve({
-                    status: 409,
+                    status: StatusCodes.CONFLICT,
                     data: {
                         msg: "Station name already exists"
                     }
@@ -165,7 +166,7 @@ const updateStation = (id, body) =>
                 });
 
                 resolve({
-                    status: stations[1].length !== 0 ? 200 : 400,
+                    status: stations[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                     data: {
                         msg:
                             stations[1].length !== 0
@@ -207,7 +208,7 @@ const deleteStation = (id) =>
 
             if (findStation.status === "Deactive") {
                 resolve({
-                    status: 400,
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: "The station already deactive!",
                     }
@@ -223,7 +224,7 @@ const deleteStation = (id) =>
                 }
             );
             resolve({
-                status: stations[0] > 0 ? 200 : 400,
+                status: stations[0] > 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                 data: {
                     msg:
                         stations[0] > 0

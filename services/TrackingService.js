@@ -1,5 +1,6 @@
 const db = require("../models");
 const { Op } = require("sequelize");
+const { StatusCodes } = require("http-status-codes");
 
 const getAllTracking = (
     { tourId, busId, status, ...query },
@@ -8,10 +9,6 @@ const getAllTracking = (
     new Promise(async (resolve, reject) => {
         try {
             const queries = { nest: true };
-            // const offset = !page || +page <= 1 ? 0 : +page - 1;
-            // const flimit = +limit || +process.env.LIMIT_POST;
-            // queries.offset = offset * flimit;
-            // queries.limit = flimit;
             queries.order = [['updatedAt', 'DESC']];
             if (tourId) query.tourId = { [Op.eq]: tourId };
             if (busId) query.busId = { [Op.eq]: busId };
@@ -24,7 +21,7 @@ const getAllTracking = (
                 ...queries,
             });
             resolve({
-                status: trackings ? 200 : 404,
+                status: trackings ? StatusCodes.OK : StatusCodes.NOT_FOUND,
                 data: {
                     msg: trackings ? "Got trackings" : "Cannot find trackings",
                     trackings: trackings,
@@ -52,7 +49,7 @@ const createTracking = (body) =>
             });
             if (duplicateTour) {
                 resolve({
-                    status: 200,
+                    status: StatusCodes.OK,
                     data: {
                         msg: `Tour Id has already exist!`,
                     }
@@ -73,7 +70,7 @@ const createTracking = (body) =>
 
                 const create = await db.Tracking.create({ coordinates, busId: bus.busId, ...body })
                 resolve({
-                    status: 200,
+                    status: StatusCodes.OK,
                     data: {
                         msg: "Tracking create successfully!",
                         tracking: create.dataValues,
@@ -82,7 +79,7 @@ const createTracking = (body) =>
             }
         } catch (error) {
             resolve({
-                status: 400,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: error.message,
                 }
@@ -103,7 +100,7 @@ const updateTracking = (id, body) =>
 
             if (!tracking) {
                 resolve({
-                    status: 400,
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: `Tracking not found!`,
                     }
@@ -128,7 +125,7 @@ const updateTracking = (id, body) =>
             });
 
             resolve({
-                status: 200,
+                status: StatusCodes.OK,
                 data: {
                     msg: `Tracking update successfully`,
                 }
@@ -136,7 +133,7 @@ const updateTracking = (id, body) =>
 
         } catch (error) {
             resolve({
-                status: 400,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: error.message,
                 }
