@@ -1,9 +1,9 @@
-const db = require('../models');
-const { Op } = require('sequelize');
-const STATUS = require("../enums/StatusEnum");
-const BOOKING_STATUS = require("../enums/BookingStatusEnum");
-const TOUR_STATUS = require("../enums/TourStatusEnum");
-const { StatusCodes } = require('http-status-codes');
+const db = require('../models')
+const { Op } = require('sequelize')
+const STATUS = require("../enums/StatusEnum")
+const BOOKING_STATUS = require("../enums/BookingStatusEnum")
+const TOUR_STATUS = require("../enums/TourStatusEnum")
+const { StatusCodes } = require('http-status-codes')
 
 const getStatistics = async (req) => {
     try {
@@ -78,25 +78,17 @@ const getStatistics = async (req) => {
             }
         }
 
-        const bookingDetails = await db.BookingDetail.findOne({
-            include: [
-                {
-                    model: db.Booking,
-                    as: "detail_booking",
-                    where: whereClause,
-                    include: {
-                        model: db.Transaction,
-                        as: "booking_transaction",
-                        attributes: {
-                            exclude: ["bookingId"]
-                        }
-                    }
-                }
-            ],
-            attributes: {
-                exclude: ["bookingId"]
-            }
-        })
+        const duplicateBookingId = new Set()
+        const duplicateTourId = new Set()
+        var totalCreatedTours = 0
+        var totalCancelTours = 0
+        var totalAvailableTours = 0
+        var totalStartedTours = 0
+        var totalFinishedTours = 0
+        var totalBookedTickets = 0
+        var totalCancelTickets = 0
+        var totalMoneyEarned = 0
+        var totalBusSeat = 0
         if (routeId !== "") {
             const route = await db.Route.findOne({
                 where: {
@@ -104,7 +96,7 @@ const getStatistics = async (req) => {
                 }
             })
 
-            if(!route){
+            if (!route) {
                 return {
                     status: StatusCodes.NOT_FOUND,
                     data: {
@@ -117,7 +109,8 @@ const getStatistics = async (req) => {
                 raw: true,
                 nest: true,
                 where: whereClauseRoute,
-                include: {
+                include: [
+                    {
                     model: db.Ticket,
                     as: "tour_ticket",
                     include: {
@@ -132,17 +125,18 @@ const getStatistics = async (req) => {
                             }
                         }
                     }
+                },
+                {
+                    model: db.Bus,
+                    as: "tour_bus",
+                    attributes: ["busId", "numberSeat"]
                 }
+            ]
             })
-            var totalBookedTickets = 0
-            var totalCancelTickets = 0
-            var totalMoneyEarned = 0
-            var totalCreatedTours = 0
-            var totalCancelTours = 0
+
             if (tours.length > 1) {
-                const duplicateBookingId = new Set();
-                const duplicateTourId = new Set();
                 tours.map((tour) => {
+                    //Getting record that have booking
                     if (tour.tour_ticket.ticket_booking_detail.bookingDetailId !== null) {
                         if (duplicateBookingId.has(tour.tour_ticket.ticket_booking_detail.bookingId)) {
                             if (BOOKING_STATUS.CANCELED === tour.tour_ticket.ticket_booking_detail.detail_booking.bookingStatus) {
@@ -160,9 +154,8 @@ const getStatistics = async (req) => {
                             } else {
                                 totalMoneyEarned += tour.tour_ticket.ticket_booking_detail.detail_booking.totalPrice
                             }
-                        } else {
-                            duplicateBookingId.add(tour.tour_ticket.ticket_booking_detail.bookingId)
                         }
+                        duplicateBookingId.add(tour.tour_ticket.ticket_booking_detail.bookingId)
                     }
                     if (duplicateTourId.has(tour.tourId)) {
                         if (TOUR_STATUS.CANCELED === tour.tourStatus) {
@@ -170,25 +163,74 @@ const getStatistics = async (req) => {
                         }
                         totalCreatedTours++
                     } else {
+                        totalBusSeat += tour.tour_bus.numberSeat
                         duplicateTourId.add(tour.tourId)
                     }
                 })
             }
-            return {
-                status: StatusCodes.OK,
-                data: {
-                    msg: `Get statistic successfully`,
-                    totalBookedTickets: totalBookedTickets,
-                    totalCancelTickets: totalCancelTickets,
-                    totalMoneyEarned: totalMoneyEarned,
-                    totalCreatedTour: totalCreatedTours,
-                    totalCancelTour: totalCancelTours,
-                }
+            const booking_statistic = {
+                totalBookedTickets: totalBookedTickets,
+                totalCancelTickets: totalCancelTickets,
+                totalMoneyEarned: totalMoneyEarned,
+                totalTicketAndSeat: `${totalBookedTickets}/${totalBusSeat}`
             }
+
+            const tour_statistic = {
+                totalCreatedTour: totalCreatedTours,
+                totalCancelTour: totalCancelTours,
+                totalAvailableTours: totalAvailableTours,
+                totalStartedTours: totalStartedTours,
+                totalFinishedTours: totalFinishedTours
+            }
+
+                return {
+                    status: tours.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+                    data: tours.length > 0 ? {
+                        msg: `Get statistic successfully`,
+                        booking_statistic: booking_statistic,
+                        tour_statistic: tour_statistic,
+                    } : {
+                        msg: `Could not find any statistics based on your request.`,
+                        booking_statistic: booking_statistic,
+                        tour_statistic: tour_statistic
+                    }
+                }
         }
 
-        var totalCreatedTours = 0
-        var totalCancelTours = 0
+        const bookingDetails = await db.BookingDetail.findAll({
+            include: [
+                {
+                    model: db.Booking,
+                    as: "detail_booking",
+                    where: whereClause,
+                    include: {
+                        model: db.Transaction,
+                        as: "booking_transaction",
+                        attributes: {
+                            exclude: ["bookingId"]
+                        }
+                    }
+                },
+                {
+                    model: db.Ticket,
+                    as: "booking_detail_ticket",
+                    include: {
+                        model: db.Tour,
+                        as: "ticket_tour",
+                        attributes: ["tourId", "busId"],
+                        include: {
+                            model: db.Bus,
+                            as: "tour_bus",
+                            attributes: ["busId", "numberSeat"]
+                        }
+                    }
+                }
+            ],
+            attributes: {
+                exclude: ["bookingId"]
+            }
+        })
+
         const tours = await db.Tour.findAll({
             where: whereClauseTour,
         })
@@ -197,17 +239,29 @@ const getStatistics = async (req) => {
             if (TOUR_STATUS.CANCELED === tour.tourStatus) {
                 totalCancelTours++
             }
+            if (TOUR_STATUS.STARTED === tour.tourStatus) {
+                totalStartedTours++
+            }
+            if (TOUR_STATUS.AVAILABLE === tour.tourStatus) {
+                totalAvailableTours++
+            }
+            if (TOUR_STATUS.FINISHED === tour.tourStatus) {
+                totalFinishedTours++
+            }
             totalCreatedTours++
         })
 
-        var totalBookedTickets = 0
-        var totalCancelTickets = 0
-        var totalMoneyEarned = 0
         bookingDetails.map((bookingDetail) => {
             if (BOOKING_STATUS.CANCELED === bookingDetail.detail_booking.bookingStatus) {
                 totalCancelTickets += bookingDetail.quantity
             } else {
                 totalBookedTickets += bookingDetail.quantity
+            }
+
+            const tourId = bookingDetail.booking_detail_ticket.ticket_tour.tourId
+            if (!duplicateTourId.has(tourId)) {
+                duplicateTourId.add(tourId)
+                totalBusSeat += bookingDetail.booking_detail_ticket.ticket_tour.tour_bus.numberSeat
             }
 
             if (STATUS.REFUNDED === bookingDetail.detail_booking.booking_transaction.status) {
@@ -221,27 +275,37 @@ const getStatistics = async (req) => {
             }
         })
 
+        const booking_statistic = {
+            totalBookedTickets: totalBookedTickets,
+            totalCancelTickets: totalCancelTickets,
+            totalMoneyEarned: totalMoneyEarned,
+            totalTicketAndSeat: `${totalBookedTickets}/${totalBusSeat}`
+        }
+
+        const tour_statistic = {
+            totalCreatedTour: totalCreatedTours,
+            totalCancelTour: totalCancelTours,
+            totalAvailableTours: totalAvailableTours,
+            totalStartedTours: totalStartedTours,
+            totalFinishedTours: totalFinishedTours
+        }
+
         return {
             status: bookingDetails.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
             data: bookingDetails.length > 0 ? {
                 msg: `Get statistic successfully`,
-                totalBookedTickets: totalBookedTickets,
-                totalCancelTickets: totalCancelTickets,
-                totalMoneyEarned: totalMoneyEarned,
-                totalCreatedTour: totalCreatedTours,
-                totalCancelTour: totalCancelTours,
+                booking_statistic: booking_statistic,
+                tour_statistic: tour_statistic,
+                test: bookingDetails
             } : {
                 msg: `Could not find any statistics based on your request.`,
-                totalBookedTickets: totalBookedTickets,
-                totalCancelTickets: totalCancelTickets,
-                totalMoneyEarned: totalMoneyEarned,
-                totalCreatedTour: totalCreatedTours,
-                totalCancelTour: totalCancelTours,
+                booking_statistic: booking_statistic,
+                tour_statistic: tour_statistic
             }
         }
     } catch (error) {
-        console.error(error);
+        console.error(error)
     }
 }
 
-module.exports = { getStatistics };
+module.exports = { getStatistics }

@@ -9,7 +9,6 @@ const getFeedbacks = async (req) => {
         const limit = parseInt(req.query.limit)
         const offset = (page - 1) * limit
         const routeId = req.query.routeId || ""
-        const status = req.query.status || ""
 
         let whereClause = {}
 
@@ -17,9 +16,6 @@ const getFeedbacks = async (req) => {
             whereClause.routeId = routeId
         }
 
-        if (status.trim !== "") {
-            whereClause.status = status
-        }
 
         const feedbacks = await db.Feedback.findAll({
             where: whereClause,
@@ -27,7 +23,7 @@ const getFeedbacks = async (req) => {
                 {
                     model: db.User,
                     as: "feedback_user",
-                    attributes: ["userId", "userName"]
+                    attributes: ["userId", "userName", "avatar"]
                 },
                 {
                     model: db.Route,
@@ -77,7 +73,7 @@ const getFeedbackById = async (req) => {
                 {
                     model: db.User,
                     as: "feedback_user",
-                    attributes: ["userId", "userName"]
+                    attributes: ["userId", "userName", "avatar"]
                 },
                 {
                     model: db.Route,
