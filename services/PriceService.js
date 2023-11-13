@@ -143,24 +143,40 @@ const updatePrice = async (req) => {
                 }
             }
         }
-        // const ticket = await db.Ticket.findOne({
-        //     include: [
-        //         {
-        //             model: db.TicketType,
-        //             as: "ticket_type",
-        //             where: {
-        //                 ticketTypeId: ticketTypeId
-        //             }
-        //         },
-        //         {
-        //             model: db.Tour,
-        //             as: "ticket_tour",
-        //             where: {
-        //                 tourStatus: TOUR_STATUS.AVAILABLE
-        //             }
-        //         }
-        //     ]
-        // })
+        const ticket = await db.Ticket.findOne({
+            include: [
+                {
+                    model: db.TicketType,
+                    as: "ticket_type",
+                    where: {
+                        ticketTypeId: ticketTypeId
+                    },
+                    include: {
+                        model: db.Price,
+                        as: "ticket_type_price",
+                        where: {
+                            priceId: priceId
+                        }
+                    }
+                },
+                {
+                    model: db.Tour,
+                    as: "ticket_tour",
+                    where: {
+                        tourStatus: TOUR_STATUS.AVAILABLE
+                    }
+                }
+            ]
+        })
+
+        if(ticket){
+            return {
+                status: StatusCodes.BAD_REQUEST,
+                data: {
+                    msg: "Price in use for a ticket in an active tour",
+                }
+            }
+        }
 
         if (amount !== "") {
             updatePrice.amount = amount
