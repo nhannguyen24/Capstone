@@ -1198,114 +1198,6 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
             }
         })
 
-        // Initialize the schedule
-        const assignErrors = []
-        const findScheduledTour = await db.Tour.findAll({
-            raw: true, nest: true,
-            order: [['departureDate', 'ASC']],
-            where: {
-                departureDate: {
-                    [Op.gte]: currentDate,
-                },
-                isScheduled: true,
-            },
-            attributes: [
-                "tourId",
-                "tourName",
-                "beginBookingDate",
-                "endBookingDate",
-                "departureDate",
-                "duration",
-                "tourStatus",
-                "status",
-                "isScheduled"
-            ],
-            include: [
-                {
-                    model: db.Bus,
-                    as: "tour_bus",
-                    attributes: [
-                        "busId"
-                    ]
-                },
-                {
-                    model: db.User,
-                    as: "tour_tourguide",
-                    attributes: [
-                        "userId"
-                    ]
-                },
-                {
-                    model: db.User,
-                    as: "tour_driver",
-                    attributes: [
-                        "userId"
-                    ]
-                },
-            ]
-        })
-
-        const findBusActive = await db.Bus.findAll({
-            raw: true, nest: true,
-            where: {
-                status: STATUS.ACTIVE
-            }
-        })
-
-        const findTourguide = await db.User.findAll({
-            raw: true, nest: true,
-            include: [
-                {
-                    model: db.Role,
-                    as: "user_role",
-                    where: {
-                        roleName: 'TourGuide',
-                        status: STATUS.ACTIVE,
-                    }
-                }
-            ]
-        })
-
-        const findDriver = await db.User.findAll({
-            raw: true, nest: true,
-            include: [
-                {
-                    model: db.Role,
-                    as: "user_role",
-                    where: {
-                        roleName: 'Driver',
-                        status: STATUS.ACTIVE,
-                    }
-                }
-            ]
-        })
-
-        if (findBusActive.length == 0) {
-            let error = `There are no buses available`
-            assignErrors.push({ error })
-        }
-
-        if (findTourguide.length == 0) {
-            let error = 'There are no tour guide available'
-            assignErrors.push({ error })
-        }
-
-        if (findDriver.length == 0) {
-            let error = 'There are no driver available'
-            assignErrors.push({ error })
-        }
-
-        const schedule = []
-        if (findScheduledTour.length > 0) {
-            for (const tour of findScheduledTour) {
-                const tourGuide = tour.tour_tourguide
-                const driver = tour.tour_driver
-                const bus = tour.tour_bus
-
-                schedule.push({ tour, tourGuide, driver, bus })
-            }
-        }
-
         //Create Process Start HERE
         const duplicateTourNames = new Set()
         for (const tour of tours) {
@@ -1491,8 +1383,6 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                     errors: errors
                 }
             })
-
-        }
     } catch (error) {
         await t.rollback()
         reject(error)
