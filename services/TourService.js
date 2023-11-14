@@ -1556,22 +1556,24 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
             i++
         }
 
-        redisClient.keys('*tours_*', (error, keys) => {
-            if (error) {
-                console.error('Error retrieving keys:', error);
-                return;
-            }
-            // Delete each key individually
-            keys.forEach((key) => {
-                redisClient.del(key, (deleteError, reply) => {
-                    if (deleteError) {
-                        console.error(`Error deleting key ${key}:`, deleteError);
-                    } else {
-                        console.log(`Key ${key} deleted successfully`);
-                    }
+        if (errors == 0) {
+            redisClient.keys('*tours_*', (error, keys) => {
+                if (error) {
+                    console.error('Error retrieving keys:', error);
+                    return;
+                }
+                // Delete each key individually
+                keys.forEach((key) => {
+                    redisClient.del(key, (deleteError, reply) => {
+                        if (deleteError) {
+                            console.error(`Error deleting key ${key}:`, deleteError);
+                        } else {
+                            console.log(`Key ${key} deleted successfully`);
+                        }
+                    });
                 });
             });
-        });
+        }
 
         await t.commit();
         resolve({
