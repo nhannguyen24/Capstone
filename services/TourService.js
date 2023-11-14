@@ -994,7 +994,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             })
                         })
                     })
-                    
+
                     // redisClient.keys('*tours_*', (error, keys) => {
                     //     if (error) {
                     //         console.error('Error retrieving keys:', error)
@@ -1291,7 +1291,8 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
         //Create Process Start HERE
         const duplicateTourNames = new Set()
         for (const tour of tours) {
-            let i = 1
+            let i = 1;
+
             const route = await db.Route.findOne({
                 raw: true,
                 nest: true,
@@ -1462,129 +1463,126 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                     departureStationId: routeSegment.departureStationId
                 }
 
-                let error = `Error assign employee to tour: ${tour.tourName} `
-                assignErrors.push({ error })
-            }
+                const createTour = await db.Tour.create(setUpTour, { transaction: t })
+                if (!createTour) {
+                    let error = `Error create tour: ${tour.tourName} `
+                    errors.push({ line: i, tourError: error })
+                    i++
+                    continue
+                } else {
+                    createdTour.push(createTour.tourName)
+                }
+                const tourJson = createTour.toJSON()
 
-            const createTour = await db.Tour.create(setUpTour, { transaction: t })
-            if (!createTour) {
-                let error = `Error create tour: ${tour.tourName} `
-                errors.push({ line: i, tourError: error })
+                for (const ticket of tour.tickets) {
+                    if (ticket.isSelect == true) {
+                        const ticketType = await db.TicketType.findOne({
+                            where: {
+                                ticketTypeName: ticket.ticketName
+                            },
+                        })
+
+                        if (!ticketType) {
+                            let error = `Ticket not found with: ${ticket.ticketName}`
+                            errors.push({ line: i, tourError: error })
+                            i++
+                            continue
+                        }
+
+                        if (STATUS.DEACTIVE == ticketType.status) {
+                            let error = `Ticket is Deactive with: ${ticket.ticketName}`
+                            errors.push({ line: i, tourError: error })
+                            i++
+                            continue
+                        }
+
+                        let day = DAY_ENUM.NORMAL
+
+                        const dayOfWeek = tour.departureDate.getDay()
+                        if (dayOfWeek === 0 || dayOfWeek === 6) {
+                            day = DAY_ENUM.WEEKEND
+                        }
+                        const date = tour.departureDate.getDate()
+                        const month = tour.departureDate.getMonth()
+                        const dateMonth = `${date}-${month}`
+                        if (SPECIAL_DAY.includes(dateMonth)) {
+                            day = DAY_ENUM.HOLIDAY
+                        }
+
+                        const price = await db.Price.findOne({
+                            where: {
+                                ticketTypeId: ticketType.ticketTypeId,
+                                day: day,
+                            }
+                        })
+
+                        if (!price) {
+                            let error = `Ticket price for ${day} not found with: ${ticket.ticketName}`
+                            errors.push({ line: i, tourError: error })
+                            i++
+                            continue
+                        }
+                        const resultTicket = await db.Ticket.findOne({
+                            raw: true,
+                            nest: true,
+                            where: {
+                                ticketTypeId: ticketType.ticketTypeId,
+                                tourId: tourJson.tourId
+                            },
+                        })
+                        if (resultTicket) {
+                            let error = `Duplicate ticket(${ticket.ticketName}) in tour(${tourJson.tourName})`
+                            errors.push({ line: i, tourError: error })
+                            i++
+                            continue
+                        }
+                        const setUpTicket = { tourId: tourJson.tourId, ticketTypeId: ticketType.ticketTypeId }
+                        const createTicket = await db.Ticket.create(
+                            setUpTicket,
+                            { transaction: t },
+                        )
+
+                        if (!createTicket) {
+                            let error = `Error create ticket(${ticket.ticketName}) in tour(${tourJson.tourName})`
+                            errors.push({ line: i, tourError: error })
+                            i++
+                            continue
+                        }
+                    }
+                }
                 i++
-                continue
-            } else {
-                createdTour.push(createTour.tourName)
             }
-            const tourJson = createTour.toJSON()
 
-            for (const ticket of tour.tickets) {
-                if (ticket.isSelect == true) {
-                    const ticketType = await db.TicketType.findOne({
-                        where: {
-                            ticketTypeName: ticket.ticketName
-                        },
-                    })
-
-                    if (!ticketType) {
-                        let error = `Ticket not found with: ${ticket.ticketName}`
-                        errors.push({ line: i, tourError: error })
-                        i++
-                        continue
+            if (errors == 0) {
+                redisClient.keys('*tours_*', (error, keys) => {
+                    if (error) {
+                        console.error('Error retrieving keys:', error)
+                        return
                     }
-
-                    if (STATUS.DEACTIVE == ticketType.status) {
-                        let error = `Ticket is Deactive with: ${ticket.ticketName}`
-                        errors.push({ line: i, tourError: error })
-                        i++
-                        continue
-                    }
-
-                    let day = DAY_ENUM.NORMAL
-
-                    const dayOfWeek = tour.departureDate.getDay()
-                    if (dayOfWeek === 0 || dayOfWeek === 6) {
-                        day = DAY_ENUM.WEEKEND
-                    }
-                    const date = tour.departureDate.getDate()
-                    const month = tour.departureDate.getMonth()
-                    const dateMonth = `${date}-${month}`
-                    if (SPECIAL_DAY.includes(dateMonth)) {
-                        day = DAY_ENUM.HOLIDAY
-                    }
-
-                    const price = await db.Price.findOne({
-                        where: {
-                            ticketTypeId: ticketType.ticketTypeId,
-                            day: day,
-                        }
-                    })
-
-                    if (!price) {
-                        let error = `Ticket price for ${day} not found with: ${ticket.ticketName}`
-                        errors.push({ line: i, tourError: error })
-                        i++
-                        continue
-                    }
-                    const resultTicket = await db.Ticket.findOne({
-                        raw: true,
-                        nest: true,
-                        where: {
-                            ticketTypeId: ticketType.ticketTypeId,
-                            tourId: tourJson.tourId
-                        },
-                    })
-                    if (resultTicket) {
-                        let error = `Duplicate ticket(${ticket.ticketName}) in tour(${tourJson.tourName})`
-                        errors.push({ line: i, tourError: error })
-                        i++
-                        continue
-                    }
-                    const setUpTicket = { tourId: tourJson.tourId, ticketTypeId: ticketType.ticketTypeId }
-                    const createTicket = await db.Ticket.create(
-                        setUpTicket,
-                        { transaction: t },
-                    )
-
-                    if (!createTicket) {
-                        let error = `Error create ticket(${ticket.ticketName}) in tour(${tourJson.tourName})`
-                        errors.push({ line: i, tourError: error })
-                        i++
-                        continue
-                    }
-                }
-            }
-            i++
-        }
-
-        if (errors == 0) {
-            redisClient.keys('*tours_*', (error, keys) => {
-                if (error) {
-                    console.error('Error retrieving keys:', error)
-                    return
-                }
-                // Delete each key individually
-                keys.forEach((key) => {
-                    redisClient.del(key, (deleteError, reply) => {
-                        if (deleteError) {
-                            console.error(`Error deleting key ${key}:`, deleteError)
-                        } else {
-                            console.log(`Key ${key} deleted successfully`)
-                        }
+                    // Delete each key individually
+                    keys.forEach((key) => {
+                        redisClient.del(key, (deleteError, reply) => {
+                            if (deleteError) {
+                                console.error(`Error deleting key ${key}:`, deleteError)
+                            } else {
+                                console.log(`Key ${key} deleted successfully`)
+                            }
+                        })
                     })
                 })
-            })
-        }
-
-        await t.commit()
-        resolve({
-            status: 201,
-            data: {
-                msg: `Create tour using excel file successfully`,
-                createdTour: createdTour,
-                errors: errors,
-                assignErrors: assignErrors,
             }
-        })
+
+            await t.commit()
+            resolve({
+                status: 201,
+                data: {
+                    msg: `Create tour using excel file successfully`,
+                    createdTour: createdTour,
+                    errors: errors
+                }
+            })
+
+        }
     } catch (error) {
         await t.rollback()
         reject(error)
