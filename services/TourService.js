@@ -1366,7 +1366,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
             }
         });
     } catch (error) {
-        // await t.rollback();
+        await t.rollback();
         reject(error)
     }
 })
