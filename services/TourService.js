@@ -533,7 +533,7 @@ const getTourById = (tourId) =>
                     include: {
                         model: db.User,
                         as: "feedback_user",
-                        attributes: ["userName"]
+                        attributes: ["userId", "userName", "avatar"]
                     },
                     attributes: {
                         exclude: ["userId"]
