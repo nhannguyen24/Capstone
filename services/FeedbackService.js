@@ -1,8 +1,8 @@
-const db = require('../models');
-const { Op, sequelize } = require('sequelize');
+const db = require('../models')
+const { Op, sequelize } = require('sequelize')
 const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
-const { StatusCodes } = require('http-status-codes');
+const { StatusCodes } = require('http-status-codes')
 const getFeedbacks = async (req) => {
     try {
         const page = parseInt(req.query.page)
@@ -39,12 +39,12 @@ const getFeedbacks = async (req) => {
             ],
             limit: limit,
             offset: offset
-        });
+        })
         const totalFeedback = await db.Feedback.count({
             where: whereClause,
-        });
+        })
 
-        return{
+        return {
             status: StatusCodes.OK,
             data: {
                 msg: `Get list of feedbacks successfully`,
@@ -58,7 +58,7 @@ const getFeedbacks = async (req) => {
         }
 
     } catch (error) {
-        console.log(error);
+        console.log(error)
     }
 }
 
@@ -81,9 +81,9 @@ const getFeedbackById = async (req) => {
                     attributes: ["routeId", "routeName"]
                 },
             ],
-        });
+        })
 
-        return{
+        return {
             status: feedback ? StatusCodes.OK : StatusCodes.NOT_FOUND,
             data: feedback ? {
                 msg: `Get feedbacks successfully`,
@@ -94,18 +94,19 @@ const getFeedbackById = async (req) => {
         }
 
     } catch (error) {
-        console.log(error);
+        console.log(error)
     }
 }
 
 const createFeedback = async (req) => {
-    const t = await db.sequelize.transaction();
+    const t = await db.sequelize.transaction()
     try {
         const customerId = req.body.customerId
         const routeId = req.body.routeId
         const stars = req.body.stars
         const description = req.body.description
-
+        console.log(stars)
+        console.log(description)
         //check user
         const user = await db.User.findOne({
             where: {
@@ -114,7 +115,7 @@ const createFeedback = async (req) => {
         })
 
         if (!user) {
-            return{
+            return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `User not found!",`
@@ -130,7 +131,7 @@ const createFeedback = async (req) => {
         })
 
         if (!route) {
-            return{
+            return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Route not found!",`
@@ -184,7 +185,7 @@ const createFeedback = async (req) => {
         })
 
         if (!isGoneOnTour) {
-            return{
+            return {
                 status: StatusCodes.FORBIDDEN,
                 data: {
                     msg: 'Not gone on tour or tour not finished',
@@ -192,30 +193,31 @@ const createFeedback = async (req) => {
             }
         }
 
-        const [feedback, created] = await db.Feedback.findOrCreate({ 
-                where: {
-                    userId: customerId,
-                    routeId: routeId
-                } ,
-                default: {stars: stars, description: description, userId: customerId, routeId: routeId}
-            });
-
+        const [feedback, created] = await db.Feedback.findOrCreate({
+            where: {
+                userId: customerId,
+                routeId: routeId
+            },
+            defaults: { stars: stars, description: description, userId: customerId, routeId: routeId }
+        })
+        console.log(feedback)
+        console.log(created)
         await t.commit()
-        return{
+        return {
             status: created ? StatusCodes.CREATED : StatusCodes.BAD_REQUEST,
             data: {
                 msg: created ? 'Create feedback successfully' : 'Customer already left feedback for this route',
-                feedback: created ? feedback : "" 
+                feedback: created ? feedback : ""
             }
         }
     } catch (error) {
         await t.rollback()
-        console.log(error);
+        console.log(error)
     }
 }
 
 const updateFeedback = async (req) => {
-    const t = await db.sequelize.transaction();
+    const t = await db.sequelize.transaction()
     try {
         const feedbackId = req.params.id
         const stars = parseInt(req.body.stars) || ""
@@ -230,7 +232,7 @@ const updateFeedback = async (req) => {
         })
 
         if (!feedback) {
-            return{
+            return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Feedback not found!`,
@@ -241,7 +243,7 @@ const updateFeedback = async (req) => {
         if (stars !== "") {
             updateFeedback.stars = stars
         }
-        
+
         if (description !== "") {
             updateFeedback.description = description
         }
@@ -255,7 +257,7 @@ const updateFeedback = async (req) => {
         })
 
         await t.commit()
-        return{
+        return {
             status: StatusCodes.OK,
             data: {
                 msg: "Update feedback successfully",
@@ -264,7 +266,7 @@ const updateFeedback = async (req) => {
 
     } catch (error) {
         await t.rollback()
-        console.log(error);
+        console.log(error)
     }
 }
 
@@ -279,7 +281,7 @@ const deleteFeedback = async (req) => {
         })
 
         if (!feedback) {
-            return{
+            return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Feedback not found!`,
@@ -294,15 +296,15 @@ const deleteFeedback = async (req) => {
             individualHooks: true,
         })
 
-        return{
+        return {
             status: StatusCodes.OK,
             data: {
                 msg: "Delete feedback successfully",
             }
         }
     } catch (error) {
-        console.log(error);
+        console.log(error)
     }
 }
 
-module.exports = { getFeedbacks, getFeedbackById, createFeedback, updateFeedback, deleteFeedback };
+module.exports = { getFeedbacks, getFeedbackById, createFeedback, updateFeedback, deleteFeedback }
