@@ -61,7 +61,7 @@ const login = ({ email, password }) => new Promise(async (resolve, reject) => {
         },
       ],
     })
-    
+
     const isChecked = response && bcrypt.compareSync(password, response.password);
     const accessToken = isChecked
       ? jwt.sign({ userId: response.userId, email: response.email, roleName: response.user_role.roleName }, process.env.JWT_SECRET, { expiresIn: '1d' })
@@ -102,20 +102,7 @@ const login = ({ email, password }) => new Promise(async (resolve, reject) => {
 const loginGoogle = ({ name, picture, userId, email }) =>
   new Promise(async (resolve, reject) => {
     try {
-      const _email = email.replace(/\s/g, '').toLowerCase()
-      const response = await db.User.findOrCreate({
-        where: { email: _email },
-        raw: true,
-        nest: true,
-        defaults: {
-          userId: userId,
-          userName: name,
-          email: _email,
-          avatar: picture,
-          roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3",
-        },
-      });
-      
+      const _email = email.replace(/\s/g, '').toLowerCase();
       const user = await db.User.findOne({
         where: { email: _email },
         raw: true,
@@ -139,18 +126,40 @@ const loginGoogle = ({ name, picture, userId, email }) =>
         ],
       });
 
+      let response;
+      if (user) {
+        response = await db.User.update({
+          userName: name,
+          email: _email,
+          avatar: picture,
+          roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3"
+        }, {
+          where: {
+            email: _email
+          }
+        });
+      } else {
+        response = await db.User.create({
+          userId: userId,
+          userName: name,
+          email: _email,
+          avatar: picture,
+          roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3"
+        });
+      }
+
       const [accessToken, refreshToken] = await Promise.all([
         jwt.sign(
           {
-            userId: response[0].userId,
-            email: response[0].email,
+            userId: response.userId,
+            email: response.email,
             roleName: user.user_role.roleName,
           },
           process.env.JWT_SECRET,
           { expiresIn: "1d" }
         ),
         jwt.sign(
-          { userId: response[0].userId },
+          { userId: response.userId },
           process.env.JWT_SECRET_REFRESH,
           { expiresIn: "1d" }
         ),
@@ -161,7 +170,7 @@ const loginGoogle = ({ name, picture, userId, email }) =>
           {
             refreshToken: refreshToken,
           },
-          { where: { userId: response[0].userId } }
+          { where: { userId: response.userId } }
         );
       }
 
