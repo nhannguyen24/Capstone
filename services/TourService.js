@@ -1,13 +1,13 @@
-const db = require("../models");
-const { Op } = require("sequelize");
-const redisClient = require("../config/RedisConfig");
-const STATUS = require("../enums/StatusEnum");
-const TOUR_STATUS = require("../enums/TourStatusEnum");
-const DAY_ENUM = require("../enums/PriceDayEnum");
-const BOOKING_STATUS = require("../enums/BookingStatusEnum");
-const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"];
-const readXlsxFile = require('read-excel-file/node');
-const { StatusCodes } = require("http-status-codes");
+const db = require("../models")
+const { Op } = require("sequelize")
+const redisClient = require("../config/RedisConfig")
+const STATUS = require("../enums/StatusEnum")
+const TOUR_STATUS = require("../enums/TourStatusEnum")
+const DAY_ENUM = require("../enums/PriceDayEnum")
+const BOOKING_STATUS = require("../enums/BookingStatusEnum")
+const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
+const readXlsxFile = require('read-excel-file/node')
+const { StatusCodes } = require("http-status-codes")
 
 const getAllTour = (
     { page, limit, order, tourName, address, tourStatus, status, routeId, tourGuideId, driverId, departureDate, endDate, ...query }
@@ -22,29 +22,29 @@ const getAllTour = (
                             msg: "Got tours",
                             tours: JSON.parse(tour),
                         }
-                    });
+                    })
                 } else {
-                    const queries = { nest: true };
-                    const offset = !page || +page <= 1 ? 0 : +page - 1;
-                    const flimit = +limit || +process.env.LIMIT_POST;
-                    queries.offset = offset * flimit;
-                    queries.limit = flimit;
+                    const queries = { nest: true }
+                    const offset = !page || +page <= 1 ? 0 : +page - 1
+                    const flimit = +limit || +process.env.LIMIT_POST
+                    queries.offset = offset * flimit
+                    queries.limit = flimit
                     if (order) queries.order = [[order]]
                     else {
                         queries.order = [
                             ['updatedAt', 'DESC'],
                             [{ model: db.Route, as: 'tour_route' }, { model: db.RouteSegment, as: 'route_segment' }, 'index', 'ASC'],
                             [{ model: db.Route, as: 'tour_route' }, { model: db.RouteSegment, as: 'route_segment' }, { model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
-                        ];
+                        ]
                     }
-                    if (tourName) query.tourName = { [Op.substring]: tourName };
-                    if (tourStatus) query.tourStatus = { [Op.eq]: tourStatus };
-                    if (routeId) query.routeId = { [Op.eq]: routeId };
-                    if (status) query.status = { [Op.eq]: status };
-                    if (tourGuideId) query.tourGuideId = { [Op.eq]: tourGuideId };
-                    if (driverId) query.driverId = { [Op.eq]: driverId };
-                    if (departureDate) query.departureDate = { [Op.gte]: departureDate };
-                    if (endDate) query.departureDate = { [Op.lte]: endDate };
+                    if (tourName) query.tourName = { [Op.substring]: tourName }
+                    if (tourStatus) query.tourStatus = { [Op.eq]: tourStatus }
+                    if (routeId) query.routeId = { [Op.eq]: routeId }
+                    if (status) query.status = { [Op.eq]: status }
+                    if (tourGuideId) query.tourGuideId = { [Op.eq]: tourGuideId }
+                    if (driverId) query.driverId = { [Op.eq]: driverId }
+                    if (departureDate) query.departureDate = { [Op.gte]: departureDate }
+                    if (endDate) query.departureDate = { [Op.lte]: endDate }
 
                     const tours = await db.Tour.findAll({
                         where: query,
@@ -211,7 +211,7 @@ const getAllTour = (
                                 ]
                             },
                         ]
-                    });
+                    })
 
                     for (const tour of tours) {
                         let day = DAY_ENUM.NORMAL
@@ -224,7 +224,7 @@ const getAllTour = (
                         const date = tourDepartureDate.getDate()
                         const month = tourDepartureDate.getMonth()
                         const dateMonth = `${date}-${month}`
-                        if (dateMonth.includes(SPECIAL_DAY)) {
+                        if (SPECIAL_DAY.includes(dateMonth)) {
                             day = DAY_ENUM.HOLIDAY
                         }
 
@@ -246,17 +246,17 @@ const getAllTour = (
                             ticket.dataValues.ticket_type.dataValues.price = price
                         }
 
-                        const departureDate = new Date(tour.departureDate);
+                        const departureDate = new Date(tour.departureDate)
                         // Split the duration string into hours, minutes, and seconds
-                        const [hours, minutes, seconds] = tour.duration.split(':').map(Number);
+                        const [hours, minutes, seconds] = tour.duration.split(':').map(Number)
 
                         // Add the duration to the departureDate
-                        departureDate.setHours(departureDate.getHours() + hours);
-                        departureDate.setMinutes(departureDate.getMinutes() + minutes);
-                        departureDate.setSeconds(departureDate.getSeconds() + seconds);
+                        departureDate.setHours(departureDate.getHours() + hours)
+                        departureDate.setMinutes(departureDate.getMinutes() + minutes)
+                        departureDate.setSeconds(departureDate.getSeconds() + seconds)
                         // Now, departureDate holds the endTime
-                        const endDate = departureDate.toISOString();
-                        tour.dataValues.endDate = endDate;
+                        const endDate = departureDate.toISOString()
+                        tour.dataValues.endDate = endDate
 
                         const departureStation = await db.Station.findOne({
                             where: {
@@ -270,8 +270,8 @@ const getAllTour = (
                                 ]
                             }
                         })
-                        tour.dataValues.departureStation = departureStation;
-                        delete tour.dataValues.departureStationId;
+                        tour.dataValues.departureStation = departureStation
+                        delete tour.dataValues.departureStationId
 
                         const feedbacks = await db.Feedback.findAll({
                             where: {
@@ -294,7 +294,7 @@ const getAllTour = (
                         tour.dataValues.avgStars = avgStars
                     }
 
-                    redisClient.setEx(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}_${departureDate}_${endDate}`, 3600, JSON.stringify(tours));
+                    redisClient.setEx(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}_${departureDate}_${endDate}`, 3600, JSON.stringify(tours))
 
                     resolve({
                         status: tours ? StatusCodes.OK : StatusCodes.NOT_FOUND,
@@ -302,13 +302,13 @@ const getAllTour = (
                             msg: tours ? "Got tours" : "Cannot find tours",
                             tours: tours,
                         }
-                    });
+                    })
                 }
             })
         } catch (error) {
-            reject(error);
+            reject(error)
         }
-    });
+    })
 
 const getTourById = (tourId) =>
     new Promise(async (resolve, reject) => {
@@ -478,7 +478,7 @@ const getTourById = (tourId) =>
                         ]
                     },
                 ]
-            });
+            })
 
             for (const tour of tours) {
                 let day = DAY_ENUM.NORMAL
@@ -491,7 +491,7 @@ const getTourById = (tourId) =>
                 const date = tourDepartureDate.getDate()
                 const month = tourDepartureDate.getMonth()
                 const dateMonth = `${date}-${month}`
-                if (dateMonth.includes(SPECIAL_DAY)) {
+                if (SPECIAL_DAY.includes(dateMonth)) {
                     day = DAY_ENUM.HOLIDAY
                 }
 
@@ -513,17 +513,17 @@ const getTourById = (tourId) =>
                     ticket.dataValues.ticket_type.dataValues.price = price
                 }
 
-                const departureDate = new Date(tour.departureDate);
+                const departureDate = new Date(tour.departureDate)
                 // Split the duration string into hours, minutes, and seconds
-                const [hours, minutes, seconds] = tour.duration.split(':').map(Number);
+                const [hours, minutes, seconds] = tour.duration.split(':').map(Number)
 
                 // Add the duration to the departureDate
-                departureDate.setHours(departureDate.getHours() + hours);
-                departureDate.setMinutes(departureDate.getMinutes() + minutes);
-                departureDate.setSeconds(departureDate.getSeconds() + seconds);
+                departureDate.setHours(departureDate.getHours() + hours)
+                departureDate.setMinutes(departureDate.getMinutes() + minutes)
+                departureDate.setSeconds(departureDate.getSeconds() + seconds)
                 // Now, departureDate holds the endTime
-                const endDate = departureDate.toISOString();
-                tour.dataValues.endDate = endDate;
+                const endDate = departureDate.toISOString()
+                tour.dataValues.endDate = endDate
 
                 const feedbacks = await db.Feedback.findAll({
                     where: {
@@ -549,15 +549,15 @@ const getTourById = (tourId) =>
                     msg: tours.length > 0 ? "Got tour" : `Cannot find tour with id: ${tourId}`,
                     tour: tours,
                 }
-            });
+            })
         } catch (error) {
-            reject(error);
+            reject(error)
         }
-    });
+    })
 
 const createTour = ({ images, tickets, tourName, ...body }) =>
     new Promise(async (resolve, reject) => {
-        let transaction;
+        let transaction
         try {
             transaction = await db.sequelize.transaction(async (t) => {
                 const station = await db.Route.findAll({
@@ -582,7 +582,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             },
                         },
                     ]
-                });
+                })
 
                 if (!station) {
                     resolve({
@@ -591,26 +591,26 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             msg: "Route Id not found"
                         }
                     })
-                    return;
+                    return
                 }
 
-                const uniqueStationArray = [];
+                const uniqueStationArray = []
 
                 // Loop through the JSON data and add station IDs to the array
                 station.forEach(item => {
                     if (!uniqueStationArray.includes(item.route_segment.departureStationId)) {
-                        uniqueStationArray.push(item.route_segment.departureStationId);
+                        uniqueStationArray.push(item.route_segment.departureStationId)
                     }
                     if (uniqueStationArray.includes(item.route_segment.endStationId)) {
-                        uniqueStationArray.push(item.route_segment.endStationId);
+                        uniqueStationArray.push(item.route_segment.endStationId)
                     }
-                });
+                })
 
-                const currentDate = new Date();
-                currentDate.setHours(currentDate.getHours() + 7);
-                const tDepartureDate = new Date(body.departureDate);
-                const tourBeginBookingDate = new Date(body.beginBookingDate);
-                const tourEndBookingDate = new Date(body.endBookingDate);
+                const currentDate = new Date()
+                currentDate.setHours(currentDate.getHours() + 7)
+                const tDepartureDate = new Date(body.departureDate)
+                const tourBeginBookingDate = new Date(body.beginBookingDate)
+                const tourEndBookingDate = new Date(body.endBookingDate)
 
                 if (currentDate > tourBeginBookingDate) {
                     resolve({
@@ -619,26 +619,26 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             msg: "Begin booking date can't be earlier than current date"
                         }
                     })
-                    return;
+                    return
                 } else if (tourBeginBookingDate >= tourEndBookingDate) {
                     resolve({
                         status: StatusCodes.BAD_REQUEST,
                         data: {
                             msg: "Begin booking date can't be later than End booking date",
                         }
-                    });
-                    return;
+                    })
+                    return
                 } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
                     resolve({
                         status: StatusCodes.BAD_REQUEST,
                         data: {
                             msg: "End booking date must be 24 hours earlier than Departure date",
                         }
-                    });
-                    return;
+                    })
+                    return
                 } else {
-                    const currentDate = new Date();
-                    currentDate.setHours(currentDate.getHours() + 7);
+                    const currentDate = new Date()
+                    currentDate.setHours(currentDate.getHours() + 7)
                     // Initialize the schedule
                     const findScheduledTour = await db.Tour.findAll({
                         raw: true, nest: true,
@@ -699,7 +699,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 msg: 'There are no buses available'
                             }
                         })
-                        return;
+                        return
                     }
 
                     const findTourguide = await db.User.findAll({
@@ -737,7 +737,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 msg: 'There are no tour guide available'
                             }
                         })
-                        return;
+                        return
                     }
 
                     if (findDriver.length == 0) {
@@ -747,17 +747,17 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 msg: 'There are no driver available'
                             }
                         })
-                        return;
+                        return
                     }
 
-                    const schedule = [];
+                    const schedule = []
                     if (findScheduledTour.length > 0) {
                         for (const tour of findScheduledTour) {
-                            const tourGuide = tour.tour_tourguide;
-                            const driver = tour.tour_driver;
-                            const bus = tour.tour_bus;
+                            const tourGuide = tour.tour_tourguide
+                            const driver = tour.tour_driver
+                            const bus = tour.tour_bus
 
-                            schedule.push({ tour, tourGuide, driver, bus });
+                            schedule.push({ tour, tourGuide, driver, bus })
                         }
                     }
 
@@ -766,65 +766,65 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                         (employee) =>
                             employee.maxTour > 0 &&
                             !schedule.some((assignment) => {
-                                const departureDate = new Date(assignment.tour.departureDate);
+                                const departureDate = new Date(assignment.tour.departureDate)
                                 // Split the duration string into hours, minutes, and seconds
-                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number);
+                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
 
                                 // Add the duration to the departureDate
-                                departureDate.setHours(departureDate.getHours() + hours);
-                                departureDate.setMinutes(departureDate.getMinutes() + minutes);
-                                departureDate.setSeconds(departureDate.getSeconds() + seconds);
-                                const endDate = departureDate;
+                                departureDate.setHours(departureDate.getHours() + hours)
+                                departureDate.setMinutes(departureDate.getMinutes() + minutes)
+                                departureDate.setSeconds(departureDate.getSeconds() + seconds)
+                                const endDate = departureDate
 
                                 // Check if the tour guide is available
                                 return endDate >= body.departureDate && assignment.tourGuide.userId == employee.userId
                             })
-                    );
+                    )
                     const availableDriver = findDriver.filter(
                         (employee) =>
                             employee.maxTour > 0
                             && !schedule.some((assignment) => {
-                                const departureDate = new Date(assignment.tour.departureDate);
+                                const departureDate = new Date(assignment.tour.departureDate)
 
                                 // Split the duration string into hours, minutes, and seconds
-                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number);
+                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
 
                                 // Add the duration to the departureDate
-                                departureDate.setHours(departureDate.getHours() + hours);
-                                departureDate.setMinutes(departureDate.getMinutes() + minutes);
-                                departureDate.setSeconds(departureDate.getSeconds() + seconds);
-                                const endDate = departureDate;
+                                departureDate.setHours(departureDate.getHours() + hours)
+                                departureDate.setMinutes(departureDate.getMinutes() + minutes)
+                                departureDate.setSeconds(departureDate.getSeconds() + seconds)
+                                const endDate = departureDate
                                 return endDate >= body.departureDate && assignment.driver.userId == employee.userId
                             })
-                    );
+                    )
 
                     const availableBuses = findBusActive.filter(
                         (bus) =>
                             // bus.numberSeat >= 2 && 
                             !schedule.some((assignment) => {
-                                const departureDate = new Date(assignment.tour.departureDate);
+                                const departureDate = new Date(assignment.tour.departureDate)
 
                                 // Split the duration string into hours, minutes, and seconds
-                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number);
+                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
 
                                 // Add the duration to the departureDate
-                                departureDate.setHours(departureDate.getHours() + hours);
-                                departureDate.setMinutes(departureDate.getMinutes() + minutes);
-                                departureDate.setSeconds(departureDate.getSeconds() + seconds);
-                                const endDate = departureDate;
-                                // console.log(`${bus.busPlate} + ${assignment.tour.tourName}`, endDate >= tour.departureDate);
+                                departureDate.setHours(departureDate.getHours() + hours)
+                                departureDate.setMinutes(departureDate.getMinutes() + minutes)
+                                departureDate.setSeconds(departureDate.getSeconds() + seconds)
+                                const endDate = departureDate
+                                // console.log(`${bus.busPlate} + ${assignment.tour.tourName}`, endDate >= tour.departureDate)
                                 return endDate >= body.departureDate && assignment.bus.busId == bus.busId
                             })
-                    );
+                    )
 
-                    let createTour;
+                    let createTour
                     if (availableTourGuide.length > 0 && availableDriver.length > 0 && availableBuses.length > 0) {
-                        const chosenTourGuide = availableTourGuide[0];
-                        const chosenDriver = availableDriver[0];
-                        chosenTourGuide.maxTour--;
-                        chosenDriver.maxTour--;
+                        const chosenTourGuide = availableTourGuide[0]
+                        const chosenDriver = availableDriver[0]
+                        chosenTourGuide.maxTour--
+                        chosenDriver.maxTour--
 
-                        const chosenBus = availableBuses[0];
+                        const chosenBus = availableBuses[0]
 
                         createTour = await db.Tour.findOrCreate({
                             where: {
@@ -843,7 +843,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 ...body,
                             },
                             transaction: t,
-                        });
+                        })
 
                         await db.User.update({
                             maxTour: chosenTourGuide.maxTour,
@@ -851,7 +851,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             where: { userId: chosenTourGuide.userId },
                             individualHooks: true,
                             transaction: t
-                        });
+                        })
 
                         await db.User.update({
                             maxTour: chosenDriver.maxTour,
@@ -859,7 +859,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             where: { userId: chosenDriver.userId },
                             individualHooks: true,
                             transaction: t
-                        });
+                        })
                     } else {
                         createTour = await db.Tour.findOrCreate({
                             where: {
@@ -874,7 +874,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 ...body,
                             },
                             transaction: t,
-                        });
+                        })
                     }
 
                     const createTicketPromises = tickets.map(async (ticketTypeId) => {
@@ -912,7 +912,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                         const date = tourDepartureDate.getDate()
                         const month = tourDepartureDate.getMonth()
                         const dateMonth = `${date}-${month}`
-                        if (dateMonth.includes(SPECIAL_DAY)) {
+                        if (SPECIAL_DAY.includes(dateMonth)) {
                             day = DAY_ENUM.HOLIDAY
                         }
 
@@ -937,10 +937,10 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 },
                                 defaults: { ticketTypeId: ticketTypeId, tourId: createTour[0].tourId, },
                                 transaction: t,
-                            });
+                            })
                         }
-                    });
-                    await Promise.all(createTicketPromises);
+                    })
+                    await Promise.all(createTicketPromises)
 
                     if (createTour[1]) {
                         if (images) {
@@ -948,20 +948,20 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 await db.Image.create({
                                     image: image,
                                     tourId: createTour[0].tourId,
-                                }, { transaction: t });
-                            });
+                                }, { transaction: t })
+                            })
 
-                            await Promise.all(createImagePromises);
+                            await Promise.all(createImagePromises)
                         }
 
-                        let index = 0;
+                        let index = 0
                         for (const stationId of uniqueStationArray) {
-                            index += 1;
+                            index += 1
                             await db.TourDetail.create({
                                 tourId: createTour[0].tourId,
                                 stationId: stationId,
                                 index: index,
-                            }, { transaction: t });
+                            }, { transaction: t })
                         }
                     }
 
@@ -976,55 +976,55 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 ? "Assign employee to tour successfully!"
                                 : 'Cannot assign employee to tour',
                         }
-                    });
+                    })
 
                     redisClient.keys('*tours_*', (error, keys) => {
                         if (error) {
-                            console.error('Error retrieving keys:', error);
-                            return;
+                            console.error('Error retrieving keys:', error)
+                            return
                         }
                         // Delete each key individually
                         keys.forEach((key) => {
                             redisClient.del(key, (deleteError, reply) => {
                                 if (deleteError) {
-                                    console.error(`Error deleting key ${key}:`, deleteError);
+                                    console.error(`Error deleting key ${key}:`, deleteError)
                                 } else {
-                                    console.log(`Key ${key} deleted successfully`);
+                                    console.log(`Key ${key} deleted successfully`)
                                 }
-                            });
-                        });
-                    });
+                            })
+                        })
+                    })
 
                     // redisClient.keys('*tours_*', (error, keys) => {
                     //     if (error) {
-                    //         console.error('Error retrieving keys:', error);
-                    //         return;
+                    //         console.error('Error retrieving keys:', error)
+                    //         return
                     //     }
                     //     // Insert new tour into each key individually
                     //     keys.forEach((key) => {
                     //         redisClient.get(key, (error, tour) => {
                     //             if (error) {
-                    //                 console.error(`Error getting key ${key}:`, error);
+                    //                 console.error(`Error getting key ${key}:`, error)
                     //             } else {
-                    //                 // console.log(`Key ${key} deleted successfully`);
-                    //                 let arrayTours = JSON.parse(tour);
+                    //                 // console.log(`Key ${key} deleted successfully`)
+                    //                 let arrayTours = JSON.parse(tour)
                     //                 let newArrayTour = [createTour[0].dataValues, ...arrayTours]
-                    //                 redisClient.setEx(key, 3600, JSON.stringify(newArrayTour));
+                    //                 redisClient.setEx(key, 3600, JSON.stringify(newArrayTour))
                     //             }
-                    //         });
-                    //     });
-                    // });
+                    //         })
+                    //     })
+                    // })
                 }
-                await t.commit();
-            });
+                await t.commit()
+            })
         } catch (error) {
             if (transaction) {
                 // Rollback the transaction in case of an error
-                await transaction.rollback();
+                await transaction.rollback()
             }
-            reject(error);
+            reject(error)
         }
-    });
+    })
 
 const createTourByFile = (req) => new Promise(async (resolve, reject) => {
     const t = await db.sequelize.transaction()
@@ -1041,8 +1041,8 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
             order: [["createdAt", "DESC"]]
         })
 
-        const currentDate = new Date();
-        currentDate.setHours(currentDate.getHours() + 7);
+        const currentDate = new Date()
+        currentDate.setHours(currentDate.getHours() + 7)
         await readXlsxFile(uploadedFile.buffer).then((rows) => {
             for (let j = 3; j <= 12; j++) {
                 let isValidRow = true
@@ -1084,75 +1084,75 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                     if (tour.tourName == null) {
                         let error = `Tour name is required`
                         rowError.push(error)
-                        isValidRow = false;
+                        isValidRow = false
                     }
                     if (tour.description == null) {
                         let error = `Description is required`
                         rowError.push(error)
-                        isValidRow = false;
+                        isValidRow = false
                     }
                     if (tour.beginBookingDate == null) {
                         let error = `Begin booking date is required`
                         rowError.push(error)
-                        isValidRow = false;
+                        isValidRow = false
                     } else if (!(tour.beginBookingDate instanceof Date)) {
                         let error = `Begin booking date need to be correct date format`
                         rowError.push(error)
-                        isValidRow = false;
+                        isValidRow = false
                     }
 
                     if (tour.endBookingDate == null) {
                         let error = `End booking date is required`
                         rowError.push(error)
-                        isValidRow = false;
+                        isValidRow = false
                     } else if (!(tour.endBookingDate instanceof Date)) {
                         let error = `End booking date need to be correct date format`
                         rowError.push(error)
-                        isValidRow = false;
+                        isValidRow = false
                     }
 
                     if (tour.departureDate == null) {
                         let error = `Departure date is required`
                         rowError.push(error)
-                        isValidRow = false;
+                        isValidRow = false
                     } else if (!(tour.departureDate instanceof Date)) {
                         let error = `Departure date need to be correct date format`
                         rowError.push(error)
-                        isValidRow = false;
+                        isValidRow = false
                     }
 
                     if (tour.duration == null) {
                         let error = `Duration is required`
                         rowError.push(error)
-                        isValidRow = false;
+                        isValidRow = false
                     } else if (!(tour.duration instanceof Date)) {
                         let error = `duration need to be correct date format`
                         rowError.push(error)
-                        isValidRow = false;
+                        isValidRow = false
                     }
 
                     if (tour.route == null) {
                         let error = `Route is required`
                         rowError.push(error)
-                        isValidRow = false;
+                        isValidRow = false
                     }
                     if (isValidTicket == false) {
                         let error = `Tour need to has atleast 1 ticket choosen`
                         rowError.push(error)
-                        isValidRow = false;
+                        isValidRow = false
                     }
                     if (tour.endBookingDate != null) {
                         if (currentDate > tour.beginBookingDate) {
                             let error = `Begin booking date need to be after current date`
                             rowError.push(error)
-                            isValidRow = false;
+                            isValidRow = false
                         }
                     }
                     if (tour.beginBookingDate != null && tour.endBookingDate != null) {
                         if (tour.beginBookingDate === tour.endBookingDate) {
                             let error = `Begin Booking Date cannot be the same as End Booking Date`
                             rowError.push(error)
-                            isValidRow = false;
+                            isValidRow = false
                         }
                     }
                     if (tour.beginBookingDate != null && tour.endBookingDate != null) {
@@ -1166,7 +1166,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                         if (tour.endBookingDate.getTime() + 24 * 60 * 60 * 1000 > tour.departureDate.getTime()) {
                             let error = `Departure Date need to be atleast 24 hours after End Booking Date`
                             rowError.push(error)
-                            isValidRow = false;
+                            isValidRow = false
                         }
                     }
                     if (rowError.length > 0) {
@@ -1180,8 +1180,116 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
             }
         })
 
+        // Initialize the schedule
+        const assignErrors = []
+        const findScheduledTour = await db.Tour.findAll({
+            raw: true, nest: true,
+            order: [['departureDate', 'ASC']],
+            where: {
+                departureDate: {
+                    [Op.gte]: currentDate,
+                },
+                isScheduled: true,
+            },
+            attributes: [
+                "tourId",
+                "tourName",
+                "beginBookingDate",
+                "endBookingDate",
+                "departureDate",
+                "duration",
+                "tourStatus",
+                "status",
+                "isScheduled"
+            ],
+            include: [
+                {
+                    model: db.Bus,
+                    as: "tour_bus",
+                    attributes: [
+                        "busId"
+                    ]
+                },
+                {
+                    model: db.User,
+                    as: "tour_tourguide",
+                    attributes: [
+                        "userId"
+                    ]
+                },
+                {
+                    model: db.User,
+                    as: "tour_driver",
+                    attributes: [
+                        "userId"
+                    ]
+                },
+            ]
+        })
+
+        const findBusActive = await db.Bus.findAll({
+            raw: true, nest: true,
+            where: {
+                status: STATUS.ACTIVE
+            }
+        })
+
+        const findTourguide = await db.User.findAll({
+            raw: true, nest: true,
+            include: [
+                {
+                    model: db.Role,
+                    as: "user_role",
+                    where: {
+                        roleName: 'TourGuide',
+                        status: STATUS.ACTIVE,
+                    }
+                }
+            ]
+        })
+
+        const findDriver = await db.User.findAll({
+            raw: true, nest: true,
+            include: [
+                {
+                    model: db.Role,
+                    as: "user_role",
+                    where: {
+                        roleName: 'Driver',
+                        status: STATUS.ACTIVE,
+                    }
+                }
+            ]
+        })
+
+        if (findBusActive.length == 0) {
+            let error = `There are no buses available`
+            assignErrors.push({ error })
+        }
+
+        if (findTourguide.length == 0) {
+            let error = 'There are no tour guide available'
+            assignErrors.push({ error })
+        }
+
+        if (findDriver.length == 0) {
+            let error = 'There are no driver available'
+            assignErrors.push({ error })
+        }
+
+        const schedule = []
+        if (findScheduledTour.length > 0) {
+            for (const tour of findScheduledTour) {
+                const tourGuide = tour.tour_tourguide
+                const driver = tour.tour_driver
+                const bus = tour.tour_bus
+
+                schedule.push({ tour, tourGuide, driver, bus })
+            }
+        }
+
         //Create Process Start HERE
-        const duplicateTourNames = new Set();
+        const duplicateTourNames = new Set()
         for (const tour of tours) {
             let i = 1;
 
@@ -1205,7 +1313,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                     routeId: route.routeId,
                     index: 1
                 }
-            });
+            })
 
             if (!routeSegment) {
                 let error = `Route does not have route segment`
@@ -1235,7 +1343,115 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                 i++
                 continue
             }
-            duplicateTourNames.add(tour.tourName);
+            duplicateTourNames.add(tour.tourName)
+
+            // Assign employee, bus to tour created by file
+            // Find an available employee for the tour
+            const availableTourGuide = []
+            if (findTourguide.length > 0) {
+                availableTourGuide = findTourguide.filter(
+                    (employee) =>
+                        employee.maxTour > 0 &&
+                        !schedule.some((assignment) => {
+                            const departureDate = new Date(assignment.tour.departureDate)
+                            // Split the duration string into hours, minutes, and seconds
+                            const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+
+                            // Add the duration to the departureDate
+                            departureDate.setHours(departureDate.getHours() + hours)
+                            departureDate.setMinutes(departureDate.getMinutes() + minutes)
+                            departureDate.setSeconds(departureDate.getSeconds() + seconds)
+                            const endDate = departureDate
+
+                            // Check if the tour guide is available
+                            return endDate >= body.departureDate && assignment.tourGuide.userId == employee.userId
+                        })
+                )
+            }
+
+            const availableDriver = []
+            if (findDriver.length > 0) {
+                availableDriver = findDriver.filter(
+                    (employee) =>
+                        employee.maxTour > 0
+                        && !schedule.some((assignment) => {
+                            const departureDate = new Date(assignment.tour.departureDate)
+
+                            // Split the duration string into hours, minutes, and seconds
+                            const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+
+                            // Add the duration to the departureDate
+                            departureDate.setHours(departureDate.getHours() + hours)
+                            departureDate.setMinutes(departureDate.getMinutes() + minutes)
+                            departureDate.setSeconds(departureDate.getSeconds() + seconds)
+                            const endDate = departureDate
+                            return endDate >= body.departureDate && assignment.driver.userId == employee.userId
+                        })
+                )
+            }
+
+            const availableBuses = []
+            if (findBusActive.length > 0) {
+                availableBuses = findBusActive.filter(
+                    (bus) =>
+                        // bus.numberSeat >= 2 && 
+                        !schedule.some((assignment) => {
+                            const departureDate = new Date(assignment.tour.departureDate)
+
+                            // Split the duration string into hours, minutes, and seconds
+                            const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+
+                            // Add the duration to the departureDate
+                            departureDate.setHours(departureDate.getHours() + hours)
+                            departureDate.setMinutes(departureDate.getMinutes() + minutes)
+                            departureDate.setSeconds(departureDate.getSeconds() + seconds)
+                            const endDate = departureDate
+                            // console.log(`${bus.busPlate} + ${assignment.tour.tourName}`, endDate >= tour.departureDate)
+                            return endDate >= body.departureDate && assignment.bus.busId == bus.busId
+                        })
+                )
+            }
+
+            let setUpTour
+            if (availableTourGuide.length > 0 && availableDriver.length > 0 && availableBuses.length > 0) {
+                const chosenTourGuide = availableTourGuide[0]
+                const chosenDriver = availableDriver[0]
+                chosenTourGuide.maxTour--
+                chosenDriver.maxTour--
+                const chosenBus = availableBuses[0]
+
+                setUpTour = {
+                    tourName: tour.tourName,
+                    description: tour.description,
+                    beginBookingDate: tour.beginBookingDate,
+                    endBookingDate: tour.endBookingDate,
+                    departureDate: tour.departureDate,
+                    duration: tour.duration,
+                    routeId: route.routeId,
+                    departureStationId: routeSegment.departureStationId,
+                    tourGuideId: chosenTourGuide.userId,
+                    driverId: chosenDriver.userId,
+                    busId: chosenBus.busId,
+                    isScheduled: true,
+                }
+                schedule.push({ tour, tourGuide: chosenTourGuide, driver: chosenDriver, bus: chosenBus })
+
+                await db.User.update({
+                    maxTour: chosenTourGuide.maxTour,
+                }, {
+                    where: { userId: chosenTourGuide.userId },
+                    individualHooks: true,
+                    transaction: t
+                })
+
+                await db.User.update({
+                    maxTour: chosenDriver.maxTour,
+                }, {
+                    where: { userId: chosenDriver.userId },
+                    individualHooks: true,
+                    transaction: t
+                })
+            } else {
                 setUpTour = {
                     tourName: tour.tourName,
                     description: tour.description,
@@ -1247,137 +1463,139 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                     departureStationId: routeSegment.departureStationId
                 }
 
-            const createTour = await db.Tour.create(setUpTour, { transaction: t })
-            if (!createTour) {
-                let error = `Error create tour: ${tour.tourName} `
-                errors.push({ line: i, tourError: error })
+                const createTour = await db.Tour.create(setUpTour, { transaction: t })
+                if (!createTour) {
+                    let error = `Error create tour: ${tour.tourName} `
+                    errors.push({ line: i, tourError: error })
+                    i++
+                    continue
+                } else {
+                    createdTour.push(createTour.tourName)
+                }
+                const tourJson = createTour.toJSON()
+
+                for (const ticket of tour.tickets) {
+                    if (ticket.isSelect == true) {
+                        const ticketType = await db.TicketType.findOne({
+                            where: {
+                                ticketTypeName: ticket.ticketName
+                            },
+                        })
+
+                        if (!ticketType) {
+                            let error = `Ticket not found with: ${ticket.ticketName}`
+                            errors.push({ line: i, tourError: error })
+                            i++
+                            continue
+                        }
+
+                        if (STATUS.DEACTIVE == ticketType.status) {
+                            let error = `Ticket is Deactive with: ${ticket.ticketName}`
+                            errors.push({ line: i, tourError: error })
+                            i++
+                            continue
+                        }
+
+                        let day = DAY_ENUM.NORMAL
+
+                        const dayOfWeek = tour.departureDate.getDay()
+                        if (dayOfWeek === 0 || dayOfWeek === 6) {
+                            day = DAY_ENUM.WEEKEND
+                        }
+                        const date = tour.departureDate.getDate()
+                        const month = tour.departureDate.getMonth()
+                        const dateMonth = `${date}-${month}`
+                        if (SPECIAL_DAY.includes(dateMonth)) {
+                            day = DAY_ENUM.HOLIDAY
+                        }
+
+                        const price = await db.Price.findOne({
+                            where: {
+                                ticketTypeId: ticketType.ticketTypeId,
+                                day: day,
+                            }
+                        })
+
+                        if (!price) {
+                            let error = `Ticket price for ${day} not found with: ${ticket.ticketName}`
+                            errors.push({ line: i, tourError: error })
+                            i++
+                            continue
+                        }
+                        const resultTicket = await db.Ticket.findOne({
+                            raw: true,
+                            nest: true,
+                            where: {
+                                ticketTypeId: ticketType.ticketTypeId,
+                                tourId: tourJson.tourId
+                            },
+                        })
+                        if (resultTicket) {
+                            let error = `Duplicate ticket(${ticket.ticketName}) in tour(${tourJson.tourName})`
+                            errors.push({ line: i, tourError: error })
+                            i++
+                            continue
+                        }
+                        const setUpTicket = { tourId: tourJson.tourId, ticketTypeId: ticketType.ticketTypeId }
+                        const createTicket = await db.Ticket.create(
+                            setUpTicket,
+                            { transaction: t },
+                        )
+
+                        if (!createTicket) {
+                            let error = `Error create ticket(${ticket.ticketName}) in tour(${tourJson.tourName})`
+                            errors.push({ line: i, tourError: error })
+                            i++
+                            continue
+                        }
+                    }
+                }
                 i++
-                continue
-            } else {
-                createdTour.push(createTour.tourName)
             }
-            const tourJson = createTour.toJSON();
 
-            for (const ticket of tour.tickets) {
-                if (ticket.isSelect == true) {
-                    const ticketType = await db.TicketType.findOne({
-                        where: {
-                            ticketTypeName: ticket.ticketName
-                        },
+            if (errors == 0) {
+                redisClient.keys('*tours_*', (error, keys) => {
+                    if (error) {
+                        console.error('Error retrieving keys:', error)
+                        return
+                    }
+                    // Delete each key individually
+                    keys.forEach((key) => {
+                        redisClient.del(key, (deleteError, reply) => {
+                            if (deleteError) {
+                                console.error(`Error deleting key ${key}:`, deleteError)
+                            } else {
+                                console.log(`Key ${key} deleted successfully`)
+                            }
+                        })
                     })
+                })
+            }
 
-                    if (!ticketType) {
-                        let error = `Ticket not found with: ${ticket.ticketName}`
-                        errors.push({ line: i, tourError: error })
-                        i++
-                        continue
-                    }
-
-                    if (STATUS.DEACTIVE == ticketType.status) {
-                        let error = `Ticket is Deactive with: ${ticket.ticketName}`
-                        errors.push({ line: i, tourError: error })
-                        i++
-                        continue
-                    }
-
-                    let day = DAY_ENUM.NORMAL
-
-                    const dayOfWeek = tour.departureDate.getDay()
-                    if (dayOfWeek === 0 || dayOfWeek === 6) {
-                        day = DAY_ENUM.WEEKEND
-                    }
-                    const date = tour.departureDate.getDate()
-                    const month = tour.departureDate.getMonth()
-                    const dateMonth = `${date}-${month}`
-                    if (dateMonth.includes(SPECIAL_DAY)) {
-                        day = DAY_ENUM.HOLIDAY
-                    }
-
-                    const price = await db.Price.findOne({
-                        where: {
-                            ticketTypeId: ticketType.ticketTypeId,
-                            day: day,
-                        }
-                    })
-
-                    if (!price) {
-                        let error = `Ticket price for ${day} not found with: ${ticket.ticketName}`
-                        errors.push({ line: i, tourError: error })
-                        i++
-                        continue
-                    }
-                    const resultTicket = await db.Ticket.findOne({
-                        raw: true,
-                        nest: true,
-                        where: {
-                            ticketTypeId: ticketType.ticketTypeId,
-                            tourId: tourJson.tourId
-                        },
-                    })
-                    if (resultTicket) {
-                        let error = `Duplicate ticket(${ticket.ticketName}) in tour(${tourJson.tourName})`
-                        errors.push({ line: i, tourError: error })
-                        i++
-                        continue
-                    }
-                    const setUpTicket = { tourId: tourJson.tourId, ticketTypeId: ticketType.ticketTypeId }
-                    const createTicket = await db.Ticket.create(
-                        setUpTicket,
-                        { transaction: t },
-                    )
-
-                    if (!createTicket) {
-                        let error = `Error create ticket(${ticket.ticketName}) in tour(${tourJson.tourName})`
-                        errors.push({ line: i, tourError: error })
-                        i++
-                        continue
-                    }
+            await t.commit()
+            resolve({
+                status: 201,
+                data: {
+                    msg: `Create tour using excel file successfully`,
+                    createdTour: createdTour,
+                    errors: errors
                 }
-            }
-            i++
-        }
+            })
 
-        if (errors == 0) {
-            redisClient.keys('*tours_*', (error, keys) => {
-                if (error) {
-                    console.error('Error retrieving keys:', error);
-                    return;
-                }
-                // Delete each key individually
-                keys.forEach((key) => {
-                    redisClient.del(key, (deleteError, reply) => {
-                        if (deleteError) {
-                            console.error(`Error deleting key ${key}:`, deleteError);
-                        } else {
-                            console.log(`Key ${key} deleted successfully`);
-                        }
-                    });
-                });
-            });
         }
-
-        await t.commit();
-        resolve({
-            status: 201,
-            data: {
-                msg: `Create tour using excel file successfully`,
-                createdTour: createdTour,
-                errors: errors
-            }
-        });
     } catch (error) {
-        await t.rollback();
+        await t.rollback()
         reject(error)
     }
 })
 
 const assignTour = () =>
     new Promise(async (resolve, reject) => {
-        let transaction;
+        let transaction
         try {
             transaction = await db.sequelize.transaction(async (t) => {
-                const currentDate = new Date();
-                currentDate.setHours(currentDate.getHours() + 7);
+                const currentDate = new Date()
+                currentDate.setHours(currentDate.getHours() + 7)
 
                 // Initialize the schedule
                 const findScheduledTour = await db.Tour.findAll({
@@ -1443,7 +1661,7 @@ const assignTour = () =>
                             msg: 'There are no tours active'
                         }
                     })
-                    return;
+                    return
                 }
 
                 const findBusActive = await db.Bus.findAll({
@@ -1460,7 +1678,7 @@ const assignTour = () =>
                             msg: 'There are no buses available'
                         }
                     })
-                    return;
+                    return
                 }
 
                 const findTourguide = await db.User.findAll({
@@ -1498,7 +1716,7 @@ const assignTour = () =>
                             msg: 'There are no tour guide available'
                         }
                     })
-                    return;
+                    return
                 }
 
                 if (findDriver.length == 0) {
@@ -1508,99 +1726,99 @@ const assignTour = () =>
                             msg: 'There are no driver available'
                         }
                     })
-                    return;
+                    return
                 }
 
-                const schedule = [];
-                const scheduleFinal = [];
+                const schedule = []
+                const scheduleFinal = []
                 if (findScheduledTour.length > 0) {
                     for (const tour of findScheduledTour) {
-                        const tourGuide = tour.tour_tourguide;
-                        const driver = tour.tour_driver;
-                        const bus = tour.tour_bus;
+                        const tourGuide = tour.tour_tourguide
+                        const driver = tour.tour_driver
+                        const bus = tour.tour_bus
 
-                        schedule.push({ tour, tourGuide, driver, bus });
+                        schedule.push({ tour, tourGuide, driver, bus })
                     }
                 }
                 for (const tour of findTourActive) {
-                    // console.log(tour);
+                    // console.log(tour)
                     // Find an available employee for the tour
                     const availableTourGuide = findTourguide.filter(
                         (employee) =>
                             employee.maxTour > 0 &&
                             !schedule.some((assignment) => {
-                                const departureDate = new Date(assignment.tour.departureDate);
+                                const departureDate = new Date(assignment.tour.departureDate)
                                 // Split the duration string into hours, minutes, and seconds
-                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number);
+                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
 
                                 // Add the duration to the departureDate
-                                departureDate.setHours(departureDate.getHours() + hours);
-                                departureDate.setMinutes(departureDate.getMinutes() + minutes);
-                                departureDate.setSeconds(departureDate.getSeconds() + seconds);
-                                const endDate = departureDate;
+                                departureDate.setHours(departureDate.getHours() + hours)
+                                departureDate.setMinutes(departureDate.getMinutes() + minutes)
+                                departureDate.setSeconds(departureDate.getSeconds() + seconds)
+                                const endDate = departureDate
 
                                 // Check if the tour guide is available
                                 return endDate >= tour.departureDate && assignment.tourGuide.userId == employee.userId
                             })
-                    );
+                    )
 
                     const availableDriver = findDriver.filter(
                         (employee) =>
                             employee.maxTour > 0
                             // && !employee.driverId == tour.driverId
                             && !schedule.some((assignment) => {
-                                const departureDate = new Date(assignment.tour.departureDate);
+                                const departureDate = new Date(assignment.tour.departureDate)
 
                                 // Split the duration string into hours, minutes, and seconds
-                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number);
+                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
 
                                 // Add the duration to the departureDate
-                                departureDate.setHours(departureDate.getHours() + hours);
-                                departureDate.setMinutes(departureDate.getMinutes() + minutes);
-                                departureDate.setSeconds(departureDate.getSeconds() + seconds);
-                                const endDate = departureDate;
+                                departureDate.setHours(departureDate.getHours() + hours)
+                                departureDate.setMinutes(departureDate.getMinutes() + minutes)
+                                departureDate.setSeconds(departureDate.getSeconds() + seconds)
+                                const endDate = departureDate
                                 return endDate >= tour.departureDate && assignment.driver.userId == employee.userId
                             })
-                    );
+                    )
 
                     const availableBuses = findBusActive.filter(
                         (bus) =>
                             // bus.numberSeat >= 2 && 
                             !schedule.some((assignment) => {
-                                const departureDate = new Date(assignment.tour.departureDate);
+                                const departureDate = new Date(assignment.tour.departureDate)
 
                                 // Split the duration string into hours, minutes, and seconds
-                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number);
+                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
 
                                 // Add the duration to the departureDate
-                                departureDate.setHours(departureDate.getHours() + hours);
-                                departureDate.setMinutes(departureDate.getMinutes() + minutes);
-                                departureDate.setSeconds(departureDate.getSeconds() + seconds);
-                                const endDate = departureDate;
-                                // console.log(`${bus.busPlate} + ${assignment.tour.tourName}`, endDate >= tour.departureDate);
+                                departureDate.setHours(departureDate.getHours() + hours)
+                                departureDate.setMinutes(departureDate.getMinutes() + minutes)
+                                departureDate.setSeconds(departureDate.getSeconds() + seconds)
+                                const endDate = departureDate
+                                // console.log(`${bus.busPlate} + ${assignment.tour.tourName}`, endDate >= tour.departureDate)
                                 return endDate >= tour.departureDate && assignment.bus.busId == bus.busId
                             })
-                    );
+                    )
 
                     if (availableTourGuide.length > 0 && availableDriver.length > 0 && availableBuses.length > 0) {
-                        const chosenTourGuide = availableTourGuide[0];
-                        const chosenDriver = availableDriver[0];
-                        chosenTourGuide.maxTour--;
-                        chosenDriver.maxTour--;
+                        const chosenTourGuide = availableTourGuide[0]
+                        const chosenDriver = availableDriver[0]
+                        chosenTourGuide.maxTour--
+                        chosenDriver.maxTour--
 
-                        const chosenBus = availableBuses[0];
-                        schedule.push({ tour, tourGuide: chosenTourGuide, driver: chosenDriver, bus: chosenBus });
-                        scheduleFinal.push({ tour, tourGuide: chosenTourGuide, driver: chosenDriver, bus: chosenBus });
+                        const chosenBus = availableBuses[0]
+                        schedule.push({ tour, tourGuide: chosenTourGuide, driver: chosenDriver, bus: chosenBus })
+                        scheduleFinal.push({ tour, tourGuide: chosenTourGuide, driver: chosenDriver, bus: chosenBus })
                     }
                 }
 
-                const findTourNotScheduled = findTourActive.filter(itemA => !schedule.some(itemB => itemB.tour.tourId === itemA.tourId));
+                const findTourNotScheduled = findTourActive.filter(itemA => !schedule.some(itemB => itemB.tour.tourId === itemA.tourId))
 
                 if (scheduleFinal.length > 0) {
                     for (const assignment of scheduleFinal) {
                         // console.log(
                         //     `Tour ${assignment.tour.tourId} at ${assignment.tour.departureDate.toISOString()} assigned to ${assignment.tourGuide.userId}, ${assignment.driver.userId} on Bus ${assignment.bus.busId}`
-                        // );
+                        // )
 
                         await db.Tour.update({
                             tourGuideId: assignment.tourGuide.userId,
@@ -1611,7 +1829,7 @@ const assignTour = () =>
                             where: { tourId: assignment.tour.tourId },
                             individualHooks: true,
                             transaction: t
-                        });
+                        })
 
                         await db.User.update({
                             maxTour: assignment.tourGuide.maxTour,
@@ -1619,7 +1837,7 @@ const assignTour = () =>
                             where: { userId: assignment.tourGuide.userId },
                             individualHooks: true,
                             transaction: t
-                        });
+                        })
 
                         await db.User.update({
                             maxTour: assignment.driver.maxTour,
@@ -1627,25 +1845,25 @@ const assignTour = () =>
                             where: { userId: assignment.driver.userId },
                             individualHooks: true,
                             transaction: t
-                        });
+                        })
                     }
 
                     redisClient.keys('*tours_*', (error, keys) => {
                         if (error) {
-                            console.error('Error retrieving keys:', error);
-                            return;
+                            console.error('Error retrieving keys:', error)
+                            return
                         }
                         // Delete each key individually
                         keys.forEach((key) => {
                             redisClient.del(key, (deleteError, reply) => {
                                 if (deleteError) {
-                                    console.error(`Error deleting key ${key}:`, deleteError);
+                                    console.error(`Error deleting key ${key}:`, deleteError)
                                 } else {
-                                    console.log(`Key ${key} deleted successfully`);
+                                    console.log(`Key ${key} deleted successfully`)
                                 }
-                            });
-                        });
-                    });
+                            })
+                        })
+                    })
 
                 }
 
@@ -1657,22 +1875,22 @@ const assignTour = () =>
                                 ? 'Tours have been scheduled'
                                 : 'Tour name ' + findTourNotScheduled.map(tour => `'${tour.tourName}'`).join(', ') + ' cannot be scheduled'
                     }
-                });
+                })
 
-                await t.commit();
-            });
+                await t.commit()
+            })
         } catch (error) {
             if (transaction) {
                 // Rollback the transaction in case of an error
-                await transaction.rollback();
+                await transaction.rollback()
             }
-            reject(error);
+            reject(error)
         }
-    });
+    })
 
 const updateTour = (id, { images, ...body }) =>
     new Promise(async (resolve, reject) => {
-        let transaction;
+        let transaction
         try {
             transaction = await db.sequelize.transaction(async (t) => {
                 const tour = await db.Tour.findOne({
@@ -1690,13 +1908,13 @@ const updateTour = (id, { images, ...body }) =>
                         data: {
                             msg: "Tour name already exists"
                         }
-                    });
+                    })
                 } else {
-                    const currentDate = new Date();
-                    currentDate.setHours(currentDate.getHours() + 7);
-                    const tDepartureDate = new Date(body.departureDate);
-                    const tourBeginBookingDate = new Date(body.beginBookingDate);
-                    const tourEndBookingDate = new Date(body.endBookingDate);
+                    const currentDate = new Date()
+                    currentDate.setHours(currentDate.getHours() + 7)
+                    const tDepartureDate = new Date(body.departureDate)
+                    const tourBeginBookingDate = new Date(body.beginBookingDate)
+                    const tourEndBookingDate = new Date(body.endBookingDate)
 
                     if (currentDate > tourBeginBookingDate) {
                         resolve({
@@ -1705,23 +1923,23 @@ const updateTour = (id, { images, ...body }) =>
                                 msg: "Begin booking date can't be earlier than current date"
                             }
                         })
-                        return;
+                        return
                     } else if (tourBeginBookingDate >= tourEndBookingDate) {
                         resolve({
                             status: StatusCodes.BAD_REQUEST,
                             data: {
                                 msg: "Begin booking date can't be later than End booking date",
                             }
-                        });
-                        return;
+                        })
+                        return
                     } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
                         resolve({
                             status: StatusCodes.BAD_REQUEST,
                             data: {
                                 msg: "End booking date must be 24 hours earlier than Departure date",
                             }
-                        });
-                        return;
+                        })
+                        return
                     } else {
                         let tourGuide = body.tourGuideId
                         let driver = body.driverId
@@ -1744,15 +1962,15 @@ const updateTour = (id, { images, ...body }) =>
                                 },
                             })
                             const checkDuplicatedTime = findScheduledTourGuild.some((assignment) => {
-                                const departureDate = new Date(assignment.departureDate);
+                                const departureDate = new Date(assignment.departureDate)
                                 // Split the duration string into hours, minutes, and seconds
-                                const [hours, minutes, seconds] = assignment.duration.split(':').map(Number);
+                                const [hours, minutes, seconds] = assignment.duration.split(':').map(Number)
 
                                 // Add the duration to the departureDate
-                                departureDate.setHours(departureDate.getHours() + hours);
-                                departureDate.setMinutes(departureDate.getMinutes() + minutes);
-                                departureDate.setSeconds(departureDate.getSeconds() + seconds);
-                                const endDate = departureDate;
+                                departureDate.setHours(departureDate.getHours() + hours)
+                                departureDate.setMinutes(departureDate.getMinutes() + minutes)
+                                departureDate.setSeconds(departureDate.getSeconds() + seconds)
+                                const endDate = departureDate
 
                                 // Check if the tour guide is available
                                 return endDate >= findTour.departureDate
@@ -1764,8 +1982,8 @@ const updateTour = (id, { images, ...body }) =>
                                     data: {
                                         msg: "Tour guide time is duplicated",
                                     }
-                                });
-                                return;
+                                })
+                                return
                             }
                         } else if (driver) {
                             const findScheduledDriver = await db.Tour.findAll({
@@ -1781,15 +1999,15 @@ const updateTour = (id, { images, ...body }) =>
                             })
 
                             const checkDuplicatedTime = findScheduledDriver.some((assignment) => {
-                                const departureDate = new Date(assignment.departureDate);
+                                const departureDate = new Date(assignment.departureDate)
                                 // Split the duration string into hours, minutes, and seconds
-                                const [hours, minutes, seconds] = assignment.duration.split(':').map(Number);
+                                const [hours, minutes, seconds] = assignment.duration.split(':').map(Number)
 
                                 // Add the duration to the departureDate
-                                departureDate.setHours(departureDate.getHours() + hours);
-                                departureDate.setMinutes(departureDate.getMinutes() + minutes);
-                                departureDate.setSeconds(departureDate.getSeconds() + seconds);
-                                const endDate = departureDate;
+                                departureDate.setHours(departureDate.getHours() + hours)
+                                departureDate.setMinutes(departureDate.getMinutes() + minutes)
+                                departureDate.setSeconds(departureDate.getSeconds() + seconds)
+                                const endDate = departureDate
 
                                 // Check if the tour guide is available
                                 return endDate >= findTour.departureDate
@@ -1800,13 +2018,13 @@ const updateTour = (id, { images, ...body }) =>
                                     data: {
                                         msg: "Driver time is duplicated",
                                     }
-                                });
-                                return;
+                                })
+                                return
                             }
                         }
 
-                        let departureStation = body.routeId;
-                        let station;
+                        let departureStation = body.routeId
+                        let station
                         if (departureStation) {
                             station = await db.Route.findOne({
                                 raw: true,
@@ -1823,7 +2041,7 @@ const updateTour = (id, { images, ...body }) =>
                                         }
                                     },
                                 ]
-                            });
+                            })
                         }
 
                         const tours = await db.Tour.update({
@@ -1836,7 +2054,7 @@ const updateTour = (id, { images, ...body }) =>
                             where: { tourId: id, },
                             individualHooks: true,
                             transaction: t
-                        });
+                        })
 
                         if (body.tourStatus == TOUR_STATUS.STARTED) {
                             await db.TourDetail.update({
@@ -1845,7 +2063,7 @@ const updateTour = (id, { images, ...body }) =>
                                 where: { tourId: id, },
                                 individualHooks: true,
                                 transaction: t
-                            });
+                            })
                         }
 
                         if (body.tourStatus == TOUR_STATUS.FINISHED) {
@@ -1855,7 +2073,7 @@ const updateTour = (id, { images, ...body }) =>
                                 where: { busId: findTour.busId },
                                 individualHooks: true,
                                 transaction: t
-                            });
+                            })
 
                             const bookingOfTour = await db.BookingDetail.findAll({
                                 nest: true,
@@ -1877,9 +2095,9 @@ const updateTour = (id, { images, ...body }) =>
                                 ]
                             })
 
-                            let bookingDetailIdArray = [];
+                            let bookingDetailIdArray = []
                             for (const bookingDetail of bookingOfTour) {
-                                bookingDetailIdArray.push(bookingDetail.bookingId);
+                                bookingDetailIdArray.push(bookingDetail.bookingId)
                             }
 
                             await db.Booking.update({
@@ -1893,7 +2111,7 @@ const updateTour = (id, { images, ...body }) =>
                                 },
                                 individualHooks: true,
                                 transaction: t
-                            });
+                            })
                         }
 
                         if (images) {
@@ -1901,16 +2119,16 @@ const updateTour = (id, { images, ...body }) =>
                                 where: {
                                     tourId: id,
                                 }
-                            });
+                            })
 
                             const createImagePromises = images.map(async (image) => {
                                 await db.Image.create({
                                     image: image,
                                     tourId: id,
-                                }, { transaction: t });
-                            });
+                                }, { transaction: t })
+                            })
 
-                            await Promise.all(createImagePromises);
+                            await Promise.all(createImagePromises)
                         }
 
                         resolve({
@@ -1921,37 +2139,37 @@ const updateTour = (id, { images, ...body }) =>
                                         ? `Tour update`
                                         : "Cannot update tour/ tourId not found",
                             }
-                        });
+                        })
 
                         redisClient.keys('*tours_*', (error, keys) => {
                             if (error) {
-                                console.error('Error retrieving keys:', error);
-                                return;
+                                console.error('Error retrieving keys:', error)
+                                return
                             }
                             // Delete each key individually
                             keys.forEach((key) => {
                                 redisClient.del(key, (deleteError, reply) => {
                                     if (deleteError) {
-                                        console.error(`Error deleting key ${key}:`, deleteError);
+                                        console.error(`Error deleting key ${key}:`, deleteError)
                                     } else {
-                                        console.log(`Key ${key} deleted successfully`);
+                                        console.log(`Key ${key} deleted successfully`)
                                     }
-                                });
-                            });
-                        });
+                                })
+                            })
+                        })
 
                     }
                 }
-                await t.commit();
+                await t.commit()
             })
         } catch (error) {
             if (transaction) {
                 // Rollback the transaction in case of an error
-                await transaction.rollback();
+                await transaction.rollback()
             }
-            reject(error.message);
+            reject(error.message)
         }
-    });
+    })
 
 const deleteTour = (id) =>
     new Promise(async (resolve, reject) => {
@@ -1959,7 +2177,7 @@ const deleteTour = (id) =>
             const tour = await db.Tour.findOne({
                 raw: true, nest: true,
                 where: { tourId: id },
-            });
+            })
 
             if (tour.status === "Deactive") {
                 resolve({
@@ -1967,8 +2185,8 @@ const deleteTour = (id) =>
                     data: {
                         msg: "The tour already deactive!",
                     }
-                });
-                return;
+                })
+                return
             }
 
             const tours = await db.Tour.update(
@@ -1977,7 +2195,7 @@ const deleteTour = (id) =>
                     where: { tourId: id },
                     individualHooks: true,
                 }
-            );
+            )
             resolve({
                 status: tours[0] > 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                 data: {
@@ -1986,33 +2204,33 @@ const deleteTour = (id) =>
                             ? `${tours[0]} tour delete`
                             : "Cannot delete tour/ tourId not found",
                 }
-            });
+            })
 
             redisClient.keys('*tours_*', (error, keys) => {
                 if (error) {
-                    console.error('Error retrieving keys:', error);
-                    return;
+                    console.error('Error retrieving keys:', error)
+                    return
                 }
                 // Delete each key individually
                 keys.forEach((key) => {
                     redisClient.del(key, (deleteError, reply) => {
                         if (deleteError) {
-                            console.error(`Error deleting key ${key}:`, deleteError);
+                            console.error(`Error deleting key ${key}:`, deleteError)
                         } else {
-                            console.log(`Key ${key} deleted successfully`);
+                            console.log(`Key ${key} deleted successfully`)
                         }
-                    });
-                });
-            });
+                    })
+                })
+            })
 
         } catch (error) {
-            reject(error);
+            reject(error)
         }
-    });
+    })
 
 const cloneTour = (id, body) =>
     new Promise(async (resolve, reject) => {
-        let transaction;
+        let transaction
         try {
             transaction = await db.sequelize.transaction(async (t) => {
                 const tours = await db.Tour.findAll({
@@ -2065,7 +2283,7 @@ const cloneTour = (id, body) =>
                             ]
                         },
                     ]
-                });
+                })
 
                 if (tours.length <= 0) {
                     resolve({
@@ -2073,8 +2291,8 @@ const cloneTour = (id, body) =>
                         data: {
                             msg: `Cannot find tour with id: ${id}`
                         }
-                    });
-                    return;
+                    })
+                    return
                 }
 
                 for (const tour of tours) {
@@ -2100,25 +2318,25 @@ const cloneTour = (id, body) =>
                                 },
                             },
                         ]
-                    });
+                    })
 
-                    const uniqueStationArray = [];
+                    const uniqueStationArray = []
 
                     // Loop through the JSON data and add station IDs to the array
                     station.forEach(item => {
                         if (!uniqueStationArray.includes(item.route_segment.departureStationId)) {
-                            uniqueStationArray.push(item.route_segment.departureStationId);
+                            uniqueStationArray.push(item.route_segment.departureStationId)
                         }
                         if (uniqueStationArray.includes(item.route_segment.endStationId)) {
-                            uniqueStationArray.push(item.route_segment.endStationId);
+                            uniqueStationArray.push(item.route_segment.endStationId)
                         }
-                    });
+                    })
 
-                    const currentDate = new Date();
-                    currentDate.setHours(currentDate.getHours() + 7);
-                    const tDepartureDate = new Date(body.departureDate);
-                    const tourBeginBookingDate = new Date(body.beginBookingDate);
-                    const tourEndBookingDate = new Date(body.endBookingDate);
+                    const currentDate = new Date()
+                    currentDate.setHours(currentDate.getHours() + 7)
+                    const tDepartureDate = new Date(body.departureDate)
+                    const tourBeginBookingDate = new Date(body.beginBookingDate)
+                    const tourEndBookingDate = new Date(body.endBookingDate)
 
                     if (currentDate > tourBeginBookingDate) {
                         resolve({
@@ -2127,23 +2345,23 @@ const cloneTour = (id, body) =>
                                 msg: "Begin booking date can't be earlier than current date"
                             }
                         })
-                        return;
+                        return
                     } else if (tourBeginBookingDate >= tourEndBookingDate) {
                         resolve({
                             status: StatusCodes.BAD_REQUEST,
                             data: {
                                 msg: "Begin booking date can't be later than End booking date",
                             }
-                        });
-                        return;
+                        })
+                        return
                     } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
                         resolve({
                             status: StatusCodes.BAD_REQUEST,
                             data: {
                                 msg: "End booking date must be 24 hours earlier than Departure date",
                             }
-                        });
-                        return;
+                        })
+                        return
                     } else {
                         // Initialize the schedule
                         const findScheduledTour = await db.Tour.findAll({
@@ -2205,7 +2423,7 @@ const cloneTour = (id, body) =>
                                     msg: 'There are no buses available'
                                 }
                             })
-                            return;
+                            return
                         }
 
                         const findTourguide = await db.User.findAll({
@@ -2243,7 +2461,7 @@ const cloneTour = (id, body) =>
                                     msg: 'There are no tour guide available'
                                 }
                             })
-                            return;
+                            return
                         }
 
                         if (findDriver.length == 0) {
@@ -2253,17 +2471,17 @@ const cloneTour = (id, body) =>
                                     msg: 'There are no driver available'
                                 }
                             })
-                            return;
+                            return
                         }
 
-                        const schedule = [];
+                        const schedule = []
                         if (findScheduledTour.length > 0) {
                             for (const tour of findScheduledTour) {
-                                const tourGuide = tour.tour_tourguide;
-                                const driver = tour.tour_driver;
-                                const bus = tour.tour_bus;
+                                const tourGuide = tour.tour_tourguide
+                                const driver = tour.tour_driver
+                                const bus = tour.tour_bus
 
-                                schedule.push({ tour, tourGuide, driver, bus });
+                                schedule.push({ tour, tourGuide, driver, bus })
                             }
                         }
 
@@ -2272,65 +2490,65 @@ const cloneTour = (id, body) =>
                             (employee) =>
                                 employee.maxTour > 0 &&
                                 !schedule.some((assignment) => {
-                                    const departureDate = new Date(assignment.tour.departureDate);
+                                    const departureDate = new Date(assignment.tour.departureDate)
                                     // Split the duration string into hours, minutes, and seconds
-                                    const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number);
+                                    const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
 
                                     // Add the duration to the departureDate
-                                    departureDate.setHours(departureDate.getHours() + hours);
-                                    departureDate.setMinutes(departureDate.getMinutes() + minutes);
-                                    departureDate.setSeconds(departureDate.getSeconds() + seconds);
-                                    const endDate = departureDate;
+                                    departureDate.setHours(departureDate.getHours() + hours)
+                                    departureDate.setMinutes(departureDate.getMinutes() + minutes)
+                                    departureDate.setSeconds(departureDate.getSeconds() + seconds)
+                                    const endDate = departureDate
 
                                     // Check if the tour guide is available
                                     return endDate >= body.departureDate && assignment.tourGuide.userId == employee.userId
                                 })
-                        );
+                        )
                         const availableDriver = findDriver.filter(
                             (employee) =>
                                 employee.maxTour > 0
                                 && !schedule.some((assignment) => {
-                                    const departureDate = new Date(assignment.tour.departureDate);
+                                    const departureDate = new Date(assignment.tour.departureDate)
 
                                     // Split the duration string into hours, minutes, and seconds
-                                    const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number);
+                                    const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
 
                                     // Add the duration to the departureDate
-                                    departureDate.setHours(departureDate.getHours() + hours);
-                                    departureDate.setMinutes(departureDate.getMinutes() + minutes);
-                                    departureDate.setSeconds(departureDate.getSeconds() + seconds);
-                                    const endDate = departureDate;
+                                    departureDate.setHours(departureDate.getHours() + hours)
+                                    departureDate.setMinutes(departureDate.getMinutes() + minutes)
+                                    departureDate.setSeconds(departureDate.getSeconds() + seconds)
+                                    const endDate = departureDate
                                     return endDate >= body.departureDate && assignment.driver.userId == employee.userId
                                 })
-                        );
+                        )
 
                         const availableBuses = findBusActive.filter(
                             (bus) =>
                                 // bus.numberSeat >= 2 && 
                                 !schedule.some((assignment) => {
-                                    const departureDate = new Date(assignment.tour.departureDate);
+                                    const departureDate = new Date(assignment.tour.departureDate)
 
                                     // Split the duration string into hours, minutes, and seconds
-                                    const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number);
+                                    const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
 
                                     // Add the duration to the departureDate
-                                    departureDate.setHours(departureDate.getHours() + hours);
-                                    departureDate.setMinutes(departureDate.getMinutes() + minutes);
-                                    departureDate.setSeconds(departureDate.getSeconds() + seconds);
-                                    const endDate = departureDate;
-                                    // console.log(`${bus.busPlate} + ${assignment.tour.tourName}`, endDate >= tour.departureDate);
+                                    departureDate.setHours(departureDate.getHours() + hours)
+                                    departureDate.setMinutes(departureDate.getMinutes() + minutes)
+                                    departureDate.setSeconds(departureDate.getSeconds() + seconds)
+                                    const endDate = departureDate
+                                    // console.log(`${bus.busPlate} + ${assignment.tour.tourName}`, endDate >= tour.departureDate)
                                     return endDate >= body.departureDate && assignment.bus.busId == bus.busId
                                 })
-                        );
+                        )
 
-                        let createTour;
+                        let createTour
                         if (availableTourGuide.length > 0 && availableDriver.length > 0 && availableBuses.length > 0) {
-                            const chosenTourGuide = availableTourGuide[0];
-                            const chosenDriver = availableDriver[0];
-                            chosenTourGuide.maxTour--;
-                            chosenDriver.maxTour--;
+                            const chosenTourGuide = availableTourGuide[0]
+                            const chosenDriver = availableDriver[0]
+                            chosenTourGuide.maxTour--
+                            chosenDriver.maxTour--
 
-                            const chosenBus = availableBuses[0];
+                            const chosenBus = availableBuses[0]
 
                             createTour = await db.Tour.create({
                                 tourName: body.tourName ? body.tourName : tour.tourName,
@@ -2345,7 +2563,7 @@ const cloneTour = (id, body) =>
                                 busId: chosenBus.busId,
                                 isScheduled: true,
                                 ...body
-                            }, { transaction: t });
+                            }, { transaction: t })
 
                             await db.User.update({
                                 maxTour: chosenTourGuide.maxTour,
@@ -2353,7 +2571,7 @@ const cloneTour = (id, body) =>
                                 where: { userId: chosenTourGuide.userId },
                                 individualHooks: true,
                                 transaction: t
-                            });
+                            })
 
                             await db.User.update({
                                 maxTour: chosenDriver.maxTour,
@@ -2361,7 +2579,7 @@ const cloneTour = (id, body) =>
                                 where: { userId: chosenDriver.userId },
                                 individualHooks: true,
                                 transaction: t
-                            });
+                            })
                         } else {
                             createTour = await db.Tour.create({
                                 tourName: body.tourName ? body.tourName : tour.tourName,
@@ -2376,10 +2594,10 @@ const cloneTour = (id, body) =>
                                 busId: chosenBus.busId,
                                 isScheduled: true,
                                 ...body
-                            }, { transaction: t });
+                            }, { transaction: t })
                         }
 
-                        let arrayTicketTour = tour.tour_ticket;
+                        let arrayTicketTour = tour.tour_ticket
                         const createTicketPromises = arrayTicketTour.map(async (ticket) => {
                             const ticketType = await db.TicketType.findOne({
                                 where: {
@@ -2395,7 +2613,7 @@ const cloneTour = (id, body) =>
                                         msg: `Ticket type not found with id ${ticket.ticket_type.ticketTypeId}`,
                                     }
                                 })
-                                return;
+                                return
                             }
                             if (STATUS.DEACTIVE == ticketType.status) {
                                 resolve({
@@ -2404,7 +2622,7 @@ const cloneTour = (id, body) =>
                                         msg: `Ticket type is "Deactive"`,
                                     }
                                 })
-                                return;
+                                return
                             }
 
                             let day = DAY_ENUM.NORMAL
@@ -2417,7 +2635,7 @@ const cloneTour = (id, body) =>
                             const date = tourDepartureDate.getDate()
                             const month = tourDepartureDate.getMonth()
                             const dateMonth = `${date}-${month}`
-                            if (dateMonth.includes(SPECIAL_DAY)) {
+                            if (SPECIAL_DAY.includes(dateMonth)) {
                                 day = DAY_ENUM.HOLIDAY
                             }
 
@@ -2442,31 +2660,31 @@ const cloneTour = (id, body) =>
                                     },
                                     defaults: { ticketTypeId: ticket.ticket_type.ticketTypeId, tourId: createTour.dataValues.tourId, },
                                     transaction: t,
-                                });
+                                })
                             }
-                        });
-                        await Promise.all(createTicketPromises);
+                        })
+                        await Promise.all(createTicketPromises)
 
                         if (createTour) {
-                            let arrayImageTour = tour.tour_image;
+                            let arrayImageTour = tour.tour_image
                             if (arrayImageTour.length > 0) {
                                 const createImagePromises = arrayImageTour.map(async (image) => {
                                     await db.Image.create({
                                         image: image.image,
                                         tourId: createTour.dataValues.tourId,
-                                    }, { transaction: t });
-                                });
-                                await Promise.all(createImagePromises);
+                                    }, { transaction: t })
+                                })
+                                await Promise.all(createImagePromises)
                             }
 
-                            let index = 0;
+                            let index = 0
                             for (const stationId of uniqueStationArray) {
-                                index += 1;
+                                index += 1
                                 await db.TourDetail.create({
                                     tourId: createTour.dataValues.tourId,
                                     stationId: stationId,
                                     index: index,
-                                }, { transaction: t });
+                                }, { transaction: t })
                             }
                         }
                         resolve({
@@ -2480,48 +2698,48 @@ const cloneTour = (id, body) =>
                                     ? "Assign employee to tour successfully!"
                                     : 'Cannot assign employee to tour',
                             }
-                        });
+                        })
 
                         // redisClient.keys('*tours_*', (error, keys) => {
                         //     if (error) {
-                        //         console.error('Error retrieving keys:', error);
-                        //         return;
+                        //         console.error('Error retrieving keys:', error)
+                        //         return
                         //     }
                         //     // Insert new tour into each key individually
                         //     keys.forEach((key) => {
                         //         redisClient.get(key, (error, tour) => {
                         //             if (error) {
-                        //                 console.error(`Error getting key ${key}:`, error);
+                        //                 console.error(`Error getting key ${key}:`, error)
                         //             } else {
-                        //                 // console.log(`Key ${key} deleted successfully`);
-                        //                 let arrayTours = JSON.parse(tour);
+                        //                 // console.log(`Key ${key} deleted successfully`)
+                        //                 let arrayTours = JSON.parse(tour)
                         //                 let newArrayTour = [createTour.dataValues, ...arrayTours]
-                        //                 redisClient.setEx(key, 3600, JSON.stringify(newArrayTour));
+                        //                 redisClient.setEx(key, 3600, JSON.stringify(newArrayTour))
                         //             }
-                        //         });
-                        //     });
-                        // });
+                        //         })
+                        //     })
+                        // })
 
                         redisClient.keys('*tours_*', (error, keys) => {
                             if (error) {
-                                console.error('Error retrieving keys:', error);
-                                return;
+                                console.error('Error retrieving keys:', error)
+                                return
                             }
                             // Delete each key individually
                             keys.forEach((key) => {
                                 redisClient.del(key, (deleteError, reply) => {
                                     if (deleteError) {
-                                        console.error(`Error deleting key ${key}:`, deleteError);
+                                        console.error(`Error deleting key ${key}:`, deleteError)
                                     } else {
-                                        console.log(`Key ${key} deleted successfully`);
+                                        console.log(`Key ${key} deleted successfully`)
                                     }
-                                });
-                            });
-                        });
+                                })
+                            })
+                        })
                     }
                 }
-                await t.commit();
-            });
+                await t.commit()
+            })
 
         } catch (error) {
             resolve({
@@ -2530,10 +2748,10 @@ const cloneTour = (id, body) =>
                     error: error.message,
                     msg: "Cannot clone new tour",
                 }
-            });
-            // reject(error);
+            })
+            // reject(error)
         }
-    });
+    })
 
 module.exports = {
     updateTour,
@@ -2545,4 +2763,4 @@ module.exports = {
     assignTour,
     cloneTour,
 
-};
+}

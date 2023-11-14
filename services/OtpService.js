@@ -75,7 +75,7 @@ const sendOtpToEmail = async (email, userId, fullName, otpType) => {
         if (userId === null || userId === undefined) {
             user = await db.User.findOne({
                 where: {
-                    email: email
+                    email: email.trim().toLowerCase()
                 }
             })
         }

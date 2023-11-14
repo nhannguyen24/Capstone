@@ -400,7 +400,7 @@ const getBookingsByEmail = async (req) => {
 
         const user = await db.User.findOne({
             where: {
-                email: email
+                email: email.replace(/\s/g, '').toLowerCase()
             }
         })
 
@@ -688,11 +688,12 @@ const createBookingWeb = async (req) => {
         /**
          * Checking if Admin or Manager not allow to book
          */
+        const email = user.email.replace(/\s/g, '').toLowerCase()
         const resultUser = await db.User.findOrCreate({
             where: {
-                email: user.email
+                email: email
             },
-            defaults: { email: user.email, userName: user.userName, phone: user.phone, roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3" }
+            defaults: { email: email, userName: user.userName, phone: user.phone, roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3" }
         })
         if ("58c10546-5d71-47a6-842e-84f5d2f72ec3" !== resultUser[0].dataValues.roleId) {
             return {
@@ -758,7 +759,7 @@ const createBookingWeb = async (req) => {
                 }
             }
         }
-        if (TOUR_STATUS.AVAILABLE !== tour.tourStatus || STATUS.ACTIVE !== tour.status) {
+        if (TOUR_STATUS.AVAILABLE !== tour.tourStatus && STATUS.ACTIVE !== tour.status) {
             return {
                 status: StatusCodes.FORBIDDEN,
                 data: {
@@ -991,12 +992,13 @@ const createBookingOffline = async (req) => {
          */
         let roleId
         let userId
-        if (user.email !== null || user.email !== undefined || user.email.trim() !== "") {
+        if (user.email !== null && user.email !== undefined && user.email.trim() !== "") {
+            const email = user.email.replace(/\s/g, '').toLowerCase()
             const resultUser = await db.User.findOrCreate({
                 where: {
-                    email: user.email
+                    email: email
                 },
-                defaults: { email: user.email, userName: user.userName, phone: user.phone, roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3" }
+                defaults: { email: email, userName: user.userName, phone: user.phone, roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3" }
             })
             roleId = resultUser[0].dataValues.roleId
             userId = resultUser[0].userId
@@ -1287,7 +1289,7 @@ const checkInQrCode = async (bookingId, tourId) => {
                 }
             }
         }
-        if (TOUR_STATUS.FINISHED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus || TOUR_STATUS.CANCELED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
+        if (TOUR_STATUS.FINISHED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus && TOUR_STATUS.CANCELED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
             return {
                 status: StatusCodes.FORBIDDEN,
                 data: {

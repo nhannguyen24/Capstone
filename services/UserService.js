@@ -11,7 +11,9 @@ const { StatusCodes } = require("http-status-codes");
 const getAllUsers = ({ page, limit, order, userName, email, status, roleName, ...query }) =>
   new Promise(async (resolve, reject) => {
     try {
-      redisClient.get(`user_paging_${page}_${limit}_${order}_${userName}_${email}_${status}_${roleName}`, async (error, user_paging) => {
+      const _email = email.replace(/\s/g, '').toLowerCase()
+
+      redisClient.get(`user_paging_${page}_${limit}_${order}_${userName}_${_email}_${status}_${roleName}`, async (error, user_paging) => {
         if (user_paging != null) {
           resolve({
             status: StatusCodes.OK,
