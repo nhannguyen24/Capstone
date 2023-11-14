@@ -102,6 +102,7 @@ router.get("/:id", verifyToken, roleAuthen(["Manager", "Customer", "TourGuide", 
  *            example:
  *              {
  *                  reportUserId: ,
+ *                  tourId: ,
  *                  title: Viết tiêu đề ngắn gọn,
  *                  description: Mô tả,
  *              }
