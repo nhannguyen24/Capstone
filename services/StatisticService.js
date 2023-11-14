@@ -172,7 +172,7 @@ const getStatistics = async (req) => {
                 totalBookedTickets: totalBookedTickets,
                 totalCancelTickets: totalCancelTickets,
                 totalMoneyEarned: totalMoneyEarned,
-                totalTicketAndSeat: `${totalBookedTickets}/${totalBusSeat}`
+                totalBusSeat: totalBusSeat
             }
 
             const tour_statistic = {
@@ -279,7 +279,7 @@ const getStatistics = async (req) => {
             totalBookedTickets: totalBookedTickets,
             totalCancelTickets: totalCancelTickets,
             totalMoneyEarned: totalMoneyEarned,
-            totalTicketAndSeat: `${totalBookedTickets}/${totalBusSeat}`
+            totalBusSeat: totalBusSeat
         }
 
         const tour_statistic = {

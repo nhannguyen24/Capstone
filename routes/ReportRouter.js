@@ -35,11 +35,9 @@ const router = express.Router();
  *         schema:
  *           type: string
  *           enum:
- *              - Submitted
  *              - Approved
  *              - Pending
  *              - Rejected
- *              - Completed
  * 
  *     responses:
  *       200:
@@ -149,9 +147,7 @@ router.post("/", verifyToken, roleAuthen(["Manager", "Customer", "TourGuide", "D
  *                      type: string
  *                      enum:  
  *                          - Approved
- *                          - Pending
  *                          - Rejected
- *                          - Completed
  *     responses:
  *       200:
  *         description: OK

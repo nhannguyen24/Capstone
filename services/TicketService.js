@@ -61,7 +61,7 @@ const getTickets = async (req) => {
             const date = tourDepartureDate.getDate()
             const month = tourDepartureDate.getMonth()
             const dateMonth = `${date}-${month}`
-            if (dateMonth.includes(SPECIAL_DAY)) {
+            if (SPECIAL_DAY.includes(dateMonth)) {
                 day = DAY_ENUM.HOLIDAY
             }
 
@@ -128,7 +128,7 @@ const getTicketById = async (req) => {
         const date = tourDepartureDate.getDate()
         const month = tourDepartureDate.getMonth()
         const dateMonth = `${date}-${month}`
-        if (dateMonth.includes(SPECIAL_DAY)) {
+        if (SPECIAL_DAY.includes(dateMonth)) {
             day = DAY_ENUM.HOLIDAY
         }
         const price = await db.Price.findOne({
@@ -205,7 +205,7 @@ const createTicket = async (req) => {
         const date = tourDepartureDate.getDate()
         const month = tourDepartureDate.getMonth()
         const dateMonth = `${date}-${month}`
-        if (dateMonth.includes(SPECIAL_DAY)) {
+        if (SPECIAL_DAY.includes(dateMonth)) {
             day = DAY_ENUM.HOLIDAY
         }
 
@@ -296,7 +296,7 @@ const updateTicket = async (req) => {
             const date = tourDepartureDate.getDate()
             const month = tourDepartureDate.getMonth()
             const dateMonth = `${date}-${month}`
-            if (dateMonth.includes(SPECIAL_DAY)) {
+            if (SPECIAL_DAY.includes(dateMonth)) {
                 day = DAY_ENUM.HOLIDAY
             }
 
