@@ -102,7 +102,8 @@ const getReportsById = async (req) => {
                 msg: `Get report successfully`,
                 report: report
             } : {
-                msg: `No report found with Id: ${reportId}`,
+                msg: `No report found!`,
+                report: {}
             }
         }
     } catch (error) {

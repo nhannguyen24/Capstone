@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
       });
       
       Tour.hasMany(models.Ticket, { as: 'tour_ticket', foreignKey: 'tourId'});
+      Tour.hasOne(models.Report, { as: 'tour_report', foreignKey: 'tourId'});
       
       Tour.belongsTo(models.Bus, {
         foreignKey: 'busId',

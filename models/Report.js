@@ -16,10 +16,17 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'userId',
         as: "report_user",
       });
+      
       Report.belongsTo(models.User, {
         foreignKey: "responseUserId",
         targetKey: 'userId',
         as: "response_user",
+      });
+
+      Report.belongsTo(models.Tour, {
+        foreignKey: "tourId",
+        targetKey: 'tourId',
+        as: "report_tour",
       });
     }
   }
@@ -33,6 +40,9 @@ module.exports = (sequelize, DataTypes) => {
     description: DataTypes.STRING,
     response: DataTypes.STRING,
     reportUserId: {
+      type: DataTypes.UUID
+    },
+    tourId: {
       type: DataTypes.UUID
     },
     responseUserId: {

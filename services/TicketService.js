@@ -173,7 +173,7 @@ const createTicket = async (req) => {
                 }
             }
         }
-        if (TOUR_STATUS.AVAILABLE !== tour.tourStatus || STATUS.DEACTIVE === tour.status) {
+        if (TOUR_STATUS.AVAILABLE !== tour.tourStatus && STATUS.ACTIVE !== tour.status) {
             return {
                 status: StatusCodes.CONFLICT,
                 data: {
