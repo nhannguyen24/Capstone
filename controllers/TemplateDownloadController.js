@@ -1,8 +1,9 @@
 const path = require('path');
 const ExcelJS = require('exceljs');
 const db = require("../models");
-const STATUS = require("../enums/StatusEnum")
-const FirebaseService = require('../middlewares/FirebaseService')
+const STATUS = require("../enums/StatusEnum");
+const FirebaseService = require('../middlewares/FirebaseService');
+
 const downloadTourTemplate = async (req, res) => {
     try {
         const fileName = 'Tour create template.xlsx';

@@ -2,6 +2,7 @@ require("dotenv").config();
 const db = require("../models");
 const jwt = require("jsonwebtoken");
 const bcrypt = require('bcryptjs');
+const { StatusCodes } = require("http-status-codes");
 
 const hashPassword = password => bcrypt.hashSync(password, bcrypt.genSaltSync(8));
 
@@ -23,7 +24,7 @@ const register = ({ email, password, confirmPass, roleId }) => new Promise(async
         }
       })
       resolve({
-        status: response[1] ? 200 : 409,
+        status: response[1] ? StatusCodes.OK : StatusCodes.CONFLICT,
         data: {
           msg: response[1] ? 'Register successfully' : 'Email has already used',
         }
@@ -74,7 +75,7 @@ const login = ({ email, password }) => new Promise(async (resolve, reject) => {
     }
 
     resolve({
-      status: accessToken ? 200 : 401,
+      status: accessToken ? StatusCodes.OK : 401,
       data: {
         msg: accessToken ? 'Login is successfully' : response ? 'Password is wrong' : 'Not found user account!',
         'accessToken': accessToken ? `${accessToken}` : accessToken,
@@ -111,8 +112,7 @@ const loginGoogle = ({ name, picture, userId, email }) =>
           roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3",
         },
       });
-      // console.log("0",response);
-      // console.log("1", response[0]);
+      
       const user = await db.User.findOne({
         where: { email: email },
         raw: true,
@@ -163,7 +163,7 @@ const loginGoogle = ({ name, picture, userId, email }) =>
       }
 
       resolve({
-        status: accessToken ? 200 : 400,
+        status: accessToken ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
         data: {
           msg: "Login successfully",
           accessToken: accessToken ? `${accessToken}` : accessToken,
@@ -213,7 +213,7 @@ const refreshAccessToken = (refreshToken) =>
               { expiresIn: "1h" }
             );
             resolve({
-              status: accessToken ? 200 : 400,
+              status: accessToken ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
               data: {
                 msg: accessToken
                   ? "Create refresh token successfully"
@@ -258,7 +258,7 @@ const logout = (userId) =>
       );
 
       resolve({
-        status: response ? 200 : 400,
+        status: response ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
         data: {
           msg: "Logout successfully"
         }

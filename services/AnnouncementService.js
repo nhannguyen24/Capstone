@@ -1,6 +1,7 @@
 const db = require("../models");
 const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
+const { StatusCodes } = require("http-status-codes");
 
 const getAllAnnouncement = (
     { page, limit, order, title, status, ...query },
@@ -11,7 +12,7 @@ const getAllAnnouncement = (
             redisClient.get(`announcements_${page}_${limit}_${order}_${title}_${status}`, async (error, announcement) => {
                 if (announcement != null && announcement != "" && roleName != 'Admin') {
                     resolve({
-                        status: 200,
+                        status: StatusCodes.OK,
                         data: {
                             msg: "Got announcements",
                             announcements: JSON.parse(announcement),
@@ -21,7 +22,7 @@ const getAllAnnouncement = (
                     redisClient.get(`admin_announcements_${page}_${limit}_${order}_${title}_${status}`, async (error, adminAnnouncement) => {
                         if (adminAnnouncement != null && adminAnnouncement != "") {
                             resolve({
-                                status: 200,
+                                status: StatusCodes.OK,
                                 data: {
                                     msg: "Got announcements",
                                     announcements: JSON.parse(adminAnnouncement),
@@ -66,7 +67,7 @@ const getAllAnnouncement = (
                             }
                             
                             resolve({
-                                status: announcements ? 200 : 404,
+                                status: announcements ? StatusCodes.OK : StatusCodes.NOT_FOUND,
                                 data: {
                                     msg: announcements ? "Got announcements" : "Cannot find announcements",
                                     announcements: announcements,
@@ -101,7 +102,7 @@ const getAnnouncementById = (announcementId) =>
                 ],
             });
             resolve({
-                status: announcement ? 200 : 404,
+                status: announcement ? StatusCodes.OK : StatusCodes.NOT_FOUND,
                 data: {
                     msg: announcement ? "Got announcement" : `Cannot find announcement with id: ${announcementId}`,
                     announcement: announcement,
@@ -129,7 +130,7 @@ const createAnnouncement = ({ title, ...body }, userId) =>
             });
 
             resolve({
-                status: createAnnouncement[1] ? 200 : 400,
+                status: createAnnouncement[1] ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                 data: {
                     msg: createAnnouncement[1]
                         ? "Create new announcement successfully"
@@ -173,7 +174,7 @@ const updateAnnouncement = ({ announcementId, ...body }) =>
 
             if (announcement !== null) {
                 resolve({
-                    status: 409,
+                    status: StatusCodes.CONFLICT,
                     data: {
                         msg: "Title already exists"
                     }
@@ -188,7 +189,7 @@ const updateAnnouncement = ({ announcementId, ...body }) =>
                 console.log(announcements);
 
                 resolve({
-                    status: announcements[1].length !== 0 ? 200 : 400,
+                    status: announcements[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                     data: {
                         msg:
                             announcements[1].length !== 0
@@ -231,7 +232,7 @@ const deleteAnnouncement = (announcementId) =>
 
             if (findAnnouncement.status === "Deactive") {
                 resolve({
-                    status: 400,
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: "The announcement already deactive!",
                     }
@@ -246,7 +247,7 @@ const deleteAnnouncement = (announcementId) =>
                 }
             );
             resolve({
-                status: announcements[0] > 0 ? 200 : 400,
+                status: announcements[0] > 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                 data: {
                     msg:
                         announcements[0] > 0

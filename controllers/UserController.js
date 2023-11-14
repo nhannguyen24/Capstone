@@ -1,5 +1,6 @@
 const services = require('../services/UserService');
-const {BadRequestError, InternalServerError} = require('../errors/Index');
+const {InternalServerError} = require('../errors/Index');
+const { StatusCodes } = require('http-status-codes');
 
 const getAllUsers = async (req, res) => {
     try {
@@ -14,25 +15,25 @@ const getAllUsers = async (req, res) => {
 
 const createUser = async (req, res) => {
     try {
-        // const { error } = joi.object({userName, email, avatar, roleId, password}).validate(req.body);
-        // if (error) {
-        //     return res.status(400).json({msg: error.details[0].message});
-        // }
         const {userName, email, roleId} = req.body;
-        if(!userName) {
-            throw new BadRequestError('Please provide userName');
+        const errors = [];
+
+        if(userName.trim() === "") {
+            errors.push('Please provide userName');
         }
-        if(!email) {
-            throw new BadRequestError('Please provide email');
+        if(email.trim() === "") {
+            errors.push('Please provide email');
         }
-        if(!roleId) {
-            throw new BadRequestError('Please provide roleId');
+        if(roleId.trim() === "") {
+            errors.push('Please provide roleId');
         }
-        // if(!password) {
-        //     throw new BadRequestError('Please provide password');
-        // }
-        const response = await services.createUser(req.body);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.createUser(req.body);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error);
@@ -41,23 +42,28 @@ const createUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
     try {
-        // const { error } = joi.object({userId}).validate({userId: req.body.userId});
-        // if (error) throw new BadRequestError(error.details[0].message);
         const {id} = req.params;
-        if(!id) {
-            throw new BadRequestError('Please provide id');
+        const errors = [];
+
+        if(id.trim() === "") {
+            errors.push('Please provide id');
         }
-        const response = await services.updateUser(id, req.body);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.updateUser(id, req.body);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
+        
     } catch (error) {
-        console.log(error);
         throw new InternalServerError(error);
     }
 };
 
 const updateUserPassword = async (req, res) => {
     try {
-        const  errors = []
+        const  errors = [];
         const newPassword = req.body.newPassword || "";
         const confirmPassword = req.body.confirmPassword || "";
         if(newPassword.trim() === "") {
@@ -82,7 +88,7 @@ const updateUserPassword = async (req, res) => {
             const response = await services.updateUserPassword(req);
             return res.status(response.status).json(response.data);
         } else {
-            return res.status(400).json(errors);
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
         }
     } catch (error) {
         console.log(error);
@@ -91,7 +97,7 @@ const updateUserPassword = async (req, res) => {
 };
 const forgotPassword = async (req, res) => {
     try {
-        const errors = []
+        const errors = [];
         const email = req.body.email || "";
         const newPassword = req.body.newPassword || "";
         const confirmPassword = req.body.confirmPassword || "";
@@ -121,7 +127,7 @@ const forgotPassword = async (req, res) => {
             const response = await services.forgotPassword(req);
             return res.status(response.status).json(response.data);
         } else {
-            return res.status(400).json(errors);
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
         }
     } catch (error) {
         console.log(error);
@@ -149,13 +155,19 @@ const deleteUser = async (req, res) => {
     try {
         const {userId} = req.user;
         const {id} = req.params;
-        // const { error } = joi.object({userIds}).validate(req.query);
-        // if (error) throw new BadRequestError(error.details[0].message);
-        if(!id) {
-            throw new BadRequestError('Please provide id');
+        const errors = [];
+
+        if(id.trim() === "") {
+            errors.push('Please provide id');
         }
-        const response = await services.deleteUser(id, userId);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.deleteUser(id, userId);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
+        
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error);
@@ -165,11 +177,18 @@ const deleteUser = async (req, res) => {
 const getUserById = async (req, res) => {
     try {
         const { id: userId } = req.params;
-        if(!userId) {
-            throw new BadRequestError('Please provide userId');
+        const errors = [];
+
+        if (userId.trim() === "") {
+            errors.push('Please provide userId');
         }
-        const response = await services.getUserById(userId);
-        return res.status(response.status).json(response.data);
+        
+        if (errors.length == 0) {
+            const response = await services.getUserById(userId);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error.message);

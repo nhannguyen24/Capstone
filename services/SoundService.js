@@ -1,6 +1,7 @@
 const db = require("../models");
 const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
+const { StatusCodes } = require("http-status-codes");
 
 const getAllFileSound = (
     { page, limit, order, status, poiId, languageId, ...query },
@@ -11,7 +12,7 @@ const getAllFileSound = (
             redisClient.get(`sounds_${page}_${limit}_${order}_${status}_${poiId}_${languageId}`, async (error, sound) => {
                 if (sound != null && sound != "" && roleName != 'Admin') {
                     resolve({
-                        status: 200,
+                        status: StatusCodes.OK,
                         data: {
                             msg: "Got sounds",
                             sounds: JSON.parse(sound),
@@ -21,7 +22,7 @@ const getAllFileSound = (
                     redisClient.get(`admin_sounds_${page}_${limit}_${order}_${status}_${poiId}_${languageId}`, async (error, adminFileSound) => {
                         if (adminFileSound != null && adminFileSound != "") {
                             resolve({
-                                status: 200,
+                                status: StatusCodes.OK,
                                 data: {
                                     msg: "Got sounds",
                                     sounds: JSON.parse(adminFileSound),
@@ -82,7 +83,7 @@ const getAllFileSound = (
                             }
                             
                             resolve({
-                                status: sounds ? 200 : 404,
+                                status: sounds ? StatusCodes.OK : StatusCodes.NOT_FOUND,
                                 data: {
                                     msg: sounds ? "Got sounds" : "Cannot find sounds",
                                     sounds: sounds,
@@ -134,7 +135,7 @@ const getFileSoundById = (soundId) =>
                 ]
             });
             resolve({
-                status: sound ? 200 : 404,
+                status: sound ? StatusCodes.OK : StatusCodes.NOT_FOUND,
                 data: {
                     msg: sound ? "Got sound" : `Cannot find sound with id: ${soundId}`,
                     sound: sound,
@@ -155,7 +156,7 @@ const createFileSound = (body) =>
             });
             if (!findLanguage) {
                 resolve({
-                    status: 400,
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: "Language not found!"
                     }
@@ -169,7 +170,7 @@ const createFileSound = (body) =>
             });
             if (!findPoint) {
                 resolve({
-                    status: 400,
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: "Point of interest not found!"
                     }
@@ -179,7 +180,7 @@ const createFileSound = (body) =>
             const createFileSound = await db.FileSound.create(body);
 
             resolve({
-                status: 200,
+                status: StatusCodes.OK,
                 data: {
                     msg: "Create new sound for point of interest successfully",
                     sound: createFileSound.dataValues,
@@ -221,7 +222,7 @@ const createFileSound = (body) =>
             
         } catch (error) {
             resolve({
-                status: 400,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     error: error,
                     msg: "Create new sound for point of interest unsuccessfully!"
@@ -241,7 +242,7 @@ const updateFileSound = (id, body) =>
             });
             if (!findLanguage) {
                 resolve({
-                    status: 400,
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: "Language not found!"
                     }
@@ -255,7 +256,7 @@ const updateFileSound = (id, body) =>
             });
             if (!findPoint) {
                 resolve({
-                    status: 400,
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: "Point of interest not found!"
                     }
@@ -268,7 +269,7 @@ const updateFileSound = (id, body) =>
             });
 
             resolve({
-                status: sounds[1].length !== 0 ? 200 : 400,
+                status: sounds[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                 data: {
                     msg:
                         sounds[1].length !== 0
@@ -326,7 +327,7 @@ const deleteFileSound = (id) =>
 
             if (findSound.status === "Deactive") {
                 resolve({
-                    status: 400,
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: "The sound already deactive!",
                     }
@@ -342,7 +343,7 @@ const deleteFileSound = (id) =>
                 }
             );
             resolve({
-                status: sounds[0] > 0 ? 200 : 400,
+                status: sounds[0] > 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                 data: {
                     msg:
                         sounds[0] > 0

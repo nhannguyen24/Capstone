@@ -1,16 +1,21 @@
 const services = require('../services/AuthService');
-const {BadRequestError, InternalServerError} = require('../errors/Index');
-// const joi = require('joi');
-// const {refreshToken, studentId} = require('../helpers/joi_schema');
+const {InternalServerError} = require('../errors/Index');
 
 const loginGoogle = async (req, res) => {
     try {
         const {email: email} = req.user;
-        if(!email) {
-            throw new BadRequestError('Please provide email');
+        const errors = [];
+
+        if(email.trim() === "") {
+            errors.push('Please provide email');
         }
-        const response = await services.loginGoogle(req.user);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.loginGoogle(req.user);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         throw new InternalServerError(error);
     }
@@ -18,16 +23,19 @@ const loginGoogle = async (req, res) => {
 
 const refreshAccessToken = async (req, res) => {
     try {
-        // const { error } = joi.object({refreshToken}).validate(req.body);
-        // if (error) {
-        //     return res.status(400).json({msg: error.details[0].message});
-        // }
         const {refreshToken: refreshToken} = req.body;
-        if(!refreshToken) {
-            throw new BadRequestError('Please provide refreshToken');
+        const errors = [];
+
+        if(refreshToken.trim() === "") {
+            errors.push('Please provide refreshToken');
         }
-        const response = await services.refreshAccessToken(req.body.refreshToken);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.refreshAccessToken(req.body.refreshToken);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         throw new InternalServerError(error);
     }
@@ -36,11 +44,18 @@ const refreshAccessToken = async (req, res) => {
 const logout = async (req, res) => {
     try {
         const {userId} = req.query;
-        if(!userId) {
-            throw new BadRequestError('Please provide userId');
+        const errors = [];
+
+        if(userId.trim() === "") {
+            errors.push('Please provide userId');
         }
-        const response = await services.logout(req.query.userId);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.logout(req.query.userId);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         throw new InternalServerError(error);
     }
@@ -49,18 +64,24 @@ const logout = async (req, res) => {
 const register = async (req, res) => {
     try {
         const {email: email, password: password, confirmPass: confirmPass} = req.body;
-        if(!email) {
-            throw new BadRequestError('Please provide email');
-        }
-        if(!password) {
-            throw new BadRequestError('Please provide password');
-        }
-        if(!confirmPass) {
-            throw new BadRequestError('Please provide confirm password');
-        }
-        const response = await services.register(req.body)
-        return res.status(response.status).json(response.data)
+        const errors = [];
 
+        if(email.trim() === "") {
+            errors.push('Please provide email');
+        }
+        if(password.trim() === "") {
+            errors.push('Please provide password');
+        }
+        if(confirmPass.trim() === "") {
+            errors.push('Please provide password');
+        }
+
+        if (errors.length == 0) {
+            const response = await services.register(req.body);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         throw new InternalServerError(error);
     }
@@ -69,14 +90,21 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     try {
         const {email: email, password: password} = req.body;
-        if(!email) {
-            throw new BadRequestError('Please provide email');
+        const errors = [];
+
+        if (email.trim() === "") {
+            errors.push('Please provide email');
         }
-        if(!password) {
-            throw new BadRequestError('Please provide password');
+        if(password.trim() === "") {
+            errors.push('Please provide password');
         }
-        const response = await services.login(req.body)
-        return res.status(response.status).json(response.data)
+
+        if (errors.length == 0) {
+            const response = await services.login(req.body);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
     } catch (error) {
         console.log(error);
         throw new InternalServerError(error);

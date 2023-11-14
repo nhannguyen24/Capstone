@@ -14,7 +14,7 @@ const getAllUsers = ({ page, limit, order, userName, email, status, roleName, ..
       redisClient.get(`user_paging_${page}_${limit}_${order}_${userName}_${email}_${status}_${roleName}`, async (error, user_paging) => {
         if (user_paging != null) {
           resolve({
-            status: 200,
+            status: StatusCodes.OK,
             data: {
               msg: "Got user",
               user_paging: JSON.parse(user_paging),
@@ -58,7 +58,7 @@ const getAllUsers = ({ page, limit, order, userName, email, status, roleName, ..
 
 
           resolve({
-            status: users ? 200 : 404,
+            status: users ? StatusCodes.OK : StatusCodes.NOT_FOUND,
             data: {
               msg: users ? "Got user" : "Cannot find user",
               users: users,
@@ -95,7 +95,7 @@ const getUserById = (userId) =>
         ],
       });
       resolve({
-        status: user ? 200 : 404,
+        status: user ? StatusCodes.OK : StatusCodes.NOT_FOUND,
         data: {
           msg: user ? "Got user" : `Cannot find user with id: ${userId}`,
           user: user,
@@ -141,7 +141,7 @@ const createUser = ({ ...body }) =>
       }
 
       resolve({
-        status: user[1] ? 200 : 400,
+        status: user[1] ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
         data: {
           msg: user[1]
             ? "Create new user successfully"
@@ -178,7 +178,7 @@ const updateUser = (id, body) =>
         individualHooks: true,
       });
       resolve({
-        status: users[1].length !== 0 ? 200 : 400,
+        status: users[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
         data: {
           msg:
             users[1].length !== 0
@@ -221,7 +221,7 @@ const updateUser = (id, body) =>
 //           individualHooks: true,
 //         });
 //         resolve({
-//           status: users[0] ? 200 : 400,
+//           status: users[0] ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
 //           data: {
 //             msg:
 //               users[0] > 0
@@ -267,7 +267,7 @@ const deleteUser = (id, userId) =>
 
         if (findUser.status === "Deactive") {
           resolve({
-            status: 400,
+            status: StatusCodes.BAD_REQUEST,
             data: {
               msg: "The user already deactive!",
             }
@@ -284,7 +284,7 @@ const deleteUser = (id, userId) =>
         );
         // console.log(users[0]);
         resolve({
-          status: users[0] > 0 ? 200 : 400,
+          status: users[0] > 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
           data: {
             msg:
               users[0] > 0
@@ -328,7 +328,7 @@ const updateUserPassword = (req) =>
       })
       if (!user) {
         resolve({
-          status: 404,
+          status: StatusCodes.NOT_FOUND,
           data: {
             msg: "User not found!"
           }
@@ -346,7 +346,7 @@ const updateUserPassword = (req) =>
       //     resolve(data);
       //   } else {
       //     resolve({
-      //       status: 409,
+      //       status: StatusCodes.CONFLICT,
       //       data: {
       //         msg: `Mail sent failed`,
       //       }
@@ -371,7 +371,7 @@ const updateUserPassword = (req) =>
       })
 
       resolve({
-        status: updateUser[0] ? 200 : 400,
+        status: updateUser[0] ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
         data: {
           msg:
             updateUser[0] > 0
@@ -471,7 +471,7 @@ const forgotPassword = async (req) => {
     })
 
     return {
-      status: updateUser[0] ? 200 : 400,
+      status: updateUser[0] ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
       data: {
         msg:
           updateUser[0] > 0

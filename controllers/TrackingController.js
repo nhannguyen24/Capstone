@@ -1,5 +1,6 @@
 const services = require('../services/TrackingService');
-const {BadRequestError, InternalServerError} = require('../errors/Index');
+const {InternalServerError} = require('../errors/Index');
+const { StatusCodes } = require("http-status-codes");
 
 const getAllTracking = async (req, res) => {
     try {
@@ -23,11 +24,19 @@ const createTracking = async (req, res) => {
 const updateTracking = async (req, res) => {
     try {
         const {id} = req.params;
-        if(!id) {
-            throw new BadRequestError('Please provide id');
+        const errors = [];
+
+        if(id.trim() === "") {
+            errors.push('Please provide id');
         }
-        const response = await services.updateTracking(id, req.body);
-        return res.status(response.status).json(response.data);
+
+        if (errors.length == 0) {
+            const response = await services.updateTracking(id, req.body);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
+        
     } catch (error) {
         throw new InternalServerError(error);
     }
