@@ -85,12 +85,12 @@ const upload = multer({ storage: storage });
  *         in: query
  *         schema:
  *           type: string
- *         description: Find tour by departure date (2023-11-10)
+ *         description: Find tour from departure date (2023-11-10)
  *       - name: endDate
  *         in: query
  *         schema:
  *           type: string
- *         description: Find tour by end date (2023-11-10)
+ *         description: Find tour to end date (2023-11-10)
  *       - name: tourStatus
  *         in: query
  *         schema:

@@ -61,7 +61,7 @@ const createTour = async (req, res) => {
 const createTourByFile = async (req, res) => {
     try {
         const uploadedFile = req.file;
-        if (uploadedFile.trim() === "") {
+        if (!uploadedFile) {
             throw new BadRequestError('File Excel required');
         }
         const fileName = uploadedFile.originalname
