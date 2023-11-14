@@ -8,17 +8,18 @@ const hashPassword = password => bcrypt.hashSync(password, bcrypt.genSaltSync(8)
 
 const register = ({ email, password, confirmPass, roleId }) => new Promise(async (resolve, reject) => {
   try {
+    const _email = email.replace(/\s/g, '').toLowerCase()
     if (confirmPass !== password) {
       resolve({
         mes: 'Confirm password does not match with password',
       })
     } else {
       const response = await db.User.findOrCreate({
-        where: { email },
+        where: { email: _email },
         defaults: {
-          userName: email,
+          userName: _email,
           password: hashPassword(password),
-          email,
+          email: _email,
           avatar: 'https://t3.ftcdn.net/jpg/01/18/01/98/360_F_118019822_6CKXP6rXmVhDOzbXZlLqEM2ya4HhYzSV.jpg',
           roleId: '58c10546-5d71-47a6-842e-84f5d2f72ec3',
         }
@@ -38,8 +39,9 @@ const register = ({ email, password, confirmPass, roleId }) => new Promise(async
 
 const login = ({ email, password }) => new Promise(async (resolve, reject) => {
   try {
+    const _email = email.replace(/\s/g, '').toLowerCase()
     const response = await db.User.findOne({
-      where: { email },
+      where: { email: _email },
       raw: true,
       nest: true,
       attributes: {
@@ -100,21 +102,22 @@ const login = ({ email, password }) => new Promise(async (resolve, reject) => {
 const loginGoogle = ({ name, picture, userId, email }) =>
   new Promise(async (resolve, reject) => {
     try {
+      const _email = email.replace(/\s/g, '').toLowerCase()
       const response = await db.User.findOrCreate({
-        where: { email },
+        where: { email: _email },
         raw: true,
         nest: true,
         defaults: {
           userId: userId,
           userName: name,
-          email: email,
+          email: _email,
           avatar: picture,
           roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3",
         },
       });
       
       const user = await db.User.findOne({
-        where: { email: email },
+        where: { email: _email },
         raw: true,
         nest: true,
         attributes: {

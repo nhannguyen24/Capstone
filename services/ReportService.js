@@ -193,7 +193,7 @@ const updateReport = async (req) => {
             }
         }
 
-        if(report.responseUserId !== null || report.responseUserId !== undefined){
+        if(report.responseUserId !== null && report.responseUserId !== undefined){
             if(report.responseUserId !== responseUserId){
                 return{
                     status: StatusCodes.FORBIDDEN,
