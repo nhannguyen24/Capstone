@@ -444,6 +444,24 @@ const getTourById = (tourId) =>
                                                         "status",
                                                     ],
                                                 },
+                                                include: [
+                                                    {
+                                                        model: db.Image,
+                                                        as: "poi_image",
+                                                        attributes: {
+                                                            exclude: [
+                                                                "tourId",
+                                                                "busId",
+                                                                "poiId",
+                                                                "productId",
+                                                                "feedbackId",
+                                                                "createdAt",
+                                                                "updatedAt",
+                                                                "status",
+                                                            ],
+                                                        },
+                                                    }
+                                                ]
                                             }
                                         ]
                                     },
@@ -1236,16 +1254,16 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                 continue
             }
             duplicateTourNames.add(tour.tourName);
-                setUpTour = {
-                    tourName: tour.tourName,
-                    description: tour.description,
-                    beginBookingDate: tour.beginBookingDate,
-                    endBookingDate: tour.endBookingDate,
-                    departureDate: tour.departureDate,
-                    duration: tour.duration,
-                    routeId: route.routeId,
-                    departureStationId: routeSegment.departureStationId
-                }
+            setUpTour = {
+                tourName: tour.tourName,
+                description: tour.description,
+                beginBookingDate: tour.beginBookingDate,
+                endBookingDate: tour.endBookingDate,
+                departureDate: tour.departureDate,
+                duration: tour.duration,
+                routeId: route.routeId,
+                departureStationId: routeSegment.departureStationId
+            }
 
             const createTour = await db.Tour.create(setUpTour, { transaction: t })
             if (!createTour) {
