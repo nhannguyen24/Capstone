@@ -131,7 +131,7 @@ router.post('/logout', verifyToken, controllers.logout);
  *            schema:
  *              $ref: '#/components/schemas/User-login'
  *            example:
- *              email: dnhan2426@gmail.com
+ *              email: manager@gmail.com
  *              password: "123456"
  *     responses:
  *       200:
