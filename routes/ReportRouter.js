@@ -31,6 +31,10 @@ const router = express.Router();
  *         required: true
  *         description: Maximum items per page
  *       - in: query
+ *         name: reportUserId
+ *         schema:
+ *           type: string
+ *       - in: query
  *         name: reportStatus
  *         schema:
  *           type: string
