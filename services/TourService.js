@@ -224,7 +224,7 @@ const getAllTour = (
                         const date = tourDepartureDate.getDate()
                         const month = tourDepartureDate.getMonth()
                         const dateMonth = `${date}-${month}`
-                        if (dateMonth.includes(SPECIAL_DAY)) {
+                        if (SPECIAL_DAY.includes(dateMonth)) {
                             day = DAY_ENUM.HOLIDAY
                         }
 
@@ -491,7 +491,7 @@ const getTourById = (tourId) =>
                 const date = tourDepartureDate.getDate()
                 const month = tourDepartureDate.getMonth()
                 const dateMonth = `${date}-${month}`
-                if (dateMonth.includes(SPECIAL_DAY)) {
+                if (SPECIAL_DAY.includes(dateMonth)) {
                     day = DAY_ENUM.HOLIDAY
                 }
 
@@ -912,7 +912,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                         const date = tourDepartureDate.getDate()
                         const month = tourDepartureDate.getMonth()
                         const dateMonth = `${date}-${month}`
-                        if (dateMonth.includes(SPECIAL_DAY)) {
+                        if (SPECIAL_DAY.includes(dateMonth)) {
                             day = DAY_ENUM.HOLIDAY
                         }
 
@@ -1509,7 +1509,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                     const date = tour.departureDate.getDate()
                     const month = tour.departureDate.getMonth()
                     const dateMonth = `${date}-${month}`
-                    if (dateMonth.includes(SPECIAL_DAY)) {
+                    if (SPECIAL_DAY.includes(dateMonth)) {
                         day = DAY_ENUM.HOLIDAY
                     }
 
@@ -2636,7 +2636,7 @@ const cloneTour = (id, body) =>
                             const date = tourDepartureDate.getDate()
                             const month = tourDepartureDate.getMonth()
                             const dateMonth = `${date}-${month}`
-                            if (dateMonth.includes(SPECIAL_DAY)) {
+                            if (SPECIAL_DAY.includes(dateMonth)) {
                                 day = DAY_ENUM.HOLIDAY
                             }
 

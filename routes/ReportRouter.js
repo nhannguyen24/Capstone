@@ -31,15 +31,17 @@ const router = express.Router();
  *         required: true
  *         description: Maximum items per page
  *       - in: query
+ *         name: reportUserId
+ *         schema:
+ *           type: string
+ *       - in: query
  *         name: reportStatus
  *         schema:
  *           type: string
  *           enum:
- *              - Submitted
  *              - Approved
  *              - Pending
  *              - Rejected
- *              - Completed
  * 
  *     responses:
  *       200:
@@ -149,9 +151,7 @@ router.post("/", verifyToken, roleAuthen(["Manager", "Customer", "TourGuide", "D
  *                      type: string
  *                      enum:  
  *                          - Approved
- *                          - Pending
  *                          - Rejected
- *                          - Completed
  *     responses:
  *       200:
  *         description: OK

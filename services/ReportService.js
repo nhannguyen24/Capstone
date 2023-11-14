@@ -8,9 +8,13 @@ const getReports = async (req) => {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
         const offset = (page - 1) * limit
+        const reportUserId = req.query.reportUserId || ""
         const reportStatus = req.query.reportStatus || ""
 
         let whereClause = {}
+        if (reportUserId !== "") {
+            whereClause.reportUserId = reportUserId
+        }
         if (reportStatus !== "") {
             whereClause.reportStatus = reportStatus
         }
@@ -51,9 +55,17 @@ const getReports = async (req) => {
         });
 
         return{
-            status: StatusCodes.OK,
-            data: {
+            status: reports.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+            data: reports.length > 0 ? {
                 msg: `Get reports successfully`,
+                paging: {
+                    page: page,
+                    limit: limit,
+                    total: totalReport
+                },
+                reports: reports,
+            } : {
+                msg: `Reports not found!`,
                 paging: {
                     page: page,
                     limit: limit,
@@ -129,7 +141,7 @@ const createReport = async (req) => {
             }
         }
 
-        const setUpReport = { reportUserId: reportUserId, title: title, description: description, reportStatus: REPORT_STATUS.SUBMITTED }
+        const setUpReport = { reportUserId: reportUserId, title: title, description: description, reportStatus: REPORT_STATUS.PENDING }
         const report = await db.Report.create(setUpReport);
 
         return{
