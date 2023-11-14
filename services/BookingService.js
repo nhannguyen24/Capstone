@@ -141,7 +141,7 @@ const getBookings = async (req) => {
                 return {
                     status: StatusCodes.NOT_FOUND,
                     data: {
-                        msg: `Customer not found with Id: ${customerId}`,
+                        msg: `Customer not found!`,
                     }
                 }
             }
@@ -166,7 +166,7 @@ const getBookings = async (req) => {
                 return {
                     status: StatusCodes.NOT_FOUND,
                     data: {
-                        msg: `Tour not found with Id: ${tourId}`,
+                        msg: `Tour not found!`,
                     }
                 }
             } else {
@@ -1041,7 +1041,7 @@ const createBookingOffline = async (req) => {
                 }
             }
         }
-        if (TOUR_STATUS.AVAILABLE !== tour.tourStatus) {
+        if (TOUR_STATUS.FINISHED === tour.tourStatus || TOUR_STATUS.CANCELED === tour.tourStatus) {
             return {
                 status: StatusCodes.FORBIDDEN,
                 data: {
