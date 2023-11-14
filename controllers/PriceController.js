@@ -89,7 +89,7 @@ const updatePrice = async (req, res) => {
         const errors = []
         const priceId = req.params.id || ""
         const amount = req.body.amount || ""
-        const ticketTypeId = req.body.ticketTypeId || ""
+        const ticketTypeId = req.params.ticketTypeId || ""
         const day = req.body.day || ""
         if (priceId.trim() === "") {
             errors.push("Id required!")
@@ -97,15 +97,18 @@ const updatePrice = async (req, res) => {
         if (ticketTypeId.trim() === "") {
             errors.push("ticketTypeId required!")
         }
-        if (amount === "" && ticketTypeId.trim() === "" && day.trim() === "") {
-            errors.push("Update field required!")
+        if (day.trim() === "") {
+            errors.push("day required!")
+        }
+        if (amount === "") {
+            errors.push("amount field required!")
         }
         if (amount !== "") {
             if (isNaN(amount)) {
                 errors.push("Amount needs to be a number");
             } else {
-                if (parseInt(amount) < 1000) {
-                    errors.push("Amount needs to be at least 1000")
+                if (parseInt(amount) < 10000) {
+                    errors.push("Amount needs to be at least 10000")
                 }
             }
         }

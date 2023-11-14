@@ -39,14 +39,6 @@ const router = express.Router();
  *              - Weekend
  *              - Holiday
  *         description: Filter by day type
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum:
- *              - Active
- *              - Deactive
- *         description: Filter by status
  * 
  *     responses:
  *       200:
@@ -132,7 +124,7 @@ router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createPrice);
 router.get("/:id", verifyToken, roleAuthen(["Manager"]), controllers.getPriceById);
 /**
  * @swagger
- * /api/v1/prices/{id}:
+ * /api/v1/prices/{id}/{ticketTypeId}:
  *   put:
  *     security: 
  *         - BearerAuth: []
@@ -141,6 +133,11 @@ router.get("/:id", verifyToken, roleAuthen(["Manager"]), controllers.getPriceByI
  *     parameters:
  *       - in: path
  *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *       - in: path
+ *         name: ticketTypeId
  *         schema:
  *           type: string
  *         required: true
@@ -154,19 +151,12 @@ router.get("/:id", verifyToken, roleAuthen(["Manager"]), controllers.getPriceByI
  *              properties: 
  *                  amount: 
  *                      type: integer
- *                  ticketTypeId: 
- *                      type: string
  *                  day: 
  *                      type: string
  *                      enum:
  *                          - Holiday
  *                          - Weekend
  *                          - Normal
- *                  status: 
- *                      type: string
- *                      enum: 
- *                          - Active
- *                          - Deactive
  *     responses:
  *       200:
  *         description: OK
@@ -181,6 +171,6 @@ router.get("/:id", verifyToken, roleAuthen(["Manager"]), controllers.getPriceByI
  *             schema:
  *               type: object
  */
-router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updatePrice);
+router.put("/:id/:ticketTypeId", verifyToken, roleAuthen(["Manager"]), controllers.updatePrice);
 
 module.exports = router;

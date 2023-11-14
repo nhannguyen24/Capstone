@@ -129,7 +129,7 @@ const createReport = async (req) => {
             }
         }
 
-        const setUpReport = { reportUserId: reportUserId, title: title, description: description, reportStatus: REPORT_STATUS.SUBMITTED }
+        const setUpReport = { reportUserId: reportUserId, title: title, description: description, reportStatus: REPORT_STATUS.PENDING }
         const report = await db.Report.create(setUpReport);
 
         return{

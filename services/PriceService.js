@@ -1,9 +1,11 @@
-const db = require('../models');
-const { Op } = require('sequelize');
+const db = require('../models')
+const { Op } = require('sequelize')
 const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
-const DAY = require("../enums/PriceDayEnum");
+const DAY = require("../enums/PriceDayEnum")
+const DAY_ENUM = require("../enums/PriceDayEnum");
 const { StatusCodes } = require('http-status-codes');
+const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
 
 const getPrices = async (req) => {
     try {
@@ -33,15 +35,18 @@ const getPrices = async (req) => {
                     exclude: ["createdAt", "updatedAt"]
                 }
             },
+            attributes: {
+                exclude: ["ticketTypeId"]
+            },
             offset: offset,
             limit: limit
-        });
+        })
 
         const totalPrice = await db.Price.count({
             where: whereClause,
-        });
+        })
 
-        return{
+        return {
             status: StatusCodes.OK,
             data: {
                 msg: `Get prices successfully`,
@@ -55,20 +60,20 @@ const getPrices = async (req) => {
         }
 
     } catch (error) {
-        console.error(error);
+        console.error(error)
     }
 }
 
-const getPriceById = async (req) =>{
+const getPriceById = async (req) => {
     try {
         const priceId = req.params.id
         const price = await db.Price.findOne({
             where: {
                 priceId: priceId
             }
-        });
+        })
 
-        return{
+        return {
             status: price ? StatusCodes.OK : StatusCodes.NOT_FOUND,
             data: price ? {
                 msg: `Get price successfully`,
@@ -79,11 +84,11 @@ const getPriceById = async (req) =>{
             }
         }
     } catch (error) {
-        console.error(error);
+        console.error(error)
     }
 }
 
-const createPrice = async (req) =>{
+const createPrice = async (req) => {
     try {
         const amount = req.body.amount
         const ticketTypeId = req.body.ticketTypeId
@@ -96,7 +101,7 @@ const createPrice = async (req) =>{
         })
 
         if (!ticketType) {
-            return{
+            return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `TicketType not found with id "${ticketTypeId}"`,
@@ -104,9 +109,9 @@ const createPrice = async (req) =>{
             }
         }
 
-        const price = await db.Price.create({ ticketTypeId: ticketTypeId, amount: amount, day: day });
+        const price = await db.Price.create({ ticketTypeId: ticketTypeId, amount: amount, day: day })
 
-        return{
+        return {
             status: StatusCodes.CREATED,
             data: {
                 msg: 'Create price successfully',
@@ -114,68 +119,106 @@ const createPrice = async (req) =>{
             }
         }
     } catch (error) {
-        console.error(error);
+        console.error(error)
     }
 }
 
 const updatePrice = async (req) => {
-    const t = await db.sequelize.transaction();
+    const t = await db.sequelize.transaction()
     try {
         const priceId = req.params.id
-        const ticketTypeId = req.body.ticketTypeId || ""
+        const ticketTypeId = req.params.ticketTypeId
         const amount = parseInt(req.body.amount) || ""
         const day = req.body.day || ""
 
+        const whereClause = {}
         const updatePrice = {}
 
         const price = await db.Price.findOne({
             where: {
                 priceId: priceId,
-                ticketTypeId: ticketTypeId
+                ticketTypeId: ticketTypeId,
+                day: day
             }
         })
 
         if (!price) {
-            return{
+            return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Price not found!`,
                 }
             }
         }
-        const ticket = await db.Ticket.findOne({
-            include: [
-                {
-                    model: db.TicketType,
-                    as: "ticket_type",
-                    where: {
-                        ticketTypeId: ticketTypeId
-                    },
-                    include: {
-                        model: db.Price,
-                        as: "ticket_type_price",
-                        where: {
-                            priceId: priceId
-                        }
-                    }
-                },
-                {
-                    model: db.Tour,
-                    as: "ticket_tour",
-                    where: {
-                        tourStatus: TOUR_STATUS.AVAILABLE
-                    }
-                }
-            ]
-        })
 
-        if(ticket){
-            return {
-                status: StatusCodes.BAD_REQUEST,
-                data: {
-                    msg: "Price in use for a ticket in an active tour",
+        const currentDate = new Date()
+        currentDate.setHours(currentDate.getHours() + 7)
+
+        if (day !== "") {
+            whereClause.tourStatus = TOUR_STATUS.AVAILABLE
+            whereClause.departureDate = {
+                [Op.gte]: currentDate
+            }
+        }
+
+        const price_result = await db.Price.findAll({
+            where: {
+                priceId: priceId,
+                ticketTypeId: ticketTypeId,
+                day: day
+            },
+            include: {
+                model: db.TicketType,
+                as: "price_ticket_type",
+                include: {
+                    model: db.Ticket,
+                    as: "type_ticket",
+                    include: {
+                        model: db.Tour,
+                        as: "ticket_tour",
+                        where: whereClause,
+                        attributes: ["tourId", "tourName", "tourStatus", "departureDate"]
+                    }
+
                 }
             }
+        })
+
+        const ticket_list = price_result[0].price_ticket_type.type_ticket
+
+        const forbiddenTicket = ticket_list.find((ticket) => {
+            const departureDate = new Date(ticket.ticket_tour.departureDate);
+            const dayOfWeek = departureDate.getDay();
+            const date = departureDate.getDate();
+            const month = departureDate.getMonth();
+            const dateMonth = `${date}-${month}`;
+        
+            if (DAY_ENUM.NORMAL === day) {
+                if (!SPECIAL_DAY.includes(dateMonth) && [1, 2, 3, 4, 5].includes(dayOfWeek)) {
+                    return true;
+                }
+            }
+        
+            if (DAY_ENUM.WEEKEND === day) {
+                if (!SPECIAL_DAY.includes(dateMonth) && [0, 6].includes(dayOfWeek)) {
+                    return true;
+                }
+            }
+        
+            if (DAY_ENUM.HOLIDAY === day && SPECIAL_DAY.includes(dateMonth)) {
+                return true;
+            }
+        
+            return false;
+        })
+
+        if (forbiddenTicket) {
+            return {
+                status: StatusCodes.FORBIDDEN,
+                data: {
+                    msg: "Cannot update price because price is currently in use"
+                }
+            };
         }
 
         if (amount !== "") {
@@ -194,7 +237,7 @@ const updatePrice = async (req) => {
 
         await t.commit()
 
-        return{
+        return {
             status: StatusCodes.OK,
             data: {
                 msg: "Update price successfully",
@@ -202,8 +245,8 @@ const updatePrice = async (req) => {
         }
     } catch (error) {
         await t.rollback()
-        console.error(error);
+        console.error(error)
     }
 }
 
-module.exports = { getPrices, getPriceById, createPrice, updatePrice };
+module.exports = { getPrices, getPriceById, createPrice, updatePrice }
