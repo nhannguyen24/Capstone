@@ -278,7 +278,7 @@ router.put("/:id", verifyToken, roleAuthen(["Manager", "TourGuide", "Driver"]), 
 
 /**
  * @swagger
- * /api/v1/tours/assigned-tours:
+ * /api/v1/tours/assign/employee:
  *   put:
  *     security: 
  *         - BearerAuth: []
@@ -294,7 +294,7 @@ router.put("/:id", verifyToken, roleAuthen(["Manager", "TourGuide", "Driver"]), 
  *               items:
  *                 $ref: '#/components/schemas/Tour'
  */
-router.put("/assigned-tours", verifyToken, roleAuthen(["Manager"]), controllers.assignTour);
+router.put("/assign/employee", verifyToken, roleAuthen(["Manager"]), controllers.assignTour);
 
 /**
  * @swagger
