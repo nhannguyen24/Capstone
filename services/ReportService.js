@@ -114,6 +114,7 @@ const getReportsById = async (req) => {
 const createReport = async (req) => {
     try {
         const reportUserId = req.body.reportUserId
+        const tourId = req.body.tourId
         const title = req.body.title
         const description = req.body.description
 
@@ -142,7 +143,22 @@ const createReport = async (req) => {
             }
         }
 
-        const setUpReport = { reportUserId: reportUserId, title: title, description: description, reportStatus: REPORT_STATUS.PENDING }
+        const tour = await db.Tour.findOne({
+            where: {
+                tourId: tourId
+            }
+        })
+
+        if(!tour){
+            return {
+                status: StatusCodes.NOT_FOUND,
+                data: {
+                    msg: "Tour not found!"
+                }
+            }
+        }
+
+        const setUpReport = { reportUserId: reportUserId, tourId: tourId, title: title, description: description, reportStatus: REPORT_STATUS.PENDING }
         const report = await db.Report.create(setUpReport);
 
         return{
