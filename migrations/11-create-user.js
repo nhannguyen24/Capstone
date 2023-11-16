@@ -42,6 +42,9 @@ module.exports = {
       maxTour: {
         type: Sequelize.INTEGER,
       },
+      deviceToken: {
+        type: Sequelize.STRING,
+      },
       roleId: {
         type: Sequelize.UUID,
         references: {

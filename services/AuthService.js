@@ -37,9 +37,9 @@ const register = ({ email, password, confirmPass, roleId }) => new Promise(async
   }
 })
 
-const login = ({ email, password }) => new Promise(async (resolve, reject) => {
+const login = ({ email, password, deviceToken }) => new Promise(async (resolve, reject) => {
   try {
-    const _email = email.replace(/\s/g, '').toLowerCase()
+    const _email = email.replace(/\s/g, '').toLowerCase();
     const response = await db.User.findOne({
       where: { email: _email },
       raw: true,
@@ -61,6 +61,10 @@ const login = ({ email, password }) => new Promise(async (resolve, reject) => {
         },
       ],
     })
+
+    if (deviceToken) {
+      await db.User.update({deviceToken}, {where: {email: _email}});
+    }
 
     const isChecked = response && bcrypt.compareSync(password, response.password);
     const accessToken = isChecked

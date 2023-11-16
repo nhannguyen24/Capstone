@@ -60,6 +60,7 @@ module.exports = (sequelize, DataTypes) => {
     address: DataTypes.STRING,
     phone: DataTypes.STRING(10),
     maxTour: DataTypes.INTEGER,
+    deviceToken: DataTypes.STRING,
     roleId: {
       type: DataTypes.UUID
     },
