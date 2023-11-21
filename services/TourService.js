@@ -1326,7 +1326,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                     tourId: tourJson.tourId,
                     stationId: stationId,
                     index: index,
-                })
+                }, { transaction: t })
             }
 
             for (const ticket of tour.tickets) {
