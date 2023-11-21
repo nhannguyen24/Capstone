@@ -136,7 +136,6 @@ router.post('/logout', verifyToken, controllers.logout);
  *            example:
  *              email: manager@gmail.com
  *              password: "123456"
- *              deviceToken: fgUsxMT4SkacqJBiDKZ1Lk:APA91bE0QeJytP3zfmUhZqUFfT6e9j9XyxNWqVJNNv2GLyMOjEY5A3mq4idmXhQZCze1p-JbZZt8ddcFcCD9AVNzzMvZxi-SE19x54_CqqDoqSRI1P5dPutLBzmSri4yQs2sxc5PO3a_
  *     responses:
  *       200:
  *         description: Login successfully

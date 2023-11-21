@@ -30,7 +30,7 @@ const form = require('./FormRouter');
 const statictics = require('./StatisticRouter');
 const trackingStation = require('./TourDetailRouter');
 const trackingCoordinate = require('./TrackingRouter');
-
+const notification = require('./NotificationRouter');
 
 // const firebaseService = require('./firebaseService');
 // const statistic = require('./statistic')
@@ -71,7 +71,7 @@ const initRoutes = (app) => {
     app.use('/api/v1/trackings/stations', trackingStation);
     app.use('/api/v1/trackings/coordinates', trackingCoordinate);
     app.use('/api/v1/statistics', statictics);
-
+    app.use('/api/v1/notifications', notification);
 
     // app.post('/api/v1/payments/momo-ipn');
     

@@ -1,5 +1,39 @@
 const firebase = require("../config/FirebaseConfig");
 
+const sendNotification = (title, body, deviceToken, notiType) => {
+    const message = {
+        notification: {
+            title: title,
+            body: body,
+        },
+        // android: android,
+        data: {
+            notiType: notiType,
+        },
+        token: deviceToken,
+    };
+
+    firebase.admin
+        .messaging()
+        .send(message)
+        .then((response) => {
+            // console.log("Successfully sent message:", response);
+            // Handle success
+            return response;
+        })
+        .catch((error) => {
+            if (error.code === 'messaging/invalid-registration-token') {
+                console.error('Invalid registration token:', error.message);
+                // Handle invalid token error
+                return error.message;
+            } else {
+                console.error('Error sending message:', error);
+                // Handle other errors
+                return error;
+            }
+        });
+};
+
 const pushNotification = (req, res) => {
     // const { error } = joi
     //   .object({ title, body, device_token })
@@ -81,4 +115,4 @@ const pushNotiMutipleDevices = (req, res) => {
         });
 };
 
-module.exports = { pushNotification, pushNotiMutipleDevices };
+module.exports = { pushNotification, pushNotiMutipleDevices, sendNotification };

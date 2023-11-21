@@ -2,6 +2,7 @@ const db = require("../models");
 const { Op } = require("sequelize");
 const STATUS = require("../enums/ReportStatusEnum");
 const { StatusCodes } = require("http-status-codes");
+const { sendNotification } = require("../utils/NotificationUtil");
 
 const getAllForm = (
     { page, limit, order, userId, changeEmployee, status, createdDate, ...query }
@@ -135,6 +136,26 @@ const getFormById = (formId) =>
                             },
                         ]
                     },
+                    {
+                        model: db.User,
+                        as: "form_change_user",
+                        attributes: [
+                            "userId",
+                            "userName",
+                            "email",
+                            "phone",
+                        ],
+                        include: [
+                            {
+                                model: db.Role,
+                                as: "user_role",
+                                attributes: [
+                                    "roleId",
+                                    "roleName",
+                                ],
+                            },
+                        ]
+                    },
                 ]
             });
             resolve({
@@ -157,6 +178,27 @@ const createForm = (body, userId) =>
                     userId: userId,
                     ...body
                 });
+
+            const changeEmployee = await db.User.findOne({
+                where: { userId: body.changeEmployee }
+            })
+
+            const createNoti = await db.Notification.create({
+                title: "Đổi ca",
+                body: "Có 1 nhân viên gửi form đổi ca cho bạn!",
+                deviceToken: changeEmployee.deviceToken,
+                notiType: "Đổi ca",
+                userId: body.changeEmployee
+            })
+
+            if (createNoti) {
+                sendNotification(
+                    createNoti.title,
+                    createNoti.body,
+                    createNoti.deviceToken,
+                    createNoti.notiType
+                );
+            }
 
             resolve({
                 status: StatusCodes.OK,
@@ -183,52 +225,73 @@ const updateForm = (id, body) =>
         let transaction;
         try {
             transaction = await db.sequelize.transaction(async (t) => {
-            const forms = await db.Form.update(body, {
-                where: { formId: id },
-                individualHooks: true,
-                transaction: t
-            });
-
-            if (body.status == STATUS.APPROVED) {
-                const form = await db.Form.findOne({
+                const forms = await db.Form.update(body, {
                     where: { formId: id },
-                    raw: true,
-                })
-
-                await db.Tour.update({ tourGuideId: form.changeEmployee }, {
-                    where: { tourId: form.currentTour },
                     individualHooks: true,
                     transaction: t
                 });
 
-                await db.Tour.update({ tourGuideId: form.userId }, {
-                    where: { tourId: form.desireTour },
-                    individualHooks: true,
-                    transaction: t
-                });
+                if (body.status == STATUS.APPROVED) {
+                    const form = await db.Form.findOne({
+                        where: { formId: id },
+                        raw: true,
+                    })
 
+                    await db.Tour.update({ tourGuideId: form.changeEmployee }, {
+                        where: { tourId: form.currentTour },
+                        individualHooks: true,
+                        transaction: t
+                    });
+
+                    await db.Tour.update({ tourGuideId: form.userId }, {
+                        where: { tourId: form.desireTour },
+                        individualHooks: true,
+                        transaction: t
+                    });
+
+                    const changeEmployee = await db.User.findOne({
+                        where: { userId: body.changeEmployee }
+                    })
+
+                    const createNoti = await db.Notification.create({
+                        title: "Đổi ca",
+                        body: "Quản lý đã chấp nhận form của bạn!",
+                        deviceToken: changeEmployee.deviceToken,
+                        notiType: "Đổi ca",
+                        userId: body.changeEmployee
+                    })
+
+                    if (createNoti) {
+                        sendNotification(
+                            createNoti.title,
+                            createNoti.body,
+                            createNoti.deviceToken,
+                            createNoti.notiType
+                        );
+                    };
+
+                    resolve({
+                        status: forms[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
+                        data: {
+                            msg:
+                                forms[1].length !== 0
+                                    ? `Form updated/TourGuideId in Tour updated`
+                                    : "Cannot update form/ formId not found",
+                        }
+                    });
+                    return;
+                }
                 resolve({
                     status: forms[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                     data: {
                         msg:
                             forms[1].length !== 0
-                                ? `Form updated/TourGuideId in Tour updated`
+                                ? `Form updated`
                                 : "Cannot update form/ formId not found",
                     }
                 });
-                return;
-            }
-            resolve({
-                status: forms[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
-                data: {
-                    msg:
-                        forms[1].length !== 0
-                            ? `Form updated`
-                            : "Cannot update form/ formId not found",
-                }
+                await t.commit();
             });
-            await t.commit();
-        });
         } catch (error) {
             if (transaction) {
                 // Rollback the transaction in case of an error
