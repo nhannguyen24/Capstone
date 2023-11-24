@@ -61,7 +61,7 @@ const updateUser = async (req, res) => {
     }
 };
 
-const updateUserPassword = async (req, res) => {
+const changeUserPassword = async (req, res) => {
     try {
         const  errors = [];
         const newPassword = req.body.newPassword || "";
@@ -85,7 +85,7 @@ const updateUserPassword = async (req, res) => {
             errors.push("Both password are not the same!")
         }
         if(errors.length === 0){
-            const response = await services.updateUserPassword(req);
+            const response = await services.changeUserPassword(req);
             return res.status(response.status).json(response.data);
         } else {
             return res.status(StatusCodes.BAD_REQUEST).json(errors);
@@ -195,4 +195,4 @@ const getUserById = async (req, res) => {
     }
 };
 
-module.exports = {updateUser, deleteUser, createUser, getAllUsers, updateUserPassword, forgotPassword, getUserById};
+module.exports = {updateUser, deleteUser, createUser, getAllUsers, changeUserPassword, forgotPassword, getUserById};
