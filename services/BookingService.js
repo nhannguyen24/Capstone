@@ -58,6 +58,10 @@ const getBookingDetailByBookingId = async (req) => {
                         as: "ticket_tour",
                         attributes: {
                             exclude: ["createdAt", "updatedAt", "beginBookingDate", "endBookingDate"]
+                        },
+                        include: {
+                            model: db.Bus,
+                            as: "tour_bus"
                         }
                     },
                     {
@@ -270,6 +274,10 @@ const getBookings = async (req) => {
                                     as: "ticket_tour",
                                     attributes: {
                                         exclude: ["createdAt", "updatedAt", "beginBookingDate", "endBookingDate", "departureStationId", "isScheduled"]
+                                    },
+                                    include: {
+                                        model: db.Bus,
+                                        as: "tour_bus",
                                     }
                                 },
                                 {
@@ -379,7 +387,7 @@ const getBookings = async (req) => {
             }
         }
     } catch (error) {
-        console.log(error);
+        console.log(error)
     }
 }
 
@@ -389,14 +397,14 @@ const getBookingsByEmail = async (req) => {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
         const offset = (page - 1) * limit
-        const bookingCode = req.query.bookingCode || "";
-        const startDate = req.query.startDate || "";
-        const endDate = req.query.endDate || "";
-        const tourId = req.query.tourId || "";
-        const bookingStatus = req.query.bookingStatus || "";
+        const bookingCode = req.query.bookingCode || ""
+        const startDate = req.query.startDate || ""
+        const endDate = req.query.endDate || ""
+        const tourId = req.query.tourId || ""
+        const bookingStatus = req.query.bookingStatus || ""
 
-        let whereClause = {};
-        let whereClauseTour = {};
+        let whereClause = {}
+        let whereClauseTour = {}
 
         const user = await db.User.findOne({
             where: {
@@ -411,42 +419,35 @@ const getBookingsByEmail = async (req) => {
                     msg: `Customer not found!`,
                 }
             }
-        } else {
-            whereClause.customerId = user.userId;
+        } 
+
+        whereClause.customerId = user.userId
+        
+
+        const otp = await db.Otp.findOne({
+            where: {
+                otpType: OTP_TYPE.GET_BOOKING_EMAIL,
+                userId: user.userId
+            }
+        })
+
+        if (!otp) {
+            return{
+                status: StatusCodes.NOT_FOUND,
+                data: {
+                    msg: `OTP not found!`,
+                }
+            }
         }
 
-        // const otp = await db.Otp.findOne({
-        //     where: {
-        //         otpType: OTP_TYPE.GET_BOOKING_EMAIL,
-        //         userId: user.userId
-        //     }
-        // })
-
-        // if (!otp) {
-        //     const data = await OtpService.sendOtpToEmail(user.email, user.userId, user.userName, OTP_TYPE.GET_BOOKING_EMAIL)
-        //     if (data) {
-        //         resolve(data);
-        //         return
-        //     } else {
-        //         resolve({
-        //             status: StatusCodes.CONFLICT,
-        //             data: {
-        //                 msg: `Mail sent failed`,
-        //             }
-        //         });
-        //         return
-        //     }
-        // }
-
-        // if (!otp.isAllow) {
-        //     resolve({
-        //         status: StatusCodes.FORBIDDEN,
-        //         data: {
-        //             msg: `Action not allow, Please validate OTP!`,
-        //         }
-        //     });
-        //     return
-        // }
+        if (!otp.isAllow) {
+            return{
+                status: StatusCodes.FORBIDDEN,
+                data: {
+                    msg: `Action not allow, Please validate OTP!`,
+                }
+            }
+        }
 
         if (bookingCode.trim() !== "") {
             whereClause.bookingCode = {
@@ -565,6 +566,10 @@ const getBookingsByEmail = async (req) => {
                                     as: "ticket_tour",
                                     attributes: {
                                         exclude: ["createdAt", "updatedAt", "beginBookingDate", "endBookingDate", "departureStationId", "isScheduled"]
+                                    },
+                                    include: {
+                                        model: db.Bus,
+                                        as: "tour_bus",
                                     }
                                 },
                                 {
@@ -650,7 +655,6 @@ const getBookingsByEmail = async (req) => {
                             model: db.User,
                             as: "booking_user",
                             attributes: ["userId", "userName", "email"],
-                            where: whereClauseUser
                         }
                     ],
                 }
@@ -674,7 +678,7 @@ const getBookingsByEmail = async (req) => {
             }
         }
     } catch (error) {
-        console.log(error);
+        console.log(error)
     }
 }
 
@@ -707,32 +711,32 @@ const createBookingWeb = async (req) => {
         /**
          * Sending OTP 
         */
-        // const otp = await db.Otp.findOne({
-        //     where: {
-        //         otpType: OTP_TYPE.BOOKING_TOUR,
-        //         userId: resultUser[0].dataValues.userId
-        //     }
-        // })
+        const otp = await db.Otp.findOne({
+            where: {
+                otpType: OTP_TYPE.BOOKING_TOUR,
+                userId: resultUser[0].dataValues.userId
+            }
+        })
 
-        // if (!otp) {
-        //     resolve({
-        //         status: StatusCodes.FORBIDDEN,
-        //         data: {
-        //             msg: `Action not allow, Please validate OTP!`,
-        //         }
-        //     });
-        //     return
-        // }
+        if (!otp) {
+            resolve({
+                status: StatusCodes.FORBIDDEN,
+                data: {
+                    msg: `Action not allow, Please validate OTP!`,
+                }
+            });
+            return
+        }
 
-        // if (!otp.isAllow) {
-        //     resolve({
-        //         status: StatusCodes.FORBIDDEN,
-        //         data: {
-        //             msg: `Action not allow, Please validate OTP!`,
-        //         }
-        //     });
-        //     return
-        // }
+        if (!otp.isAllow) {
+            resolve({
+                status: StatusCodes.FORBIDDEN,
+                data: {
+                    msg: `Action not allow, Please validate OTP!`,
+                }
+            });
+            return
+        }
 
 
         /**
@@ -1373,7 +1377,7 @@ const cancelBooking = async (bookingId) => {
                         {
                             model: db.User,
                             as: "booking_user",
-                            attributes: ["userId", "userName", "email"],
+                            attributes: ["userId"],
                         }
                     ],
                     attributes: {
@@ -1389,6 +1393,30 @@ const cancelBooking = async (bookingId) => {
                     msg: `Booking not found!`,
                 }
             }
+        }
+
+        const otp = await db.Otp.findOne({
+            where: {
+                otpType: OTP_TYPE.CANCEL_BOOKING,
+                userId: bookingDetail.detail_booking.booking_user.userId
+            }
+        })
+        if (!otp) {
+            resolve({
+                status: StatusCodes.NOT_FOUND,
+                data: {
+                    msg: `OTP not found! Try resend OTP`,
+                }
+            })
+        }
+        
+        if (!otp.isAllow) {
+            resolve({
+                status: StatusCodes.FORBIDDEN,
+                data: {
+                    msg: `Action not allow, Please validate OTP!`,
+                }
+            })
         }
 
         if (BOOKING_STATUS.CANCELED === bookingDetail.detail_booking.bookingStatus) {
@@ -1414,38 +1442,6 @@ const cancelBooking = async (bookingId) => {
                 bookingId: _bookingId
             }
         })
-
-        const userId = bookingDetail.detail_booking.booking_user.userId
-        const email = bookingDetail.detail_booking.booking_user.email
-        const userName = bookingDetail.detail_booking.booking_user.userName
-        // const otp = await db.Otp.findOne({
-        //     where: {
-        //         otpType: OTP_TYPE.CANCEL_BOOKING,
-        //         userId: bookingDetail.detail_booking.booking_user.userId
-        //     }
-        // })
-        // if (!otp) {
-        //     const data = await OtpService.sendOtpToEmail(email, userId, userName, OTP_TYPE.CANCEL_BOOKING)
-        //     if (data) {
-        //         resolve(data)
-        //     } else {
-        //         resolve({
-        //             status: StatusCodes.CONFLICT,
-        //             data: {
-        //                 msg: `Mail sent failed`,
-        //             }
-        //         })
-        //     }
-        // }
-
-        // if (!otp.isAllow) {
-        //     resolve({
-        //         status: StatusCodes.FORBIDDEN,
-        //         data: {
-        //             msg: `Action not allow, Please validate OTP!`,
-        //         }
-        //     })
-        // }
 
         if (STATUS.DRAFT === transaction.status) {
             return {

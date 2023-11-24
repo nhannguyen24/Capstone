@@ -306,7 +306,7 @@ const getRouteById = (routeId) =>
             resolve({
                 status: route ? 200 : StatusCodes.NOT_FOUND,
                 data: {
-                    msg: route ? "Got route" : `Cannot find route with id: ${routeId}`,
+                    msg: route ? "Got route" : `Route not found!`,
                     route: route,
                 }
             });

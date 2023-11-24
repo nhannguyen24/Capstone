@@ -907,15 +907,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             resolve({
                                 status: StatusCodes.NOT_FOUND,
                                 data: {
-                                    msg: `Ticket type not found with id ${ticketTypeId}`,
-                                }
-                            })
-                        }
-                        if (STATUS.DEACTIVE == ticketType.status) {
-                            resolve({
-                                status: StatusCodes.CONFLICT,
-                                data: {
-                                    msg: `Ticket type is "Deactive"`,
+                                    msg: `Ticket type not found!`,
                                 }
                             })
                         }
@@ -1144,7 +1136,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                         rowError.push(error)
                         isValidRow = false
                     } else if (!(tour.duration instanceof Date)) {
-                        let error = `duration need to be correct date format`
+                        let error = `Duration need to be correct date format`
                         rowError.push(error)
                         isValidRow = false
                     }
@@ -1199,7 +1191,6 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
         })
 
         //Create Process Start HERE
-        const duplicateTourNames = new Set()
         for (const tour of tours) {
             let i = 1;
 
@@ -1232,28 +1223,6 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                 continue
             }
 
-            const resultTour = await db.Tour.findOne({
-                raw: true,
-                nest: true,
-                where: {
-                    tourName: tour.tourName
-                },
-            })
-
-            if (resultTour) {
-                let error = `Tour name existed: ${tour.tourName}`
-                errors.push({ line: i, tourError: error })
-                i++
-                continue
-            }
-
-            if (duplicateTourNames.has(tour.tourName)) {
-                let error = `Duplicate tour name within excel: ${tour.tourName} `
-                errors.push({ line: i, tourError: error })
-                i++
-                continue
-            }
-            duplicateTourNames.add(tour.tourName);
             setUpTour = {
                 tourName: tour.tourName,
                 description: tour.description,
@@ -2449,7 +2418,7 @@ const cloneTour = (id, body) =>
                                 resolve({
                                     status: StatusCodes.CONFLICT,
                                     data: {
-                                        msg: `Ticket type doesn't have a price for day`,
+                                        msg: `Ticket type doesn't have a price for day ${day}`,
                                     }
                                 })
                             } else {

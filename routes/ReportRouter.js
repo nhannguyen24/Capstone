@@ -120,7 +120,7 @@ router.get("/:id", verifyToken, roleAuthen(["Manager", "Customer", "TourGuide", 
  *             schema:
  *               type: object
  */
-router.post("/", verifyToken, roleAuthen(["Manager", "Customer", "TourGuide", "Driver"]), controllers.createReport);
+router.post("/", verifyToken, roleAuthen(["Customer", "TourGuide", "Driver"]), controllers.createReport);
 
 /**
  * @swagger

@@ -228,12 +228,12 @@ const refundMomo = async (bookingId, amount, callback) => {
             }
 
             const req = https.request(options, res => {
-                res.setEncoding('utf8');
-                let responseBody = '';
+                res.setEncoding('utf8')
+                let responseBody = ''
 
                 res.on('data', (chunk) => {
-                    responseBody += chunk;
-                    const response = JSON.parse(responseBody);
+                    responseBody += chunk
+                    const response = JSON.parse(responseBody)
                     if (response.resultCode === 0) {
                         callback({
                             status: 200,
@@ -241,7 +241,7 @@ const refundMomo = async (bookingId, amount, callback) => {
                                 msg: `Refund to booking ${transaction.transaction_booking.bookingCode}`,
                                 refundAmount: _amount
                             }
-                        });
+                        })
                     } else {
                         callback({
                             status: 400,
@@ -249,24 +249,24 @@ const refundMomo = async (bookingId, amount, callback) => {
                                 msg: `${response.message} for booking ${transaction.transaction_booking.bookingCode}`,
                                 refundAmount: _amount
                             }
-                        });
+                        })
                     }
-                });
+                })
 
                 res.on('end', () => {
-                    console.log('No more data in response.');
-                });
-            });
+                    console.log('No more data in response.')
+                })
+            })
 
             req.on('error', (e) => {
-                console.log(`Problem with request: ${e.message}`);
+                console.log(`Problem with request: ${e.message}`)
                 callback({
                     status: 500,
                     data: {
                         msg: "Internal server error",
                     }
-                });
-            });
+                })
+            })
 
             req.write(requestBody)
             req.end()
@@ -439,21 +439,21 @@ const getMoMoPaymentResponse = (req) =>
     })
 
 function calculateTotalTime(routeSegments, startTime, departureStationId) {
-    const velocityKmPerHour = 20;
-    const velocityMetersPerMillisecond = (velocityKmPerHour * 1000) / (60 * 60 * 1000);
+    const velocityKmPerHour = 20
+    const velocityMetersPerMillisecond = (velocityKmPerHour * 1000) / (60 * 60 * 1000)
 
-    let totalSegmentTime = 0;
+    let totalSegmentTime = 0
     for (const segment of routeSegments) {
         if (segment.departureStationId === departureStationId) {
-            break;
+            break
         }
         //Calculate time taken of bus run through all station before getting to booked departure station
-        const timeTaken = (segment.distance / velocityMetersPerMillisecond) + (5 * 60 * 1000);
-        totalSegmentTime += timeTaken;
+        const timeTaken = (segment.distance / velocityMetersPerMillisecond) + (5 * 60 * 1000)
+        totalSegmentTime += timeTaken
     }
 
     const totalTime = startTime + totalSegmentTime
-    return new Date(totalTime);
+    return new Date(totalTime)
 }
 
 const paymentOffline = (bookingId) => new Promise(async (resolve, reject) => {
@@ -540,8 +540,8 @@ const paymentOffline = (bookingId) => new Promise(async (resolve, reject) => {
         
     } catch (error) {
         console.log(error)
-        reject(error);
+        reject(error)
     }
-});
+})
 
 module.exports = { createMoMoPaymentRequest, refundMomo, getMoMoPaymentResponse, paymentOffline }

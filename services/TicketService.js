@@ -76,8 +76,8 @@ const getTickets = async (req) => {
         }
 
         return {
-            status: StatusCodes.OK,
-            data: {
+            status: tickets.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+            data: tickets.length > 0 ? {
                 msg: `Get list of tickets successfully`,
                 paging: {
                     page: page,
@@ -85,6 +85,14 @@ const getTickets = async (req) => {
                     total: totalTicket
                 },
                 tickets: tickets
+            } : {
+                msg: `Ticket not found!`,
+                paging: {
+                    page: page,
+                    limit: limit,
+                    total: totalTicket
+                },
+                tickets: []
             }
         }
 
@@ -394,7 +402,7 @@ const deleteTicket = async (req) => {
             return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
-                    msg: `Ticket not found with id ${ticketId}`,
+                    msg: `Ticket not found!`,
                 }
             }
         }
@@ -410,7 +418,7 @@ const deleteTicket = async (req) => {
             return {
                 status: StatusCodes.CONFLICT,
                 data: {
-                    msg: `Cannot delete ticket because tour ${tour.tourId} need to has atleast 1 available ticket`,
+                    msg: `Cannot delete ticket because tour ${ticket.tourId} need to has atleast 1 available ticket`,
                 }
             }
         }

@@ -50,11 +50,11 @@ module.exports = (sequelize, DataTypes) => {
     },
     reportStatus: {
       type: DataTypes.ENUM,
-      values: ["Submitted", "Approved", "Pending", "Rejected", "Completed"],
+      values: ["Approved", "Pending", "Rejected"],
       validate: {
         isIn: {
-          args: [["Submitted", "Approved", "Pending", "Rejected", "Completed"]],
-          msg: 'Invalid value for report.status (Submitted, Approved, Pending, Rejected, Completed)'
+          args: [["Approved", "Pending", "Rejected"]],
+          msg: 'Invalid value for report.status (Approved, Pending, Rejected)'
         }
       }
     },

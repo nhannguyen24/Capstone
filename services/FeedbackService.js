@@ -45,8 +45,8 @@ const getFeedbacks = async (req) => {
         })
 
         return {
-            status: StatusCodes.OK,
-            data: {
+            status: feedbacks.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+            data: feedbacks.length > 0 ? {
                 msg: `Get list of feedbacks successfully`,
                 paging: {
                     page: page,
@@ -54,11 +54,19 @@ const getFeedbacks = async (req) => {
                     total: totalFeedback
                 },
                 feedbacks: feedbacks
+            } : {
+                msg: `Feedbacks not found!`,
+                paging: {
+                    page: page,
+                    limit: limit,
+                    total: totalFeedback
+                },
+                feedbacks: []
             }
         }
 
     } catch (error) {
-        console.log(error)
+        console.error(error)
     }
 }
 
@@ -105,8 +113,7 @@ const createFeedback = async (req) => {
         const routeId = req.body.routeId
         const stars = req.body.stars
         const description = req.body.description
-        console.log(stars)
-        console.log(description)
+
         //check user
         const user = await db.User.findOne({
             where: {
@@ -118,7 +125,7 @@ const createFeedback = async (req) => {
             return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
-                    msg: `User not found!",`
+                    msg: `User not found!"`
                 }
             }
         }
@@ -134,7 +141,7 @@ const createFeedback = async (req) => {
             return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
-                    msg: `Route not found!",`
+                    msg: `Route not found!"`
                 }
             }
         }
@@ -188,7 +195,7 @@ const createFeedback = async (req) => {
             return {
                 status: StatusCodes.FORBIDDEN,
                 data: {
-                    msg: 'Not gone on tour or tour not finished',
+                    msg: 'Not gone on this route or tour with this route not finished',
                 }
             }
         }
@@ -200,8 +207,7 @@ const createFeedback = async (req) => {
             },
             defaults: { stars: stars, description: description, userId: customerId, routeId: routeId }
         })
-        console.log(feedback)
-        console.log(created)
+
         await t.commit()
         return {
             status: created ? StatusCodes.CREATED : StatusCodes.BAD_REQUEST,
@@ -212,7 +218,7 @@ const createFeedback = async (req) => {
         }
     } catch (error) {
         await t.rollback()
-        console.log(error)
+        console.error(error)
     }
 }
 

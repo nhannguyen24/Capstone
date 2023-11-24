@@ -61,8 +61,8 @@ const getTransactions = async (req) => {
         });
 
         return{
-            status: StatusCodes.OK,
-            data: {
+            status: transactions.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+            data: transactions.length > 0 ? {
                 msg: `Get transactions successfully`,
                 paging: {
                     page: page,
@@ -70,6 +70,14 @@ const getTransactions = async (req) => {
                     total: totalTrans
                 },
                 transactions: transactions
+            } : {
+                msg: `Transactions not found!`,
+                paging: {
+                    page: page,
+                    limit: limit,
+                    total: totalTrans
+                },
+                transactions: []
             }
         }
 
@@ -81,7 +89,7 @@ const getTransactions = async (req) => {
 const getTransactionById = async (req) => {
     try {
         const transactionId = req.params.id
-        const transactions = await db.Transaction.findOne({
+        const transaction = await db.Transaction.findOne({
             where: {
                 transtionId: transactionId
             },
@@ -100,10 +108,13 @@ const getTransactionById = async (req) => {
         });
 
         return{
-            status: StatusCodes.OK,
-            data: {
+            status: transaction ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+            data: transaction ? {
                 msg: `Get list of transactions successfully`,
-                transactions: transactions
+                transaction: transaction
+            } : {
+                msg: `Transaction not found!`,
+                transaction: {}
             }
         }
 
