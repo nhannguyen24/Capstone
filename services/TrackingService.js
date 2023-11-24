@@ -3,8 +3,7 @@ const { Op } = require("sequelize");
 const { StatusCodes } = require("http-status-codes");
 
 const getAllTracking = (
-    { tourId, busId, status, ...query },
-    roleName
+    { tourId, busId, status, ...query }
 ) =>
     new Promise(async (resolve, reject) => {
         try {
@@ -13,9 +12,7 @@ const getAllTracking = (
             if (tourId) query.tourId = { [Op.eq]: tourId };
             if (busId) query.busId = { [Op.eq]: busId };
             if (status) query.status = { [Op.eq]: status };
-            if (roleName !== "Admin" && roleName !== "Manager") {
-                query.status = { [Op.notIn]: ['Deactive'] };
-            }
+            query.status = { [Op.notIn]: ['Deactive'] };
             const trackings = await db.Tracking.findAll({
                 where: query,
                 ...queries,

@@ -4,8 +4,7 @@ const { StatusCodes } = require("http-status-codes");
 
 const getAllTracking = async (req, res) => {
     try {
-        const { roleName } = req.user;
-        const response = await services.getAllTracking(req.query, roleName);
+        const response = await services.getAllTracking(req.query);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);

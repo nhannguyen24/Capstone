@@ -104,7 +104,7 @@ router.get("/", verifyToken, controllers.getAllRoute);
  *               items:
  *                 $ref: '#/components/schemas/Route'
  */
-router.get("/:id", verifyToken, controllers.getRouteById);
+router.get("/:id", controllers.getRouteById);
 
 /**
  * @swagger
