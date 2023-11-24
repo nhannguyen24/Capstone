@@ -233,7 +233,7 @@ router.put("/:id", verifyToken, roleAuthen(["Admin"]), controllers.updateUser);
  *             schema:
  *               type: string
  */
-router.put("/change-password", verifyToken, roleAuthen(["Customer"]), controllers.updateUserPassword);
+router.put("/change-password", verifyToken, roleAuthen(["Customer"]), controllers.changeUserPassword);
 
 /**
  * @swagger

@@ -317,7 +317,7 @@ const deleteUser = (id, userId) =>
     }
   });
 
-const updateUserPassword = async (req) =>{
+const changeUserPassword = async (req) =>{
     try {
       const userId = req.user.userId
       const newPassword = req.body.newPassword
@@ -368,17 +368,6 @@ const updateUserPassword = async (req) =>{
         }, individualHooks: true
       })
 
-      resolve({
-        status: updateUser[0] > 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
-        data: {
-          msg:
-            updateUser[0] > 0
-              ? "Change password successfully"
-              : "Failed change password",
-        }
-      })
-
-
       redisClient.keys('user_paging*', (error, keys) => {
         if (error) {
           console.error('Error retrieving keys:', error);
@@ -396,6 +385,15 @@ const updateUserPassword = async (req) =>{
         })
       })
 
+      return{
+        status: updateUser[0] > 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
+        data: {
+          msg:
+            updateUser[0] > 0
+              ? "Change password successfully"
+              : "Failed change password",
+        }
+      }
     } catch (error) {
       console.error(error)
     }
@@ -496,7 +494,7 @@ module.exports = {
   updateUser,
   deleteUser,
   createUser,
-  updateUserPassword,
+  changeUserPassword,
   forgotPassword,
   getAllUsers,
   getUserById
