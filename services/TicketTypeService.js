@@ -7,10 +7,13 @@ const getTicketTypes = async (req) => {
     try {
         const ticketTypes = await db.TicketType.findAll();
         return {
-            status: StatusCodes.OK,
-            data: {
+            status: ticketTypes.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+            data: ticketTypes.length > 0 ? {
                 msg: `Get list of ticket types successfully`,
                 ticketTypes: ticketTypes
+            } : {
+                msg: `Ticket types not found!`,
+                ticketTypes: []
             }
         }
     } catch (error) {

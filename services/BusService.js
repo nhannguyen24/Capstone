@@ -139,7 +139,7 @@ const createBus = async (req) => {
         return{
             status: created ? StatusCodes.CREATED : StatusCodes.BAD_REQUEST,
             data: {
-                msg: created ? 'Create bus successfully' : 'Bus already exists',
+                msg: created ? 'Create bus successfully' : 'Bus plate already exists',
                 bus: bus
             }
         }
@@ -279,7 +279,7 @@ const deleteBus = async (req) => {
                 busId: busId,
                 status: STATUS.ACTIVE,
                 tourStatus: {
-                    [Op.in]: ['NotStarted', 'OnTour'],
+                    [Op.in]: ['Started', 'Available'],
                 },
             },
         })

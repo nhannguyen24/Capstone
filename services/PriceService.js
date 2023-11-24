@@ -47,8 +47,8 @@ const getPrices = async (req) => {
         })
 
         return {
-            status: StatusCodes.OK,
-            data: {
+            status: prices.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+            data: prices.length > 0 ? {
                 msg: `Get prices successfully`,
                 paging: {
                     page: page,
@@ -56,6 +56,14 @@ const getPrices = async (req) => {
                     total: totalPrice
                 },
                 prices: prices
+            } : {
+                msg: `Prices not found!`,
+                paging: {
+                    page: page,
+                    limit: limit,
+                    total: totalPrice
+                },
+                prices: []
             }
         }
 
@@ -70,7 +78,17 @@ const getPriceById = async (req) => {
         const price = await db.Price.findOne({
             where: {
                 priceId: priceId
-            }
+            },
+            include: {
+                model: db.TicketType,
+                as: "price_ticket_type",
+                attributes: {
+                    exclude: ["createdAt", "updatedAt"]
+                }
+            },
+            attributes: {
+                exclude: ["ticketTypeId"]
+            },
         })
 
         return {
@@ -104,7 +122,7 @@ const createPrice = async (req) => {
             return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
-                    msg: `TicketType not found with id "${ticketTypeId}"`,
+                    msg: `TicketType not found!`,
                 }
             }
         }

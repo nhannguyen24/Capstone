@@ -317,8 +317,7 @@ const deleteUser = (id, userId) =>
     }
   });
 
-const updateUserPassword = (req) =>
-  new Promise(async (resolve, reject) => {
+const updateUserPassword = async (req) =>{
     try {
       const userId = req.user.userId
       const newPassword = req.body.newPassword
@@ -329,40 +328,37 @@ const updateUserPassword = (req) =>
         }
       })
       if (!user) {
-        resolve({
+        return {
           status: StatusCodes.NOT_FOUND,
           data: {
             msg: "User not found!"
           }
-        })
+        }
       }
-      // const otp = await db.Otp.findOne({
-      //   where: {
-      //     userId: userId,
-      //     otpType: OTP_TYPE.CHANGE_PASSWORD
-      //   }
-      // })
-      // if (!otp) {
-      //   const data = await OtpService.sendOtpToEmail(user.email, userId, user.userName, OTP_TYPE.CHANGE_PASSWORD)
-      //   if (data) {
-      //     resolve(data);
-      //   } else {
-      //     resolve({
-      //       status: StatusCodes.CONFLICT,
-      //       data: {
-      //         msg: `Mail sent failed`,
-      //       }
-      //     });
-      //   }
-      // }
-      // if (!otp.isAllow) {
-      //   resolve({
-      //     status: 403,
-      //     data: {
-      //       msg: `Action not allow, Please validate OTP!`,
-      //     }
-      //   });
-      // }
+
+      const otp = await db.Otp.findOne({
+        where: {
+          userId: userId,
+          otpType: OTP_TYPE.CHANGE_PASSWORD
+        }
+      })
+
+      if (!otp) {
+        return {
+          status: StatusCodes.NOT_FOUND,
+          data: {
+            msg: `OTP not found!`,
+          }
+        }
+      }
+      if (!otp.isAllow) {
+        return {
+          status: 403,
+          data: {
+            msg: `Action not allow, Please validate OTP!`,
+          }
+        }
+      }
 
       const updateUser = await db.User.update({
         password: hashPassword(newPassword)
@@ -373,14 +369,14 @@ const updateUserPassword = (req) =>
       })
 
       resolve({
-        status: updateUser[0] ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
+        status: updateUser[0] > 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
         data: {
           msg:
             updateUser[0] > 0
               ? "Change password successfully"
-              : "Cannot change password",
+              : "Failed change password",
         }
-      });
+      })
 
 
       redisClient.keys('user_paging*', (error, keys) => {
@@ -396,16 +392,14 @@ const updateUserPassword = (req) =>
             } else {
               console.log(`Key ${key} deleted successfully`);
             }
-          });
-        });
-      });
-
+          })
+        })
+      })
 
     } catch (error) {
-      console.log(error)
-      reject(error.message);
+      console.error(error)
     }
-  });
+  }
 const forgotPassword = async (req) => {
   try {
     const email = req.body.email
@@ -473,7 +467,7 @@ const forgotPassword = async (req) => {
     })
 
     return {
-      status: updateUser[0] ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
+      status: updateUser[0] > 0? StatusCodes.OK : StatusCodes.BAD_REQUEST,
       data: {
         msg:
           updateUser[0] > 0
