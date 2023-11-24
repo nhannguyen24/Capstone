@@ -250,7 +250,7 @@ const updateForm = (id, body) =>
                     });
 
                     const changeEmployee = await db.User.findOne({
-                        where: { userId: body.changeEmployee }
+                        where: { userId: form.changeEmployee }
                     })
 
                     const createNoti = await db.Notification.create({
