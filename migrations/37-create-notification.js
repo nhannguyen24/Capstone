@@ -2,54 +2,33 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Users', {
-      userId: {
+    await queryInterface.createTable('Notifications', {
+      notiId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      userName: {
+      title: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      email: {
+      body: {
         type: Sequelize.STRING,
         allowNull: false,
-      },
-      password: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      birthday: {
-        type: Sequelize.DATEONLY,
-      },
-      avatar: {
-        type: Sequelize.STRING(500),
-      },
-      address: {
-        type: Sequelize.STRING,
-      },
-      phone: {
-        type: Sequelize.STRING(10),
-      },
-      accessChangePassword: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: 0,
-      },
-      refreshToken: {
-        type: Sequelize.STRING,
-      },
-      maxTour: {
-        type: Sequelize.INTEGER,
       },
       deviceToken: {
         type: Sequelize.STRING,
+        allowNull: false,
       },
-      roleId: {
+      notiType: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      userId: {
         type: Sequelize.UUID,
         references: {
-          model: 'roles',
-          key: 'roleId'
+          model: 'users',
+          key: 'userId'
         }
       },
       status: {
@@ -70,6 +49,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Users');
+    await queryInterface.dropTable('Notifications');
   }
 };

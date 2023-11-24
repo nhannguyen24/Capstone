@@ -98,6 +98,9 @@ router.post('/logout', verifyToken, controllers.logout);
  *         password:
  *           type: String
  *           description: User password
+ *         deviceToken:
+ *           type: String
+ *           description: User device token
  */
 
 /**
