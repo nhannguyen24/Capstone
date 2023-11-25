@@ -91,7 +91,7 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     try {
         const {email: email, password: password} = req.body;
-        const errors = [];
+        const errors = {}
 
         if (email.trim() === "") {
             errors.email = 'Email required!'
@@ -100,7 +100,7 @@ const login = async (req, res) => {
             errors.password = 'Password required!'
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.login(req.body);
             return res.status(response.status).json(response.data);
         } else {
