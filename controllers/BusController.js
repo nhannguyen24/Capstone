@@ -72,7 +72,7 @@ const createBus = async (req, res) => {
         if(isDoubleDecker.trim() === ""){
             errors.isDoubleDecker = "isDoubleDecker required!"
         } else {
-            if(isDoubleDecker !== true || isDoubleDecker !== false){
+            if(isDoubleDecker !== true && isDoubleDecker !== false){
                 errors.isDoubleDecker = "isDoubleDecker needs to be true or false!"
             }
         }
