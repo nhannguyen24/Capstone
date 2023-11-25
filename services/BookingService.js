@@ -711,32 +711,32 @@ const createBookingWeb = async (req) => {
         /**
          * Sending OTP 
         */
-        const otp = await db.Otp.findOne({
-            where: {
-                otpType: OTP_TYPE.BOOKING_TOUR,
-                userId: resultUser[0].dataValues.userId
-            }
-        })
+        // const otp = await db.Otp.findOne({
+        //     where: {
+        //         otpType: OTP_TYPE.BOOKING_TOUR,
+        //         userId: resultUser[0].dataValues.userId
+        //     }
+        // })
 
-        if (!otp) {
-            return({
-                status: StatusCodes.FORBIDDEN,
-                data: {
-                    msg: `Action not allow, Please validate OTP!`,
-                }
-            });
-            return
-        }
+        // if (!otp) {
+        //     return({
+        //         status: StatusCodes.FORBIDDEN,
+        //         data: {
+        //             msg: `Action not allow, Please validate OTP!`,
+        //         }
+        //     });
+        //     return
+        // }
 
-        if (!otp.isAllow) {
-            return({
-                status: StatusCodes.FORBIDDEN,
-                data: {
-                    msg: `Action not allow, Please validate OTP!`,
-                }
-            });
-            return
-        }
+        // if (!otp.isAllow) {
+        //     return({
+        //         status: StatusCodes.FORBIDDEN,
+        //         data: {
+        //             msg: `Action not allow, Please validate OTP!`,
+        //         }
+        //     });
+        //     return
+        // }
 
 
         /**
