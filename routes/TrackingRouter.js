@@ -61,7 +61,7 @@ const router = express.Router();
  *               items:
  *                 $ref: '#/components/schemas/Tracking'
  */
-router.get("/", verifyToken, controllers.getAllTracking);
+router.get("/", controllers.getAllTracking);
 
 /**
  * @swagger

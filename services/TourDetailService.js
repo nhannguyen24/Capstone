@@ -3,8 +3,7 @@ const { Op } = require("sequelize");
 const { StatusCodes } = require("http-status-codes");
 
 const getAllTourDetail = (
-    { page, limit, order, tourId, status, ...query },
-    roleName
+    { page, limit, order, tourId, status, ...query }
 ) =>
     new Promise(async (resolve, reject) => {
         try {
@@ -19,9 +18,6 @@ const getAllTourDetail = (
             }
             if (tourId) query.tourId = { [Op.eq]: tourId };
             if (status) query.status = { [Op.eq]: status };
-            if (roleName !== "Admin") {
-                query.status = { [Op.notIn]: ['Deactive'] };
-            }
             const tourDetails = await db.TourDetail.findAll({
                 where: query,
                 ...queries,

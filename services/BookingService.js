@@ -719,7 +719,7 @@ const createBookingWeb = async (req) => {
         })
 
         if (!otp) {
-            resolve({
+            return({
                 status: StatusCodes.FORBIDDEN,
                 data: {
                     msg: `Action not allow, Please validate OTP!`,
@@ -729,7 +729,7 @@ const createBookingWeb = async (req) => {
         }
 
         if (!otp.isAllow) {
-            resolve({
+            return({
                 status: StatusCodes.FORBIDDEN,
                 data: {
                     msg: `Action not allow, Please validate OTP!`,
@@ -1402,7 +1402,7 @@ const cancelBooking = async (bookingId) => {
             }
         })
         if (!otp) {
-            resolve({
+            return({
                 status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `OTP not found! Try resend OTP`,
@@ -1411,7 +1411,7 @@ const cancelBooking = async (bookingId) => {
         }
         
         if (!otp.isAllow) {
-            resolve({
+            return({
                 status: StatusCodes.FORBIDDEN,
                 data: {
                     msg: `Action not allow, Please validate OTP!`,

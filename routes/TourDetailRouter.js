@@ -75,7 +75,7 @@ const router = express.Router();
  *               items:
  *                 $ref: '#/components/schemas/TourDetail'
  */
-router.get("/", verifyToken, controllers.getAllTourDetail);
+router.get("/", controllers.getAllTourDetail);
 
 /**
  * @swagger
