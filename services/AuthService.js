@@ -280,85 +280,85 @@ const logout = (userId) =>
     }
   });
 
-  const forgotPassword = async (req) => {
-    try {
-      const email = req.body.email
-      const newPassword = req.body.newPassword
-  
-      const user = await db.User.findOne({
-        where: {
-          email: email
-        }
-      })
-      if (!user) {
-        return {
-          status: StatusCodes.NOT_FOUND,
-          data: {
-            msg: "User not found!"
-          }
+const forgotPassword = async (req) => {
+  try {
+    const email = req.body.email
+    const newPassword = req.body.newPassword
+
+    const user = await db.User.findOne({
+      where: {
+        email: email
+      }
+    })
+    if (!user) {
+      return {
+        status: StatusCodes.NOT_FOUND,
+        data: {
+          msg: "User not found!"
         }
       }
-      const otp = await db.Otp.findOne({
-        where: {
-          userId: user.userId,
-          otpType: OTP_TYPE.FORGOT_PASSWORD
-        }
-      })
-      if (!otp) {
-        return {
-          status: StatusCodes.FORBIDDEN,
-          data: {
-            msg: `OTP not found!`,
-          }
+    }
+    const otp = await db.Otp.findOne({
+      where: {
+        userId: user.userId,
+        otpType: OTP_TYPE.FORGOT_PASSWORD
+      }
+    })
+    if (!otp) {
+      return {
+        status: StatusCodes.FORBIDDEN,
+        data: {
+          msg: `Action not allow, Please validate OTP!`,
         }
       }
-      if (!otp.isAllow) {
-        return {
-          status: StatusCodes.FORBIDDEN,
-          data: {
-            msg: `Action not allow, Please validate OTP!`,
-          }
+    }
+    if (!otp.isAllow) {
+      return {
+        status: StatusCodes.FORBIDDEN,
+        data: {
+          msg: `Action not allow, Please validate OTP!`,
         }
       }
-  
-      const updateUser = await db.User.update({
-        password: hashPassword(newPassword)
-      }, {
-        where: {
-          email: email
-        }, individualHooks: true
-      })
-  
-      redisClient.keys('user_paging*', (error, keys) => {
-        if (error) {
-          console.error('Error retrieving keys:', error);
-          return;
-        }
-        // Delete each key individually
-        keys.forEach((key) => {
-          redisClient.del(key, (deleteError, reply) => {
-            if (deleteError) {
-              console.error(`Error deleting key ${key}:`, deleteError);
-            } else {
-              console.log(`Key ${key} deleted successfully`);
-            }
-          })
+    }
+
+    const updateUser = await db.User.update({
+      password: hashPassword(newPassword)
+    }, {
+      where: {
+        email: email
+      }, individualHooks: true
+    })
+
+    redisClient.keys('user_paging*', (error, keys) => {
+      if (error) {
+        console.error('Error retrieving keys:', error);
+        return;
+      }
+      // Delete each key individually
+      keys.forEach((key) => {
+        redisClient.del(key, (deleteError, reply) => {
+          if (deleteError) {
+            console.error(`Error deleting key ${key}:`, deleteError);
+          } else {
+            console.log(`Key ${key} deleted successfully`);
+          }
         })
       })
-  
-      return {
-        status: updateUser[0] > 0? StatusCodes.OK : StatusCodes.BAD_REQUEST,
-        data: {
-          msg:
-            updateUser[0] > 0
-              ? "Change password successfully"
-              : "Cannot change password",
-        }
+    })
+
+    return {
+      status: updateUser[0] > 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
+      data: {
+        msg:
+          updateUser[0] > 0
+            ? "Change password successfully"
+            : "Cannot change password",
       }
-    } catch (error) {
-      console.error(error);
     }
+  } catch (error) {
+    console.error(error);
   }
-  
+}
+
 
 module.exports = { refreshAccessToken, logout, login, register, forgotPassword, loginGoogle };

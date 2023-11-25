@@ -432,10 +432,10 @@ const getBookingsByEmail = async (req) => {
         })
 
         if (!otp) {
-            return{
-                status: StatusCodes.NOT_FOUND,
+            return {
+                status: StatusCodes.FORBIDDEN,
                 data: {
-                    msg: `OTP not found!`,
+                    msg: `Action not allow, Please validate OTP!`,
                 }
             }
         }
@@ -711,32 +711,30 @@ const createBookingWeb = async (req) => {
         /**
          * Sending OTP 
         */
-        // const otp = await db.Otp.findOne({
-        //     where: {
-        //         otpType: OTP_TYPE.BOOKING_TOUR,
-        //         userId: resultUser[0].dataValues.userId
-        //     }
-        // })
+        const otp = await db.Otp.findOne({
+            where: {
+                otpType: OTP_TYPE.BOOKING_TOUR,
+                userId: resultUser[0].dataValues.userId
+            }
+        })
 
-        // if (!otp) {
-        //     return({
-        //         status: StatusCodes.FORBIDDEN,
-        //         data: {
-        //             msg: `Action not allow, Please validate OTP!`,
-        //         }
-        //     });
-        //     return
-        // }
+        if (!otp) {
+            return{
+                status: StatusCodes.FORBIDDEN,
+                data: {
+                    msg: `Action not allow, Please validate OTP!`,
+                }
+            }
+        }
 
-        // if (!otp.isAllow) {
-        //     return({
-        //         status: StatusCodes.FORBIDDEN,
-        //         data: {
-        //             msg: `Action not allow, Please validate OTP!`,
-        //         }
-        //     });
-        //     return
-        // }
+        if (!otp.isAllow) {
+            return{
+                status: StatusCodes.FORBIDDEN,
+                data: {
+                    msg: `Action not allow, Please validate OTP!`,
+                }
+            } 
+        }
 
 
         /**
@@ -1402,21 +1400,21 @@ const cancelBooking = async (bookingId) => {
             }
         })
         if (!otp) {
-            return({
-                status: StatusCodes.NOT_FOUND,
-                data: {
-                    msg: `OTP not found! Try resend OTP`,
-                }
-            })
-        }
-        
-        if (!otp.isAllow) {
-            return({
+            return {
                 status: StatusCodes.FORBIDDEN,
                 data: {
                     msg: `Action not allow, Please validate OTP!`,
                 }
-            })
+            }
+        }
+        
+        if (!otp.isAllow) {
+            return {
+                status: StatusCodes.FORBIDDEN,
+                data: {
+                    msg: `Action not allow, Please validate OTP!`,
+                }
+            }
         }
 
         if (BOOKING_STATUS.CANCELED === bookingDetail.detail_booking.bookingStatus) {
