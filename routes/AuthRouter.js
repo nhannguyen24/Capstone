@@ -148,6 +148,35 @@ router.post('/login', controllers.login);
 
 /**
  * @swagger
+ * /api/v1/auth/forgot-password:
+ *   post:
+ *     summary: Change user password when they forgot old password
+ *     tags: [Authentication]
+ *     requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties: 
+ *                  email:
+ *                      type: string
+ *                  newPassword:
+ *                      type: string
+ *                  confirmPassword:
+ *                      type: string
+ *     responses:
+ *       200:
+ *         description: Change password successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ */
+router.post("/forgot-password", controllers.forgotPassword)
+
+/**
+ * @swagger
  * /api/v1/auth/register:
  *   post:
  *     summary: For register new account

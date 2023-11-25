@@ -233,36 +233,7 @@ router.put("/:id", verifyToken, roleAuthen(["Admin"]), controllers.updateUser);
  *             schema:
  *               type: string
  */
-router.put("/change-password", verifyToken, roleAuthen(["Customer"]), controllers.changeUserPassword);
-
-/**
- * @swagger
- * /api/v1/users/forgot-password:
- *   post:
- *     summary: Change user password when they forgot old password
- *     tags: [User]
- *     requestBody:
- *        required: true
- *        content:
- *          application/json:
- *            schema:
- *              type: object
- *              properties: 
- *                  email:
- *                      type: string
- *                  newPassword:
- *                      type: string
- *                  confirmPassword:
- *                      type: string
- *     responses:
- *       200:
- *         description: Change password successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: string
- */
-router.post("/forgot-password", controllers.forgotPassword);
+router.put("/change-password", verifyToken, roleAuthen(["Customer", "Tour guide", "Driver", "Manager"]), controllers.changeUserPassword);
 
 // /**
 //  * @swagger

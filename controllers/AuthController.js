@@ -111,4 +111,44 @@ const login = async (req, res) => {
     }
 }
 
-module.exports = {refreshAccessToken, logout, login, register, loginGoogle };
+const forgotPassword = async (req, res) => {
+    try {
+        const errors = [];
+        const email = req.body.email || "";
+        const newPassword = req.body.newPassword || "";
+        const confirmPassword = req.body.confirmPassword || "";
+        if(email.trim() === ""){
+            errors.push("Email required!")
+        }
+
+        if(newPassword.trim() === "") {
+            errors.push("New password required!")
+        } else {
+            if (/\s/.test(newPassword)) {
+                errors.push("Password cannot contain whitespace.");
+            }
+        
+            if (newPassword.length < 6) {
+                errors.push("Password must be at least 6 characters long.");
+            }
+        }
+
+        if(confirmPassword.trim() === "") {
+            errors.push("Confirm password required!")
+        }
+        if(newPassword !== confirmPassword){
+            errors.push("Both password are not the same!")
+        }
+        if(errors.length === 0){
+            const response = await services.forgotPassword(req);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
+    } catch (error) {
+        console.log(error);
+        throw new InternalServerError(error);
+    }
+};
+
+module.exports = {refreshAccessToken, logout, login, register, forgotPassword, loginGoogle };
