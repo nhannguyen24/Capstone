@@ -112,7 +112,7 @@ const updateBus = async (req, res) => {
         if (busPlate.trim() === "" && numberSeat.trim() === "" && isDoubleDecker.trim() === "" && status.trim() === "") {
             errors.fields = "Update field required!"
         } else {
-            if (numberSeat.trim() !== "") {
+            if (numberSeat !== "") {
                 if (isNaN(numberSeat)) {
                     errors.numberSeat = "numberSeat needs to be a number!"
                 } else {
