@@ -93,11 +93,15 @@ const login = async (req, res) => {
         const {email: email, password: password} = req.body;
         const errors = [];
 
+        let emailError
+        let 
         if (email.trim() === "") {
-            errors.push('Email required!');
+            emailError = 'Email required!'
+            errors.push(emailError);
         }
         if(password.trim() === "") {
-            errors.push('Password required!');
+            passwordError = 'Password required!'
+            errors.push(passwordError);
         }
 
         if (errors.length == 0) {
