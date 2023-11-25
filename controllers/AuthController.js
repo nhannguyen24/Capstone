@@ -94,7 +94,7 @@ const login = async (req, res) => {
         const errors = [];
 
         let emailError
-        let 
+        let passwordError
         if (email.trim() === "") {
             emailError = 'Email required!'
             errors.push(emailError);
