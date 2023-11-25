@@ -70,9 +70,8 @@ const getReports = async (req) => {
     }
 }
 
-const getReportsById = async (req) => {
+const getReportsById = async (reportId) => {
     try {
-        const reportId = req.params.id
         const report = await db.Report.findOne({
             where: {
                 reportId: reportId

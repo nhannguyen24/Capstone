@@ -9,10 +9,8 @@ const OTP_TYPE = require("../enums/OtpTypeEnum")
 const OtpService = require("./OtpService")
 const PaymentService = require("./PaymentService")
 
-const getBookingDetailByBookingId = async (req) => {
+const getBookingDetailByBookingId = async (bookingId) => {
     try {
-        const bookingId = req.params.id
-
         const booking = await db.Booking.findOne({
             raw: true,
             nest: true,
