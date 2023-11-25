@@ -27,7 +27,7 @@ const register = ({ email, password, confirmPass, roleId }) => new Promise(async
       resolve({
         status: response[1] ? StatusCodes.OK : StatusCodes.CONFLICT,
         data: {
-          msg: response[1] ? 'Register successfully' : 'Email has already used',
+          msg: response[1] ? 'Register successfully!' : 'Email has already used!',
         }
       })
     }
