@@ -1,5 +1,6 @@
 const services = require('../services/AuthService');
 const {InternalServerError} = require('../errors/Index');
+const { StatusCodes } = require('http-status-codes');
 
 const loginGoogle = async (req, res) => {
     try {
@@ -93,10 +94,10 @@ const login = async (req, res) => {
         const errors = [];
 
         if (email.trim() === "") {
-            errors.push('Please provide email');
+            errors.push('Email required!');
         }
         if(password.trim() === "") {
-            errors.push('Please provide password');
+            errors.push('Password required!');
         }
 
         if (errors.length == 0) {
