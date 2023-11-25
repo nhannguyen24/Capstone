@@ -66,14 +66,17 @@ const createBus = async (req, res) => {
         const busPlate = req.query.busPlate || ""
         const numberSeat = req.query.numberSeat || ""
         const isDoubleDecker = req.query.isDoubleDecker || ""
+
         if(busPlate.trim() === ""){
             errors.busPlate = "busPlate required!"
         }
+
         if(isDoubleDecker.trim() === ""){
             errors.isDoubleDecker = "isDoubleDecker required!"
         } else {
-            if(isDoubleDecker !== true || isDoubleDecker !== false){
-                errors.isDoubleDecker = "isDoubleDecker needs to be true or false!"
+            const booleanValue = JSON.parse(isDoubleDecker)
+            if (typeof booleanValue !== 'boolean') {
+                errors.isDoubleDecker = "isDoubleDecker needs to be a boolean value!"
             }
         }
         if(numberSeat.trim() === ""){
@@ -124,8 +127,9 @@ const updateBus = async (req, res) => {
             if(isDoubleDecker.trim() === ""){
                 errors.isDoubleDecker = "isDoubleDecker required!"
             } else {
-                if(isDoubleDecker !== true && isDoubleDecker !== false){
-                    errors.isDoubleDecker = "isDoubleDecker needs to be true or false!"
+                const booleanValue = JSON.parse(isDoubleDecker)
+                if (typeof booleanValue !== 'boolean') {
+                    errors.isDoubleDecker = "isDoubleDecker needs to be a boolean value!"
                 }
             }
         }
