@@ -1,6 +1,6 @@
-const services = require('../services/BookingService');
-const { BadRequestError, InternalServerError } = require('../errors/Index');
-const { StatusCodes } = require('http-status-codes');
+const services = require('../services/BookingService')
+const { BadRequestError, InternalServerError } = require('../errors/Index')
+const { StatusCodes } = require('http-status-codes')
 
 const getBookingDetailByBookingId = async (req, res) => {
     try {
@@ -17,9 +17,9 @@ const getBookingDetailByBookingId = async (req, res) => {
             return res.status(StatusCodes.BAD_REQUEST).json(errors)
         }
     } catch (error) {
-        throw new InternalServerError(error);
+        throw new InternalServerError(error)
     }
-};
+}
 
 const getBookings = async (req, res) => {
     try {
@@ -51,15 +51,15 @@ const getBookings = async (req, res) => {
         }
 
         if (Object.keys(errors).length === 0) {
-            const response = await services.getBookings(req);
-            return res.status(response.status).json(response.data);
+            const response = await services.getBookings(req)
+            return res.status(response.status).json(response.data)
         } else {
-            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+            return res.status(StatusCodes.BAD_REQUEST).json(errors)
         }
     } catch (error) {
-        throw new InternalServerError(error);
+        throw new InternalServerError(error)
     }
-};
+}
 
 const getBookingsByEmail = async (req, res) => {
     try {
@@ -99,15 +99,15 @@ const getBookingsByEmail = async (req, res) => {
         }
 
         if (Object.keys(errors).length === 0) {
-            const response = await services.getBookingsByEmail(req);
-            return res.status(response.status).json(response.data);
+            const response = await services.getBookingsByEmail(req)
+            return res.status(response.status).json(response.data)
         } else {
-            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+            return res.status(StatusCodes.BAD_REQUEST).json(errors)
         }
     } catch (error) {
-        throw new InternalServerError(error);
+        throw new InternalServerError(error)
     }
-};
+}
 const createBookingWeb = async (req, res) => {
     try {
         const errors = {}
@@ -129,15 +129,15 @@ const createBookingWeb = async (req, res) => {
         }
 
         if (Object.keys(errors).length === 0) {
-            const response = await services.createBookingWeb(req);
-            return res.status(response.status).json(response.data);
+            const response = await services.createBookingWeb(req)
+            return res.status(response.status).json(response.data)
         } else {
-            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+            return res.status(StatusCodes.BAD_REQUEST).json(errors)
         }
     } catch (error) {
-        throw new InternalServerError(error);
+        throw new InternalServerError(error)
     }
-};
+}
 const createBookingOffline = async (req, res) => {
     try {
         const errors = {}
@@ -159,15 +159,15 @@ const createBookingOffline = async (req, res) => {
         }
 
         if (Object.keys(errors).length === 0) {
-            const response = await services.createBookingOffline(req);
-            return res.status(response.status).json(response.data);
+            const response = await services.createBookingOffline(req)
+            return res.status(response.status).json(response.data)
         } else {
-            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+            return res.status(StatusCodes.BAD_REQUEST).json(errors)
         }
     } catch (error) {
-        throw new InternalServerError(error);
+        throw new InternalServerError(error)
     }
-};
+}
 
 const checkInQrCode = async (req, res) => {
     try {
@@ -184,13 +184,13 @@ const checkInQrCode = async (req, res) => {
         }
 
         if (Object.keys(errors).length === 0) {
-            const response = await services.checkInQrCode(bookingId, tourId);
-            return res.status(response.status).json(response.data);
+            const response = await services.checkInQrCode(bookingId, tourId)
+            return res.status(response.status).json(response.data)
         } else {
-            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+            return res.status(StatusCodes.BAD_REQUEST).json(errors)
         }
     } catch (error) {
-        throw new InternalServerError(error);
+        throw new InternalServerError(error)
     }
 }
 const cancelBooking = async (req, res) => {
@@ -203,13 +203,13 @@ const cancelBooking = async (req, res) => {
         }
 
         if (Object.keys(errors).length === 0) {
-            const response = await services.cancelBooking(bookingId);
-            return res.status(response.status).json(response.data);
+            const response = await services.cancelBooking(bookingId)
+            return res.status(response.status).json(response.data)
         } else {
-            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+            return res.status(StatusCodes.BAD_REQUEST).json(errors)
         }
     } catch (error) {
-        throw new InternalServerError(error);
+        throw new InternalServerError(error)
     }
 }
 
