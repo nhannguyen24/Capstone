@@ -76,10 +76,8 @@ const getBuses = async (req) => {
     }
 }
 
-const getBusById = async (req) => {
+const getBusById = async (busId) => {
     try {
-        const busId = req.params.id
-
         const bus = await db.Bus.findOne({
             where: {
                 busId: busId
@@ -255,10 +253,8 @@ const updateBus = async (req) => {
     }
 }
 
-const deleteBus = async (req) => {
+const deleteBus = async (busId) => {
     try {
-        const busId = req.params.id
-
         const bus = await db.Bus.findOne({
             where: {
                 busId: busId

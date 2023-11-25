@@ -6,7 +6,7 @@ const { StatusCodes } = require('http-status-codes');
 
 const getStatistics = async (req, res) => {
     try {
-        const errors = []
+        const errors = {}
         const bookingStatusEnumArray = [BookingStatusEnum.ON_GOING, BookingStatusEnum.CANCELED, BookingStatusEnum.FINISHED]
         const tourStatusEnumArray = [TourStatusEnum.AVAILABLE, TourStatusEnum.STARTED, TourStatusEnum.CANCELED, TourStatusEnum.FINISHED]
         const bookingStatus = req.query.bookingStatus
@@ -16,7 +16,7 @@ const getStatistics = async (req, res) => {
             const bookingStatusArray = bookingStatus.split(',')
             for (const status of bookingStatusArray) {
                 if (!bookingStatusEnumArray.includes(status)) {
-                    errors.push(`Invalid booking status: ${status}`);
+                    errors.bookingStatus = `Invalid booking status: ${status}`
                 }
             }
         }
@@ -24,11 +24,11 @@ const getStatistics = async (req, res) => {
             const tourStatusArray = tourStatus.split(',')
             for (const status of tourStatusArray) {
                 if (!tourStatusEnumArray.includes(status)) {
-                    errors.push(`Invalid tour status: ${status}`);
+                    errors.tourStatus = `Invalid tour status: ${status}`
                 }
             }
         }
-        if (errors.length === 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.getStatistics(req);
             return res.status(response.status).json(response.data);
         } else {

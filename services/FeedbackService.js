@@ -70,9 +70,8 @@ const getFeedbacks = async (req) => {
     }
 }
 
-const getFeedbackById = async (req) => {
+const getFeedbackById = async (feedbackId) => {
     try {
-        const feedbackId = req.params.id
         const feedback = await db.Feedback.findOne({
             where: {
                 feedbackId: feedbackId
@@ -276,10 +275,8 @@ const updateFeedback = async (req) => {
     }
 }
 
-const deleteFeedback = async (req) => {
+const deleteFeedback = async (feedbackId) => {
     try {
-        const feedbackId = req.params.id
-
         const feedback = await db.Feedback.findOne({
             where: {
                 feedbackId: feedbackId
