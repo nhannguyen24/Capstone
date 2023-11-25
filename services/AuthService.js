@@ -79,7 +79,7 @@ const login = ({ email, password }) => new Promise(async (resolve, reject) => {
     resolve({
       status: accessToken ? StatusCodes.OK : StatusCodes.UNAUTHORIZED,
       data: {
-        msg: accessToken ? 'Login is successfully' : response ? 'Password is wrong' : 'Not found user account!',
+        msg: accessToken ? 'Login is successfully' : response ? 'Incorrect email or password!' : 'Incorrect email or password!',
         'accessToken': accessToken ? `${accessToken}` : accessToken,
         'refreshToken': refreshToken,
         user: isChecked ? response : null
