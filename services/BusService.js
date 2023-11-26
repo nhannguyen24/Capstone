@@ -221,7 +221,7 @@ const updateBus = async (req) => {
                     return{
                         status: StatusCodes.CONFLICT,
                         data: {
-                            msg: `Cannot update bus status because currently has on going tour`,
+                            msg: `Cannot update bus status because bus currently has an on going tour`,
                             tour: tour
                         }
                     }
@@ -284,7 +284,7 @@ const deleteBus = async (busId) => {
             return{
                 status: StatusCodes.CONFLICT,
                 data: {
-                    msg: `Cannot update bus status to Deactive because it currently has ongoing tour`,
+                    msg: `Cannot update bus status to Deactive because bus is currently has an ongoing tour`,
                     tour: tour
                 }
             }
