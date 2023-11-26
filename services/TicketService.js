@@ -101,9 +101,8 @@ const getTickets = async (req) => {
     }
 }
 
-const getTicketById = async (req) => {
+const getTicketById = async (ticketId) => {
     try {
-        const ticketId = req.params.id
         const ticket = await db.Ticket.findOne({
             where: {
                 ticketId: ticketId
@@ -390,9 +389,8 @@ const updateTicket = async (req) => {
     }
 }
 
-const deleteTicket = async (req) => {
+const deleteTicket = async (ticketId) => {
     try {
-        const ticketId = req.params.id
         const ticket = await db.Ticket.findOne({
             where: {
                 ticketId: ticketId

@@ -65,23 +65,40 @@ const logout = async (req, res) => {
 const register = async (req, res) => {
     try {
         const {email: email, password: password, confirmPass: confirmPass} = req.body;
-        const errors = [];
+        const errors = {}
 
-        if(email.trim() === "") {
-            errors.push('Please provide email');
-        }
-        if(password.trim() === "") {
-            errors.push('Please provide password');
-        }
-        if(confirmPass.trim() === "") {
-            errors.push('Please provide password');
-        }
-
-        if (errors.length == 0) {
-            const response = await services.register(req.body);
-            return res.status(response.status).json(response.data);
+        if(!email){
+            errors.email = "Email required!"
         } else {
-            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+            if (!emailRegex.test(email)) {
+                errors.email = "Invalid email format!";
+            }
+        }
+
+        if(password.trim() === "") {
+            errors.password = "Password required!"
+        } else {
+            if (/\s/.test(password)) {
+                errors.password = "Password cannot contain whitespace!"
+            } else if (password.trim().length < 6) {
+                errors.password = "Password must be at least 6 characters long!"
+            }
+        }
+
+        if(confirmPass.trim() === "") {
+            errors.confirmPass = "Confirm password required!"
+        }
+        if(password.trim() !== confirmPass.trim()){
+            errors.confirmPass = "Both password are not the same!"
+        }
+
+        if(Object.keys(errors).length === 0){
+            const response = await services.register(req.body)
+            return res.status(response.status).json(response.data)
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors)
         }
     } catch (error) {
         throw new InternalServerError(error);
@@ -113,33 +130,39 @@ const login = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
     try {
-        const errors = [];
+        const errors = {}
         const email = req.body.email || "";
         const newPassword = req.body.newPassword || "";
         const confirmPassword = req.body.confirmPassword || "";
         if(email.trim() === ""){
-            errors.push("Email required!")
+            errors.email = "Email required!"
+        }else {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+            if (!emailRegex.test(email)) {
+                errors.email = "Invalid email format!";
+            }
         }
 
         if(newPassword.trim() === "") {
-            errors.push("New password required!")
+            errors.newPassword = "New password required!"
         } else {
             if (/\s/.test(newPassword)) {
-                errors.push("Password cannot contain whitespace.");
+                errors.newPassword = "Password cannot contain whitespace!"
             }
         
             if (newPassword.length < 6) {
-                errors.push("Password must be at least 6 characters long.");
+                errors.newPassword = "Password must be at least 6 characters long!"
             }
         }
 
         if(confirmPassword.trim() === "") {
-            errors.push("Confirm password required!")
+            errors.confirmPassword = "Confirm password required!"
         }
         if(newPassword !== confirmPassword){
-            errors.push("Both password are not the same!")
+            errors.confirmPassword = "Both password are not the same!"
         }
-        if(errors.length === 0){
+        if(Object.keys(errors).length === 0){
             const response = await services.forgotPassword(req);
             return res.status(response.status).json(response.data);
         } else {

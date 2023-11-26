@@ -21,9 +21,8 @@ const getTicketTypes = async (req) => {
     }
 }
 
-const getTicketTypeById = async (req) => {
+const getTicketTypeById = async (ticketTypeId) => {
     try {
-        const ticketTypeId = req.params.id
         const ticketType = await db.TicketType.findOne({
             where: {
                 ticketTypeId: ticketTypeId

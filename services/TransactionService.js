@@ -86,9 +86,8 @@ const getTransactions = async (req) => {
     }
 }
 
-const getTransactionById = async (req) => {
+const getTransactionById = async (transactionId) => {
     try {
-        const transactionId = req.params.id
         const transaction = await db.Transaction.findOne({
             where: {
                 transtionId: transactionId

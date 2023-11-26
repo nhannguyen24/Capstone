@@ -9,13 +9,16 @@ const getFeedbacks = async (req) => {
         const limit = parseInt(req.query.limit)
         const offset = (page - 1) * limit
         const routeId = req.query.routeId || ""
+        const userId = req.query.userId || ""
 
         let whereClause = {}
 
-        if (routeId !== "") {
+        if (routeId.trim() !== "") {
             whereClause.routeId = routeId
         }
-
+        if (userId.trim() !== "") {
+            whereClause.userId = userId
+        }
 
         const feedbacks = await db.Feedback.findAll({
             where: whereClause,
@@ -70,9 +73,8 @@ const getFeedbacks = async (req) => {
     }
 }
 
-const getFeedbackById = async (req) => {
+const getFeedbackById = async (feedbackId) => {
     try {
-        const feedbackId = req.params.id
         const feedback = await db.Feedback.findOne({
             where: {
                 feedbackId: feedbackId
@@ -276,10 +278,8 @@ const updateFeedback = async (req) => {
     }
 }
 
-const deleteFeedback = async (req) => {
+const deleteFeedback = async (feedbackId) => {
     try {
-        const feedbackId = req.params.id
-
         const feedback = await db.Feedback.findOne({
             where: {
                 feedbackId: feedbackId

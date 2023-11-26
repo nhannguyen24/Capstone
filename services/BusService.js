@@ -76,10 +76,8 @@ const getBuses = async (req) => {
     }
 }
 
-const getBusById = async (req) => {
+const getBusById = async (busId) => {
     try {
-        const busId = req.params.id
-
         const bus = await db.Bus.findOne({
             where: {
                 busId: busId
@@ -223,7 +221,7 @@ const updateBus = async (req) => {
                     return{
                         status: StatusCodes.CONFLICT,
                         data: {
-                            msg: `Cannot update bus status because currently has on going tour`,
+                            msg: `Cannot update bus status because bus currently has an on going tour`,
                             tour: tour
                         }
                     }
@@ -255,10 +253,8 @@ const updateBus = async (req) => {
     }
 }
 
-const deleteBus = async (req) => {
+const deleteBus = async (busId) => {
     try {
-        const busId = req.params.id
-
         const bus = await db.Bus.findOne({
             where: {
                 busId: busId
@@ -288,7 +284,7 @@ const deleteBus = async (req) => {
             return{
                 status: StatusCodes.CONFLICT,
                 data: {
-                    msg: `Cannot update bus status to Deactive because it currently has ongoing tour`,
+                    msg: `Cannot update bus status to Deactive because bus is currently has an ongoing tour`,
                     tour: tour
                 }
             }

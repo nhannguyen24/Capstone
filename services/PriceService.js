@@ -72,9 +72,9 @@ const getPrices = async (req) => {
     }
 }
 
-const getPriceById = async (req) => {
+const getPriceById = async (priceId) => {
     try {
-        const priceId = req.params.id
+
         const price = await db.Price.findOne({
             where: {
                 priceId: priceId

@@ -9,10 +9,8 @@ const OTP_TYPE = require("../enums/OtpTypeEnum")
 const OtpService = require("./OtpService")
 const PaymentService = require("./PaymentService")
 
-const getBookingDetailByBookingId = async (req) => {
+const getBookingDetailByBookingId = async (bookingId) => {
     try {
-        const bookingId = req.params.id
-
         const booking = await db.Booking.findOne({
             raw: true,
             nest: true,
@@ -432,10 +430,10 @@ const getBookingsByEmail = async (req) => {
         })
 
         if (!otp) {
-            return{
-                status: StatusCodes.NOT_FOUND,
+            return {
+                status: StatusCodes.FORBIDDEN,
                 data: {
-                    msg: `OTP not found!`,
+                    msg: `Action not allow, Please validate OTP!`,
                 }
             }
         }
@@ -719,23 +717,21 @@ const createBookingWeb = async (req) => {
         })
 
         if (!otp) {
-            return({
+            return{
                 status: StatusCodes.FORBIDDEN,
                 data: {
                     msg: `Action not allow, Please validate OTP!`,
                 }
-            });
-            return
+            }
         }
 
         if (!otp.isAllow) {
-            return({
+            return{
                 status: StatusCodes.FORBIDDEN,
                 data: {
                     msg: `Action not allow, Please validate OTP!`,
                 }
-            });
-            return
+            } 
         }
 
 
@@ -1402,21 +1398,21 @@ const cancelBooking = async (bookingId) => {
             }
         })
         if (!otp) {
-            return({
-                status: StatusCodes.NOT_FOUND,
-                data: {
-                    msg: `OTP not found! Try resend OTP`,
-                }
-            })
-        }
-        
-        if (!otp.isAllow) {
-            return({
+            return {
                 status: StatusCodes.FORBIDDEN,
                 data: {
                     msg: `Action not allow, Please validate OTP!`,
                 }
-            })
+            }
+        }
+        
+        if (!otp.isAllow) {
+            return {
+                status: StatusCodes.FORBIDDEN,
+                data: {
+                    msg: `Action not allow, Please validate OTP!`,
+                }
+            }
         }
 
         if (BOOKING_STATUS.CANCELED === bookingDetail.detail_booking.bookingStatus) {
