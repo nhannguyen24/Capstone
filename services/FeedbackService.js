@@ -9,13 +9,16 @@ const getFeedbacks = async (req) => {
         const limit = parseInt(req.query.limit)
         const offset = (page - 1) * limit
         const routeId = req.query.routeId || ""
+        const userId = req.query.userId || ""
 
         let whereClause = {}
 
-        if (routeId !== "") {
+        if (routeId.trim() !== "") {
             whereClause.routeId = routeId
         }
-
+        if (userId.trim() !== "") {
+            whereClause.userId = userId
+        }
 
         const feedbacks = await db.Feedback.findAll({
             where: whereClause,

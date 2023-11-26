@@ -438,23 +438,29 @@ const getMoMoPaymentResponse = (req) =>
         }
     })
 
-function calculateTotalTime(routeSegments, startTime, departureStationId) {
-    const velocityKmPerHour = 20
-    const velocityMetersPerMillisecond = (velocityKmPerHour * 1000) / (60 * 60 * 1000)
-
-    let totalSegmentTime = 0
-    for (const segment of routeSegments) {
-        if (segment.departureStationId === departureStationId) {
-            break
+    function calculateTotalTime(routeSegments, startTime, departureStationId) {
+        const averageSpeedKmPerHour = 30
+        const metersPerKilometer = 1000
+        const millisecondsPerHour = 60 * 60 * 1000
+        const additionalTimeAtStation = 5 * 60 * 1000 // 5 minutes in milliseconds
+    
+        const averageSpeedMetersPerMillisecond = (averageSpeedKmPerHour * metersPerKilometer) / millisecondsPerHour
+    
+        let totalSegmentTime = 0
+    
+        for (const segment of routeSegments) {
+            if (segment.departureStationId === departureStationId) {
+                break
+            }
+    
+            const timeTaken = (segment.distance / averageSpeedMetersPerMillisecond) + additionalTimeAtStation
+            totalSegmentTime += timeTaken
         }
-        //Calculate time taken of bus run through all station before getting to booked departure station
-        const timeTaken = (segment.distance / velocityMetersPerMillisecond) + (5 * 60 * 1000)
-        totalSegmentTime += timeTaken
+    
+        const estimatedArrivalTime = startTime + totalSegmentTime
+    
+        return new Date(estimatedArrivalTime)
     }
-
-    const totalTime = startTime + totalSegmentTime
-    return new Date(totalTime)
-}
 
 const paymentOffline = (bookingId) => new Promise(async (resolve, reject) => {
     try {

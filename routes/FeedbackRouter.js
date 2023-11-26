@@ -33,6 +33,11 @@ const router = express.Router();
  *         schema:
  *           type: string
  *         description: Search feedback by route
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         description: Search feedback by userId
  *     responses:
  *       200:
  *         description: OK
