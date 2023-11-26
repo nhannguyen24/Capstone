@@ -136,9 +136,51 @@ const updateDeviceToken = (id, body) =>
         }
     });
 
+const deleteNotification = (id) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            const findNotification = await db.Notification.findOne({
+                raw: true, nest: true,
+                where: { notiId: id },
+            });
+
+            if (findNotification.status === "Deactive") {
+                resolve({
+                    status: StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg: "The notification already deactive!",
+                    }
+                });
+                return;
+            }
+
+            const notifications = await db.Notification.update(
+                { status: "Deactive" },
+                {
+                    where: { notiId: id },
+                    individualHooks: true,
+                }
+            );
+            resolve({
+                status: notifications[0] > 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
+                data: {
+                    msg:
+                        notifications[0] > 0
+                            ? `${notifications[0]} notification delete`
+                            : "Cannot delete notification/ notiId not found",
+                }
+            });
+
+        } catch (error) {
+            reject(error);
+        }
+    });
+
 module.exports = {
     updateDeviceToken,
     getAllNotification,
     getNotificationById,
+    deleteNotification,
+
 };
 

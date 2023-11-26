@@ -152,7 +152,7 @@ router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createFileSou
  *     tags: [FileSound]
  *     parameters:
  *       - in: path
- *         name: soundId
+ *         name: id
  *         schema:
  *           type: string
  *         required: true
@@ -188,7 +188,7 @@ router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updateFileS
  *     summary: Delete the sounds by id
  *     tags: [FileSound]
  *     parameters:
- *       - name: soundId
+ *       - name: id
  *         in: path
  *         schema:
  *           type: string

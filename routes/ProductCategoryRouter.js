@@ -139,7 +139,7 @@ router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createProduct
  *     tags: [ProductCategory]
  *     parameters:
  *       - in: path
- *         name: productCateId
+ *         name: id
  *         schema:
  *           type: string
  *         required: true
@@ -173,7 +173,7 @@ router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updateProdu
  *     summary: Delete the productCates by id
  *     tags: [ProductCategory]
  *     parameters:
- *       - name: productCateId
+ *       - name: id
  *         in: path
  *         schema:
  *           type: string

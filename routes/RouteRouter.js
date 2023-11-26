@@ -167,7 +167,7 @@ router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createRoute);
  *     tags: [Route]
  *     parameters:
  *       - in: path
- *         name: routeId
+ *         name: id
  *         schema:
  *           type: string
  *         required: true
@@ -201,7 +201,7 @@ router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updateRoute
  *     summary: Delete the routes by id
  *     tags: [Route]
  *     parameters:
- *       - name: routeId
+ *       - name: id
  *         in: path
  *         schema:
  *           type: string

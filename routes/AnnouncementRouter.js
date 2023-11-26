@@ -143,7 +143,7 @@ router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createAnnounc
  *     tags: [Announcement]
  *     parameters:
  *       - in: path
- *         name: announcementId
+ *         name: id
  *         schema:
  *           type: string
  *         required: true
@@ -178,7 +178,7 @@ router.put("/", verifyToken, roleAuthen(["Manager"]), controllers.updateAnnounce
  *     summary: Delete the announcements by id
  *     tags: [Announcement]
  *     parameters:
- *       - name: announcementId
+ *       - name: id
  *         in: path
  *         schema:
  *           type: string

@@ -51,4 +51,24 @@ const updateDeviceToken = async (req, res) => {
     }
 };
 
-module.exports = {getAllNotification, updateDeviceToken, getNotificationById};
+const deleteNotification = async (req, res) => {
+    try {
+        const {id} = req.params;
+        const errors = [];
+        
+        if(id.trim() === "") {
+            errors.push('Please provide id');
+        }
+
+        if (errors.length == 0) {
+            const response = await services.deleteNotification(id);
+            return res.status(response.status).json(response.data);
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
+        }
+    } catch (error) {
+        throw new InternalServerError(error);
+    }
+};
+
+module.exports = {getAllNotification, updateDeviceToken, getNotificationById, deleteNotification};

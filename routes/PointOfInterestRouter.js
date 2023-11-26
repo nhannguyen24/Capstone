@@ -161,7 +161,7 @@ router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createPointOf
  *     tags: [Point Of Interest]
  *     parameters:
  *       - in: path
- *         name: poiId
+ *         name: id
  *         schema:
  *           type: string
  *         required: true
@@ -201,7 +201,7 @@ router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updatePoint
  *     summary: Delete the pois by id
  *     tags: [Point Of Interest]
  *     parameters:
- *       - name: poiId
+ *       - name: id
  *         in: path
  *         schema:
  *           type: string

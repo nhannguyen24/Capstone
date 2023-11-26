@@ -139,7 +139,7 @@ router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createLanguag
  *     tags: [Language]
  *     parameters:
  *       - in: path
- *         name: languageId
+ *         name: id
  *         schema:
  *           type: string
  *         required: true
@@ -173,7 +173,7 @@ router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updateLangu
  *     summary: Delete the languages by id
  *     tags: [Language]
  *     parameters:
- *       - name: languageId
+ *       - name: id
  *         in: path
  *         schema:
  *           type: string
