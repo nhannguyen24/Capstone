@@ -148,4 +148,30 @@ router.get("/:id", verifyToken, controllers.getNotificationById);
  */
 router.put("/:id", verifyToken, controllers.updateDeviceToken);
 
+/**
+ * @swagger
+ * /api/v1/notifications/{id}:
+ *   delete:
+ *     security: 
+ *         - BearerAuth: []
+ *     summary: Delete the notifications by id
+ *     tags: [Notification]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         schema:
+ *           type: string
+ *         description: Input notificationId to delete
+ *     responses:
+ *       200:
+ *         description: Delete the notifications by id successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Notification'
+ */
+router.delete("/:id", verifyToken, controllers.deleteNotification);
+
 module.exports = router;

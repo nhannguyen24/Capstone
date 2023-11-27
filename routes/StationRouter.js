@@ -160,7 +160,7 @@ router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createStation
  *     tags: [Station]
  *     parameters:
  *       - in: path
- *         name: stationId
+ *         name: id
  *         schema:
  *           type: string
  *         required: true
@@ -198,7 +198,7 @@ router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updateStati
  *     summary: Delete the stations by id
  *     tags: [Station]
  *     parameters:
- *       - name: stationId
+ *       - name: id
  *         in: path
  *         schema:
  *           type: string

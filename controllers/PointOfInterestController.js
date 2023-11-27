@@ -43,10 +43,10 @@ const createPointOfInterest = async (req, res) => {
         if(address.trim() === "") {
             errors.push('Please provide address');
         }
-        if(latitude.trim() === "") {
+        if(!latitude) {
             errors.push('Please provide latitude');
         }
-        if(longitude.trim() === "") {
+        if(!longitude) {
             errors.push('Please provide longitude');
         }
 

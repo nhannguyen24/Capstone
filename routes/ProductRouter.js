@@ -153,7 +153,7 @@ router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createProduct
  *     tags: [Product]
  *     parameters:
  *       - in: path
- *         name: productId
+ *         name: id
  *         schema:
  *           type: string
  *         required: true
@@ -191,7 +191,7 @@ router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updateProdu
  *     summary: Delete the products by id
  *     tags: [Product]
  *     parameters:
- *       - name: productId
+ *       - name: id
  *         in: path
  *         schema:
  *           type: string

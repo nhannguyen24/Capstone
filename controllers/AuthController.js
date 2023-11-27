@@ -124,7 +124,6 @@ const login = async (req, res) => {
             return res.status(StatusCodes.BAD_REQUEST).json(errors);
         }
     } catch (error) {
-        console.log(error);
         throw new InternalServerError(error);
     }
 }
