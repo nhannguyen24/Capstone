@@ -113,6 +113,8 @@ const createBookingWeb = async (req, res) => {
         const errors = {}
         const totalPrice = req.body.totalPrice || ""
         const departureStationId = req.body.departureStationId || ""
+        const user = req.body.user
+        const tickets = req.body.tickets
         if (totalPrice === "") {
             errors.totalPrice = "totalPrice required!"
         } else {
@@ -126,6 +128,31 @@ const createBookingWeb = async (req, res) => {
         }
         if (departureStationId.trim() === "") {
             errors.departureStationId = "departureStationId required!"
+        }
+        if(user.userName === null && user.userName === undefined && user.userName.trim() === ""){
+            errors.userName = "userName required!"
+        }
+        if(user.email === null && user.email === undefined && user.email.trim() === ""){
+            errors.email = "Email required!"
+        } else {
+            const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
+             if (!emailRegex.test(user.email)) {
+                errors.email = "Invalid email address!"
+            }
+        }
+        if(user.phone === null && user.phone === undefined && user.phone.trim() === ""){
+            errors.phone = "phone required!"
+        } else {
+            const cleanedPhone = user.phone.replace(/\s/g, '')
+            if (!/^\d+$/.test(cleanedPhone)) {
+                errors.phone = "Phone can only contain digits!";
+            } else if(user.cleanedPhone.length !== 10) {
+                errors.phone = "Phone need to be length of 10 digits!"
+            }
+        }
+
+        for (const ticket of tickets) {
+            ticket.quantity 
         }
 
         if (Object.keys(errors).length === 0) {

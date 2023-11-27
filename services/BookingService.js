@@ -305,7 +305,7 @@ const getBookings = async (req) => {
                             },
                         }
                     ],
-                    attributes: ["bookingId", "quantity"],
+                    attributes: ["bookingId", "quantity", "TicketPrice"],
                 })
                 const transaction = await db.Transaction.findOne({
                     where: {
@@ -597,7 +597,7 @@ const getBookingsByEmail = async (req) => {
                             },
                         }
                     ],
-                    attributes: ["bookingId", "quantity"],
+                    attributes: ["bookingId", "quantity", "TicketPrice"],
                 })
                 const transaction = await db.Transaction.findOne({
                     where: {
@@ -699,7 +699,7 @@ const createBookingWeb = async (req) => {
         })
         if ("58c10546-5d71-47a6-842e-84f5d2f72ec3" !== resultUser[0].dataValues.roleId) {
             return {
-                status: StatusCodes.FORBIDDEN,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Role not allow for this action`,
                 }
@@ -1010,7 +1010,7 @@ const createBookingOffline = async (req) => {
 
         if ("58c10546-5d71-47a6-842e-84f5d2f72ec3" !== roleId) {
             return {
-                status: StatusCodes.FORBIDDEN,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Role not allow for this action`,
                 }
@@ -1189,7 +1189,7 @@ const createBookingOffline = async (req) => {
                     distanceToBookedDepartureStation += parseFloat(segment.distance)
                 }
                 totalDistance += parseFloat(segment.distance)
-            }
+            }  
             const discountPercentage = parseFloat(distanceToBookedDepartureStation) / parseFloat(totalDistance)
             /**
              * 0.5 = 50%
@@ -1201,7 +1201,6 @@ const createBookingOffline = async (req) => {
                     totalPrice = totalPrice * discountPercentage
                 }
             }
-
         }
         /**
          * Begin booking creation process and roll back if error
