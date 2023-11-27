@@ -146,13 +146,17 @@ const createBookingWeb = async (req, res) => {
             const cleanedPhone = user.phone.replace(/\s/g, '')
             if (!/^\d+$/.test(cleanedPhone)) {
                 errors.phone = "Phone can only contain digits!";
-            } else if(user.cleanedPhone.length !== 10) {
+            } else if(cleanedPhone.length !== 10) {
                 errors.phone = "Phone need to be length of 10 digits!"
             }
         }
 
         for (const ticket of tickets) {
-            ticket.quantity 
+            if (isNaN(ticket.quantity)) {
+                errors.ticket(`Ticket quantity must be a number!`)
+            } else if(ticket.quantity < 0){
+                errors.ticket(`Ticket quantity must be atleast 0!`)
+            }
         }
 
         if (Object.keys(errors).length === 0) {
