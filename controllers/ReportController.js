@@ -68,7 +68,7 @@ const createReport = async (req, res) => {
         const description = req.body.description || ""
 
         if (reportUserId.trim() === "") {
-            errors.reportUserId = "Report user id required!"
+            errors.reportUserId = "Report user required!"
         }
 
         if(title.trim() === ""){

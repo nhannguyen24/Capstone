@@ -127,7 +127,7 @@ const createFeedback = async (req) => {
             return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
-                    msg: `User not found!"`
+                    msg: `User not found!`
                 }
             }
         }
@@ -143,7 +143,7 @@ const createFeedback = async (req) => {
             return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
-                    msg: `Route not found!"`
+                    msg: `Route not found!`
                 }
             }
         }
