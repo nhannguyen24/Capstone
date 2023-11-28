@@ -4,95 +4,92 @@ const { StatusCodes } = require('http-status-codes')
 
 const getAllUsers = async (req, res) => {
     try {
-        const { roleName } = req.user
-        const response = await services.getAllUsers(req.query, roleName)
-        return res.status(response.status).json(response.data)
+        const { roleName } = req.user;
+        const response = await services.getAllUsers(req.query, roleName);
+        return res.status(response.status).json(response.data);
     } catch (error) {
-        console.log(error)
-        throw new InternalServerError(error)
+        throw new InternalServerError(error);
     }
 }
 
 const createUser = async (req, res) => {
     try {
-        const {userName, email, roleId} = req.body
-        const errors = []
+        const {userName, email, roleId} = req.body;
+        const errors = {};
 
         if(userName.trim() === "") {
-            errors.push('Please provide userName')
+            errors.userName = 'Please provide userName';
         }
         if(email.trim() === "") {
-            errors.push('Please provide email')
+            errors.email = 'Please provide email';
         }
         if(roleId.trim() === "") {
-            errors.push('Please provide roleId')
+            errors.roleId = 'Please provide roleId';
         }
 
-        if (errors.length == 0) {
-            const response = await services.createUser(req.body)
-            return res.status(response.status).json(response.data)
+        if (Object.keys(errors).length === 0) {
+            const response = await services.createUser(req.body);
+            return res.status(response.status).json(response.data);
         } else {
-            return res.status(StatusCodes.BAD_REQUEST).json(errors)
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
         }
     } catch (error) {
-        console.log(error)
-        throw new InternalServerError(error)
+        throw new InternalServerError(error);
     }
 }
 
 const updateUser = async (req, res) => {
     try {
-        const {id} = req.params
-        const errors = []
+        const {id} = req.params;
+        const errors = {};
 
         if(id.trim() === "") {
-            errors.push('Please provide id')
+            errors.id = 'Please provide id';
         }
 
-        if (errors.length == 0) {
-            const response = await services.updateUser(id, req.body)
-            return res.status(response.status).json(response.data)
+        if (Object.keys(errors).length === 0) {
+            const response = await services.updateUser(id, req.body);
+            return res.status(response.status).json(response.data);
         } else {
-            return res.status(StatusCodes.BAD_REQUEST).json(errors)
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
         }
         
     } catch (error) {
-        throw new InternalServerError(error)
+        throw new InternalServerError(error);
     }
 }
 
 const changeUserPassword = async (req, res) => {
     try {
-        const errors = {}
-        const newPassword = req.body.newPassword || ""
-        const confirmPassword = req.body.confirmPassword || ""
+        const errors = {};
+        const newPassword = req.body.newPassword || "";
+        const confirmPassword = req.body.confirmPassword || "";
         if(newPassword.trim() === "") {
-            errors.newPassword = "New password required!"
+            errors.newPassword = "New password required!";
         } else {
             if (/\s/.test(newPassword)) {
-                errors.newPassword = "Password cannot contain whitespace!"
+                errors.newPassword = "Password cannot contain whitespace!";
             }
         
             if (newPassword.length < 6) {
-                errors.newPassword = "Password must be at least 6 characters long!"
+                errors.newPassword = "Password must be at least 6 characters long!";
             }
         }
 
         if(confirmPassword.trim() === "") {
-            errors.confirmPassword = "Confirm password required!"
+            errors.confirmPassword = "Confirm password required!";
         }
         if(newPassword !== confirmPassword){
-            errors.password = "Both password are not the same!"
+            errors.password = "Both password are not the same!";
         }
         if(Object.keys(errors).length === 0){
-            const response = await services.changeUserPassword(req)
-            return res.status(response.status).json(response.data)
+            const response = await services.changeUserPassword(req);
+            return res.status(response.status).json(response.data);
         } else {
-            return res.status(StatusCodes.BAD_REQUEST).json(errors)
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
         }
     } catch (error) {
-        console.log(error)
-        throw new InternalServerError(error)
+        throw new InternalServerError(error);
     }
 }
 
@@ -114,45 +111,43 @@ const changeUserPassword = async (req, res) => {
 
 const deleteUser = async (req, res) => {
     try {
-        const {userId} = req.user
-        const {id} = req.params
-        const errors = []
+        const {userId} = req.user;
+        const {id} = req.params;
+        const errors = {};
 
         if(id.trim() === "") {
-            errors.push('Please provide id')
+            errors.id = 'Please provide id';
         }
 
-        if (errors.length == 0) {
-            const response = await services.deleteUser(id, userId)
-            return res.status(response.status).json(response.data)
+        if (Object.keys(errors).length === 0) {
+            const response = await services.deleteUser(id, userId);
+            return res.status(response.status).json(response.data);
         } else {
-            return res.status(StatusCodes.BAD_REQUEST).json(errors)
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
         }
         
     } catch (error) {
-        console.log(error)
-        throw new InternalServerError(error)
+        throw new InternalServerError(error);
     }
 }
 
 const getUserById = async (req, res) => {
     try {
-        const { id: userId } = req.params
-        const errors = []
+        const { id: userId } = req.params;
+        const errors = {};
 
         if (userId.trim() === "") {
-            errors.push('Please provide userId')
+            errors.userId = 'Please provide id';
         }
         
-        if (errors.length == 0) {
-            const response = await services.getUserById(userId)
-            return res.status(response.status).json(response.data)
+        if (Object.keys(errors).length === 0) {
+            const response = await services.getUserById(userId);
+            return res.status(response.status).json(response.data);
         } else {
-            return res.status(StatusCodes.BAD_REQUEST).json(errors)
+            return res.status(StatusCodes.BAD_REQUEST).json(errors);
         }
     } catch (error) {
-        console.log(error)
-        throw new InternalServerError(error.message)
+        throw new InternalServerError(error.message);
     }
 }
 

@@ -13,20 +13,19 @@ const getAllForm = async (req, res) => {
 const getFormById = async (req, res) => {
     try {
         const { id: formId } = req.params;
-        const errors = [];
+        const errors = {};
 
         if(formId.trim() === "") {
-            errors.push('Please provide formId');
+            errors.formId = 'Please provide formId';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.getFormById(formId);
             return res.status(response.status).json(response.data);
         } else {
             return res.status(StatusCodes.BAD_REQUEST).json(errors);
         }
     } catch (error) {
-        console.log(error);
         throw new InternalServerError(error.message);
     }
 };
@@ -35,20 +34,19 @@ const createForm = async (req, res) => {
     try {
         const { userId } = req.user;
         const {currentTour} = req.body;
-        const errors = [];
+        const errors = {};
 
         if(currentTour.trim() === "") {
-            errors.push('Please provide currentTour');
+            errors.currentTour = 'Please provide currentTour';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.createForm(req.body, userId);
             return res.status(response.status).json(response.data);
         } else {
             return res.status(StatusCodes.BAD_REQUEST).json(errors);
         }
     } catch (error) {
-        console.log(error);
         throw new InternalServerError(error);
     }
 };
@@ -56,13 +54,13 @@ const createForm = async (req, res) => {
 const updateForm = async (req, res) => {
     try {
         const {id} = req.params;
-        const errors = [];
+        const errors = {};
 
         if(id.trim() === "") {
-            errors.push('Please provide id');
+            errors.id = 'Please provide id';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.updateForm(id, req.body);
             return res.status(response.status).json(response.data);
         } else {

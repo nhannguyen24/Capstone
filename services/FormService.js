@@ -185,7 +185,7 @@ const createForm = (body, userId) =>
 
             const createNoti = await db.Notification.create({
                 title: "Đổi ca",
-                body: "Có 1 nhân viên gửi form đổi ca cho bạn!",
+                body: "Có 1 nhân viên đã gửi đổi ca cho bạn!",
                 deviceToken: changeEmployee.deviceToken,
                 notiType: "Đổi ca",
                 userId: body.changeEmployee
@@ -254,8 +254,8 @@ const updateForm = (id, body) =>
                     })
 
                     const createNoti = await db.Notification.create({
-                        title: "Đổi ca",
-                        body: "Quản lý đã chấp nhận form của bạn!",
+                        title: "Phản hồi đổi ca",
+                        body: "Quản lý đã chấp nhận yêu cầu của bạn!",
                         deviceToken: changeEmployee.deviceToken,
                         notiType: "Đổi ca",
                         userId: body.changeEmployee

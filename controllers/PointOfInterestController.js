@@ -14,20 +14,19 @@ const getAllPointOfInterest = async (req, res) => {
 const getPointOfInterestById = async (req, res) => {
     try {
         const { id: poiId } = req.params;
-        const errors = [];
+        const errors = {};
 
         if(poiId.trim() === "") {
-            errors.push('Please provide poiId');
+            errors.poiId = 'Please provide poiId';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.getPointOfInterestById(poiId);
             return res.status(response.status).json(response.data);
         } else {
             return res.status(StatusCodes.BAD_REQUEST).json(errors);
         }
     } catch (error) {
-        console.log(error);
         throw new InternalServerError(error.message);
     }
 };
@@ -35,29 +34,28 @@ const getPointOfInterestById = async (req, res) => {
 const createPointOfInterest = async (req, res) => {
     try {
         const {poiName, address, latitude, longitude} = req.body;
-        const errors = [];
+        const errors = {};
 
         if(poiName.trim() === "") {
-            errors.push('Please provide poiName');
+            errors.poiName = 'Please provide poiName';
         }
         if(address.trim() === "") {
-            errors.push('Please provide address');
+            errors.address = 'Please provide address';
         }
         if(!latitude) {
-            errors.push('Please provide latitude');
+            errors.latitude = 'Please provide latitude';
         }
         if(!longitude) {
-            errors.push('Please provide longitude');
+            errors.longitude = 'Please provide longitude';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.createPointOfInterest(req.body);
             return res.status(response.status).json(response.data);
         } else {
             return res.status(StatusCodes.BAD_REQUEST).json(errors);
         }
     } catch (error) {
-        console.log(error);
         throw new InternalServerError(error);
     }
 };
@@ -65,13 +63,13 @@ const createPointOfInterest = async (req, res) => {
 const updatePointOfInterest = async (req, res) => {
     try {
         const {id} = req.params;
-        const errors = [];
+        const errors = {};
 
         if(id.trim() === "") {
-            errors.push('Please provide id');
+            errors.id = 'Please provide id';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.updatePointOfInterest(id, req.body);
             return res.status(response.status).json(response.data);
         } else {
@@ -85,20 +83,19 @@ const updatePointOfInterest = async (req, res) => {
 const deletePointOfInterest = async (req, res) => {
     try {
         const {id} = req.params;
-        const errors = [];
+        const errors = {};
 
         if(id.trim() === "") {
-            errors.push('Please provide id');
+            errors.id = 'Please provide id';
         }
         
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.deletePointOfInterest(id);
             return res.status(response.status).json(response.data);
         } else {
             return res.status(StatusCodes.BAD_REQUEST).json(errors);
         }
     } catch (error) {
-        console.log(error);
         throw new InternalServerError(error);
     }
 };

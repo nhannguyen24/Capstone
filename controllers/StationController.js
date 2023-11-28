@@ -14,13 +14,13 @@ const getAllStation = async (req, res) => {
 const getStationById = async (req, res) => {
     try {
         const { id: stationId } = req.params;
-        const errors = [];
+        const errors = {};
 
         if(stationId.trim() === "") {
-            errors.push('Please provide stationId');
+            errors.stationId = 'Please provide stationId';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.getStationById(stationId);
             return res.status(response.status).json(response.data);
         } else {
@@ -35,22 +35,22 @@ const getStationById = async (req, res) => {
 const createStation = async (req, res) => {
     try {
         const {stationName, address, latitude, longitude} = req.body;
-        const errors = [];
+        const errors = {};
 
         if(stationName.trim() === "") {
-            errors.push('Please provide stationName');
+            errors.stationName = 'Please provide stationName';
         }
         if(address.trim() === "") {
-            errors.push('Please provide address');
+            errors.address = 'Please provide address';
         }
         if(!latitude) {
-            errors.push('Please provide latitude');
+            errors.latitude = 'Please provide latitude';
         }
         if(!longitude) {
-            errors.push('Please provide longitude');
+            errors.longitude = 'Please provide longitude';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.createStation(req.body);
             return res.status(response.status).json(response.data);
         } else {
@@ -65,13 +65,13 @@ const createStation = async (req, res) => {
 const updateStation = async (req, res) => {
     try {
         const {id} = req.params;
-        const errors = [];
+        const errors = {};
 
         if(id.trim() === "") {
-            errors.push('Please provide id');
+            errors.id = 'Please provide id';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.updateStation(id, req.body);
             return res.status(response.status).json(response.data);
         } else {
@@ -85,13 +85,13 @@ const updateStation = async (req, res) => {
 const deleteStation = async (req, res) => {
     try {
         const {id} = req.params;
-        const errors = [];
+        const errors = {};
 
         if(id.trim() === "") {
-            errors.push('Please provide id');
+            errors.id = 'Please provide id';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.deleteStation(id);
             return res.status(response.status).json(response.data);
         } else {

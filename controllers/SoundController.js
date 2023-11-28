@@ -14,13 +14,13 @@ const getAllFileSound = async (req, res) => {
 const getFileSoundById = async (req, res) => {
     try {
         const { id: soundId } = req.params;
-        const errors = [];
+        const errors = {};
 
         if(soundId.trim() === "") {
-            errors.push('Please provide soundId');
+            errors.soundId = 'Please provide soundId';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.getFileSoundById(soundId);
             return res.status(response.status).json(response.data);
         } else {
@@ -35,13 +35,13 @@ const getFileSoundById = async (req, res) => {
 const createFileSound = async (req, res) => {
     try {
         const {file} = req.body;
-        const errors = [];
+        const errors = {};
 
         if(file.trim() === "") {
-            errors.push('Please provide file');
+            errors.file = 'Please provide file';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.createFileSound(req.body);
             return res.status(response.status).json(response.data);
         } else {
@@ -56,13 +56,13 @@ const createFileSound = async (req, res) => {
 const updateFileSound = async (req, res) => {
     try {
         const {id} = req.params;
-        const errors = [];
+        const errors = {};
 
         if(id.trim() === "") {
-            errors.push('Please provide id');
+            errors.id = 'Please provide id';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.updateFileSound(id, req.body);
             return res.status(response.status).json(response.data);
         } else {
@@ -76,13 +76,13 @@ const updateFileSound = async (req, res) => {
 const deleteFileSound = async (req, res) => {
     try {
         const {id} = req.params;
-        const errors = [];
+        const errors = {};
 
         if(id.trim() === "") {
-            errors.push('Please provide id');
+            errors.id = 'Please provide id';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.deleteFileSound(id);
             return res.status(response.status).json(response.data);
         } else {

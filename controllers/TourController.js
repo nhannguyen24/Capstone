@@ -14,13 +14,13 @@ const getAllTour = async (req, res) => {
 const getTourById = async (req, res) => {
     try {
         const { id: tourId } = req.params;
-        const errors = [];
+        const errors = {};
 
         if (tourId.trim() === "") {
-            errors.push('Please provide tourId');
+            errors.tourId = 'Please provide tourId';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.getTourById(tourId);
             return res.status(response.status).json(response.data);
         } else {
@@ -28,7 +28,6 @@ const getTourById = async (req, res) => {
         }
         
     } catch (error) {
-        console.log(error);
         throw new InternalServerError(error.message);
     }
 };
@@ -36,16 +35,16 @@ const getTourById = async (req, res) => {
 const createTour = async (req, res) => {
     try {
         const { tourName, routeId } = req.body;
-        const errors = [];
+        const errors = {};
 
         if (tourName.trim() === "") {
-            errors.push('Please provide tourName');
+            errors.tourName = 'Please provide tourName';
         }
         if (routeId.trim() === "") {
-            errors.push('Please provide routeId');
+            errors.routeId = 'Please provide routeId';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.createTour(req.body);
             return res.status(response.status).json(response.data);
         } else {
@@ -53,7 +52,6 @@ const createTour = async (req, res) => {
         }
         
     } catch (error) {
-        console.log(error);
         throw new InternalServerError(error);
     }
 };
@@ -71,7 +69,6 @@ const createTourByFile = async (req, res) => {
         const response = await services.createTourByFile(req);
         return res.status(response.status).json(response.data);
     } catch (error) {
-        console.log(error);
         throw new InternalServerError(error);
     }
 };
@@ -88,13 +85,13 @@ const assignTour = async (req, res) => {
 const updateTour = async (req, res) => {
     try {
         const { id } = req.params;
-        const errors = [];
+        const errors = {};
 
         if (id.trim() === "") {
-            errors.push('Please provide id');
+            errors.id = 'Please provide id';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.updateTour(id, req.body);
             return res.status(response.status).json(response.data);
         } else {
@@ -108,20 +105,19 @@ const updateTour = async (req, res) => {
 const deleteTour = async (req, res) => {
     try {
         const { id } = req.params;
-        const errors = [];
+        const errors = {};
 
         if (id.trim() === "") {
-            errors.push('Please provide id');
+            errors.id = 'Please provide id';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.deleteTour(id);
             return res.status(response.status).json(response.data);
         } else {
             return res.status(StatusCodes.BAD_REQUEST).json(errors);
         }
     } catch (error) {
-        console.log(error);
         throw new InternalServerError(error);
     }
 };
@@ -129,20 +125,19 @@ const deleteTour = async (req, res) => {
 const cloneTour = async (req, res) => {
     try {
         const { id } = req.params;
-        const errors = [];
+        const errors = {};
 
         if (id.trim() === "") {
-            errors.push('Please provide id');
+            errors.id = 'Please provide id';
         }
         
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.cloneTour(id, req.body);
             return res.status(response.status).json(response.data);
         } else {
             return res.status(StatusCodes.BAD_REQUEST).json(errors);
         }
     } catch (error) {
-        console.log(error);
         throw new InternalServerError(error.message);
     }
 };

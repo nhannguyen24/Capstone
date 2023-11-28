@@ -14,13 +14,13 @@ const getAllLanguage = async (req, res) => {
 const getLanguageById = async (req, res) => {
     try {
         const { id: languageId } = req.params;
-        const errors = [];
+        const errors = {};
 
         if(languageId.trim() === "") {
-            errors.push('Please provide languageId');
+            errors.languageId = 'Please provide languageId';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.getLanguageById(languageId);
             return res.status(response.status).json(response.data);
         } else {
@@ -34,13 +34,13 @@ const getLanguageById = async (req, res) => {
 const createLanguage = async (req, res) => {
     try {
         const {language} = req.body;
-        const errors = [];
+        const errors = {};
 
         if(language.trim() === "") {
-            errors.push('Please provide language');
+            errors.language = 'Please provide language';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.createLanguage(req.body);
             return res.status(response.status).json(response.data);
         } else {
@@ -57,10 +57,10 @@ const updateLanguage = async (req, res) => {
         const errors = [];
 
         if(id.trim() === "") {
-            errors.push('Please provide id');
+            errors.id = 'Please provide id';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.updateLanguage(id, req.body);
             return res.status(response.status).json(response.data);
         } else {
@@ -74,13 +74,13 @@ const updateLanguage = async (req, res) => {
 const deleteLanguage = async (req, res) => {
     try {
         const {id} = req.params;
-        const errors = [];
+        const errors = {};
 
         if(id.trim() === "") {
-            errors.push('Please provide id');
+            errors.id = 'Please provide id';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.deleteLanguage(id);
             return res.status(response.status).json(response.data);
         } else {

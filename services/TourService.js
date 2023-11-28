@@ -8,6 +8,7 @@ const BOOKING_STATUS = require("../enums/BookingStatusEnum")
 const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
 const readXlsxFile = require('read-excel-file/node')
 const { StatusCodes } = require("http-status-codes")
+const { sendNotification } = require("../utils/NotificationUtil")
 
 const getAllTour = (
     { page, limit, order, tourName, address, tourStatus, status, routeId, tourGuideId, driverId, departureDate, endDate, ...query }
@@ -878,6 +879,42 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             individualHooks: true,
                             transaction: t
                         })
+
+                        const createdDepartureDate = new Date(createTour[0].dataValues.departureDate);
+
+                        const createNotiTourGuide = await db.Notification.create({
+                            title: "Thông báo chuyến đi của bạn",
+                            body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour[0].dataValues.tourName} vào lúc ${createdDepartureDate}`,
+                            deviceToken: chosenTourGuide.deviceToken,
+                            notiType: "Thông báo",
+                            userId: createTour.tourGuideId
+                        }, { transaction: t })
+
+                        if (createNotiTourGuide) {
+                            sendNotification(
+                                createNotiTourGuide.title,
+                                createNotiTourGuide.body,
+                                createNotiTourGuide.deviceToken,
+                                createNotiTourGuide.notiType
+                            );
+                        };
+
+                        const createNotiDriver = await db.Notification.create({
+                            title: "Thông báo chuyến đi của bạn",
+                            body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour[0].dataValues.tourName} vào lúc ${createdDepartureDate}`,
+                            deviceToken: chosenDriver.deviceToken,
+                            notiType: "Thông báo",
+                            userId: createTour.driverId
+                        }, { transaction: t })
+
+                        if (createNotiDriver) {
+                            sendNotification(
+                                createNotiDriver.title,
+                                createNotiDriver.body,
+                                createNotiDriver.deviceToken,
+                                createNotiDriver.notiType
+                            );
+                        };
                     } else {
                         createTour = await db.Tour.findOrCreate({
                             where: {
@@ -1690,6 +1727,47 @@ const assignTour = () =>
                             individualHooks: true,
                             transaction: t
                         })
+
+                        const findCurrentTour = await db.Tour.findOne({
+                            nest: true,
+                            where: { tourId: assignment.tour.tourId }
+                        })
+
+                        const createdDepartureDate = new Date(findCurrentTour.departureDate);
+
+                        const createNotiTourGuide = await db.Notification.create({
+                            title: "Thông báo chuyến đi của bạn",
+                            body: `Bạn đã được sắp xếp vào chuyến đi tên ${findCurrentTour.tourName} vào lúc ${createdDepartureDate}`,
+                            deviceToken: assignment.tourGuide.deviceToken,
+                            notiType: "Thông báo",
+                            userId: assignment.tourGuide.userId
+                        }, { transaction: t })
+
+                        if (createNotiTourGuide) {
+                            sendNotification(
+                                createNotiTourGuide.title,
+                                createNotiTourGuide.body,
+                                createNotiTourGuide.deviceToken,
+                                createNotiTourGuide.notiType
+                            );
+                        };
+
+                        const createNotiDriver = await db.Notification.create({
+                            title: "Thông báo chuyến đi của bạn",
+                            body: `Bạn đã được sắp xếp vào chuyến đi tên ${findCurrentTour.tourName} vào lúc ${createdDepartureDate}`,
+                            deviceToken: assignment.driver.deviceToken,
+                            notiType: "Thông báo",
+                            userId: assignment.driver.userId
+                        }, { transaction: t })
+
+                        if (createNotiDriver) {
+                            sendNotification(
+                                createNotiDriver.title,
+                                createNotiDriver.body,
+                                createNotiDriver.deviceToken,
+                                createNotiDriver.notiType
+                            );
+                        };
                     }
 
                     redisClient.keys('*tours_*', (error, keys) => {
@@ -2424,6 +2502,42 @@ const cloneTour = (id, body) =>
                                 individualHooks: true,
                                 transaction: t
                             })
+
+                            const createdDepartureDate = new Date(createTour[0].dataValues.departureDate);
+
+                            const createNotiTourGuide = await db.Notification.create({
+                                title: "Thông báo chuyến đi của bạn",
+                                body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour[0].dataValues.tourName} vào lúc ${createdDepartureDate}`,
+                                deviceToken: chosenTourGuide.deviceToken,
+                                notiType: "Thông báo",
+                                userId: createTour.dataValues.tourGuideId
+                            }, { transaction: t })
+
+                            if (createNotiTourGuide) {
+                                sendNotification(
+                                    createNotiTourGuide.title,
+                                    createNotiTourGuide.body,
+                                    createNotiTourGuide.deviceToken,
+                                    createNotiTourGuide.notiType
+                                );
+                            };
+
+                            const createNotiDriver = await db.Notification.create({
+                                title: "Thông báo chuyến đi của bạn",
+                                body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour[0].dataValues.tourName} vào lúc ${createdDepartureDate}`,
+                                deviceToken: chosenDriver.deviceToken,
+                                notiType: "Thông báo",
+                                userId: createTour.dataValues.driverId
+                            }, { transaction: t })
+
+                            if (createNotiDriver) {
+                                sendNotification(
+                                    createNotiDriver.title,
+                                    createNotiDriver.body,
+                                    createNotiDriver.deviceToken,
+                                    createNotiDriver.notiType
+                                );
+                            };
                         } else {
                             createTour = await db.Tour.create({
                                 tourName: body.tourName ? body.tourName : tour.tourName,

@@ -14,13 +14,13 @@ const getAllTourDetail = async (req, res) => {
 const updateTourDetail = async (req, res) => {
     try {
         const {id} = req.params;
-        const errors = [];
+        const errors = {};
 
         if(!id) {
-            errors.push('Please provide id');
+            errors.id = 'Please provide id';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.updateTourDetail(id, req.body);
             return res.status(response.status).json(response.data);
         } else {
