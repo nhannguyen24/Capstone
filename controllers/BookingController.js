@@ -116,21 +116,21 @@ const createBookingWeb = async (req, res) => {
         const user = req.body.user
         const tickets = req.body.tickets
         if (totalPrice === "") {
-            errors.totalPrice = "totalPrice required!"
+            errors.totalPrice = "Total price required!"
         } else {
             if (isNaN(totalPrice)) {
-                errors.totalPrice = "totalPrice needs to be a number"
+                errors.totalPrice = "Total price needs to be a number"
             } else {
                 if (parseInt(totalPrice) < 1000) {
-                    errors.totalPrice = "totalPrice needs to be atleast 1000"
+                    errors.totalPrice = "Total price needs to be atleast 1000"
                 }
             }
         }
         if (departureStationId.trim() === "") {
-            errors.departureStationId = "departureStationId required!"
+            errors.departureStationId = "Departure station required!"
         }
         if(user.userName === null && user.userName === undefined && user.userName.trim() === ""){
-            errors.userName = "userName required!"
+            errors.userName = "User name required!"
         }
         if(user.email === null && user.email === undefined && user.email.trim() === ""){
             errors.email = "Email required!"
@@ -141,7 +141,7 @@ const createBookingWeb = async (req, res) => {
             }
         }
         if(user.phone === null && user.phone === undefined && user.phone.trim() === ""){
-            errors.phone = "phone required!"
+            errors.phone = "Phone required!"
         } else {
             const cleanedPhone = user.phone.replace(/\s/g, '')
             if (!/^\d+$/.test(cleanedPhone)) {
