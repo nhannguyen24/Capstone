@@ -10,19 +10,19 @@ const paymentMomo = async (req, res) => {
         const errors = {}
 
         if(bookingId.trim() === ""){
-            errors.bookingId = "bookingId required!"
+            errors.bookingId = "Booking required!"
         }
 
         if (amount !== "") {
             if (isNaN(amount)) {
-                errors.amount = "amount needs to be a number!"
+                errors.amount = "Amount needs to be a number!"
             } else {
                 if (parseInt(amount) < 1000) {
-                    errors.amount = "amount needs to be atleast 1000!"
+                    errors.amount = "Amount needs to be atleast 1000!"
                 }
             }
         } else {
-            errors.amount = "amount required!"
+            errors.amount = "Amount required!"
         }
 
         if (Object.keys(errors).length === 0) {
