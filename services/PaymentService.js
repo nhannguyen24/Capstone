@@ -4,6 +4,7 @@ const STATUS = require("../enums/StatusEnum")
 const mailer = require("../utils/MailerUtil")
 const qr = require('qrcode')
 const BOOKING_STATUS = require("../enums/BookingStatusEnum")
+const { StatusCodes } = require('http-status-codes')
 const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
     new Promise(async (resolve, reject) => {
         try {
@@ -31,7 +32,7 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
                 resolve({
                     status: 404,
                     data: {
-                        msg: `Transaction not found!`,
+                        msg: `Booking trasaction not found!`,
                     }
                 })
                 return
@@ -40,7 +41,7 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
                     resolve({
                         status: 400,
                         data: {
-                            msg: 'Transaction already paid!',
+                            msg: 'Booking transaction already paid!',
                         }
                     })
                 } 
@@ -51,7 +52,7 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
                     resolve({
                         status: 400,
                         data: {
-                            msg: 'Transaction expired!',
+                            msg: 'Booking transaction expired!',
                         }
                     })
                 }
@@ -412,9 +413,9 @@ const getMoMoPaymentResponse = (req) =>
                 })
 
                 resolve({
-                    status: 200,
+                    status: StatusCodes.OK,
                     data: {
-                        msg: 'Payment process successfully'
+                        msg: 'Payment process successfully!'
                     }
                 })
             } else {
@@ -422,7 +423,7 @@ const getMoMoPaymentResponse = (req) =>
                 resolve({
                     status: 400,
                     data: {
-                        msg: 'Payment process failed',
+                        msg: 'Payment process failed!',
                         bookingId: bookingId
                     }
                 })
