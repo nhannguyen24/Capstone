@@ -631,31 +631,31 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                 const tourBeginBookingDate = new Date(body.beginBookingDate)
                 const tourEndBookingDate = new Date(body.endBookingDate)
 
-                if (currentDate > tourBeginBookingDate) {
-                    resolve({
-                        status: StatusCodes.BAD_REQUEST,
-                        data: {
-                            msg: "Begin booking date can't be earlier than current date"
-                        }
-                    })
-                    return
-                } else if (tourBeginBookingDate >= tourEndBookingDate) {
-                    resolve({
-                        status: StatusCodes.BAD_REQUEST,
-                        data: {
-                            msg: "Begin booking date can't be later than End booking date",
-                        }
-                    })
-                    return
-                } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
-                    resolve({
-                        status: StatusCodes.BAD_REQUEST,
-                        data: {
-                            msg: "End booking date must be 24 hours earlier than Departure date",
-                        }
-                    })
-                    return
-                } else {
+                // if (currentDate > tourBeginBookingDate) {
+                //     resolve({
+                //         status: StatusCodes.BAD_REQUEST,
+                //         data: {
+                //             msg: "Begin booking date can't be earlier than current date"
+                //         }
+                //     })
+                //     return
+                // } else if (tourBeginBookingDate >= tourEndBookingDate) {
+                //     resolve({
+                //         status: StatusCodes.BAD_REQUEST,
+                //         data: {
+                //             msg: "Begin booking date can't be later than End booking date",
+                //         }
+                //     })
+                //     return
+                // } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
+                //     resolve({
+                //         status: StatusCodes.BAD_REQUEST,
+                //         data: {
+                //             msg: "End booking date must be 24 hours earlier than Departure date",
+                //         }
+                //     })
+                //     return
+                // } else {
                     // const currentDate = new Date()
                     // currentDate.setHours(currentDate.getHours() + 7)
                     // Initialize the schedule
@@ -1061,7 +1061,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                     //         })
                     //     })
                     // })
-                }
+                // }
                 await t.commit()
             })
         } catch (error) {
