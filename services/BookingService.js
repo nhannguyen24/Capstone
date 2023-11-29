@@ -1494,7 +1494,7 @@ const cancelBooking = async (bookingId) => {
             amount = amount * 80 / 100
         }
 
-        await PaymentService.refundMomo(_bookingId, amount, (refundResult) => {
+        PaymentService.refundMomo(_bookingId, amount, (refundResult) => {
             console.log(refundResult)
             if (refundResult.status !== StatusCodes.OK) {
                 // return refundResult
