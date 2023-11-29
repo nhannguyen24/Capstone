@@ -71,7 +71,7 @@ const createBus = async (req, res) => {
             errors.busPlate = "busPlate required!"
         }
 
-        if(isDoubleDecker.trim() === ""){
+        if(isDoubleDecker === ""){
             errors.isDoubleDecker = "isDoubleDecker required!"
         } else {
             const booleanValue = JSON.parse(isDoubleDecker)

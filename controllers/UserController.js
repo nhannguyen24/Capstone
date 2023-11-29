@@ -18,13 +18,13 @@ const createUser = async (req, res) => {
         const errors = {};
 
         if(userName.trim() === "") {
-            errors.userName = 'Please provide userName';
+            errors.userName = 'User name required!';
         }
         if(email.trim() === "") {
-            errors.email = 'Please provide email';
+            errors.email = 'Email required!';
         }
         if(roleId.trim() === "") {
-            errors.roleId = 'Please provide roleId';
+            errors.roleId = 'Role requried!';
         }
 
         if (Object.keys(errors).length === 0) {
