@@ -102,9 +102,9 @@ const login = ({ email, password }) => new Promise(async (resolve, reject) => {
 const loginGoogle = ({ name, picture, userId, email }) =>
   new Promise(async (resolve, reject) => {
     try {
-      const _email = email.replace(/\s/g, '').toLowerCase();
+      // const _email = email.replace(/\s/g, '').toLowerCase();
       const user = await db.User.findOne({
-        where: { email: _email },
+        where: { email: email },
         raw: true,
         nest: true,
         attributes: {
@@ -130,19 +130,19 @@ const loginGoogle = ({ name, picture, userId, email }) =>
       if (user) {
         response = await db.User.update({
           userName: name,
-          email: _email,
+          email: email,
           avatar: picture,
           roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3"
         }, {
           where: {
-            email: _email
+            email: email
           }
         });
       } else {
         response = await db.User.create({
           userId: userId,
           userName: name,
-          email: _email,
+          email: email,
           avatar: picture,
           roleId: "58c10546-5d71-47a6-842e-84f5d2f72ec3"
         });
