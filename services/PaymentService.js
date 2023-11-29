@@ -30,7 +30,7 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
             })
             if (!transaction) {
                 resolve({
-                    status: 404,
+                    status: StatusCodes.NOT_FOUND,
                     data: {
                         msg: `Booking trasaction not found!`,
                     }
@@ -39,7 +39,7 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
             } else {
                 if (transaction.status === STATUS.PAID) {
                     resolve({
-                        status: 400,
+                        status: StatusCodes.BAD_REQUEST,
                         data: {
                             msg: 'Booking transaction already paid!',
                         }
@@ -50,7 +50,7 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
                 const endBookingTime = new Date(transaction.transaction_booking.endPaymentTime)
                 if(endBookingTime <= currentDate){
                     resolve({
-                        status: 400,
+                        status: StatusCodes.BAD_REQUEST,
                         data: {
                             msg: 'Booking transaction expired!',
                         }
@@ -95,7 +95,7 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
                     console.log('Body: ')
                     console.log(JSON.parse(body))
                     resolve({
-                        status: 200,
+                        status: StatusCodes.OK,
                         data: {
                             msg: "Get link payment successfully!",
                             url: JSON.parse(body).payUrl,
@@ -140,7 +140,7 @@ const refundMomo = async (bookingId, amount, callback) => {
         })
         if (!bookingDetail) {
             return {
-                status: 404,
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Booking not found!`,
                 }
@@ -161,7 +161,7 @@ const refundMomo = async (bookingId, amount, callback) => {
         })
         if (!transaction) {
             return {
-                status: 404,
+                status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Transaction not found!`,
                 }
@@ -169,14 +169,14 @@ const refundMomo = async (bookingId, amount, callback) => {
         } else {
             if (transaction.status === STATUS.DRAFT) {
                 return {
-                    status: 403,
+                    status: StatusCodes.FORBIDDEN,
                     data: {
                         msg: `Transaction not paid!`,
                     }
                 }
             } else if(transaction.status === STATUS.REFUNDED){
                 return {
-                    status: 403,
+                    status: StatusCodes.FORBIDDEN,
                     data: {
                         msg: `Booking already refunded!`,
                     }
@@ -237,7 +237,7 @@ const refundMomo = async (bookingId, amount, callback) => {
                     const response = JSON.parse(responseBody)
                     if (response.resultCode === 0) {
                         callback({
-                            status: 200,
+                            status: StatusCodes.OK,
                             data: {
                                 msg: `Refund to booking ${transaction.transaction_booking.bookingCode}`,
                                 refundAmount: _amount
@@ -245,7 +245,7 @@ const refundMomo = async (bookingId, amount, callback) => {
                         })
                     } else {
                         callback({
-                            status: 400,
+                            status: StatusCodes.BAD_REQUEST,
                             data: {
                                 msg: `${response.message} for booking ${transaction.transaction_booking.bookingCode}`,
                                 refundAmount: _amount
@@ -421,7 +421,7 @@ const getMoMoPaymentResponse = (req) =>
             } else {
                 // Payment fail
                 resolve({
-                    status: 400,
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: 'Payment process failed!',
                         bookingId: bookingId
@@ -483,9 +483,9 @@ const paymentOffline = (bookingId) => new Promise(async (resolve, reject) => {
         })
         if (!bookingDetail) {
             resolve({
-                status: 404,
+                status: StatusCodes.NOT_FOUND,
                 data: {
-                    msg: `Booking not found!`,
+                    msg: `Booking transaction not found!`,
                 }
             })
         }
@@ -498,17 +498,17 @@ const paymentOffline = (bookingId) => new Promise(async (resolve, reject) => {
 
         if(!transaction){
             resolve({
-                status: 404,
+                status: StatusCodes.NOT_FOUND,
                 data: {
-                    msg: `Transaction not found!`,
+                    msg: `Booking transaction not found!`,
                 }
             })
         } else {
             if(transaction.status === STATUS.PAID){
                 resolve({
-                    status: 403,
+                    status: StatusCodes.FORBIDDEN,
                     data: {
-                        msg: `Booking paid!`,
+                        msg: `Booking transaction already paid!`,
                     }
                 }) 
             } else {
@@ -537,9 +537,9 @@ const paymentOffline = (bookingId) => new Promise(async (resolve, reject) => {
                 })
 
                 resolve({
-                    status: 200,
+                    status: StatusCodes.OK,
                     data: {
-                        msg: 'Payment processed successfully'
+                        msg: 'Payment process successfully'
                     }
                 })
             }

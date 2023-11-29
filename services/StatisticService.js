@@ -190,7 +190,7 @@ const getStatistics = async (req) => {
                         booking_statistic: booking_statistic,
                         tour_statistic: tour_statistic,
                     } : {
-                        msg: `Could not find any statistics based on your request.`,
+                        msg: `Could not find any statistics based on your request!`,
                         booking_statistic: booking_statistic,
                         tour_statistic: tour_statistic
                     }
@@ -298,7 +298,7 @@ const getStatistics = async (req) => {
                 tour_statistic: tour_statistic,
                 test: bookingDetails
             } : {
-                msg: `Could not find any statistics based on your request.`,
+                msg: `Could not find any statistics based on your request!`,
                 booking_statistic: booking_statistic,
                 tour_statistic: tour_statistic
             }
