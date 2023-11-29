@@ -959,7 +959,7 @@ const createBookingWeb = async (req) => {
                 await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, transactionType: TRANSACTION_TYPE.MOMO, status: STATUS.DRAFT }, { transaction: t })
 
                 for (const ticket of ticketList) {
-                    await db.BookingDetail.create({ TicketPrice: ticket.price.amount, bookingId: booking.bookingId, ticketId: ticket.ticketId, quantity: ticket.quantity, status: STATUS.DRAFT }, { transaction: t });
+                    await db.BookingDetail.create({ ticketPrice: ticket.price.amount, bookingId: booking.bookingId, ticketId: ticket.ticketId, quantity: ticket.quantity, status: STATUS.DRAFT }, { transaction: t });
                 }
 
                 for (const e of productList) {
@@ -1215,7 +1215,7 @@ const createBookingOffline = async (req) => {
                 await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, transactionType: TRANSACTION_TYPE.CASH, status: STATUS.DRAFT }, { transaction: t })
 
                 for (const ticket of ticketList) {
-                    await db.BookingDetail.create({ TicketPrice: ticket.price.amount, bookingId: booking.bookingId, ticketId: ticket.ticketId, quantity: ticket.quantity, status: STATUS.DRAFT }, { transaction: t });
+                    await db.BookingDetail.create({ ticketPrice: ticket.price.amount, bookingId: booking.bookingId, ticketId: ticket.ticketId, quantity: ticket.quantity, status: STATUS.DRAFT }, { transaction: t });
                 }
             })
         } catch (error) {
