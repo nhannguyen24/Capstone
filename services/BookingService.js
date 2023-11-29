@@ -1494,11 +1494,11 @@ const cancelBooking = async (bookingId) => {
             amount = amount * 80 / 100
         }
 
-        PaymentService.refundMomo(_bookingId, amount, (refundResult) => {
+        await PaymentService.refundMomo(_bookingId, amount, (refundResult) => {
             console.log(refundResult)
             if (refundResult.status !== StatusCodes.OK) {
                 // return refundResult
-                return refundResult.data
+                return refundResult
             } else {
                 db.Booking.update({
                     bookingStatus: BOOKING_STATUS.CANCELED,
