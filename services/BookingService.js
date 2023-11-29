@@ -1494,46 +1494,25 @@ const cancelBooking = async (bookingId) => {
             amount = amount * 80 / 100
         }
 
-        await PaymentService.refundMomo(_bookingId, amount, (refundResult) => {
-            console.log(refundResult)
-            if (refundResult.status !== StatusCodes.OK) {
-                // return refundResult
-                return refundResult
-            } else {
-                db.Booking.update({
-                    bookingStatus: BOOKING_STATUS.CANCELED,
-                }, {
-                    where: {
-                        bookingId: _bookingId
-                    },
-                    individualHooks: true,
-                })
-
-                db.BookingDetail.update({
-                    status: BOOKING_STATUS.CANCELED,
-                }, {
-                    where: {
-                        bookingId: _bookingId
-                    },
-                    individualHooks: true,
-                })
-
-                db.Transaction.update({
-                    refundAmount: refundResult.data.refundAmount,
-                    status: STATUS.REFUNDED
-                }, {
-                    where: {
-                        bookingId: _bookingId
-                    },
-                    individualHooks: true,
-                })
-                // return refundResult
-                return {
-                    status: StatusCodes.OK,
-                    data: refundResult.data
+        return new Promise((resolve, reject) => {
+            PaymentService.refundMomo(_bookingId, amount, (refundResult) => {
+                if (refundResult.status !== StatusCodes.OK) {
+                    reject(refundResult.data);
+                } else {
+                    Promise.all([
+                        db.Booking.update({ bookingStatus: BOOKING_STATUS.CANCELED }, { where: { bookingId: _bookingId }, individualHooks: true }),
+                        db.BookingDetail.update({ status: BOOKING_STATUS.CANCELED }, { where: { bookingId: _bookingId }, individualHooks: true }),
+                        db.Transaction.update({ refundAmount: refundResult.data.refundAmount, status: STATUS.REFUNDED }, { where: { bookingId: _bookingId }, individualHooks: true })
+                    ])
+                    .then(() => {
+                        resolve({ status: StatusCodes.OK, data: refundResult.data });
+                    })
+                    .catch((error) => {
+                        reject(error);
+                    });
                 }
-            }
-        })
+            });
+        });
     } catch (error) {
         console.log(error)
     }
