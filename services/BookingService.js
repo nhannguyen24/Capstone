@@ -419,10 +419,10 @@ const getBookingsByEmail = async (req) => {
                     msg: `Customer not found!`,
                 }
             }
-        } 
+        }
 
         whereClause.customerId = user.userId
-        
+
 
         const otp = await db.Otp.findOne({
             where: {
@@ -441,7 +441,7 @@ const getBookingsByEmail = async (req) => {
         }
 
         if (!otp.isAllow) {
-            return{
+            return {
                 status: StatusCodes.FORBIDDEN,
                 data: {
                     msg: `Action not allow, Please validate OTP!`,
@@ -719,7 +719,7 @@ const createBookingWeb = async (req) => {
         })
 
         if (!otp) {
-            return{
+            return {
                 status: StatusCodes.FORBIDDEN,
                 data: {
                     msg: `Action not allow, Please validate OTP!`,
@@ -728,12 +728,12 @@ const createBookingWeb = async (req) => {
         }
 
         if (!otp.isAllow) {
-            return{
+            return {
                 status: StatusCodes.FORBIDDEN,
                 data: {
                     msg: `Action not allow, Please validate OTP!`,
                 }
-            } 
+            }
         }
 
 
@@ -1191,7 +1191,7 @@ const createBookingOffline = async (req) => {
                     distanceToBookedDepartureStation += parseFloat(segment.distance)
                 }
                 totalDistance += parseFloat(segment.distance)
-            }  
+            }
             const discountPercentage = parseFloat(distanceToBookedDepartureStation) / parseFloat(totalDistance)
             /**
              * 0.5 = 50%
@@ -1406,7 +1406,7 @@ const cancelBooking = async (bookingId) => {
                 }
             }
         }
-        
+
         if (!otp.isAllow) {
             return {
                 status: StatusCodes.FORBIDDEN,
@@ -1494,48 +1494,57 @@ const cancelBooking = async (bookingId) => {
             amount = amount * 80 / 100
         }
 
-        PaymentService.refundMomo(_bookingId, amount, (refundResult) => {
-            console.log(refundResult)
-            if (refundResult.status !== StatusCodes.OK) {
-                // return refundResult
-                return refundResult
-            } else {
-                db.Booking.update({
-                    bookingStatus: BOOKING_STATUS.CANCELED,
-                }, {
-                    where: {
-                        bookingId: _bookingId
-                    },
-                    individualHooks: true,
-                })
 
-                db.BookingDetail.update({
-                    status: BOOKING_STATUS.CANCELED,
-                }, {
-                    where: {
-                        bookingId: _bookingId
-                    },
-                    individualHooks: true,
-                })
-
-                db.Transaction.update({
-                    refundAmount: refundResult.data.refundAmount,
-                    status: STATUS.REFUNDED
-                }, {
-                    where: {
-                        bookingId: _bookingId
-                    },
-                    individualHooks: true,
-                })
-                // return refundResult
-                return {
-                    status: StatusCodes.OK,
-                    data: {
-                        msg: refundResult,
-                    }
+        const refundResult = await PaymentService.refundMomo(_bookingId, amount)
+        //const refundResult = await PaymentService.refundMomo(_bookingId, amount)
+        console.log( refundResult.data)
+        if (refundResult === null || refundResult === undefined) {
+            return {
+                status: StatusCodes.BAD_REQUEST,
+                data: {
+                    msg: "Something went wrong!",
                 }
             }
-        })
+        } else if (refundResult.status === StatusCodes.OK) {
+            db.Booking.update({
+                bookingStatus: BOOKING_STATUS.CANCELED,
+            }, {
+                where: {
+                    bookingId: _bookingId
+                },
+                individualHooks: true,
+            })
+
+            db.BookingDetail.update({
+                status: BOOKING_STATUS.CANCELED,
+            }, {
+                where: {
+                    bookingId: _bookingId
+                },
+                individualHooks: true,
+            })
+
+            db.Transaction.update({
+                refundAmount: refundResult.data.refundAmount,
+                status: STATUS.REFUNDED
+            }, {
+                where: {
+                    bookingId: _bookingId
+                },
+                individualHooks: true,
+            })
+            return {
+                status: StatusCodes.OK,
+                data: {
+                    msg: "Booking canceled successfully!",
+                    refundAmount: refundResult.data.refundAmount,
+                }
+            }
+        } else {
+            console.log("TEST", refundResult)
+            return refundResult
+        }
+
     } catch (error) {
         console.log(error)
     }
