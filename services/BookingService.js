@@ -1486,7 +1486,13 @@ const cancelBooking = async (bookingId) => {
 
         PaymentService.refundMomo(_bookingId, amount, (refundResult) => {
             if (refundResult.status !== StatusCodes.OK) {
-                return refundResult
+                // return refundResult
+                return {
+                    status: StatusCodes.INTERNAL_SERVER_ERROR,
+                    data: {
+                        msg: refundResult,
+                    }
+                }
             } else {
                 db.Booking.update({
                     bookingStatus: BOOKING_STATUS.CANCELED,
@@ -1515,7 +1521,13 @@ const cancelBooking = async (bookingId) => {
                     },
                     individualHooks: true,
                 })
-                return refundResult
+                // return refundResult
+                return {
+                    status: StatusCodes.OK,
+                    data: {
+                        msg: refundResult,
+                    }
+                }
             }
         })
     } catch (error) {

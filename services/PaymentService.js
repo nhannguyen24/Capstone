@@ -145,6 +145,7 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
       reject(error);
     }
   });
+
 const refundMomo = async (bookingId, amount, callback) => {
   try {
     const bookingDetail = await db.BookingDetail.findOne({
@@ -210,8 +211,8 @@ const refundMomo = async (bookingId, amount, callback) => {
       }
       let _amount = parseInt(amount);
       var partnerCode = "MOMO";
-      var accessKey = "F8BBA842ECF85";
-      var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
+      var accessKey = "xs6XvGNPuH4AxAL9";
+      var secretkey = "ZTP0gGrCP2KmUnWbjMvtOrAZ7NzCNRzo";
       var requestId = partnerCode + new Date().getTime();
       var orderId = requestId;
       var description = "Refund canceled booking";
@@ -398,20 +399,20 @@ const getMoMoPaymentResponse = (req) =>
           .getDate()
           .toString()
           .padStart(2, "0")}/${(busArrivalTimeToBookedStation.getMonth() + 1)
-          .toString()
-          .padStart(
-            2,
-            "0"
-          )}/${busArrivalTimeToBookedStation.getFullYear()}  |  ${busArrivalTimeToBookedStation
-          .getHours()
-          .toString()
-          .padStart(2, "0")}:${busArrivalTimeToBookedStation
-          .getMinutes()
-          .toString()
-          .padStart(2, "0")}:${busArrivalTimeToBookedStation
-          .getSeconds()
-          .toString()
-          .padStart(2, "0")}`;
+            .toString()
+            .padStart(
+              2,
+              "0"
+            )}/${busArrivalTimeToBookedStation.getFullYear()}  |  ${busArrivalTimeToBookedStation
+              .getHours()
+              .toString()
+              .padStart(2, "0")}:${busArrivalTimeToBookedStation
+                .getMinutes()
+                .toString()
+                .padStart(2, "0")}:${busArrivalTimeToBookedStation
+                  .getSeconds()
+                  .toString()
+                  .padStart(2, "0")}`;
         const tourDuration =
           bookingDetail.booking_detail_ticket.ticket_tour.duration;
         const totalPrice = bookingDetail.detail_booking.totalPrice;
