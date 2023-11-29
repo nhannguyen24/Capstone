@@ -1495,6 +1495,7 @@ const cancelBooking = async (bookingId) => {
         }
 
         PaymentService.refundMomo(_bookingId, amount, (refundResult) => {
+            console.log(refundResult)
             if (refundResult.status !== StatusCodes.OK) {
                 // return refundResult
                 return refundResult
