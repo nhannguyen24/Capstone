@@ -1310,14 +1310,14 @@ const checkInQrCode = async (bookingId, tourId) => {
         currentDate.setHours(currentDate.getHours() + 7)
         const thirtyMinutesBeforeDepartureDate = new Date(bookingDetail.booking_detail_ticket.ticket_tour.departureDate)
         thirtyMinutesBeforeDepartureDate.setMinutes(thirtyMinutesBeforeDepartureDate.getMinutes() - 30)
-        if (thirtyMinutesBeforeDepartureDate > currentDate) {
-            return {
-                status: StatusCodes.FORBIDDEN,
-                data: {
-                    msg: `Check-in is allowed only 30 minutes before the tour departure time.`,
-                }
-            }
-        }
+        // if (thirtyMinutesBeforeDepartureDate > currentDate) {
+        //     return {
+        //         status: StatusCodes.FORBIDDEN,
+        //         data: {
+        //             msg: `Check-in is allowed only 30 minutes before the tour departure time.`,
+        //         }
+        //     }
+        // }
 
         if (bookingDetail.detail_booking.isAttended === true) {
             return {
