@@ -13,7 +13,7 @@ const getAllUsers = ({ page, limit, order, userName, email, status, roleName, ..
     try {
       let _email;
       if (email) {
-        _email = email.toLowerCase();
+        _email = email.replace(/\s/g, '').toLowerCase();
       }
 
       redisClient.get(`user_paging_${page}_${limit}_${order}_${userName}_${_email}_${status}_${roleName}`, async (error, user_paging) => {
@@ -187,8 +187,8 @@ const updateUser = (id, body) =>
         data: {
           msg:
             users[1].length !== 0
-              ? `User update`
-              : "Cannot update user/ id not found",
+              ? `User update successfully!`
+              : "Cannot update user/ id not found!",
         }
       });
       redisClient.keys('user_paging*', (error, keys) => {
@@ -327,9 +327,10 @@ const changeUserPassword = async (req) =>{
 
       const user = await db.User.findOne({
         where: {
-          userId: req.user.userId
+          userId: userId
         }
       })
+
       if (!user) {
         return {
           status: StatusCodes.NOT_FOUND,
@@ -350,7 +351,7 @@ const changeUserPassword = async (req) =>{
         return {
           status: StatusCodes.NOT_FOUND,
           data: {
-            msg: `OTP not found!`,
+            msg: `Action not allow, Please validate OTP!`,
           }
         }
       }
