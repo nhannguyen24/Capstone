@@ -210,7 +210,7 @@ const refundMomo = async (bookingId, amount, callback) => {
         };
       }
       let _amount = parseInt(amount);
-      var partnerCode = "MOMO";
+      var partnerCode = "MOMODH1S20220711";
       var accessKey = "xs6XvGNPuH4AxAL9";
       var secretkey = "ZTP0gGrCP2KmUnWbjMvtOrAZ7NzCNRzo";
       var requestId = partnerCode + new Date().getTime();
