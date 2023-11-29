@@ -1484,7 +1484,8 @@ const cancelBooking = async (bookingId) => {
             return {
                 status: StatusCodes.OK,
                 data: {
-                    msg: "Cancel booking successfully! Cancel within last day or when tour started will not get refund!",
+                    msg: "Cancel booking successfully!",
+                    refundAmount: 0
                 }
             }
         } else if (timeDifference <= twoDaysInMillis) {
