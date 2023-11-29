@@ -19,6 +19,7 @@ const getAllNotification = (
             if (userId) query.userId = { [Op.eq]: userId };
             if (status) query.status = { [Op.eq]: status };
             if (createdDate) query.createdDate = { [Op.gte]: createdDate };
+            query.status = { [Op.ne]: "Deactive" };
             const notifications = await db.Notification.findAll({
                 where: query,
                 ...queries,
