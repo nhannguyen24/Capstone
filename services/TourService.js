@@ -2510,7 +2510,7 @@ const cloneTour = (id, body) =>
                                 body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour[0].dataValues.tourName} vào lúc ${createdDepartureDate}`,
                                 deviceToken: chosenTourGuide.deviceToken,
                                 notiType: "Thông báo",
-                                userId: createTour.dataValues.tourGuideId
+                                userId: createTour[0].dataValues.tourGuideId
                             }, { transaction: t })
 
                             if (createNotiTourGuide) {
@@ -2527,7 +2527,7 @@ const cloneTour = (id, body) =>
                                 body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour[0].dataValues.tourName} vào lúc ${createdDepartureDate}`,
                                 deviceToken: chosenDriver.deviceToken,
                                 notiType: "Thông báo",
-                                userId: createTour.dataValues.driverId
+                                userId: createTour[0].dataValues.driverId
                             }, { transaction: t })
 
                             if (createNotiDriver) {
