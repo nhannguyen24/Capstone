@@ -43,6 +43,8 @@ const getBookingDetailByBookingId = async (bookingId) => {
             }
         }
 
+        booking.isAttended = booking.isAttended === 1 ? true : false
+
         const bookingDetails = await db.BookingDetail.findAll({
             where: {
                 bookingId: booking.bookingId

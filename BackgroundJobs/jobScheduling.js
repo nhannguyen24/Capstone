@@ -89,7 +89,7 @@ async function cancelTourAndRefundIfUnderbooked() {
 
           const amount = parseInt(transaction.amount)
           for (const booking of bookings) {
-            PaymentService.refundMomo(bookings.bookingId, amount, (refundResult) => {
+            PaymentService.refundMomo(booking.bookingId, amount, (refundResult) => {
               if (refundResult.status !== 200) {
                 console.log(refundResult)
               } else {
@@ -97,7 +97,7 @@ async function cancelTourAndRefundIfUnderbooked() {
                   bookingStatus: BOOKING_STATUS.CANCELED,
                 }, {
                   where: {
-                    bookingId: bookings.bookingId
+                    bookingId: booking.bookingId
                   },
                   individualHooks: true,
                 });
@@ -106,7 +106,7 @@ async function cancelTourAndRefundIfUnderbooked() {
                   status: BOOKING_STATUS.CANCELED,
                 }, {
                   where: {
-                    bookingId: bookings.bookingId
+                    bookingId: booking.bookingId
                   },
                   individualHooks: true,
                 })
@@ -116,7 +116,7 @@ async function cancelTourAndRefundIfUnderbooked() {
                   status: STATUS.REFUNDED
                 }, {
                   where: {
-                    bookingId: bookings.bookingId
+                    bookingId: booking.bookingId
                   },
                   individualHooks: true,
                 });
