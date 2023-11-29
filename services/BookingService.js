@@ -21,7 +21,7 @@ const getBookingDetailByBookingId = async (bookingId) => {
                 {
                     model: db.User,
                     as: "booking_user",
-                    attributes: ["userId", "userName"]
+                    attributes: ["userId", "userName", "email"]
                 },
                 {
                     model: db.Station,
@@ -73,11 +73,11 @@ const getBookingDetailByBookingId = async (bookingId) => {
                     }
                 ],
                 attributes: {
-                    exclude: ["tourId", "ticketTypeId", "createdAt", "updatedAt"]
+                    exclude: ["tourId", "ticketTypeId", "createdAt", "updatedAt", "status"]
                 }
             },
             attributes: {
-                exclude: ["bookingId", "ticketId"]
+                exclude: ["bookingId", "ticketId", "status", "bookingDetailId", "createdAt", "updatedAt"]
             },
         });
 
@@ -99,12 +99,12 @@ const getBookingDetailByBookingId = async (bookingId) => {
                 attributes: ["productName"],
             }
         })
-        if (productOrder) {
+        if (productOrder.length === 0) {
             booking.booking_product = productOrder
         }
 
-        booking.booking_detail = bookingDetails
-        booking.booking_transaction = transaction
+        booking.tickets = bookingDetails
+        booking.transaction = transaction
         return {
             status: StatusCodes.OK,
             data: {
