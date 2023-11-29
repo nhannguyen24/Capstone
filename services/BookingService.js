@@ -1464,6 +1464,15 @@ const cancelBooking = async (bookingId) => {
                 individualHooks: true,
             })
 
+            db.BookingDetail.update({
+                status: BOOKING_STATUS.CANCELED,
+            }, {
+                where: {
+                    bookingId: _bookingId
+                },
+                individualHooks: true,
+            })
+
             db.Transaction.update({
                 status: STATUS.REFUNDED
             }, {
