@@ -9,8 +9,8 @@ async function deleteExpiredOtp() {
   console.log("Delete expired otp starting...")
   try {
     const currentDate = new Date()
-    currentDate.setHours(currentDate.getHours() + 7)
-    await db.Otp.destroy({
+    currentDate.setHours(currentDate.getHours() + 8)
+    db.Otp.destroy({
       where: {
         timeExpired: {
           [Op.lte]: currentDate,
@@ -20,7 +20,7 @@ async function deleteExpiredOtp() {
       if (deletedRows > 0) {
         console.log(`Successfully deleted ${deletedRows} expired OTP records.`);
       } else {
-        console.log('No expired OTP records were found and deleted.');
+        console.log('No expired OTP records were found.');
       }
     })
       .catch(error => {
@@ -30,7 +30,6 @@ async function deleteExpiredOtp() {
   } catch (error) {
     console.error('Error deleting expired OTPs:', error)
   }
-  console.log("Delete expired otp done.")
 }
 
 async function cancelTourAndRefundIfUnderbooked() {
@@ -144,15 +143,14 @@ async function cancelTourAndRefundIfUnderbooked() {
   } catch (error) {
     console.error('Error cancel and refund under booked tours:', error)
   }
-  console.log("Cancel tour and refund job done.")
 }
 
-async function deleteUnPaidBooking() {
+function deleteUnPaidBooking() {
   try {
     console.log(`Delete unpaid booking starting...`)
     const currentDate = new Date()
     currentDate.setHours(currentDate.getHours() + 6)
-    await db.Transaction.destroy({
+    db.Transaction.destroy({
       where: {
         status: STATUS.DRAFT,
         updatedAt: {
@@ -163,14 +161,14 @@ async function deleteUnPaidBooking() {
       if (deletedRows > 0) {
         console.log(`Successfully deleted ${deletedRows} transaction records.`);
       } else {
-        console.log('No transaction records were found and deleted.');
+        console.log('No transaction records were found.');
       }
     })
       .catch(error => {
         console.error('Error deleting transactions:', error);
       });
 
-    await db.BookingDetail.destroy({
+    db.BookingDetail.destroy({
       where: {
         status: STATUS.DRAFT,
         updatedAt: {
@@ -181,14 +179,14 @@ async function deleteUnPaidBooking() {
       if (deletedRows > 0) {
         console.log(`Successfully deleted ${deletedRows} unpaid booking detail records.`);
       } else {
-        console.log('No unpaid booking detail records were found and deleted.');
+        console.log('No unpaid booking detail records were found.');
       }
     })
       .catch(error => {
         console.error('Error deleting unpaid booking details:', error);
       });
 
-    await db.Booking.destroy({
+    db.Booking.destroy({
       where: {
         bookingStatus: STATUS.DRAFT,
         updatedAt: {
@@ -199,7 +197,7 @@ async function deleteUnPaidBooking() {
       if (deletedRows > 0) {
         console.log(`Successfully deleted ${deletedRows} unpaid booking records.`);
       } else {
-        console.log('No unpaid booking records were found and deleted.');
+        console.log('No unpaid booking records were found.');
       }
     })
       .catch(error => {
@@ -209,8 +207,6 @@ async function deleteUnPaidBooking() {
   } catch (error) {
     console.error('Error deleting Un-paid bookings:', error)
   }
-  console.log(`Delete unpaid booking done.`)
 }
 
 module.exports = { deleteExpiredOtp, deleteUnPaidBooking, cancelTourAndRefundIfUnderbooked }
-//At second :00, every 30 minutes starting at minute :00, every hour starting at 00am, of every day
