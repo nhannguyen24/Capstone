@@ -112,7 +112,7 @@ const updateBus = async (req, res) => {
         if (busId.trim() === "") {
             errors.busId = "Id required!"
         }
-        if (busPlate.trim() === "" && numberSeat.trim() === "" && isDoubleDecker.trim() === "" && status.trim() === "") {
+        if (busPlate.trim() === "" && numberSeat.trim() === "" && isDoubleDecker === "" && status.trim() === "") {
             errors.fields = "Update field required!"
         } else {
             if (numberSeat !== "") {
@@ -124,7 +124,7 @@ const updateBus = async (req, res) => {
                     }
                 }
             }
-            if(isDoubleDecker.trim() === ""){
+            if(isDoubleDecker === ""){
                 errors.isDoubleDecker = "isDoubleDecker required!"
             } else {
                 const booleanValue = JSON.parse(isDoubleDecker)
