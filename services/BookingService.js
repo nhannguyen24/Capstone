@@ -1418,20 +1418,10 @@ const cancelBooking = async (bookingId) => {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
-                    msg: `Booking already ${BOOKING_STATUS.CANCELED}`,
+                    msg: `Booking already ${BOOKING_STATUS.CANCELED}!`,
                 }
             }
         }
-
-        if (TOUR_STATUS.AVAILABLE !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
-            return {
-                status: StatusCodes.BAD_REQUEST,
-                data: {
-                    msg: `Cannot cancel because tour finished or started`,
-                }
-            }
-        }
-
         const transaction = await db.Transaction.findOne({
             where: {
                 bookingId: _bookingId
@@ -1446,6 +1436,15 @@ const cancelBooking = async (bookingId) => {
                 }
             }
         }
+        if (TOUR_STATUS.AVAILABLE !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
+            return {
+                status: StatusCodes.BAD_REQUEST,
+                data: {
+                    msg: `Cannot cancel because tour finished or started!`,
+                }
+            }
+        }
+
         var amount = parseInt(transaction.amount)
         const departureDate = new Date(bookingDetail.booking_detail_ticket.ticket_tour.departureDate)
         const currentDate = new Date()
@@ -1454,10 +1453,27 @@ const cancelBooking = async (bookingId) => {
         const twoDaysInMillis = 2 * 24 * 60 * 60 * 1000 // 2 days in milliseconds
         const oneDayInMillis = 24 * 60 * 60 * 1000 // 1 day in milliseconds
         if (timeDifference <= oneDayInMillis) {
+            db.Booking.update({
+                bookingStatus: BOOKING_STATUS.CANCELED,
+            }, {
+                where: {
+                    bookingId: _bookingId
+                },
+                individualHooks: true,
+            })
+
+            db.Transaction.update({
+                status: STATUS.REFUNDED
+            }, {
+                where: {
+                    bookingId: _bookingId
+                },
+                individualHooks: true,
+            })
             return {
-                status: StatusCodes.FORBIDDEN,
+                status: StatusCodes.OK,
                 data: {
-                    msg: "Cancel within last day or when tour started will not get refund",
+                    msg: "Cancel booking successfully! Cancel within last day or when tour started will not get refund!",
                 }
             }
         } else if (timeDifference <= twoDaysInMillis) {
@@ -1477,7 +1493,16 @@ const cancelBooking = async (bookingId) => {
                         bookingId: _bookingId
                     },
                     individualHooks: true,
-                });
+                })
+
+                db.BookingDetail.update({
+                    status: BOOKING_STATUS.CANCELED,
+                }, {
+                    where: {
+                        bookingId: _bookingId
+                    },
+                    individualHooks: true,
+                })
 
                 db.Transaction.update({
                     refundAmount: refundResult.data.refundAmount,
@@ -1487,7 +1512,7 @@ const cancelBooking = async (bookingId) => {
                         bookingId: _bookingId
                     },
                     individualHooks: true,
-                });
+                })
                 return refundResult
             }
         })

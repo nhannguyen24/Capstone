@@ -16,7 +16,7 @@ const getStatistics = async (req, res) => {
             const bookingStatusArray = bookingStatus.split(',')
             for (const status of bookingStatusArray) {
                 if (!bookingStatusEnumArray.includes(status)) {
-                    errors.bookingStatus = `Invalid booking status: ${status}`
+                    errors.bookingStatus = `Invalid booking status: ${status}!`
                 }
             }
         }
@@ -24,7 +24,7 @@ const getStatistics = async (req, res) => {
             const tourStatusArray = tourStatus.split(',')
             for (const status of tourStatusArray) {
                 if (!tourStatusEnumArray.includes(status)) {
-                    errors.tourStatus = `Invalid tour status: ${status}`
+                    errors.tourStatus = `Invalid tour status: ${status}!`
                 }
             }
         }

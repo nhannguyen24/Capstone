@@ -7,7 +7,7 @@ const getBookingDetailByBookingId = async (req, res) => {
         const bookingId = req.params.id || ""
         const errors = {}
         if (bookingId.trim() === "") {
-            errors.bookingId = "Id required!"
+            errors.bookingId = "Booking required!"
         }
 
         if (Object.keys(errors).length === 0) {
@@ -175,13 +175,13 @@ const createBookingOffline = async (req, res) => {
         const totalPrice = req.body.totalPrice || ""
         const departureStationId = req.body.departureStationId || ""
         if (totalPrice === "") {
-            errors.totalPrice = "totalPrice required!"
+            errors.totalPrice = "Total price required!"
         } else {
             if (isNaN(totalPrice)) {
-                errors.totalPrice = "totalPrice needs to be a number"
+                errors.totalPrice = "Total price needs to be a number"
             } else {
                 if (parseInt(totalPrice) < 1000) {
-                    errors.totalPrice = "totalPrice needs to be atleast 1000"
+                    errors.totalPrice = "Total price needs to be atleast 1000"
                 }
             }
         }
@@ -208,10 +208,10 @@ const checkInQrCode = async (req, res) => {
         const errors = {}
 
         if (bookingId.trim() === "") {
-            errors.bookingId = "Id required!"
+            errors.bookingId = "Booking required!"
         }
         if (tourId.trim() === "") {
-            errors.tourId = "tourId required!"
+            errors.tourId = "Tour required!"
         }
 
         if (Object.keys(errors).length === 0) {
@@ -230,7 +230,7 @@ const cancelBooking = async (req, res) => {
         const errors = {}
 
         if (bookingId.trim() === "") {
-            errors.bookingId = "Id required!"
+            errors.bookingId = "Booking required!"
         }
 
         if (Object.keys(errors).length === 0) {

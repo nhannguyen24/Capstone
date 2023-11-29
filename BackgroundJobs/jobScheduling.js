@@ -88,32 +88,44 @@ async function cancelTourAndRefundIfUnderbooked() {
           })
 
           const amount = parseInt(transaction.amount)
-          PaymentService.refundMomo(bookings.bookingId, amount, (refundResult) => {
-            if (refundResult.status !== 200) {
-              console.log(refundResult)
-            } else {
-              db.Booking.update({
-                bookingStatus: BOOKING_STATUS.CANCELED,
-              }, {
-                where: {
-                  bookingId: bookings.bookingId
-                },
-                individualHooks: true,
-              });
+          for (const booking of bookings) {
+            PaymentService.refundMomo(bookings.bookingId, amount, (refundResult) => {
+              if (refundResult.status !== 200) {
+                console.log(refundResult)
+              } else {
+                db.Booking.update({
+                  bookingStatus: BOOKING_STATUS.CANCELED,
+                }, {
+                  where: {
+                    bookingId: bookings.bookingId
+                  },
+                  individualHooks: true,
+                });
 
-              db.Transaction.update({
-                refundAmount: refundResult.data.refundAmount,
-                status: STATUS.REFUNDED
-              }, {
-                where: {
-                  bookingId: bookings.bookingId
-                },
-                individualHooks: true,
-              });
-              console.log(refundResult)
-            }
-          })
-          await db.Tour.update(
+                db.BookingDetail.update({
+                  status: BOOKING_STATUS.CANCELED,
+                }, {
+                  where: {
+                    bookingId: bookings.bookingId
+                  },
+                  individualHooks: true,
+                })
+
+                db.Transaction.update({
+                  refundAmount: refundResult.data.refundAmount,
+                  status: STATUS.REFUNDED
+                }, {
+                  where: {
+                    bookingId: bookings.bookingId
+                  },
+                  individualHooks: true,
+                });
+                console.log(refundResult)
+              }
+            })
+          }
+
+          db.Tour.update(
             {
               tourStatus: TOUR_STATUS.CANCELED
             },

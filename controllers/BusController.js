@@ -9,10 +9,10 @@ const getBuses = async (req, res) => {
         const limit = req.query.limit || ""
         if (page !== "") {
             if (isNaN(page)) {
-                errors.page = "Page needs to be a number"
+                errors.page = "Page needs to be a number!"
             } else {
                 if (parseInt(page) < 1) {
-                    errors.page = "Page needs to be 1 or higher"
+                    errors.page = "Page needs to be 1 or higher!"
                 }
             }
         } else {
@@ -21,10 +21,10 @@ const getBuses = async (req, res) => {
 
         if (limit !== "") {
             if (isNaN(limit)) {
-                errors.limit = "Limit needs to be a number"
+                errors.limit = "Limit needs to be a number!"
             } else {
                 if (parseInt(limit) < 1) {
-                    errors.limit = "Limit needs to be 1 or higher"
+                    errors.limit = "Limit needs to be 1 or higher!"
                 }
             }
         }else {
