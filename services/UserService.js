@@ -11,7 +11,7 @@ const { StatusCodes } = require("http-status-codes");
 const getAllUsers = ({ page, limit, order, userName, email, status, roleName, ...query }) =>
   new Promise(async (resolve, reject) => {
     try {
-      const _email = email.replace(/\s/g, '').toLowerCase();
+      const _email = email.toLowerCase();
 
       redisClient.get(`user_paging_${page}_${limit}_${order}_${userName}_${_email}_${status}_${roleName}`, async (error, user_paging) => {
         if (user_paging != null) {
@@ -62,7 +62,7 @@ const getAllUsers = ({ page, limit, order, userName, email, status, roleName, ..
           resolve({
             status: users ? StatusCodes.OK : StatusCodes.NOT_FOUND,
             data: {
-              msg: users ? "Got user" : "Cannot find user",
+              msg: users ? "Got user" : "User not found!",
               users: users,
             }
           });
@@ -146,7 +146,7 @@ const createUser = ({ ...body }) =>
         status: user[1] ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
         data: {
           msg: user[1]
-            ? "Create new user successfully"
+            ? "Create new account successfully"
             : "Cannot create new user/ Email already exists",
         }
       });
