@@ -208,12 +208,18 @@ router.put("/:id", verifyToken, roleAuthen(["Admin"]), controllers.updateUser);
 
 /**
  * @swagger
- * /api/v1/users/change-password:
+ * /api/v1/users/{id}/change-password:
  *   put:
  *     security: 
  *         - BearerAuth: []
  *     summary: Change user password
  *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
  *     requestBody:
  *        required: true
  *        content:
@@ -233,7 +239,7 @@ router.put("/:id", verifyToken, roleAuthen(["Admin"]), controllers.updateUser);
  *             schema:
  *               type: string
  */
-router.put("/change-password", verifyToken, roleAuthen(["Customer", "Tour guide", "Driver", "Manager"]), controllers.changeUserPassword);
+router.put("/:id/change-password", verifyToken, roleAuthen(["Customer", "Tour guide", "Driver", "Manager"]), controllers.changeUserPassword);
 
 // /**
 //  * @swagger
