@@ -5,13 +5,13 @@ const { StatusCodes } = require('http-status-codes');
 const loginGoogle = async (req, res) => {
     try {
         const {email: email} = req.user;
-        const errors = [];
+        const errors = {};
 
         if(email.trim() === "") {
-            errors.push('Please provide email');
+            errors.email = 'Please provide email!';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.loginGoogle(req.user);
             return res.status(response.status).json(response.data);
         } else {
@@ -25,13 +25,13 @@ const loginGoogle = async (req, res) => {
 const refreshAccessToken = async (req, res) => {
     try {
         const {refreshToken: refreshToken} = req.body;
-        const errors = [];
+        const errors = {};
 
         if(refreshToken.trim() === "") {
-            errors.push('Please provide refreshToken');
+            errors.refreshToken = 'Please provide refreshToken';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.refreshAccessToken(req.body.refreshToken);
             return res.status(response.status).json(response.data);
         } else {
@@ -45,13 +45,13 @@ const refreshAccessToken = async (req, res) => {
 const logout = async (req, res) => {
     try {
         const {userId} = req.query;
-        const errors = [];
+        const errors = {};
 
         if(userId.trim() === "") {
-            errors.push('Please provide userId');
+            errors.userId = 'Please provide userId';
         }
 
-        if (errors.length == 0) {
+        if (Object.keys(errors).length === 0) {
             const response = await services.logout(req.query.userId);
             return res.status(response.status).json(response.data);
         } else {

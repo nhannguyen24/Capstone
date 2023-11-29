@@ -20,7 +20,6 @@ const getProductById = async (req, res) => {
         const response = await services.getProductById(productId);
         return res.status(response.status).json(response.data);
     } catch (error) {
-        console.log(error);
         throw new InternalServerError(error.message);
     }
 };
@@ -34,7 +33,6 @@ const createProduct = async (req, res) => {
         const response = await services.createProduct(req.body);
         return res.status(response.status).json(response.data);
     } catch (error) {
-        console.log(error);
         throw new InternalServerError(error);
     }
 };
@@ -61,7 +59,6 @@ const deleteProduct = async (req, res) => {
         const response = await services.deleteProduct(id);
         return res.status(response.status).json(response.data);
     } catch (error) {
-        console.log(error);
         throw new InternalServerError(error);
     }
 };
