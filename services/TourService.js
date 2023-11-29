@@ -1228,6 +1228,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
         })
 
         //Create Process Start HERE
+        const duplicateTourNames = new Set();
         for (const tour of tours) {
             let i = 1;
 
