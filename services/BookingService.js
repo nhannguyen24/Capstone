@@ -1310,14 +1310,14 @@ const checkInQrCode = async (bookingId, tourId) => {
         currentDate.setHours(currentDate.getHours() + 7)
         const thirtyMinutesBeforeDepartureDate = new Date(bookingDetail.booking_detail_ticket.ticket_tour.departureDate)
         thirtyMinutesBeforeDepartureDate.setMinutes(thirtyMinutesBeforeDepartureDate.getMinutes() - 30)
-        // if (thirtyMinutesBeforeDepartureDate > currentDate) {
-        //     return {
-        //         status: StatusCodes.FORBIDDEN,
-        //         data: {
-        //             msg: `Check-in is allowed only 30 minutes before the tour departure time.`,
-        //         }
-        //     }
-        // }
+        if (thirtyMinutesBeforeDepartureDate > currentDate) {
+            return {
+                status: StatusCodes.FORBIDDEN,
+                data: {
+                    msg: `Check-in is allowed only 30 minutes before the tour departure time.`,
+                }
+            }
+        }
 
         if (bookingDetail.detail_booking.isAttended === true) {
             return {
@@ -1494,25 +1494,47 @@ const cancelBooking = async (bookingId) => {
             amount = amount * 80 / 100
         }
 
-        return new Promise((resolve, reject) => {
-            PaymentService.refundMomo(_bookingId, amount, (refundResult) => {
-                if (refundResult.status !== StatusCodes.OK) {
-                    reject(refundResult.data);
-                } else {
-                    Promise.all([
-                        db.Booking.update({ bookingStatus: BOOKING_STATUS.CANCELED }, { where: { bookingId: _bookingId }, individualHooks: true }),
-                        db.BookingDetail.update({ status: BOOKING_STATUS.CANCELED }, { where: { bookingId: _bookingId }, individualHooks: true }),
-                        db.Transaction.update({ refundAmount: refundResult.data.refundAmount, status: STATUS.REFUNDED }, { where: { bookingId: _bookingId }, individualHooks: true })
-                    ])
-                    .then(() => {
-                        resolve({ status: StatusCodes.OK, data: refundResult.data });
-                    })
-                    .catch((error) => {
-                        reject(error);
-                    });
+        PaymentService.refundMomo(_bookingId, amount, (refundResult) => {
+            if (refundResult.status !== StatusCodes.OK) {
+                // return refundResult
+                return refundResult
+            } else {
+                db.Booking.update({
+                    bookingStatus: BOOKING_STATUS.CANCELED,
+                }, {
+                    where: {
+                        bookingId: _bookingId
+                    },
+                    individualHooks: true,
+                })
+
+                db.BookingDetail.update({
+                    status: BOOKING_STATUS.CANCELED,
+                }, {
+                    where: {
+                        bookingId: _bookingId
+                    },
+                    individualHooks: true,
+                })
+
+                db.Transaction.update({
+                    refundAmount: refundResult.data.refundAmount,
+                    status: STATUS.REFUNDED
+                }, {
+                    where: {
+                        bookingId: _bookingId
+                    },
+                    individualHooks: true,
+                })
+                // return refundResult
+                return {
+                    status: StatusCodes.OK,
+                    data: {
+                        msg: refundResult,
+                    }
                 }
-            });
-        });
+            }
+        })
     } catch (error) {
         console.log(error)
     }
