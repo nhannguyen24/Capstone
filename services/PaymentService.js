@@ -149,8 +149,10 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
     }
   });
 
-const refundMomo = async (bookingId, amount, callback) => {
+const refundMomo = async (bookingId, amount) => {
+
   try {
+    return new Promise(async (resolve, reject) => {
     const bookingDetail = await db.BookingDetail.findOne({
       raw: true,
       nest: true,
@@ -257,8 +259,6 @@ const refundMomo = async (bookingId, amount, callback) => {
         lang: "vi",
       });
 
-      console.log(requestBody)
-
       const https = require("https");
       const options = {
         hostname: "test-payment.momo.vn",
@@ -278,9 +278,9 @@ const refundMomo = async (bookingId, amount, callback) => {
         res.on("data", (chunk) => {
           responseBody += chunk;
           const response = JSON.parse(responseBody);
-          console.log(response)
+
           if (response.resultCode === 0) {
-            callback({
+            resolve({
               status: StatusCodes.OK,
               data: {
                 msg: `Refund to booking ${transaction.transaction_booking.bookingCode}`,
@@ -288,10 +288,10 @@ const refundMomo = async (bookingId, amount, callback) => {
               },
             });
           } else {
-            callback({
+            reject({
               status: StatusCodes.BAD_REQUEST,
               data: {
-                msg: `${response.message} for booking ${transaction.transaction_booking.bookingCode}`,
+                msg: `${response.message} For booking ${transaction.transaction_booking.bookingCode}`,
                 refundAmount: _amount,
               },
             });
@@ -305,7 +305,7 @@ const refundMomo = async (bookingId, amount, callback) => {
 
       req.on("error", (e) => {
         console.log(`Problem with request: ${e.message}`);
-        callback({
+        reject({
           status: 500,
           data: {
             msg: "Internal server error",
@@ -316,9 +316,11 @@ const refundMomo = async (bookingId, amount, callback) => {
       req.write(requestBody);
       req.end();
     }
+  })
   } catch (error) {
     console.log(error);
   }
+
 };
 
 const getMoMoPaymentResponse = (req) =>
