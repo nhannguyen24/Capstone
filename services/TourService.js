@@ -2503,41 +2503,41 @@ const cloneTour = (id, body) =>
                                 transaction: t
                             })
 
-                            const createdDepartureDate = new Date(createTour[0].dataValues.departureDate);
+                            // const createdDepartureDate = new Date(createTour[0].dataValues.departureDate);
 
-                            const createNotiTourGuide = await db.Notification.create({
-                                title: "Thông báo chuyến đi của bạn",
-                                body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour[0].dataValues.tourName} vào lúc ${createdDepartureDate}`,
-                                deviceToken: chosenTourGuide.deviceToken,
-                                notiType: "Thông báo",
-                                userId: createTour[0].dataValues.tourGuideId
-                            }, { transaction: t })
+                            // const createNotiTourGuide = await db.Notification.create({
+                            //     title: "Thông báo chuyến đi của bạn",
+                            //     body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour[0].dataValues.tourName} vào lúc ${createdDepartureDate}`,
+                            //     deviceToken: chosenTourGuide.deviceToken,
+                            //     notiType: "Thông báo",
+                            //     userId: createTour[0].dataValues.tourGuideId
+                            // }, { transaction: t })
 
-                            if (createNotiTourGuide) {
-                                sendNotification(
-                                    createNotiTourGuide.title,
-                                    createNotiTourGuide.body,
-                                    createNotiTourGuide.deviceToken,
-                                    createNotiTourGuide.notiType
-                                );
-                            };
+                            // if (createNotiTourGuide) {
+                            //     sendNotification(
+                            //         createNotiTourGuide.title,
+                            //         createNotiTourGuide.body,
+                            //         createNotiTourGuide.deviceToken,
+                            //         createNotiTourGuide.notiType
+                            //     );
+                            // };
 
-                            const createNotiDriver = await db.Notification.create({
-                                title: "Thông báo chuyến đi của bạn",
-                                body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour[0].dataValues.tourName} vào lúc ${createdDepartureDate}`,
-                                deviceToken: chosenDriver.deviceToken,
-                                notiType: "Thông báo",
-                                userId: createTour[0].dataValues.driverId
-                            }, { transaction: t })
+                            // const createNotiDriver = await db.Notification.create({
+                            //     title: "Thông báo chuyến đi của bạn",
+                            //     body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour[0].dataValues.tourName} vào lúc ${createdDepartureDate}`,
+                            //     deviceToken: chosenDriver.deviceToken,
+                            //     notiType: "Thông báo",
+                            //     userId: createTour[0].dataValues.driverId
+                            // }, { transaction: t })
 
-                            if (createNotiDriver) {
-                                sendNotification(
-                                    createNotiDriver.title,
-                                    createNotiDriver.body,
-                                    createNotiDriver.deviceToken,
-                                    createNotiDriver.notiType
-                                );
-                            };
+                            // if (createNotiDriver) {
+                            //     sendNotification(
+                            //         createNotiDriver.title,
+                            //         createNotiDriver.body,
+                            //         createNotiDriver.deviceToken,
+                            //         createNotiDriver.notiType
+                            //     );
+                            // };
                         } else {
                             createTour = await db.Tour.create({
                                 tourName: body.tourName ? body.tourName : tour.tourName,
