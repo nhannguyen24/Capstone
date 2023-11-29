@@ -71,13 +71,13 @@ const start = () => {
   try {
     app.listen(PORT, () => {
       console.log(`Server is listening on ${PORT}...`);
-      cron.schedule('*/30 * * * *', () => {
-        deleteExpiredOtp()
-        deleteUnPaidBooking()
-      })
-      cron.schedule('00 12,00 * * *', () => {
-        cancelTourAndRefundIfUnderbooked()
-      })
+      // cron.schedule('*/30 * * * *', () => {
+      //   deleteExpiredOtp()
+      //   deleteUnPaidBooking()
+      // })
+      // cron.schedule('00 12,00 * * *', () => {
+      //   cancelTourAndRefundIfUnderbooked()
+      // })
     });
   } catch (error) {
     console.log(error);
