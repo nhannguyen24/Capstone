@@ -8,9 +8,12 @@ const { StatusCodes } = require("http-status-codes");
 const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
   new Promise(async (resolve, reject) => {
     try {
-      var partnerCode = "MOMODH1S20220711";
-      var accessKey = "xs6XvGNPuH4AxAL9";
-      var secretkey = "ZTP0gGrCP2KmUnWbjMvtOrAZ7NzCNRzo";
+      // var partnerCode = "MOMODH1S20220711";
+      // var accessKey = "xs6XvGNPuH4AxAL9";
+      // var secretkey = "ZTP0gGrCP2KmUnWbjMvtOrAZ7NzCNRzo";
+      var partnerCode = "MOMO";
+      var accessKey = "F8BBA842ECF85";
+      var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
       var requestId = partnerCode + new Date().getTime();
       var orderId = requestId;
       var orderInfo = "Pay with MoMo";
@@ -210,9 +213,12 @@ const refundMomo = async (bookingId, amount, callback) => {
         };
       }
       let _amount = parseInt(amount);
-      var partnerCode = "MOMODH1S20220711";
-      var accessKey = "xs6XvGNPuH4AxAL9";
-      var secretkey = "ZTP0gGrCP2KmUnWbjMvtOrAZ7NzCNRzo";
+      // var partnerCode = "MOMODH1S20220711";
+      // var accessKey = "xs6XvGNPuH4AxAL9";
+      // var secretkey = "ZTP0gGrCP2KmUnWbjMvtOrAZ7NzCNRzo";
+      var partnerCode = "MOMO";
+      var accessKey = "F8BBA842ECF85";
+      var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
       var requestId = partnerCode + new Date().getTime();
       var orderId = requestId;
       var description = "Refund canceled booking";
@@ -251,6 +257,8 @@ const refundMomo = async (bookingId, amount, callback) => {
         lang: "vi",
       });
 
+      console.log(requestBody)
+
       const https = require("https");
       const options = {
         hostname: "test-payment.momo.vn",
@@ -270,6 +278,7 @@ const refundMomo = async (bookingId, amount, callback) => {
         res.on("data", (chunk) => {
           responseBody += chunk;
           const response = JSON.parse(responseBody);
+          console.log(response)
           if (response.resultCode === 0) {
             callback({
               status: StatusCodes.OK,
