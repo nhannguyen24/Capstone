@@ -150,177 +150,175 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
   });
 
 const refundMomo = async (bookingId, amount) => {
-
+  return new Promise(async (resolve, reject) => {
   try {
-    return new Promise(async (resolve, reject) => {
-    const bookingDetail = await db.BookingDetail.findOne({
-      raw: true,
-      nest: true,
-      where: {
-        bookingId: bookingId,
-      },
-      include: {
-        model: db.Ticket,
-        as: "booking_detail_ticket",
-        attributes: ["ticketId"],
+      const bookingDetail = await db.BookingDetail.findOne({
+        raw: true,
+        nest: true,
+        where: {
+          bookingId: bookingId,
+        },
         include: {
-          model: db.Tour,
-          as: "ticket_tour",
-          attributes: ["tourId", "tourName", "departureDate"],
-        },
-      },
-    });
-    if (!bookingDetail) {
-      return {
-        status: StatusCodes.NOT_FOUND,
-        data: {
-          msg: `Booking not found!`,
-        },
-      };
-    }
-
-    const transaction = await db.Transaction.findOne({
-      raw: true,
-      nest: true,
-      where: {
-        bookingId: bookingId,
-      },
-      include: {
-        model: db.Booking,
-        as: "transaction_booking",
-        attributes: ["bookingCode"],
-      },
-    });
-    if (!transaction) {
-      return {
-        status: StatusCodes.NOT_FOUND,
-        data: {
-          msg: `Transaction not found!`,
-        },
-      };
-    } else {
-      if (transaction.status === STATUS.DRAFT) {
-        return {
-          status: StatusCodes.FORBIDDEN,
-          data: {
-            msg: `Transaction not paid!`,
+          model: db.Ticket,
+          as: "booking_detail_ticket",
+          attributes: ["ticketId"],
+          include: {
+            model: db.Tour,
+            as: "ticket_tour",
+            attributes: ["tourId", "tourName", "departureDate"],
           },
-        };
-      } else if (transaction.status === STATUS.REFUNDED) {
+        },
+      });
+      if (!bookingDetail) {
         return {
-          status: StatusCodes.FORBIDDEN,
+          status: StatusCodes.NOT_FOUND,
           data: {
-            msg: `Booking already refunded!`,
+            msg: `Booking not found!`,
           },
         };
       }
-      let _amount = parseInt(amount);
-      // var partnerCode = "MOMODH1S20220711";
-      // var accessKey = "xs6XvGNPuH4AxAL9";
-      // var secretkey = "ZTP0gGrCP2KmUnWbjMvtOrAZ7NzCNRzo";
-      var partnerCode = "MOMO";
-      var accessKey = "F8BBA842ECF85";
-      var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
-      var requestId = partnerCode + new Date().getTime();
-      var orderId = requestId;
-      var description = "Refund canceled booking";
-      var transId = transaction.transactionCode;
 
-      var rawSignature =
-        "accessKey=" +
-        accessKey +
-        "&amount=" +
-        _amount +
-        "&description=" +
-        description +
-        "&orderId=" +
-        orderId +
-        "&partnerCode=" +
-        partnerCode +
-        "&requestId=" +
-        requestId +
-        "&transId=" +
-        transId;
-
-      var signature = crypto
-        .createHmac("sha256", secretkey)
-        .update(rawSignature)
-        .digest("hex");
-
-      const requestBody = JSON.stringify({
-        partnerCode: partnerCode,
-        accessKey: accessKey,
-        requestId: requestId,
-        amount: _amount,
-        orderId: orderId,
-        description: description,
-        transId: transId,
-        signature: signature,
-        lang: "vi",
-      });
-
-      const https = require("https");
-      const options = {
-        hostname: "test-payment.momo.vn",
-        port: 443,
-        path: "/v2/gateway/api/refund",
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Content-Length": Buffer.byteLength(requestBody),
+      const transaction = await db.Transaction.findOne({
+        raw: true,
+        nest: true,
+        where: {
+          bookingId: bookingId,
         },
-      };
-
-      const req = https.request(options, (res) => {
-        res.setEncoding("utf8");
-        let responseBody = "";
-
-        res.on("data", (chunk) => {
-          responseBody += chunk;
-          const response = JSON.parse(responseBody);
-
-          if (response.resultCode === 0) {
-            resolve({
-              status: StatusCodes.OK,
-              data: {
-                msg: `Refund to booking ${transaction.transaction_booking.bookingCode}`,
-                refundAmount: _amount,
-              },
-            });
-          } else {
-            reject({
-              status: StatusCodes.BAD_REQUEST,
-              data: {
-                msg: `${response.message} For booking ${transaction.transaction_booking.bookingCode}`,
-                refundAmount: _amount,
-              },
-            });
-          }
-        });
-
-        res.on("end", () => {
-          console.log("No more data in response.");
-        });
+        include: {
+          model: db.Booking,
+          as: "transaction_booking",
+          attributes: ["bookingCode"],
+        },
       });
-
-      req.on("error", (e) => {
-        console.log(`Problem with request: ${e.message}`);
-        reject({
-          status: 500,
+      if (!transaction) {
+        return {
+          status: StatusCodes.NOT_FOUND,
           data: {
-            msg: "Internal server error",
+            msg: `Transaction not found!`,
           },
+        };
+      } else {
+        if (transaction.status === STATUS.DRAFT) {
+          return {
+            status: StatusCodes.FORBIDDEN,
+            data: {
+              msg: `Transaction not paid!`,
+            },
+          };
+        } else if (transaction.status === STATUS.REFUNDED) {
+          return {
+            status: StatusCodes.FORBIDDEN,
+            data: {
+              msg: `Booking already refunded!`,
+            },
+          };
+        }
+        let _amount = parseInt(amount);
+        // var partnerCode = "MOMODH1S20220711";
+        // var accessKey = "xs6XvGNPuH4AxAL9";
+        // var secretkey = "ZTP0gGrCP2KmUnWbjMvtOrAZ7NzCNRzo";
+        var partnerCode = "MOMO";
+        var accessKey = "F8BBA842ECF85";
+        var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
+        var requestId = partnerCode + new Date().getTime();
+        var orderId = requestId;
+        var description = "Refund canceled booking";
+        var transId = transaction.transactionCode;
+
+        var rawSignature =
+          "accessKey=" +
+          accessKey +
+          "&amount=" +
+          _amount +
+          "&description=" +
+          description +
+          "&orderId=" +
+          orderId +
+          "&partnerCode=" +
+          partnerCode +
+          "&requestId=" +
+          requestId +
+          "&transId=" +
+          transId;
+
+        var signature = crypto
+          .createHmac("sha256", secretkey)
+          .update(rawSignature)
+          .digest("hex");
+
+        const requestBody = JSON.stringify({
+          partnerCode: partnerCode,
+          accessKey: accessKey,
+          requestId: requestId,
+          amount: _amount,
+          orderId: orderId,
+          description: description,
+          transId: transId,
+          signature: signature,
+          lang: "vi",
         });
-      });
 
-      req.write(requestBody);
-      req.end();
-    }
-  })
+        const https = require("https");
+        const options = {
+          hostname: "test-payment.momo.vn",
+          port: 443,
+          path: "/v2/gateway/api/refund",
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Content-Length": Buffer.byteLength(requestBody),
+          },
+        };
+
+        const req = https.request(options, (res) => {
+          res.setEncoding("utf8");
+          let responseBody = "";
+
+          res.on("data", (chunk) => {
+            responseBody += chunk;
+            const response = JSON.parse(responseBody);
+            if (response.resultCode === 0) {
+              resolve({
+                status: StatusCodes.OK,
+                data: {
+                  msg: `Refund to booking ${transaction.transaction_booking.bookingCode}`,
+                  refundAmount: _amount,
+                },
+              });
+            } else {
+              resolve({
+                status: StatusCodes.BAD_REQUEST,
+                data: {
+                  msg: `${response.message} For booking ${transaction.transaction_booking.bookingCode}`,
+                  refundAmount: _amount,
+                },
+              });
+            }
+          });
+
+          res.on("end", () => {
+            console.log("No more data in response.");
+          });
+        });
+
+        req.on("error", (e) => {
+          console.log(`Problem with request: ${e.message}`);
+          reject({
+            status: 500,
+            data: {
+              msg: "Internal server error",
+            },
+          });
+        });
+
+        req.write(requestBody);
+        req.end();
+      }
+
   } catch (error) {
-    console.log(error);
+    console.log("Error:", error);
   }
-
+})
 };
 
 const getMoMoPaymentResponse = (req) =>
