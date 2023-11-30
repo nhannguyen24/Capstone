@@ -631,33 +631,32 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                 const tourBeginBookingDate = new Date(body.beginBookingDate)
                 const tourEndBookingDate = new Date(body.endBookingDate)
 
-                // if (currentDate > tourBeginBookingDate) {
-                //     resolve({
-                //         status: StatusCodes.BAD_REQUEST,
-                //         data: {
-                //             msg: "Begin booking date can't be earlier than current date"
-                //         }
-                //     })
-                //     return
-                // } else if (tourBeginBookingDate >= tourEndBookingDate) {
-                //     resolve({
-                //         status: StatusCodes.BAD_REQUEST,
-                //         data: {
-                //             msg: "Begin booking date can't be later than End booking date",
-                //         }
-                //     })
-                //     return
-                // } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
-                //     resolve({
-                //         status: StatusCodes.BAD_REQUEST,
-                //         data: {
-                //             msg: "End booking date must be 24 hours earlier than Departure date",
-                //         }
-                //     })
-                //     return
-                // } else {
-                    // const currentDate = new Date()
-                    // currentDate.setHours(currentDate.getHours() + 7)
+                if (currentDate > tourBeginBookingDate) {
+                    resolve({
+                        status: StatusCodes.BAD_REQUEST,
+                        data: {
+                            msg: "Begin booking date can't be equal or earlier than current date"
+                        }
+                    })
+                    return
+                } else if (tourBeginBookingDate >= tourEndBookingDate) {
+                    resolve({
+                        status: StatusCodes.BAD_REQUEST,
+                        data: {
+                            msg: "Begin booking date can't be equal or later than End booking date",
+                        }
+                    })
+                    return
+                } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
+                    resolve({
+                        status: StatusCodes.BAD_REQUEST,
+                        data: {
+                            msg: "End booking date must be 24 hours earlier than Departure date",
+                        }
+                    })
+                    return
+                }
+                else {
                     // Initialize the schedule
                     const findScheduledTour = await db.Tour.findAll({
                         raw: true, nest: true,
@@ -723,6 +722,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
 
                     const findTourguide = await db.User.findAll({
                         raw: true, nest: true,
+                        attributes: ['userId', 'userName', 'email', 'maxTour', 'deviceToken'],
                         include: [
                             {
                                 model: db.Role,
@@ -737,6 +737,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
 
                     const findDriver = await db.User.findAll({
                         raw: true, nest: true,
+                        attributes: ['userId', 'userName', 'email', 'maxTour', 'deviceToken'],
                         include: [
                             {
                                 model: db.Role,
@@ -785,6 +786,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                         (employee) =>
                             employee.maxTour > 0 &&
                             !schedule.some((assignment) => {
+                                const beforeDepartureDate = new Date(assignment.tour.departureDate)
                                 const departureDate = new Date(assignment.tour.departureDate)
                                 // Split the duration string into hours, minutes, and seconds
                                 const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
@@ -795,16 +797,39 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 departureDate.setSeconds(departureDate.getSeconds() + seconds)
                                 const endDate = departureDate
 
+                                const beforeCurrentTourDepartureDate = new Date(body.departureDate)
+                                const currentTourDepartureDate = new Date(body.departureDate)
+                                const [currentTourHours, currentTourMinutes, currentTourSeconds] = body.duration.split(':').map(Number)
+
+                                // Add the duration to the departureDate
+                                currentTourDepartureDate.setHours(currentTourDepartureDate.getHours() + currentTourHours)
+                                currentTourDepartureDate.setMinutes(currentTourDepartureDate.getMinutes() + currentTourMinutes)
+                                currentTourDepartureDate.setSeconds(currentTourDepartureDate.getSeconds() + currentTourSeconds)
+                                const currentEndDate = currentTourDepartureDate
+
+                                let checkTourGuide = true;
+                                if (beforeDepartureDate > currentEndDate && assignment.tourGuide.userId === employee.userId) {
+                                    checkTourGuide = false;
+                                }
+
+                                // console.log('beforeCurrentTourDepartureDate', beforeCurrentTourDepartureDate);
+                                // console.log('endDate', endDate);
+                                // console.log('beforeDepartureDate', beforeDepartureDate);
+                                // console.log('currentEndDate', currentEndDate);
+
+                                // console.log(`${assignment.tourGuide.userId}////${employee.userId}`, (endDate >= beforeCurrentTourDepartureDate && assignment.tourGuide.userId === employee.userId) && checkTourGuide);
+
                                 // Check if the tour guide is available
-                                return endDate >= body.departureDate && assignment.tourGuide.userId == employee.userId
+                                return (endDate >= beforeCurrentTourDepartureDate && assignment.tourGuide.userId === employee.userId) && checkTourGuide;
                             })
-                    )
+                    );
+
                     const availableDriver = findDriver.filter(
                         (employee) =>
                             employee.maxTour > 0
                             && !schedule.some((assignment) => {
+                                const beforeDepartureDate = new Date(assignment.tour.departureDate)
                                 const departureDate = new Date(assignment.tour.departureDate)
-
                                 // Split the duration string into hours, minutes, and seconds
                                 const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
 
@@ -813,16 +838,33 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 departureDate.setMinutes(departureDate.getMinutes() + minutes)
                                 departureDate.setSeconds(departureDate.getSeconds() + seconds)
                                 const endDate = departureDate
-                                return endDate >= body.departureDate && assignment.driver.userId == employee.userId
+
+                                const beforeCurrentTourDepartureDate = new Date(body.departureDate)
+                                const currentTourDepartureDate = new Date(body.departureDate)
+                                const [currentTourHours, currentTourMinutes, currentTourSeconds] = body.duration.split(':').map(Number)
+
+                                // Add the duration to the departureDate
+                                currentTourDepartureDate.setHours(currentTourDepartureDate.getHours() + currentTourHours)
+                                currentTourDepartureDate.setMinutes(currentTourDepartureDate.getMinutes() + currentTourMinutes)
+                                currentTourDepartureDate.setSeconds(currentTourDepartureDate.getSeconds() + currentTourSeconds)
+                                const currentEndDate = currentTourDepartureDate
+
+                                let checkDriver = true;
+                                if (beforeDepartureDate > currentEndDate && assignment.driver.userId === employee.userId) {
+                                    checkDriver = false;
+                                }
+
+                                // // Check if the driver is available
+                                return (endDate >= beforeCurrentTourDepartureDate && assignment.driver.userId == employee.userId) && checkDriver;
                             })
-                    )
+                    );
 
                     const availableBuses = findBusActive.filter(
                         (bus) =>
                             // bus.numberSeat >= 2 && 
                             !schedule.some((assignment) => {
+                                const beforeDepartureDate = new Date(assignment.tour.departureDate)
                                 const departureDate = new Date(assignment.tour.departureDate)
-
                                 // Split the duration string into hours, minutes, and seconds
                                 const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
 
@@ -831,10 +873,26 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 departureDate.setMinutes(departureDate.getMinutes() + minutes)
                                 departureDate.setSeconds(departureDate.getSeconds() + seconds)
                                 const endDate = departureDate
-                                // console.log(`${bus.busPlate} + ${assignment.tour.tourName}`, endDate >= tour.departureDate)
-                                return endDate >= body.departureDate && assignment.bus.busId == bus.busId
+
+                                const beforeCurrentTourDepartureDate = new Date(body.departureDate)
+                                const currentTourDepartureDate = new Date(body.departureDate)
+                                const [currentTourHours, currentTourMinutes, currentTourSeconds] = body.duration.split(':').map(Number)
+
+                                // Add the duration to the departureDate
+                                currentTourDepartureDate.setHours(currentTourDepartureDate.getHours() + currentTourHours)
+                                currentTourDepartureDate.setMinutes(currentTourDepartureDate.getMinutes() + currentTourMinutes)
+                                currentTourDepartureDate.setSeconds(currentTourDepartureDate.getSeconds() + currentTourSeconds)
+                                const currentEndDate = currentTourDepartureDate
+
+                                let checkBus = true;
+                                if (beforeDepartureDate > currentEndDate && assignment.bus.busId == bus.busId) {
+                                    checkBus = false;
+                                }
+
+                                // Check if the bus is available
+                                return (endDate >= beforeCurrentTourDepartureDate && assignment.bus.busId == bus.busId) && checkBus;
                             })
-                    )
+                    );
 
                     let createTour
                     if (availableTourGuide.length > 0 && availableDriver.length > 0 && availableBuses.length > 0) {
@@ -842,7 +900,6 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                         const chosenDriver = availableDriver[0]
                         chosenTourGuide.maxTour--
                         chosenDriver.maxTour--
-
                         const chosenBus = availableBuses[0]
 
                         createTour = await db.Tour.findOrCreate({
@@ -882,12 +939,21 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
 
                         const createdDepartureDate = new Date(createTour[0].dataValues.departureDate);
 
+                        const formattedDate = createdDepartureDate.toLocaleString('en-GB', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                        });
+
                         const createNotiTourGuide = await db.Notification.create({
                             title: "Thông báo chuyến đi của bạn",
-                            body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour[0].dataValues.tourName} vào lúc ${createdDepartureDate}`,
+                            body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour[0].dataValues.tourName} vào lúc ${formattedDate}`,
                             deviceToken: chosenTourGuide.deviceToken,
                             notiType: "Thông báo",
-                            userId: createTour.tourGuideId
+                            userId: createTour[0].dataValues.tourGuideId
                         }, { transaction: t })
 
                         if (createNotiTourGuide) {
@@ -901,10 +967,10 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
 
                         const createNotiDriver = await db.Notification.create({
                             title: "Thông báo chuyến đi của bạn",
-                            body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour[0].dataValues.tourName} vào lúc ${createdDepartureDate}`,
+                            body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour[0].dataValues.tourName} vào lúc ${formattedDate}`,
                             deviceToken: chosenDriver.deviceToken,
                             notiType: "Thông báo",
-                            userId: createTour.driverId
+                            userId: createTour[0].dataValues.driverId
                         }, { transaction: t })
 
                         if (createNotiDriver) {
@@ -915,7 +981,8 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 createNotiDriver.notiType
                             );
                         };
-                    } else {
+                    }
+                    else {
                         createTour = await db.Tour.findOrCreate({
                             where: {
                                 tourName: tourName
@@ -1041,27 +1108,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             })
                         })
                     })
-
-                    // redisClient.keys('*tours_*', (error, keys) => {
-                    //     if (error) {
-                    //         console.error('Error retrieving keys:', error)
-                    //         return
-                    //     }
-                    //     // Insert new tour into each key individually
-                    //     keys.forEach((key) => {
-                    //         redisClient.get(key, (error, tour) => {
-                    //             if (error) {
-                    //                 console.error(`Error getting key ${key}:`, error)
-                    //             } else {
-                    //                 // console.log(`Key ${key} deleted successfully`)
-                    //                 let arrayTours = JSON.parse(tour)
-                    //                 let newArrayTour = [createTour[0].dataValues, ...arrayTours]
-                    //                 redisClient.setEx(key, 3600, JSON.stringify(newArrayTour))
-                    //             }
-                    //         })
-                    //     })
-                    // })
-                // }
+                }
                 await t.commit()
             })
         } catch (error) {
@@ -1623,7 +1670,6 @@ const assignTour = () =>
                     }
                 }
                 for (const tour of findTourActive) {
-                    // console.log(tour)
                     // Find an available employee for the tour
                     const availableTourGuide = findTourguide.filter(
                         (employee) =>
@@ -2413,6 +2459,7 @@ const cloneTour = (id, body) =>
                             (employee) =>
                                 employee.maxTour > 0 &&
                                 !schedule.some((assignment) => {
+                                    const beforeDepartureDate = new Date(assignment.tour.departureDate)
                                     const departureDate = new Date(assignment.tour.departureDate)
                                     // Split the duration string into hours, minutes, and seconds
                                     const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
@@ -2423,16 +2470,32 @@ const cloneTour = (id, body) =>
                                     departureDate.setSeconds(departureDate.getSeconds() + seconds)
                                     const endDate = departureDate
 
+                                    const beforeCurrentTourDepartureDate = new Date(body.departureDate)
+                                    const currentTourDepartureDate = new Date(body.departureDate)
+                                    const [currentTourHours, currentTourMinutes, currentTourSeconds] = body.duration.split(':').map(Number)
+
+                                    // Add the duration to the departureDate
+                                    currentTourDepartureDate.setHours(currentTourDepartureDate.getHours() + currentTourHours)
+                                    currentTourDepartureDate.setMinutes(currentTourDepartureDate.getMinutes() + currentTourMinutes)
+                                    currentTourDepartureDate.setSeconds(currentTourDepartureDate.getSeconds() + currentTourSeconds)
+                                    const currentEndDate = currentTourDepartureDate
+
+                                    let checkTourGuide = true;
+                                    if (beforeDepartureDate > currentEndDate && assignment.tourGuide.userId === employee.userId) {
+                                        checkTourGuide = false;
+                                    }
+
                                     // Check if the tour guide is available
-                                    return endDate >= body.departureDate && assignment.tourGuide.userId == employee.userId
+                                    return (endDate >= beforeCurrentTourDepartureDate && assignment.tourGuide.userId === employee.userId) && checkTourGuide;
                                 })
-                        )
+                        );
+
                         const availableDriver = findDriver.filter(
                             (employee) =>
                                 employee.maxTour > 0
                                 && !schedule.some((assignment) => {
+                                    const beforeDepartureDate = new Date(assignment.tour.departureDate)
                                     const departureDate = new Date(assignment.tour.departureDate)
-
                                     // Split the duration string into hours, minutes, and seconds
                                     const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
 
@@ -2441,16 +2504,33 @@ const cloneTour = (id, body) =>
                                     departureDate.setMinutes(departureDate.getMinutes() + minutes)
                                     departureDate.setSeconds(departureDate.getSeconds() + seconds)
                                     const endDate = departureDate
-                                    return endDate >= body.departureDate && assignment.driver.userId == employee.userId
+
+                                    const beforeCurrentTourDepartureDate = new Date(body.departureDate)
+                                    const currentTourDepartureDate = new Date(body.departureDate)
+                                    const [currentTourHours, currentTourMinutes, currentTourSeconds] = body.duration.split(':').map(Number)
+
+                                    // Add the duration to the departureDate
+                                    currentTourDepartureDate.setHours(currentTourDepartureDate.getHours() + currentTourHours)
+                                    currentTourDepartureDate.setMinutes(currentTourDepartureDate.getMinutes() + currentTourMinutes)
+                                    currentTourDepartureDate.setSeconds(currentTourDepartureDate.getSeconds() + currentTourSeconds)
+                                    const currentEndDate = currentTourDepartureDate
+
+                                    let checkDriver = true;
+                                    if (beforeDepartureDate > currentEndDate && assignment.driver.userId === employee.userId) {
+                                        checkDriver = false;
+                                    }
+
+                                    // // Check if the driver is available
+                                    return (endDate >= beforeCurrentTourDepartureDate && assignment.driver.userId == employee.userId) && checkDriver;
                                 })
-                        )
+                        );
 
                         const availableBuses = findBusActive.filter(
                             (bus) =>
                                 // bus.numberSeat >= 2 && 
                                 !schedule.some((assignment) => {
+                                    const beforeDepartureDate = new Date(assignment.tour.departureDate)
                                     const departureDate = new Date(assignment.tour.departureDate)
-
                                     // Split the duration string into hours, minutes, and seconds
                                     const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
 
@@ -2459,10 +2539,26 @@ const cloneTour = (id, body) =>
                                     departureDate.setMinutes(departureDate.getMinutes() + minutes)
                                     departureDate.setSeconds(departureDate.getSeconds() + seconds)
                                     const endDate = departureDate
-                                    // console.log(`${bus.busPlate} + ${assignment.tour.tourName}`, endDate >= tour.departureDate)
-                                    return endDate >= body.departureDate && assignment.bus.busId == bus.busId
+
+                                    const beforeCurrentTourDepartureDate = new Date(body.departureDate)
+                                    const currentTourDepartureDate = new Date(body.departureDate)
+                                    const [currentTourHours, currentTourMinutes, currentTourSeconds] = body.duration.split(':').map(Number)
+
+                                    // Add the duration to the departureDate
+                                    currentTourDepartureDate.setHours(currentTourDepartureDate.getHours() + currentTourHours)
+                                    currentTourDepartureDate.setMinutes(currentTourDepartureDate.getMinutes() + currentTourMinutes)
+                                    currentTourDepartureDate.setSeconds(currentTourDepartureDate.getSeconds() + currentTourSeconds)
+                                    const currentEndDate = currentTourDepartureDate
+
+                                    let checkBus = true;
+                                    if (beforeDepartureDate > currentEndDate && assignment.bus.busId == bus.busId) {
+                                        checkBus = false;
+                                    }
+
+                                    // Check if the bus is available
+                                    return (endDate >= beforeCurrentTourDepartureDate && assignment.bus.busId == bus.busId) && checkBus;
                                 })
-                        )
+                        );
 
                         let createTour
                         if (availableTourGuide.length > 0 && availableDriver.length > 0 && availableBuses.length > 0) {
@@ -2504,41 +2600,50 @@ const cloneTour = (id, body) =>
                                 transaction: t
                             })
 
-                            // const createdDepartureDate = new Date(createTour[0].dataValues.departureDate);
+                            const createdDepartureDate = new Date(createTour.departureDate);
 
-                            // const createNotiTourGuide = await db.Notification.create({
-                            //     title: "Thông báo chuyến đi của bạn",
-                            //     body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour[0].dataValues.tourName} vào lúc ${createdDepartureDate}`,
-                            //     deviceToken: chosenTourGuide.deviceToken,
-                            //     notiType: "Thông báo",
-                            //     userId: createTour[0].dataValues.tourGuideId
-                            // }, { transaction: t })
+                            const formattedDate = createdDepartureDate.toLocaleString('en-GB', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                            });
 
-                            // if (createNotiTourGuide) {
-                            //     sendNotification(
-                            //         createNotiTourGuide.title,
-                            //         createNotiTourGuide.body,
-                            //         createNotiTourGuide.deviceToken,
-                            //         createNotiTourGuide.notiType
-                            //     );
-                            // };
+                            const createNotiTourGuide = await db.Notification.create({
+                                title: "Thông báo chuyến đi của bạn",
+                                body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour.tourName} vào lúc ${formattedDate}`,
+                                deviceToken: chosenTourGuide.deviceToken,
+                                notiType: "Thông báo",
+                                userId: createTour.tourGuideId
+                            }, { transaction: t })
 
-                            // const createNotiDriver = await db.Notification.create({
-                            //     title: "Thông báo chuyến đi của bạn",
-                            //     body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour[0].dataValues.tourName} vào lúc ${createdDepartureDate}`,
-                            //     deviceToken: chosenDriver.deviceToken,
-                            //     notiType: "Thông báo",
-                            //     userId: createTour[0].dataValues.driverId
-                            // }, { transaction: t })
+                            if (createNotiTourGuide) {
+                                sendNotification(
+                                    createNotiTourGuide.title,
+                                    createNotiTourGuide.body,
+                                    createNotiTourGuide.deviceToken,
+                                    createNotiTourGuide.notiType
+                                );
+                            };
 
-                            // if (createNotiDriver) {
-                            //     sendNotification(
-                            //         createNotiDriver.title,
-                            //         createNotiDriver.body,
-                            //         createNotiDriver.deviceToken,
-                            //         createNotiDriver.notiType
-                            //     );
-                            // };
+                            const createNotiDriver = await db.Notification.create({
+                                title: "Thông báo chuyến đi của bạn",
+                                body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour.tourName} vào lúc ${formattedDate}`,
+                                deviceToken: chosenDriver.deviceToken,
+                                notiType: "Thông báo",
+                                userId: createTour.driverId
+                            }, { transaction: t })
+
+                            if (createNotiDriver) {
+                                sendNotification(
+                                    createNotiDriver.title,
+                                    createNotiDriver.body,
+                                    createNotiDriver.deviceToken,
+                                    createNotiDriver.notiType
+                                );
+                            };
                         } else {
                             createTour = await db.Tour.create({
                                 tourName: body.tourName ? body.tourName : tour.tourName,
@@ -2548,10 +2653,6 @@ const cloneTour = (id, body) =>
                                 departureDate: tDepartureDate,
                                 departureStationId: uniqueStationArray[0],
                                 routeId: tour.routeId,
-                                tourGuideId: chosenTourGuide.userId,
-                                driverId: chosenDriver.userId,
-                                busId: chosenBus.busId,
-                                isScheduled: true,
                                 ...body
                             }, { transaction: t })
                         }
