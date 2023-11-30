@@ -1497,15 +1497,15 @@ const cancelBooking = async (bookingId) => {
 
         const refundResult = await PaymentService.refundMomo(_bookingId, amount)
         //const refundResult = await PaymentService.refundMomo(_bookingId, amount)
-        console.log( refundResult.data)
         if (refundResult === null || refundResult === undefined) {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
-                    msg: "Something went wrong!",
+                    msg: "Something went wrong when canceling!",
                 }
             }
         } else if (refundResult.status === StatusCodes.OK) {
+            console.log("Update Refund")
             db.Booking.update({
                 bookingStatus: BOOKING_STATUS.CANCELED,
             }, {
@@ -1541,7 +1541,7 @@ const cancelBooking = async (bookingId) => {
                 }
             }
         } else {
-            console.log("TEST", refundResult)
+            console.log("Failed to refund", refundResult)
             return refundResult
         }
 
