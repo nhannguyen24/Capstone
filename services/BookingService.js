@@ -1550,4 +1550,57 @@ const cancelBooking = async (bookingId) => {
     }
 }
 
-module.exports = { getBookingDetailByBookingId, getBookings, getBookingsByEmail, createBookingWeb, createBookingOffline, checkInQrCode, cancelBooking };
+const testbooking = async (tourId) => {
+    try {
+        const booking = await db.BookingDetail.findAll({
+            raw: true,
+            nest: true,
+            where: {
+                status: STATUS.ACTIVE
+            },
+            include: {
+                model: db.Ticket,
+                as: "booking_detail_ticket",
+                where: {
+                    tourId: tourId
+                },
+                attributes: []
+            },
+            attributes: [
+                [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
+            ]
+        })
+
+        const bus = await db.Bus.findOne({
+            attributes: ["numberSeat"],
+            include: {
+                model: db.Tour,
+                as: "bus_tour",
+                where: {
+                    tourId: tourId
+                },
+                attributes: []
+            }
+        })
+        const busAvailableSeat = bus.numberSeat - booking[0].total_quantity
+        return {
+            status: StatusCodes.OK,
+            data: {
+                msg: "Got data!",
+                booking: booking,
+                seat: bus.numberSeat,
+                availableSeat: busAvailableSeat
+            }
+        }
+    } catch (error) {
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data: {
+                msg: "Something went wrong!",
+                error: error
+            }
+        }
+    }
+}
+
+module.exports = { testbooking, getBookingDetailByBookingId, getBookings, getBookingsByEmail, createBookingWeb, createBookingOffline, checkInQrCode, cancelBooking };
