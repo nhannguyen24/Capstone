@@ -244,15 +244,4 @@ const cancelBooking = async (req, res) => {
     }
 }
 
-const testbooking = async (req, res) => {
-    try {
-
-        const response = await services.testbooking(req.query.tourId)
-        return res.status(response.status).json(response.data)
-
-    } catch (error) {
-        throw new InternalServerError(error)
-    }
-}
-
-module.exports = { testbooking, getBookingDetailByBookingId, getBookings, getBookingsByEmail, createBookingWeb, createBookingOffline, checkInQrCode, cancelBooking }
+module.exports = { getBookingDetailByBookingId, getBookings, getBookingsByEmail, createBookingWeb, createBookingOffline, checkInQrCode, cancelBooking }

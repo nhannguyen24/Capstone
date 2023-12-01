@@ -390,39 +390,5 @@ router.put("/:id/checkin", verifyToken, roleAuthen(["Manager", "TourGuide"]), co
  */
 router.put("/:id/cancel", controllers.cancelBooking)
 
-/**
- * @swagger
- * /api/v1/bookings:
- *   delete:
- *     summary: test tickets
- *     tags: [Booking]
- *     parameters:
- *       - in: query
- *         name: tourId
- *         schema:
- *           type: string
- *         required: true
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *       400:
- *         description: Bad request
- *         content:
- *           application/json:
- *             schema:
- *               type: string
- *       409:
- *         description: Conflict
- *         content:
- *           application/json:
- *             schema:
- *               type: string
- */
-router.delete("/", controllers.testbooking)
-
 
 module.exports = router
