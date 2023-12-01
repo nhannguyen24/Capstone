@@ -1007,8 +1007,8 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                         });
 
                         const createNotiTourGuide = await db.Notification.create({
-                            title: "Thông báo chuyến đi của bạn",
-                            body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour[0].dataValues.tourName} vào lúc ${formattedDate}`,
+                            title: "Bạn có một chuyến đi mới",
+                            body: `Chuyến tên ${createTour[0].dataValues.tourName} - ${formattedDate}`,
                             deviceToken: chosenTourGuide.deviceToken,
                             notiType: "Thông báo",
                             userId: createTour[0].dataValues.tourGuideId
@@ -1024,8 +1024,8 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                         };
 
                         const createNotiDriver = await db.Notification.create({
-                            title: "Thông báo chuyến đi của bạn",
-                            body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour[0].dataValues.tourName} vào lúc ${formattedDate}`,
+                            title: "Bạn có một chuyến đi mới",
+                            body: `Chuyến tên ${createTour[0].dataValues.tourName} - ${formattedDate}`,
                             deviceToken: chosenDriver.deviceToken,
                             notiType: "Thông báo",
                             userId: createTour[0].dataValues.driverId
@@ -1900,8 +1900,8 @@ const assignTour = () =>
                         const createdDepartureDate = new Date(findCurrentTour.departureDate);
 
                         const createNotiTourGuide = await db.Notification.create({
-                            title: "Thông báo chuyến đi của bạn",
-                            body: `Bạn đã được sắp xếp vào chuyến đi tên ${findCurrentTour.tourName} vào lúc ${createdDepartureDate}`,
+                            title: "Bạn có một chuyến đi mới",
+                            body: `Chuyến tên ${findCurrentTour.tourName} - ${createdDepartureDate}`,
                             deviceToken: assignment.tourGuide.deviceToken,
                             notiType: "Thông báo",
                             userId: assignment.tourGuide.userId
@@ -1917,8 +1917,8 @@ const assignTour = () =>
                         };
 
                         const createNotiDriver = await db.Notification.create({
-                            title: "Thông báo chuyến đi của bạn",
-                            body: `Bạn đã được sắp xếp vào chuyến đi tên ${findCurrentTour.tourName} vào lúc ${createdDepartureDate}`,
+                            title: "Bạn có một chuyến đi mới",
+                            body: `Chuyến tên ${findCurrentTour.tourName} - ${createdDepartureDate}`,
                             deviceToken: assignment.driver.deviceToken,
                             notiType: "Thông báo",
                             userId: assignment.driver.userId
@@ -2732,8 +2732,8 @@ const cloneTour = (id, body) =>
                             });
 
                             const createNotiTourGuide = await db.Notification.create({
-                                title: "Thông báo chuyến đi của bạn",
-                                body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour.tourName} vào lúc ${formattedDate}`,
+                                title: "Bạn có một chuyến đi mới",
+                                body: `Chuyến tên ${createTour.tourName} - ${formattedDate}`,
                                 deviceToken: chosenTourGuide.deviceToken,
                                 notiType: "Thông báo",
                                 userId: createTour.tourGuideId
@@ -2749,8 +2749,8 @@ const cloneTour = (id, body) =>
                             };
 
                             const createNotiDriver = await db.Notification.create({
-                                title: "Thông báo chuyến đi của bạn",
-                                body: `Bạn đã được sắp xếp vào chuyến đi tên ${createTour.tourName} vào lúc ${formattedDate}`,
+                                title: "Bạn có một chuyến đi mới",
+                                body: `Chuyến tên ${createTour.tourName} - ${formattedDate}`,
                                 deviceToken: chosenDriver.deviceToken,
                                 notiType: "Thông báo",
                                 userId: createTour.driverId
