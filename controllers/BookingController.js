@@ -129,24 +129,24 @@ const createBookingWeb = async (req, res) => {
         if (departureStationId.trim() === "") {
             errors.departureStationId = "Departure station required!"
         }
-        if(user.userName === null && user.userName === undefined && user.userName.trim() === ""){
+        if (user.userName === null && user.userName === undefined && user.userName.trim() === "") {
             errors.userName = "User name required!"
         }
-        if(user.email === null && user.email === undefined && user.email.trim() === ""){
+        if (user.email === null && user.email === undefined && user.email.trim() === "") {
             errors.email = "Email required!"
         } else {
             const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/
-             if (!emailRegex.test(user.email)) {
+            if (!emailRegex.test(user.email)) {
                 errors.email = "Invalid email address!"
             }
         }
-        if(user.phone === null && user.phone === undefined && user.phone.trim() === ""){
+        if (user.phone === null && user.phone === undefined && user.phone.trim() === "") {
             errors.phone = "Phone required!"
         } else {
             const cleanedPhone = user.phone.replace(/\s/g, '')
             if (!/^\d+$/.test(cleanedPhone)) {
                 errors.phone = "Phone can only contain digits!";
-            } else if(cleanedPhone.length !== 10) {
+            } else if (cleanedPhone.length !== 10) {
                 errors.phone = "Phone need to be length of 10 digits!"
             }
         }
@@ -154,7 +154,7 @@ const createBookingWeb = async (req, res) => {
         for (const ticket of tickets) {
             if (isNaN(ticket.quantity)) {
                 errors.ticket(`Ticket quantity must be a number!`)
-            } else if(ticket.quantity < 0){
+            } else if (ticket.quantity < 0) {
                 errors.ticket(`Ticket quantity must be atleast 0!`)
             }
         }
