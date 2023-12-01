@@ -1092,7 +1092,7 @@ const createBookingOffline = async (req) => {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
-                    msg: `Tours can only be booked 30 minutes before departure time!`,
+                    msg: `Tour can only be booked 30 minutes before departure time!`,
                 }
             }
         }
