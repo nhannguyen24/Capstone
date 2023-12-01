@@ -71,7 +71,7 @@ const getAllForm = (
 
             for (const form of forms) {
                 const currentTour = await db.Tour.findOne({
-                    raw: true, nest: true,
+                    nest: true,
                     where: { tourId: form.currentTour },
                     attributes: {
                         exclude: ['createdAt', 'updatedAt']
@@ -79,7 +79,7 @@ const getAllForm = (
                 })
 
                 const desireTour = await db.Tour.findOne({
-                    raw: true, nest: true,
+                    nest: true,
                     where: { tourId: form.desireTour },
                     attributes: {
                         exclude: ['createdAt', 'updatedAt']
