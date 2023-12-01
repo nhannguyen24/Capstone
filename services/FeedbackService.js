@@ -70,6 +70,12 @@ const getFeedbacks = async (req) => {
 
     } catch (error) {
         console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -100,11 +106,18 @@ const getFeedbackById = async (feedbackId) => {
                 feedback: feedback
             } : {
                 msg: `No feedbacks found!`,
+                feedback: {}
             }
         }
 
     } catch (error) {
-        console.log(error)
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -221,6 +234,12 @@ const createFeedback = async (req) => {
     } catch (error) {
         await t.rollback()
         console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -274,7 +293,13 @@ const updateFeedback = async (req) => {
 
     } catch (error) {
         await t.rollback()
-        console.log(error)
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -309,7 +334,13 @@ const deleteFeedback = async (feedbackId) => {
             }
         }
     } catch (error) {
-        console.log(error)
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 

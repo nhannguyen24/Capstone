@@ -1562,7 +1562,14 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
         })
     } catch (error) {
         await t.rollback()
-        reject(error)
+        console.error(error)
+
+        reject({
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        })
     }
 })
 

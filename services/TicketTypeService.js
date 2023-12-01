@@ -17,7 +17,13 @@ const getTicketTypes = async (req) => {
             }
         }
     } catch (error) {
-        console.error(error);
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -40,7 +46,13 @@ const getTicketTypeById = async (ticketTypeId) => {
         }
 
     } catch (error) {
-        console.error(error);
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -67,6 +79,12 @@ const createTicketType = async (req) => {
         }
     } catch (error) {
         console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -134,7 +152,13 @@ const updateTicketType = async (req) => {
         }
     } catch (error) {
         await t.rollback()
-        console.error(error);
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
