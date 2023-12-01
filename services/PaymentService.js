@@ -592,7 +592,7 @@ const paymentOffline = (bookingId) =>
         resolve({
           status: StatusCodes.NOT_FOUND,
           data: {
-            msg: `Booking transaction not found!`,
+            msg: `Booking not found!`,
           },
         });
       }
@@ -622,6 +622,7 @@ const paymentOffline = (bookingId) =>
           db.Booking.update(
             {
               bookingStatus: BOOKING_STATUS.ON_GOING,
+              isAttended: true,
             },
             {
               where: {
