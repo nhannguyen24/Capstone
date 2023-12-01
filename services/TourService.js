@@ -1542,6 +1542,8 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
             i++
         }
 
+        console.log(errors);
+
         if (errors == 0) {
             redisClient.keys('*tours_*', (error, keys) => {
                 if (error) {
