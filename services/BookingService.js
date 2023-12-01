@@ -113,7 +113,13 @@ const getBookingDetailByBookingId = async (bookingId) => {
             },
         }
     } catch (error) {
-        console.log(error);
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -387,7 +393,13 @@ const getBookings = async (req) => {
             }
         }
     } catch (error) {
-        console.log(error)
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -678,7 +690,13 @@ const getBookingsByEmail = async (req) => {
             }
         }
     } catch (error) {
-        console.log(error)
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -967,7 +985,13 @@ const createBookingWeb = async (req) => {
                 }
             })
         } catch (error) {
-            console.log(error)
+            console.error(error)
+            return {
+                status: StatusCodes.INTERNAL_SERVER_ERROR,
+                data:{
+                    msg: "An error has occurred!",
+                }
+            }
         }
 
         return {
@@ -979,7 +1003,13 @@ const createBookingWeb = async (req) => {
             }
         }
     } catch (error) {
-        console.log(error)
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -1043,11 +1073,26 @@ const createBookingOffline = async (req) => {
                 }
             }
         }
+
         if (TOUR_STATUS.FINISHED === tour.tourStatus || TOUR_STATUS.CANCELED === tour.tourStatus) {
             return {
-                status: StatusCodes.FORBIDDEN,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Tour not available for booking!`,
+                }
+            }
+        }
+
+        const currentDate = new Date()
+        currentDate.setHours(currentDate.getHours() + 7)
+
+        const departureDateMinusThirtyMinutes = new Date(tour.departureDate)
+        departureDateMinusThirtyMinutes.setMinutes(departureDateMinusThirtyMinutes.getMinutes() - 30)
+        if(departureDateMinusThirtyMinutes > currentDate){
+            return {
+                status: StatusCodes.BAD_REQUEST,
+                data: {
+                    msg: `Tour can only be booked 30 minutes before departure time!`,
                 }
             }
         }
@@ -1210,7 +1255,7 @@ const createBookingOffline = async (req) => {
         let booking
         try {
             await db.sequelize.transaction(async (t) => {
-                booking = await db.Booking.create({ totalPrice: totalPrice, customerId: userId, departureStationId: station.stationId, isAttended: true, bookingStatus: BOOKING_STATUS.DRAFT }, { transaction: t });
+                booking = await db.Booking.create({ totalPrice: totalPrice, customerId: userId, departureStationId: station.stationId, isAttended: false, bookingStatus: BOOKING_STATUS.DRAFT }, { transaction: t });
 
                 await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, transactionType: TRANSACTION_TYPE.CASH, status: STATUS.DRAFT }, { transaction: t })
 
@@ -1219,7 +1264,13 @@ const createBookingOffline = async (req) => {
                 }
             })
         } catch (error) {
-            console.log(error)
+            console.error(error)
+            return {
+                status: StatusCodes.INTERNAL_SERVER_ERROR,
+                data:{
+                    msg: "An error has occurred!",
+                }
+            }
         }
 
         return {
@@ -1231,7 +1282,13 @@ const createBookingOffline = async (req) => {
             }
         }
     } catch (error) {
-        console.log(error)
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -1344,7 +1401,13 @@ const checkInQrCode = async (bookingId, tourId) => {
         }
     } catch (error) {
         await t.rollback()
-        console.log(error)
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 };
 
@@ -1546,7 +1609,13 @@ const cancelBooking = async (bookingId) => {
         }
 
     } catch (error) {
-        console.log(error)
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 

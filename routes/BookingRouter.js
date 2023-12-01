@@ -1,9 +1,9 @@
-const controllers = require('../controllers/BookingController');
-const express = require('express');
-const verifyToken = require('../middlewares/VerifyToken');
-const {roleAuthen} = require('../middlewares/VerifyRole');
+const controllers = require('../controllers/BookingController')
+const express = require('express')
+const verifyToken = require('../middlewares/VerifyToken')
+const {roleAuthen} = require('../middlewares/VerifyRole')
 
-const router = express.Router();
+const router = express.Router()
 
 /**
  * @swagger
@@ -80,7 +80,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, roleAuthen(["Manager", "TourGuide", "Customer"]), controllers.getBookings);
+router.get("/", verifyToken, roleAuthen(["Manager", "TourGuide", "Customer"]), controllers.getBookings)
 
 /**
  * @swagger
@@ -150,7 +150,7 @@ router.get("/", verifyToken, roleAuthen(["Manager", "TourGuide", "Customer"]), c
  *             schema:
  *               type: object
  */
-router.get("/email", controllers.getBookingsByEmail);
+router.get("/email", controllers.getBookingsByEmail)
 
 /**
  * @swagger
@@ -179,7 +179,7 @@ router.get("/email", controllers.getBookingsByEmail);
  *             schema:
  *               type: string
  */
-router.get("/:id", controllers.getBookingDetailByBookingId);
+router.get("/:id", controllers.getBookingDetailByBookingId)
 
 /**
  * @swagger
@@ -249,7 +249,7 @@ router.get("/:id", controllers.getBookingDetailByBookingId);
  *             schema:
  *               type: string
  */
-router.post("/web", controllers.createBookingWeb);
+router.post("/web", controllers.createBookingWeb)
 
 /**
  * @swagger
@@ -313,11 +313,11 @@ router.post("/web", controllers.createBookingWeb);
  *             schema:
  *               type: string
  */
-router.post("/offline", verifyToken, roleAuthen(["TourGuide"]), controllers.createBookingOffline);
+router.post("/offline", verifyToken, roleAuthen(["TourGuide"]), controllers.createBookingOffline)
 
 /**
  * @swagger
- * /api/v1/bookings/checkin/{id}:
+ * /api/v1/bookings/{id}/checkin:
  *   put:
  *     security: 
  *         - BearerAuth: []
@@ -354,11 +354,11 @@ router.post("/offline", verifyToken, roleAuthen(["TourGuide"]), controllers.crea
  *             schema:
  *               type: string
  */
-router.put("/checkin/:id", verifyToken, roleAuthen(["Manager", "TourGuide"]), controllers.checkInQrCode);
+router.put("/:id/checkin", verifyToken, roleAuthen(["Manager", "TourGuide"]), controllers.checkInQrCode)
 
 /**
  * @swagger
- * /api/v1/bookings/cancel/{id}:
+ * /api/v1/bookings/{id}/cancel:
  *   put:
  *     summary: Cancel booking
  *     tags: [Booking]
@@ -388,7 +388,7 @@ router.put("/checkin/:id", verifyToken, roleAuthen(["Manager", "TourGuide"]), co
  *             schema:
  *               type: string
  */
-router.put("/cancel/:id", controllers.cancelBooking);
+router.put("/:id/cancel", controllers.cancelBooking)
 
 
-module.exports = router;
+module.exports = router

@@ -275,24 +275,50 @@ const getAllTour = (
                         delete tour.dataValues.departureStationId
 
                         const feedbacks = await db.Feedback.findAll({
+                            raw: true,
+                            nest: true,
                             where: {
                                 routeId: tour.tour_route.routeId,
                                 status: STATUS.ACTIVE
                             },
-                            attributes: {
-                                exclude: ["userId"]
-                            }
+                            attributes: [
+                                [db.Sequelize.fn('AVG', db.Sequelize.col('stars')), 'average_stars']
+                            ]
                         })
 
-                        let totalStars = 0
-                        let avgStars = 0
-                        if (feedbacks.length > 0) {
-                            for (const feedback of feedbacks) {
-                                totalStars += feedback.stars
-                            }
-                            avgStars = totalStars / feedbacks.length
+                        if(feedbacks[0].average_stars === null){
+                            tour.dataValues.avgStars = 0
+                        } else {
+                            tour.dataValues.avgStars = parseFloat(feedbacks[0].average_stars)
                         }
-                        tour.dataValues.avgStars = avgStars
+
+                        const booking = await db.BookingDetail.findAll({
+                            raw: true,
+                            nest: true,
+                            where: {
+                                status: STATUS.ACTIVE
+                            },
+                            include: {
+                                model: db.Ticket,
+                                as: "booking_detail_ticket",
+                                where: {
+                                    tourId: tour.tourId
+                                },
+                                attributes: []
+                            },
+                            attributes: [
+                                [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
+                            ]
+                        })
+                        if(tour.tour_bus !== null){
+                            if(booking[0].total_quantity === null){
+                                tour.dataValues.availableSeats = tour.tour_bus.numberSeat
+                            } else {
+                                tour.dataValues.availableSeats = tour.tour_bus.numberSeat - parseInt(booking[0].total_quantity)
+                            }
+                        } else {
+                            tour.dataValues.availableSeats = 0
+                        }
                     }
 
                     redisClient.setEx(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}_${departureDate}_${endDate}`, 3600, JSON.stringify(tours))
@@ -300,7 +326,7 @@ const getAllTour = (
                     resolve({
                         status: tours ? StatusCodes.OK : StatusCodes.NOT_FOUND,
                         data: {
-                            msg: tours ? "Got tours" : "Cannot find tours",
+                            msg: tours ? "Got tours" : "Tours not found!",
                             tours: tours,
                         }
                     })
@@ -560,6 +586,35 @@ const getTourById = (tourId) =>
                 })
 
                 tour.dataValues.feedbacks = feedbacks
+
+                const booking = await db.BookingDetail.findAll({
+                    raw: true,
+                    nest: true,
+                    where: {
+                        status: STATUS.ACTIVE
+                    },
+                    include: {
+                        model: db.Ticket,
+                        as: "booking_detail_ticket",
+                        where: {
+                            tourId: tour.tourId
+                        },
+                        attributes: []
+                    },
+                    attributes: [
+                        [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
+                    ]
+                })
+
+                if(tour.tour_bus !== null){
+                    if(booking[0].total_quantity === null){
+                        tour.dataValues.availableSeats = tour.tour_bus.numberSeat
+                    } else {
+                        tour.dataValues.availableSeats = tour.tour_bus.numberSeat - parseInt(booking[0].total_quantity)
+                    }
+                } else {
+                    tour.dataValues.availableSeats = 0
+                }
             }
 
             resolve({
@@ -1517,7 +1572,14 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
         })
     } catch (error) {
         await t.rollback()
-        reject(error)
+        console.error(error)
+
+        reject({
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        })
     }
 })
 

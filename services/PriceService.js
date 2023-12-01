@@ -69,6 +69,12 @@ const getPrices = async (req) => {
 
     } catch (error) {
         console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -97,12 +103,18 @@ const getPriceById = async (priceId) => {
                 msg: `Get price successfully`,
                 price: price
             } : {
-                msg: `Price not found`,
+                msg: `Price not found!`,
                 price: {}
             }
         }
     } catch (error) {
         console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -138,6 +150,12 @@ const createPrice = async (req) => {
         }
     } catch (error) {
         console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -264,6 +282,12 @@ const updatePrice = async (req) => {
     } catch (error) {
         await t.rollback()
         console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 

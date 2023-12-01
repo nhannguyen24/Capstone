@@ -61,12 +61,18 @@ const getReports = async (req) => {
                     limit: limit,
                     total: totalReport
                 },
-                reports: reports,
+                reports: [],
             },
         }
 
     } catch (error) {
-        console.error(error);
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -101,7 +107,13 @@ const getReportsById = async (reportId) => {
             }
         }
     } catch (error) {
-        console.error(error);
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -169,7 +181,13 @@ const createReport = async (req) => {
             }
         }
     } catch (error) {
-        console.error(error);
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -251,7 +269,13 @@ const updateReport = async (req) => {
         }
     } catch (error) {
         await t.rollback()
-        console.error(error);
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
