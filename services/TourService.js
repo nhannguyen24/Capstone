@@ -310,7 +310,7 @@ const getAllTour = (
                                 [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
                             ]
                         })
-                        if(tour.tour_bus.numberSeat !== null){
+                        if(tour.tour_bus !== null){
                             if(booking[0].total_quantity === null){
                                 tour.dataValues.availableSeats = tour.tour_bus.numberSeat
                             } else {
@@ -606,7 +606,7 @@ const getTourById = (tourId) =>
                     ]
                 })
 
-                if(tour.tour_bus.numberSeat !== null){
+                if(tour.tour_bus !== null){
                     if(booking[0].total_quantity === null){
                         tour.dataValues.availableSeats = tour.tour_bus.numberSeat
                     } else {
