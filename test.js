@@ -39,7 +39,7 @@ for (const tour of tours) {
     (employee) =>
       employee.maxTours > 0 &&
       !employee.assignedTours.includes(tour.id)
-    // && !schedule.some((assignment) => assignment.employee.id === employee.id) 
+    // && !schedule.some((assignment) => assignment.employee.id === employee.id)
     // && assignment.bus.capacity >= 1
   );
 
@@ -67,8 +67,6 @@ for (const assignment of schedule) {
     `Tour ${assignment.tour.id} at ${assignment.tour.dateTime.toISOString()} assigned to ${assignment.employee.name} on Bus ${assignment.bus.id}`
   );
 }
-
-
 
 
 
@@ -293,3 +291,42 @@ for (const assignment of schedule) {
 //   // Check if the tour guide is available
 //   return endDate >= findTour.departureDate
 // })
+
+
+
+
+// redisClient.keys('*tours_*', (error, keys) => {
+//     if (error) {
+//         console.error('Error retrieving keys:', error)
+//         return
+//     }
+//     // Insert new tour into each key individually
+//     keys.forEach((key) => {
+//         redisClient.get(key, (error, tour) => {
+//             if (error) {
+//                 console.error(`Error getting key ${key}:`, error)
+//             } else {
+//                 // console.log(`Key ${key} deleted successfully`)
+//                 let arrayTours = JSON.parse(tour)
+//                 let newArrayTour = [createTour[0].dataValues, ...arrayTours]
+//                 redisClient.setEx(key, 3600, JSON.stringify(newArrayTour))
+//             }
+//         })
+//     })
+// })
+
+
+
+// const a = 'e789c93e-1ae9-4ede-9d63-3b195b08cb74';
+// const b = 'fb199682-4fa7-4465-982c-8473aba4fd55';
+
+// if (a === b) {
+//     console.log('The strings are equal.');
+// } else {
+//     console.log('The strings are not equal.');
+// }
+
+// (endDate >= beforeCurrentTourDepartureDate && beforeDepartureDate >= existingTour.departureDate &&
+//     existingTour.tourGuide.userId === employee.userId) ||
+//     (currentEndDate >= existingTour.departureDate && existingTour.departureDate >= beforeDepartureDate &&
+//     existingTour.tourGuide.userId === employee.userId)
