@@ -310,11 +310,14 @@ const getAllTour = (
                                 [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
                             ]
                         })
-
-                        if(booking[0].total_quantity === null){
-                            tour.dataValues.availableSeats = tour.tour_bus.numberSeat
+                        if(tour.tour_bus.numberSeat !== null){
+                            if(booking[0].total_quantity === null){
+                                tour.dataValues.availableSeats = tour.tour_bus.numberSeat
+                            } else {
+                                tour.dataValues.availableSeats = tour.tour_bus.numberSeat - parseInt(booking[0].total_quantity)
+                            }
                         } else {
-                            tour.dataValues.availableSeats = tour.tour_bus.numberSeat - parseInt(booking[0].total_quantity)
+                            tour.dataValues.availableSeats = 0
                         }
                     }
 
@@ -603,10 +606,14 @@ const getTourById = (tourId) =>
                     ]
                 })
 
-                if(booking[0].total_quantity === null){
-                    tour.dataValues.availableSeats = tour.tour_bus.numberSeat
+                if(tour.tour_bus.numberSeat !== null){
+                    if(booking[0].total_quantity === null){
+                        tour.dataValues.availableSeats = tour.tour_bus.numberSeat
+                    } else {
+                        tour.dataValues.availableSeats = tour.tour_bus.numberSeat - parseInt(booking[0].total_quantity)
+                    }
                 } else {
-                    tour.dataValues.availableSeats = tour.tour_bus.numberSeat - parseInt(booking[0].total_quantity)
+                    tour.dataValues.availableSeats = 0
                 }
             }
 
