@@ -789,7 +789,8 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 const beforeDepartureDate = new Date(assignment.tour.departureDate)
                                 const departureDate = new Date(assignment.tour.departureDate)
                                 // Split the duration string into hours, minutes, and seconds
-                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+                                let [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+                                hours += 1;
 
                                 // Add the duration to the departureDate
                                 departureDate.setHours(departureDate.getHours() + hours)
@@ -831,7 +832,8 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 const beforeDepartureDate = new Date(assignment.tour.departureDate)
                                 const departureDate = new Date(assignment.tour.departureDate)
                                 // Split the duration string into hours, minutes, and seconds
-                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+                                let [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+                                hours += 1;
 
                                 // Add the duration to the departureDate
                                 departureDate.setHours(departureDate.getHours() + hours)
@@ -866,7 +868,8 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 const beforeDepartureDate = new Date(assignment.tour.departureDate)
                                 const departureDate = new Date(assignment.tour.departureDate)
                                 // Split the duration string into hours, minutes, and seconds
-                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+                                let [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+                                hours += 1;
 
                                 // Add the duration to the departureDate
                                 departureDate.setHours(departureDate.getHours() + hours)
@@ -2462,7 +2465,8 @@ const cloneTour = (id, body) =>
                                     const beforeDepartureDate = new Date(assignment.tour.departureDate)
                                     const departureDate = new Date(assignment.tour.departureDate)
                                     // Split the duration string into hours, minutes, and seconds
-                                    const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+                                    let [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+                                    hours += 1;
 
                                     // Add the duration to the departureDate
                                     departureDate.setHours(departureDate.getHours() + hours)
@@ -2497,7 +2501,8 @@ const cloneTour = (id, body) =>
                                     const beforeDepartureDate = new Date(assignment.tour.departureDate)
                                     const departureDate = new Date(assignment.tour.departureDate)
                                     // Split the duration string into hours, minutes, and seconds
-                                    const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+                                    let [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+                                    hours += 1;
 
                                     // Add the duration to the departureDate
                                     departureDate.setHours(departureDate.getHours() + hours)
@@ -2532,7 +2537,8 @@ const cloneTour = (id, body) =>
                                     const beforeDepartureDate = new Date(assignment.tour.departureDate)
                                     const departureDate = new Date(assignment.tour.departureDate)
                                     // Split the duration string into hours, minutes, and seconds
-                                    const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+                                    let [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+                                    hours += 1;
 
                                     // Add the duration to the departureDate
                                     departureDate.setHours(departureDate.getHours() + hours)
