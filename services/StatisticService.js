@@ -305,6 +305,12 @@ const getStatistics = async (req) => {
         }
     } catch (error) {
         console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 

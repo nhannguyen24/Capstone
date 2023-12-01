@@ -72,7 +72,13 @@ const getBuses = async (req) => {
             }
         }
     } catch (error) {
-        console.log(error);
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -113,7 +119,13 @@ const getBusById = async (busId) => {
             }
         }
     } catch (error) {
-        console.log(error);
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -142,7 +154,13 @@ const createBus = async (req) => {
             }
         }
     } catch (error) {
-        console.log(error);
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -249,7 +267,13 @@ const updateBus = async (req) => {
 
     } catch (error) {
         await t.rollback()
-        console.log(error);
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -306,7 +330,13 @@ const deleteBus = async (busId) => {
             }
         }
     } catch (error) {
-        console.log(error);
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 

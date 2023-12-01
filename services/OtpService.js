@@ -65,6 +65,12 @@ const validateOtp = async (req) => {
         }
     } catch (error) {
         console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -127,7 +133,13 @@ const sendOtpToEmail = async (email, userId, fullName, otpType) => {
         }
 
     } catch (error) {
-        console.error("Error sending OTP:", error)
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 

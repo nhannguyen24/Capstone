@@ -97,7 +97,13 @@ const getTickets = async (req) => {
         }
 
     } catch (error) {
-        console.error(error);
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -154,11 +160,17 @@ const getTicketById = async (ticketId) => {
                 ticket: ticket
             } : {
                 msg: `Ticket not found`,
-                ticket: []
+                ticket: {}
             }
         }
     } catch (error) {
-        console.error(error);
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -245,7 +257,13 @@ const createTicket = async (req) => {
             }
         }
     } catch (error) {
-        console.error(error);
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -385,7 +403,13 @@ const updateTicket = async (req) => {
         }
     } catch (error) {
         await t.rollback()
-        console.error(error);
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
@@ -437,7 +461,13 @@ const deleteTicket = async (ticketId) => {
             }
         }
     } catch (error) {
-        console.error(error);
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data:{
+                msg: "An error has occurred!",
+            }
+        }
     }
 }
 
