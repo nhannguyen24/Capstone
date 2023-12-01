@@ -286,7 +286,7 @@ const getAllTour = (
                             ]
                         })
 
-                        if(feedbacks[0].average_stars === null){
+                        if (feedbacks[0].average_stars === null) {
                             tour.dataValues.avgStars = 0
                         } else {
                             tour.dataValues.avgStars = parseFloat(feedbacks[0].average_stars)
@@ -310,8 +310,8 @@ const getAllTour = (
                                 [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
                             ]
                         })
-                        if(tour.tour_bus !== null){
-                            if(booking[0].total_quantity === null){
+                        if (tour.tour_bus !== null) {
+                            if (booking[0].total_quantity === null) {
                                 tour.dataValues.availableSeats = tour.tour_bus.numberSeat
                             } else {
                                 tour.dataValues.availableSeats = tour.tour_bus.numberSeat - parseInt(booking[0].total_quantity)
@@ -606,8 +606,8 @@ const getTourById = (tourId) =>
                     ]
                 })
 
-                if(tour.tour_bus !== null){
-                    if(booking[0].total_quantity === null){
+                if (tour.tour_bus !== null) {
+                    if (booking[0].total_quantity === null) {
                         tour.dataValues.availableSeats = tour.tour_bus.numberSeat
                     } else {
                         tour.dataValues.availableSeats = tour.tour_bus.numberSeat - parseInt(booking[0].total_quantity)
@@ -1544,24 +1544,22 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
 
         console.log(errors);
 
-        if (errors == 0) {
-            redisClient.keys('*tours_*', (error, keys) => {
-                if (error) {
-                    console.error('Error retrieving keys:', error)
-                    return
-                }
-                // Delete each key individually
-                keys.forEach((key) => {
-                    redisClient.del(key, (deleteError, reply) => {
-                        if (deleteError) {
-                            console.error(`Error deleting key ${key}:`, deleteError)
-                        } else {
-                            console.log(`Key ${key} deleted successfully`)
-                        }
-                    })
+        redisClient.keys('*tours_*', (error, keys) => {
+            if (error) {
+                console.error('Error retrieving keys:', error)
+                return
+            }
+            // Delete each key individually
+            keys.forEach((key) => {
+                redisClient.del(key, (deleteError, reply) => {
+                    if (deleteError) {
+                        console.error(`Error deleting key ${key}:`, deleteError)
+                    } else {
+                        console.log(`Key ${key} deleted successfully`)
+                    }
                 })
             })
-        }
+        })
 
         await t.commit()
         resolve({
@@ -1578,7 +1576,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
 
         reject({
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         })
@@ -1736,15 +1734,18 @@ const assignTour = () =>
                         schedule.push({ tour, tourGuide, driver, bus })
                     }
                 }
+
                 for (const tour of findTourActive) {
                     // Find an available employee for the tour
                     const availableTourGuide = findTourguide.filter(
                         (employee) =>
                             employee.maxTour > 0 &&
                             !schedule.some((assignment) => {
+                                const beforeDepartureDate = new Date(assignment.tour.departureDate)
                                 const departureDate = new Date(assignment.tour.departureDate)
                                 // Split the duration string into hours, minutes, and seconds
-                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+                                let [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+                                hours += 1;
 
                                 // Add the duration to the departureDate
                                 departureDate.setHours(departureDate.getHours() + hours)
@@ -1752,8 +1753,23 @@ const assignTour = () =>
                                 departureDate.setSeconds(departureDate.getSeconds() + seconds)
                                 const endDate = departureDate
 
+                                const beforeCurrentTourDepartureDate = new Date(tour.departureDate)
+                                const currentTourDepartureDate = new Date(tour.departureDate)
+                                const [currentTourHours, currentTourMinutes, currentTourSeconds] = tour.duration.split(':').map(Number)
+
+                                // Add the duration to the departureDate
+                                currentTourDepartureDate.setHours(currentTourDepartureDate.getHours() + currentTourHours)
+                                currentTourDepartureDate.setMinutes(currentTourDepartureDate.getMinutes() + currentTourMinutes)
+                                currentTourDepartureDate.setSeconds(currentTourDepartureDate.getSeconds() + currentTourSeconds)
+                                const currentEndDate = currentTourDepartureDate
+
+                                let checkTourGuide = true;
+                                if (beforeDepartureDate > currentEndDate && assignment.tourGuide.userId === employee.userId) {
+                                    checkTourGuide = false;
+                                }
+
                                 // Check if the tour guide is available
-                                return endDate >= tour.departureDate && assignment.tourGuide.userId == employee.userId
+                                return (endDate >= beforeCurrentTourDepartureDate && assignment.tourGuide.userId == employee.userId) && checkTourGuide;
                             })
                     )
 
@@ -1762,17 +1778,34 @@ const assignTour = () =>
                             employee.maxTour > 0
                             // && !employee.driverId == tour.driverId
                             && !schedule.some((assignment) => {
+                                const beforeDepartureDate = new Date(assignment.tour.departureDate)
                                 const departureDate = new Date(assignment.tour.departureDate)
-
                                 // Split the duration string into hours, minutes, and seconds
-                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+                                let [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+                                hours += 1;
 
                                 // Add the duration to the departureDate
                                 departureDate.setHours(departureDate.getHours() + hours)
                                 departureDate.setMinutes(departureDate.getMinutes() + minutes)
                                 departureDate.setSeconds(departureDate.getSeconds() + seconds)
                                 const endDate = departureDate
-                                return endDate >= tour.departureDate && assignment.driver.userId == employee.userId
+
+                                const beforeCurrentTourDepartureDate = new Date(tour.departureDate)
+                                const currentTourDepartureDate = new Date(tour.departureDate)
+                                const [currentTourHours, currentTourMinutes, currentTourSeconds] = tour.duration.split(':').map(Number)
+
+                                // Add the duration to the departureDate
+                                currentTourDepartureDate.setHours(currentTourDepartureDate.getHours() + currentTourHours)
+                                currentTourDepartureDate.setMinutes(currentTourDepartureDate.getMinutes() + currentTourMinutes)
+                                currentTourDepartureDate.setSeconds(currentTourDepartureDate.getSeconds() + currentTourSeconds)
+                                const currentEndDate = currentTourDepartureDate
+
+                                let checkDriver = true;
+                                if (beforeDepartureDate > currentEndDate && assignment.driver.userId === employee.userId) {
+                                    checkDriver = false;
+                                }
+
+                                return (endDate >= beforeCurrentTourDepartureDate && assignment.driver.userId == employee.userId) && checkDriver;
                             })
                     )
 
@@ -1780,18 +1813,35 @@ const assignTour = () =>
                         (bus) =>
                             // bus.numberSeat >= 2 && 
                             !schedule.some((assignment) => {
+                                const beforeDepartureDate = new Date(assignment.tour.departureDate)
                                 const departureDate = new Date(assignment.tour.departureDate)
-
                                 // Split the duration string into hours, minutes, and seconds
-                                const [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+                                let [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
+                                hours += 1;
 
                                 // Add the duration to the departureDate
                                 departureDate.setHours(departureDate.getHours() + hours)
                                 departureDate.setMinutes(departureDate.getMinutes() + minutes)
                                 departureDate.setSeconds(departureDate.getSeconds() + seconds)
                                 const endDate = departureDate
+
+                                const beforeCurrentTourDepartureDate = new Date(tour.departureDate)
+                                const currentTourDepartureDate = new Date(tour.departureDate)
+                                const [currentTourHours, currentTourMinutes, currentTourSeconds] = tour.duration.split(':').map(Number)
+
+                                // Add the duration to the departureDate
+                                currentTourDepartureDate.setHours(currentTourDepartureDate.getHours() + currentTourHours)
+                                currentTourDepartureDate.setMinutes(currentTourDepartureDate.getMinutes() + currentTourMinutes)
+                                currentTourDepartureDate.setSeconds(currentTourDepartureDate.getSeconds() + currentTourSeconds)
+                                const currentEndDate = currentTourDepartureDate
+
+                                let checkBus = true;
+                                if (beforeDepartureDate > currentEndDate && assignment.bus.busId === bus.busId) {
+                                    checkBus = false;
+                                }
+
                                 // console.log(`${bus.busPlate} + ${assignment.tour.tourName}`, endDate >= tour.departureDate)
-                                return endDate >= tour.departureDate && assignment.bus.busId == bus.busId
+                                return (endDate >= beforeCurrentTourDepartureDate && assignment.bus.busId == bus.busId) && checkBus;
                             })
                     )
 
