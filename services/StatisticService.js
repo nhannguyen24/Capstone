@@ -8,6 +8,8 @@ const { StatusCodes } = require('http-status-codes')
 const millisecondsInOneDay = 24 * 60 * 60 * 1000
 const getStatistics = async (req) => {
     try {
+        const startDate = req.query.startDate || ""
+        const endDate = req.query.endDate || ""
         const periodicity = req.query.periodicity
         const routeId = req.query.routeId || ""
 
@@ -49,6 +51,23 @@ const getStatistics = async (req) => {
                 const year = currentDate.getFullYear()
                 periodicityDateArr = getStartAndEndDatesForLast3Years(year)
             }
+        } else {
+            if(startDate !== "" && endDate !== ""){
+                const _startDate = new Date(startDate)
+                const _endDate = new Date(endDate)
+                if(_startDate > _endDate){
+                    periodicityDateArr.push({ startDate: endDate + "T00:00:00.000Z", endDate: startDate  + "T23:59:59.000Z"})
+                } else {
+                    periodicityDateArr.push({ startDate: startDate + "T00:00:00.000Z", endDate: endDate  + "T23:59:59.000Z"})
+                }
+            } else {
+                if(startDate !== ""){
+                    periodicityDateArr.push({ startDate: startDate + "T00:00:00.000Z", endDate: "" })
+                }
+                if(endDate !== ""){
+                    periodicityDateArr.push({ startDate: "", endDate: endDate  + "T23:59:59.000Z"})
+                }
+            }
         }
 
         var totalCreatedTours = 0
@@ -64,9 +83,23 @@ const getStatistics = async (req) => {
         const tourList = []
 
         const tourPromises = periodicityDateArr.map(async (date) => {
-            whereClause.createdAt = {
-                [Op.between]: [date.startDate, date.endDate]
+            if (date.startDate !== "" && date.endDate !== "") {
+                whereClause.createdAt = {
+                    [Op.between]: [date.startDate, date.endDate]
+                }
+            } else {
+                if (date.startDate !== "" && date.endDate === "") {
+                    whereClause.createdAt = {
+                        [Op.gte]: date.startDate
+                    }
+                }
+                if (date.endDate !== "" && date.startDate === "") {
+                    whereClause.createdAt = {
+                        [Op.lte]: date.endDate
+                    }
+                }
             }
+
             const tours = await db.Tour.findAll({
                 raw: true,
                 nest: true,
@@ -249,7 +282,6 @@ function getStartAndEndDatesForLast3Years(year) {
 
         years.push({ startDate: firstDayOfYear, endDate: lastDayOfYear })
     }
-    console.log(years)
     return years
 }
 

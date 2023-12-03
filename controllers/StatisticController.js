@@ -8,15 +8,22 @@ const getStatistics = async (req, res) => {
         const errors = {}
         const periodicityEnumArray = [Periodicityenum.WEEKLY, Periodicityenum.MONTHLY, Periodicityenum.YEARLY]
         const periodicity = req.query.periodicity
+        const startDate = req.query.startDate || ""
+        const endDate = req.query.endDate || ""
 
-        if (periodicity !== null && periodicity !== undefined) {
+        if((startDate === "" && endDate === "") && (periodicity === null || periodicity === undefined)){
+            errors.filter = "Date or Periodicity required!"
+        } else if (periodicity !== null && periodicity !== undefined) {
             const toUpperCasePeriodicity = periodicity.toUpperCase()
             if (!periodicityEnumArray.includes(toUpperCasePeriodicity)) {
                 errors.periodicity = `Invalid periodicity: ${periodicity}!`
             }
-        } else {
-            errors.periodicity = `Periodicity required!`
+        } 
+
+        if((startDate !== "" || endDate !== "") && (periodicity !== null && periodicity !== undefined)){
+            errors.filter = "Can only filter between Date or Periodicity!"
         }
+        
         if (Object.keys(errors).length === 0) {
             const response = await services.getStatistics(req);
             return res.status(response.status).json(response.data);
