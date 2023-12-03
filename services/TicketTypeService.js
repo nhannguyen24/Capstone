@@ -111,7 +111,7 @@ const updateTicketType = async (req) => {
             }
         }
 
-        if (ticketTypeName.trim() !== "") {
+        if (ticketTypeName !== "") {
             const ticketType = await db.TicketType.findOne({
                 where: {
                     ticketTypeName: {
@@ -121,10 +121,12 @@ const updateTicketType = async (req) => {
             })
 
             if (ticketType) {
-                return {
-                    status: StatusCodes.BAD_REQUEST,
-                    data: {
-                        msg: `Ticket Type Name existed`,
+                if(ticketType.ticketTypeId !== ticketTypeId){
+                    return {
+                        status: StatusCodes.BAD_REQUEST,
+                        data: {
+                            msg: `Ticket Type Name existed`,
+                        }
                     }
                 }
             }

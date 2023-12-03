@@ -1,32 +1,21 @@
 const services = require('../services/StatisticService');
 const { BadRequestError, InternalServerError } = require('../errors/Index');
-const BookingStatusEnum = require('../enums/BookingStatusEnum');
-const TourStatusEnum = require('../enums/TourStatusEnum');
+const Periodicityenum = require('../enums/PeriodicityEnum');
 const { StatusCodes } = require('http-status-codes');
 
 const getStatistics = async (req, res) => {
     try {
         const errors = {}
-        const bookingStatusEnumArray = [BookingStatusEnum.ON_GOING, BookingStatusEnum.CANCELED, BookingStatusEnum.FINISHED]
-        const tourStatusEnumArray = [TourStatusEnum.AVAILABLE, TourStatusEnum.STARTED, TourStatusEnum.CANCELED, TourStatusEnum.FINISHED]
-        const bookingStatus = req.query.bookingStatus
-        const tourStatus = req.query.tourStatus
+        const periodicityEnumArray = [Periodicityenum.WEEKLY, Periodicityenum.MONTHLY, Periodicityenum.YEARLY]
+        const periodicity = req.query.periodicity
 
-        if (bookingStatus !== null && bookingStatus !== undefined) {
-            const bookingStatusArray = bookingStatus.split(',')
-            for (const status of bookingStatusArray) {
-                if (!bookingStatusEnumArray.includes(status)) {
-                    errors.bookingStatus = `Invalid booking status: ${status}!`
-                }
+        if (periodicity !== null && periodicity !== undefined) {
+            const toUpperCasePeriodicity = periodicity.toUpperCase()
+            if (!periodicityEnumArray.includes(toUpperCasePeriodicity)) {
+                errors.periodicity = `Invalid periodicity: ${periodicity}!`
             }
-        }
-        if (tourStatus !== null && tourStatus !== undefined) {
-            const tourStatusArray = tourStatus.split(',')
-            for (const status of tourStatusArray) {
-                if (!tourStatusEnumArray.includes(status)) {
-                    errors.tourStatus = `Invalid tour status: ${status}!`
-                }
-            }
+        } else {
+            errors.periodicity = `Periodicity required!`
         }
         if (Object.keys(errors).length === 0) {
             const response = await services.getStatistics(req);
