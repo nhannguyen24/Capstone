@@ -1,7 +1,7 @@
 const controllers = require('../controllers/StatisticController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {roleAuthen} = require('../middlewares/VerifyRole');
+const { roleAuthen } = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -15,28 +15,17 @@ const router = express.Router();
  *     tags: [Statistic]
  *     parameters:
  *      - in: query
- *        name: startDate
- *        schema:
- *          type: string
- *        exammple: 2023-11-01
- *      - in: query
- *        name: endDate
- *        schema:
- *          type: string
- *        exammple: 2023-11-05
- *      - in: query
  *        name: routeId
  *        schema:
  *          type: string
  *      - in: query
- *        name: bookingStatus
+ *        name: periodicity
  *        schema:
- *          type: array
- *          items: 
- *              type: string
- *        style: form
- *        explode: false
- *        description: "Allowed values: Ongoing, Canceled, Finished"
+ *          type: string
+ *          enum:
+ *              - Weekly
+ *              - Monthly
+ *              - Yearly
  *     responses:
  *       200:
  *         description: OK
@@ -46,14 +35,32 @@ const router = express.Router();
  *               type: object
  *               example: {
  *                  msg: "Get statistic successfully",
- *                  totalBookedTickets: 1,
- *                  totalCancelTickets: 1,
- *                  totalMoneyEarned: 1,
- *                  totalCreatedTour: 1,
- *                  totalCancelTour: 1,
+ *                  booking_statistic: {
+ *                      totalBookedTickets: 1,
+ *                      totalCancelTickets: 1,
+ *                      totalMoneyEarned: 20000,
+ *                      totalBusSeat: 10
+ *                  },
+ *                  tour_statistic: {
+ *                      totalCreatedTour: 1,
+ *                      totalCancelTour: 1,
+ *                      totalAvailableTours: 1,
+ *                      totalFinishedTours: 1   
+ *                  },
  *               }
  */
-router.get("/",  verifyToken, roleAuthen(["Manager"]), controllers.getStatistics);
+router.get("/", verifyToken, roleAuthen(["Manager"]), controllers.getStatistics);
+//  *      - in: query
+//  *        name: bookingStatus
+//  *        schema:
+//  *          type: array
+//  *          items: 
+//  *              type: string
+//  *        style: form
+//  *        explode: false
+//  *        description: "Allowed values: Ongoing, Canceled, Finished"
+
+
 /*
  *      - in: query
  *        name: tourStatus

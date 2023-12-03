@@ -59,7 +59,7 @@ const getBuses = async (req) => {
             where: whereClause,
         });
 
-        return{
+        return {
             status: StatusCodes.OK,
             data: {
                 msg: `Get buses successfully`,
@@ -75,7 +75,7 @@ const getBuses = async (req) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -108,7 +108,7 @@ const getBusById = async (busId) => {
             ],
         });
 
-        return{
+        return {
             status: bus ? StatusCodes.OK : StatusCodes.NOT_FOUND,
             data: bus ? {
                 msg: `Get bus successfully`,
@@ -122,7 +122,7 @@ const getBusById = async (busId) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -146,7 +146,7 @@ const createBus = async (req) => {
             busId: bus.dataValues.busId,
         });
 
-        return{
+        return {
             status: created ? StatusCodes.CREATED : StatusCodes.BAD_REQUEST,
             data: {
                 msg: created ? 'Create bus successfully' : 'Bus plate already exists',
@@ -157,7 +157,7 @@ const createBus = async (req) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -182,7 +182,7 @@ const updateBus = async (req) => {
         })
 
         if (!bus) {
-            return{
+            return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Bus not found!`,
@@ -191,20 +191,22 @@ const updateBus = async (req) => {
         }
 
         if (busPlate !== "") {
-            updateBus.busPlate = busPlate
             const bus = await db.Bus.findOne({
                 where: {
                     busPlate: busPlate
                 }
             })
             if (bus) {
-                return{
-                    status: StatusCodes.BAD_REQUEST,
-                    data: {
-                        msg: `Bus plate already existed!`,
+                if (bus.busId !== busId) {
+                    return {
+                        status: StatusCodes.BAD_REQUEST,
+                        data: {
+                            msg: `Bus plate already existed!`,
+                        }
                     }
                 }
             }
+            updateBus.busPlate = busPlate
         }
 
         if (seat !== "") {
@@ -217,7 +219,7 @@ const updateBus = async (req) => {
 
         if (status !== "") {
             if (bus.status === status) {
-                return{
+                return {
                     status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: `Bus status is already ${bus.status}`,
@@ -236,7 +238,7 @@ const updateBus = async (req) => {
                 })
 
                 if (tour) {
-                    return{
+                    return {
                         status: StatusCodes.CONFLICT,
                         data: {
                             msg: `Cannot update bus status because bus currently has an on going tour`,
@@ -258,7 +260,7 @@ const updateBus = async (req) => {
 
         await t.commit()
 
-        return{
+        return {
             status: StatusCodes.OK,
             data: {
                 msg: "Update bus successfully",
@@ -270,7 +272,7 @@ const updateBus = async (req) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -286,7 +288,7 @@ const deleteBus = async (busId) => {
         })
 
         if (!bus) {
-            return{
+            return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Bus not found!`,
@@ -305,7 +307,7 @@ const deleteBus = async (busId) => {
         })
 
         if (tour) {
-            return{
+            return {
                 status: StatusCodes.CONFLICT,
                 data: {
                     msg: `Cannot update bus status to Deactive because bus is currently has an ongoing tour`,
@@ -323,7 +325,7 @@ const deleteBus = async (busId) => {
             individualHooks: true,
         })
 
-        return{
+        return {
             status: StatusCodes.OK,
             data: {
                 msg: "Delete bus successfully",
@@ -333,7 +335,7 @@ const deleteBus = async (busId) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
