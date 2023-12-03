@@ -15,6 +15,16 @@ const router = express.Router();
  *     tags: [Statistic]
  *     parameters:
  *      - in: query
+ *        name: startDate
+ *        schema:
+ *          type: string
+ *        exammple: 2023-11-27
+ *      - in: query
+ *        name: endDate
+ *        schema:
+ *          type: string
+ *        exammple: 2023-11-30
+ *      - in: query
  *        name: routeId
  *        schema:
  *          type: string
