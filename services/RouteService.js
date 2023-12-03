@@ -539,6 +539,29 @@ const deleteRoute = (id) =>
                 return;
             }
 
+            const tourExist = await db.Tour.findOne({
+                raw: true, nest: true,
+                include: [
+                    {
+                        model: db.Route,
+                        as: "tour_route",
+                        attributes: ["routeId"],
+                        where: {routeId: id}
+                    }
+                ]
+            })
+            // console.log(tourExist);
+
+            if (tourExist) {
+                resolve({
+                    status: StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg: "Cannot delete this route because there is tour using this route!",
+                    }
+                });
+                return;
+            }
+
             const routes = await db.Route.update(
                 { status: "Deactive" },
                 {
@@ -573,7 +596,6 @@ const deleteRoute = (id) =>
                     });
                 });
             });
-            
         } catch (error) {
             reject(error);
         }
