@@ -435,7 +435,6 @@ const getBookingsByEmail = async (req) => {
 
         whereClause.customerId = user.userId
 
-
         const otp = await db.Otp.findOne({
             where: {
                 otpType: OTP_TYPE.GET_BOOKING_EMAIL,
@@ -721,7 +720,7 @@ const createBookingWeb = async (req) => {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
-                    msg: `Role not allow for this action`,
+                    msg: `Role not allow for this action!`,
                 }
             }
         }
@@ -836,16 +835,25 @@ const createBookingWeb = async (req) => {
          * Checking ticketId and priceId and calculate booked ticket quantity
          */
         const ticketList = []
+        const dependTickets = []
         let seatBookingQuantity = 0
-        for (const e of tickets) {
-            const ticket = await db.Ticket.findOne({
+        let isValidTickets = false
+        for (const ticket of tickets) {
+            const _ticket = await db.Ticket.findOne({
                 raw: true,
+                nest: true,
                 where: {
-                    ticketId: e.ticketId,
+                    ticketId: ticket.ticketId,
                     tourId: tour.tourId
+                },
+                include: {
+                    model: db.TicketType,
+                    as: "ticket_type",
+                    attributes: ["ticketTypeName","dependsOnGuardian"]
                 }
             })
-            if (!ticket) {
+
+            if (!_ticket) {
                 return {
                     status: StatusCodes.NOT_FOUND,
                     data: {
@@ -853,13 +861,13 @@ const createBookingWeb = async (req) => {
                     }
                 }
             }
-            seatBookingQuantity += e.quantity
+            seatBookingQuantity += ticket.quantity
 
             const price = await db.Price.findOne({
                 raw: true,
                 where: {
-                    priceId: e.priceId,
-                    ticketTypeId: ticket.ticketTypeId
+                    priceId: ticket.priceId,
+                    ticketTypeId: _ticket.ticketTypeId
                 }
             })
             if (!price) {
@@ -870,9 +878,25 @@ const createBookingWeb = async (req) => {
                     }
                 }
             }
-            ticket.price = price
-            ticket.quantity = e.quantity
-            ticketList.push(ticket)
+
+            if(_ticket.ticket_type.dependsOnGuardian === 0){
+                isValidTickets = true
+            } else {
+                dependTickets.push(_ticket.ticket_type.ticketTypeName)
+            }
+
+            _ticket.price = price
+            _ticket.quantity = ticket.quantity
+            ticketList.push(_ticket)
+        }
+
+        if(!isValidTickets){
+            return {
+                status: StatusCodes.BAD_REQUEST,
+                data: {
+                    msg: `[${dependTickets}] need other guardian ticket to go with!`,
+                }
+            }
         }
         /**
          * Begin checking available seat of a Bus
@@ -1144,17 +1168,26 @@ const createBookingOffline = async (req) => {
         /**
          * Checking ticketId and priceId and calculate booked ticket quantity
          */
-        let ticketList = []
+        const ticketList = []
+        const dependTickets = []
         let seatBookingQuantity = 0
-        for (const e of tickets) {
-            const ticket = await db.Ticket.findOne({
+        let isValidTickets = false
+        for (const ticket of tickets) {
+            const _ticket = await db.Ticket.findOne({
                 raw: true,
+                nest: true,
                 where: {
-                    ticketId: e.ticketId,
+                    ticketId: ticket.ticketId,
                     tourId: tour.tourId
+                },
+                include: {
+                    model: db.TicketType,
+                    as: "ticket_type",
+                    attributes: ["ticketTypeName","dependsOnGuardian"]
                 }
             })
-            if (!ticket) {
+
+            if (!_ticket) {
                 return {
                     status: StatusCodes.NOT_FOUND,
                     data: {
@@ -1162,13 +1195,13 @@ const createBookingOffline = async (req) => {
                     }
                 }
             }
-            seatBookingQuantity += e.quantity
+            seatBookingQuantity += ticket.quantity
 
             const price = await db.Price.findOne({
                 raw: true,
                 where: {
-                    priceId: e.priceId,
-                    ticketTypeId: ticket.ticketTypeId
+                    priceId: ticket.priceId,
+                    ticketTypeId: _ticket.ticketTypeId
                 }
             })
             if (!price) {
@@ -1179,9 +1212,25 @@ const createBookingOffline = async (req) => {
                     }
                 }
             }
-            ticket.price = price
-            ticket.quantity = e.quantity
-            ticketList.push(ticket)
+
+            if(_ticket.ticket_type.dependsOnGuardian === 0){
+                isValidTickets = true
+            } else {
+                dependTickets.push(_ticket.ticket_type.ticketTypeName)
+            }
+
+            _ticket.price = price
+            _ticket.quantity = ticket.quantity
+            ticketList.push(_ticket)
+        }
+
+        if(!isValidTickets){
+            return {
+                status: StatusCodes.BAD_REQUEST,
+                data: {
+                    msg: `[${dependTickets}] need other guardian ticket to go with!`,
+                }
+            }
         }
 
         /**

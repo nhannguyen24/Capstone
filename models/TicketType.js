@@ -24,6 +24,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     ticketTypeName: DataTypes.STRING,
     description: DataTypes.STRING,
+    dependsOnGuardian: DataTypes.BOOLEAN,
     status: {
       type: DataTypes.ENUM,
       values: ["Active", "Deactive"],
