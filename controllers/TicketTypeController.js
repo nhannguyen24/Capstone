@@ -1,5 +1,5 @@
 const services = require('../services/TicketTypeService')
-const {BadRequestError, InternalServerError} = require('../errors/Index')
+const { InternalServerError } = require('../errors/Index')
 const { StatusCodes } = require('http-status-codes')
 
 const getTicketTypes = async (req, res) => {
@@ -44,7 +44,7 @@ const createTicketType = async (req, res) => {
             const response = await services.createTicketType(req)
             return res.status(response.status).json(response.data)
         } else {
-            return res.status(400).json(errors)
+            return res.status(StatusCodes.BAD_REQUEST).json(errors)
         }
     } catch (error) {
         throw new InternalServerError(error)
@@ -57,10 +57,11 @@ const updateTicketType = async (req, res) => {
         const ticketTypeId = req.params.id || ""
         const ticketTypeName = req.body.ticketTypeName || ""
         const description = req.body.description || ""
+        const dependsOnGuardian = req.body.dependsOnGuardian
         if(ticketTypeId.trim() === ""){
             errors.ticketTypeId = "Id required!"
         }
-        if(ticketTypeName.trim() === "" && description.trim() === ""){
+        if(ticketTypeName.trim() === "" && description.trim() === "" && (dependsOnGuardian === null || dependsOnGuardian === undefined)){
             errors.fields = "Update field required!"
         }
 
