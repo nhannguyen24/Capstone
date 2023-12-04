@@ -835,6 +835,7 @@ const createBookingWeb = async (req) => {
          * Checking ticketId and priceId and calculate booked ticket quantity
          */
         const ticketList = []
+        const dependTickets = []
         let seatBookingQuantity = 0
         let isValidTickets = false
         for (const ticket of tickets) {
@@ -851,6 +852,7 @@ const createBookingWeb = async (req) => {
                     attributes: ["ticketTypeName","dependsOnGuardian"]
                 }
             })
+
             if (!_ticket) {
                 return {
                     status: StatusCodes.NOT_FOUND,
@@ -879,7 +881,10 @@ const createBookingWeb = async (req) => {
 
             if(_ticket.ticket_type.dependsOnGuardian === 0){
                 isValidTickets = true
+            } else {
+                dependTickets.push(_ticket.ticket_type.ticketTypeName)
             }
+
             _ticket.price = price
             _ticket.quantity = ticket.quantity
             ticketList.push(_ticket)
@@ -889,7 +894,7 @@ const createBookingWeb = async (req) => {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
-                    msg: `Booked tickets must depend on other guardian ticket!`,
+                    msg: `[${dependTickets}] need other guardian ticket to go with!`,
                 }
             }
         }
@@ -1164,11 +1169,12 @@ const createBookingOffline = async (req) => {
          * Checking ticketId and priceId and calculate booked ticket quantity
          */
         const ticketList = []
+        const dependTickets = []
         let seatBookingQuantity = 0
         let isValidTickets = false
         for (const ticket of tickets) {
             const _ticket = await db.Ticket.findOne({
-                raw: true, 
+                raw: true,
                 nest: true,
                 where: {
                     ticketId: ticket.ticketId,
@@ -1180,6 +1186,7 @@ const createBookingOffline = async (req) => {
                     attributes: ["ticketTypeName","dependsOnGuardian"]
                 }
             })
+
             if (!_ticket) {
                 return {
                     status: StatusCodes.NOT_FOUND,
@@ -1208,7 +1215,10 @@ const createBookingOffline = async (req) => {
 
             if(_ticket.ticket_type.dependsOnGuardian === 0){
                 isValidTickets = true
+            } else {
+                dependTickets.push(_ticket.ticket_type.ticketTypeName)
             }
+
             _ticket.price = price
             _ticket.quantity = ticket.quantity
             ticketList.push(_ticket)
@@ -1218,7 +1228,7 @@ const createBookingOffline = async (req) => {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
-                    msg: `Booked tickets must depend on other guardian ticket!`,
+                    msg: `[${dependTickets}] need other guardian ticket to go with!`,
                 }
             }
         }
