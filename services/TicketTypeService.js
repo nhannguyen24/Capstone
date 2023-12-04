@@ -60,6 +60,7 @@ const createTicketType = async (req) => {
     try {
         const ticketTypeName = req.body.ticketTypeName
         const description = req.body.description
+        const dependsOnGuardian = req.body.dependsOnGuardian
 
         const [ticketType, created] = await db.TicketType.findOrCreate({
             where: {
@@ -67,7 +68,7 @@ const createTicketType = async (req) => {
                     [Op.like]: ticketTypeName
                 }
             },
-            defaults: { ticketTypeName: ticketTypeName, description: description }
+            defaults: { ticketTypeName: ticketTypeName, description: description, dependsOnGuardian: dependsOnGuardian }
         });
 
         return {
@@ -94,6 +95,7 @@ const updateTicketType = async (req) => {
         const ticketTypeId = req.params.id
         const ticketTypeName = req.body.ticketTypeName || ""
         const description = req.body.description || ""
+        const dependsOnGuardian = req.body.dependsOnGuardian
         const updateTicketType = {}
 
         const ticketType = await db.TicketType.findOne({
@@ -131,11 +133,13 @@ const updateTicketType = async (req) => {
                 }
             }
             updateTicketType.ticketTypeName = ticketTypeName
-
         }
 
         if (description.trim() !== "") {
             updateTicketType.description = description
+        }
+        if (dependsOnGuardian !== null && dependsOnGuardian !== undefined) {
+            updateTicketType.dependsOnGuardian = dependsOnGuardian
         }
 
         await db.TicketType.update(updateTicketType, {

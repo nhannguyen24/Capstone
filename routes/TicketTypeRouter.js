@@ -69,10 +69,13 @@ router.get("/:id", verifyToken, roleAuthen(["Manager"]), controllers.getTicketTy
  *                      type: string
  *                  description:
  *                      type: string
+ *                  dependsOnGuardian:
+ *                      type: boolean
  *            example:
  *              {
  *                  ticketTypeName: Vé người lớn,
  *                  description: Vé dành cho người lớn trên 15 tuổi,
+ *                  dependsOnGuardian: true or false,
  *              }
  *     responses:
  *       201:
