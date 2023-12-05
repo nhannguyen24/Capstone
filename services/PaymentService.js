@@ -1,28 +1,26 @@
-const crypto = require("crypto");
-const db = require("../models");
-const STATUS = require("../enums/StatusEnum");
-const mailer = require("../utils/MailerUtil");
-const qr = require("qrcode");
-const BOOKING_STATUS = require("../enums/BookingStatusEnum");
-const { StatusCodes } = require("http-status-codes");
+const crypto = require("crypto")
+const db = require("../models")
+const STATUS = require("../enums/StatusEnum")
+const mailer = require("../utils/MailerUtil")
+const qr = require("qrcode")
+const BOOKING_STATUS = require("../enums/BookingStatusEnum")
+const { StatusCodes } = require("http-status-codes")
+require('dotenv').config()
 const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
   new Promise(async (resolve, reject) => {
     try {
-      // var partnerCode = "MOMODH1S20220711";
-      // var accessKey = "xs6XvGNPuH4AxAL9";
-      // var secretkey = "ZTP0gGrCP2KmUnWbjMvtOrAZ7NzCNRzo";
-      var partnerCode = "MOMO";
-      var accessKey = "F8BBA842ECF85";
-      var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
-      var requestId = partnerCode + new Date().getTime();
-      var orderId = requestId;
-      var orderInfo = "Pay with MoMo";
-      var redirectUrl = redirect;
+      var partnerCode = "MOMO"
+      var accessKey = process.env.MOMO_ACCESS_KEY
+      var secretkey = process.env.MOMO_SECRET_KEY
+      var requestId = partnerCode + new Date().getTime()
+      var orderId = requestId
+      var orderInfo = "Pay with MoMo"
+      var redirectUrl = redirect
       var ipnUrl =
-        "https://nbtour-fc9f59891cf4.herokuapp.com/api/v1/payments/momo-ipn";
-      var amount = amounts;
-      var requestType = "captureWallet";
-      var extraData = bookingId; //pass empty value if your merchant does not have stores
+        "https://nbtour-fc9f59891cf4.herokuapp.com/api/v1/payments/momo-ipn"
+      var amount = amounts
+      var requestType = "captureWallet"
+      var extraData = bookingId //pass empty value if your merchant does not have stores
 
       const transaction = await db.Transaction.findOne({
         where: { bookingId: bookingId },
@@ -31,15 +29,15 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
           as: "transaction_booking",
           attributes: ["endPaymentTime"],
         },
-      });
+      })
       if (!transaction) {
         resolve({
           status: StatusCodes.NOT_FOUND,
           data: {
             msg: `Booking transaction not found!`,
           },
-        });
-        return;
+        })
+        return
       } else {
         if (transaction.status === STATUS.PAID) {
           resolve({
@@ -47,20 +45,20 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
             data: {
               msg: "Booking transaction already paid!",
             },
-          });
+          })
         }
-        const currentDate = new Date();
-        currentDate.setHours(currentDate.getHours() + 7);
+        const currentDate = new Date()
+        currentDate.setHours(currentDate.getHours() + 7)
         const endBookingTime = new Date(
           transaction.transaction_booking.endPaymentTime
-        );
+        )
         if (endBookingTime <= currentDate) {
           resolve({
             status: StatusCodes.BAD_REQUEST,
             data: {
               msg: "Booking transaction expired!",
             },
-          });
+          })
         }
       }
       var rawSignature =
@@ -83,11 +81,11 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
         "&requestId=" +
         requestId +
         "&requestType=" +
-        requestType;
+        requestType
       var signature = crypto
         .createHmac("sha256", secretkey)
         .update(rawSignature)
-        .digest("hex");
+        .digest("hex")
       const requestBody = JSON.stringify({
         partnerCode: partnerCode,
         accessKey: accessKey,
@@ -101,10 +99,10 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
         requestType: requestType,
         signature: signature,
         lang: "vi",
-      });
+      })
 
       //Create the HTTPS objects
-      const https = require("https");
+      const https = require("https")
       const options = {
         hostname: "test-payment.momo.vn",
         port: 443,
@@ -114,44 +112,165 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
           "Content-Type": "application/json",
           "Content-Length": Buffer.byteLength(requestBody),
         },
-      };
+      }
 
       //Send the request and get the response
       const req = https.request(options, (res) => {
-        res.setEncoding("utf8");
+        res.setEncoding("utf8")
         res.on("data", (body) => {
-          console.log("request", requestBody);
-          console.log("Body: ");
-          console.log(JSON.parse(body));
+          console.log("request", requestBody)
+          console.log("Body: ")
+          console.log(JSON.parse(body))
           resolve({
             status: StatusCodes.OK,
             data: {
               msg: "Get link payment successfully!",
               url: JSON.parse(body).payUrl,
             },
-          });
-        });
-        res.on("end", () => {
-          console.log("No more data in response.");
-        });
-      });
+          })
+        })
+      })
 
       req.on("error", (e) => {
-        console.log(`problem with request: ${e.message}`);
-      });
+        console.log(`problem with request: ${e.message}`)
+      })
 
       // write data to request body
-      console.log("Sending....");
-      req.write(requestBody);
-      req.end();
+      req.write(requestBody)
+      req.end()
     } catch (error) {
-      reject(error);
+      reject(error)
     }
-  });
+  })
+
+const createPayOSPaymentRequest = (amount, bookingId) => new Promise(async (resolve, reject) => {
+  try {
+    var partnerCode = "PAYOS"
+    const clientkey = process.env.PAY_OS_CLIENT_KEY
+    const apikey = process.env.PAY_OS_API_KEY
+    var amount = amount
+    var orderCode = partnerCode + new Date().getTime()
+    var description = "Pay PayOs"
+    var cancelUrl = "https://tour-customer-git-main-quanvtse151000.vercel.app/tour/9bdec9fc-f1ea-4e6d-9b01-ef2add4e34f0"
+    var returnUrl = "https://tour-customer-git-main-quanvtse151000.vercel.app"
+    //"https://nbtour-fc9f59891cf4.herokuapp.com/api/v1/payments/pay-os-response"
+
+    // const transaction = await db.Transaction.findOne({
+    //   where: { bookingId: bookingId },
+    //   include: {
+    //     model: db.Booking,
+    //     as: "transaction_booking",
+    //     attributes: ["endPaymentTime"],
+    //   },
+    // })
+    // if (!transaction) {
+    //   return {
+    //     status: StatusCodes.NOT_FOUND,
+    //     data: {
+    //       msg: `Booking transaction not found!`,
+    //     },
+    //   }
+
+    // }
+    // if (transaction.status === STATUS.PAID) {
+    //   return {
+    //     status: StatusCodes.BAD_REQUEST,
+    //     data: {
+    //       msg: "Booking transaction already paid!",
+    //     },
+    //   }
+    // }
+    // const currentDate = new Date()
+    // currentDate.setHours(currentDate.getHours() + 7)
+    // const endBookingTime = new Date(
+    //   transaction.transaction_booking.endPaymentTime
+    // )
+    // if (endBookingTime <= currentDate) {
+    //   resolve({
+    //     status: StatusCodes.BAD_REQUEST,
+    //     data: {
+    //       msg: "Booking transaction expired!",
+    //     },
+    //   })
+    // }
+
+    var rawSignature =
+      "&amount=" +
+      amount +
+      "&cancelURl=" +
+      cancelUrl +
+      "&description=" +
+      description +
+      "&orderCode=" +
+      orderCode +
+      "&returnUrl=" +
+      returnUrl
+
+    var signature = crypto
+      .createHmac("sha256", apikey)
+      .update(rawSignature)
+      .digest("hex")
+
+    const requestBody = JSON.stringify({
+      orderCode: orderCode,
+      amount: amount,
+      description: description,
+      cancelUrl: cancelUrl,
+      returnUrl: returnUrl,
+      signature: signature
+    })
+
+    //Create the HTTPS objects
+    const https = require("https")
+    const options = {
+      hostname: "https://api-merchant.payos.vn/v2/payment-requests",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(requestBody),
+        "x-api-key": apikey,
+        "x-client-id": clientkey,
+      },
+    }
+
+    //Send the request and get the response
+    const req = https.request(options, (res) => {
+      res.setEncoding("utf8")
+      res.on("data", (body) => {
+        console.log("request", requestBody)
+        console.log("Body: ", JSON.parse(body))
+        resolve({
+          status: StatusCodes.OK,
+          data: {
+            msg: "Get link payment successfully!",
+            url: JSON.parse(body).data.checkoutUrl,
+          },
+        })
+      })
+    })
+
+    req.on("error", (e) => {
+      console.log(`Problem with request: ${e}`)
+    })
+
+    // write data to request body
+    req.write(requestBody)
+    req.end()
+
+  } catch (error) {
+    console.error(error)
+    resolve({
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+      data: {
+        msg: "Something went wrong!"
+      }
+    })
+  }
+})
 
 const refundMomo = async (bookingId, amount) => {
   return new Promise(async (resolve, reject) => {
-  try {
+    try {
       const bookingDetail = await db.BookingDetail.findOne({
         raw: true,
         nest: true,
@@ -168,14 +287,14 @@ const refundMomo = async (bookingId, amount) => {
             attributes: ["tourId", "tourName", "departureDate"],
           },
         },
-      });
+      })
       if (!bookingDetail) {
         return {
           status: StatusCodes.NOT_FOUND,
           data: {
             msg: `Booking not found!`,
           },
-        };
+        }
       }
 
       const transaction = await db.Transaction.findOne({
@@ -189,14 +308,14 @@ const refundMomo = async (bookingId, amount) => {
           as: "transaction_booking",
           attributes: ["bookingCode"],
         },
-      });
+      })
       if (!transaction) {
         return {
           status: StatusCodes.NOT_FOUND,
           data: {
             msg: `Transaction not found!`,
           },
-        };
+        }
       } else {
         if (transaction.status === STATUS.DRAFT) {
           return {
@@ -204,26 +323,26 @@ const refundMomo = async (bookingId, amount) => {
             data: {
               msg: `Transaction not paid!`,
             },
-          };
+          }
         } else if (transaction.status === STATUS.REFUNDED) {
           return {
             status: StatusCodes.FORBIDDEN,
             data: {
               msg: `Booking already refunded!`,
             },
-          };
+          }
         }
-        let _amount = parseInt(amount);
-        // var partnerCode = "MOMODH1S20220711";
-        // var accessKey = "xs6XvGNPuH4AxAL9";
-        // var secretkey = "ZTP0gGrCP2KmUnWbjMvtOrAZ7NzCNRzo";
-        var partnerCode = "MOMO";
-        var accessKey = "F8BBA842ECF85";
-        var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
-        var requestId = partnerCode + new Date().getTime();
-        var orderId = requestId;
-        var description = "Refund canceled booking";
-        var transId = transaction.transactionCode;
+        let _amount = parseInt(amount)
+        // var partnerCode = "MOMODH1S20220711"
+        // var accessKey = "xs6XvGNPuH4AxAL9"
+        // var secretkey = "ZTP0gGrCP2KmUnWbjMvtOrAZ7NzCNRzo"
+        var partnerCode = "MOMO"
+        var accessKey = process.env.MOMO_ACCESS_KEY
+        var secretkey = process.env.MOMO_SECRET_KEY
+        var requestId = partnerCode + new Date().getTime()
+        var orderId = requestId
+        var description = "Refund canceled booking"
+        var transId = transaction.transactionCode
 
         var rawSignature =
           "accessKey=" +
@@ -239,12 +358,12 @@ const refundMomo = async (bookingId, amount) => {
           "&requestId=" +
           requestId +
           "&transId=" +
-          transId;
+          transId
 
         var signature = crypto
           .createHmac("sha256", secretkey)
           .update(rawSignature)
-          .digest("hex");
+          .digest("hex")
 
         const requestBody = JSON.stringify({
           partnerCode: partnerCode,
@@ -256,9 +375,9 @@ const refundMomo = async (bookingId, amount) => {
           transId: transId,
           signature: signature,
           lang: "vi",
-        });
+        })
 
-        const https = require("https");
+        const https = require("https")
         const options = {
           hostname: "test-payment.momo.vn",
           port: 443,
@@ -268,15 +387,15 @@ const refundMomo = async (bookingId, amount) => {
             "Content-Type": "application/json",
             "Content-Length": Buffer.byteLength(requestBody),
           },
-        };
+        }
 
         const req = https.request(options, (res) => {
-          res.setEncoding("utf8");
-          let responseBody = "";
+          res.setEncoding("utf8")
+          let responseBody = ""
 
           res.on("data", (chunk) => {
-            responseBody += chunk;
-            const response = JSON.parse(responseBody);
+            responseBody += chunk
+            const response = JSON.parse(responseBody)
             if (response.resultCode === 0) {
               resolve({
                 status: StatusCodes.OK,
@@ -284,7 +403,7 @@ const refundMomo = async (bookingId, amount) => {
                   msg: `Refund to booking ${transaction.transaction_booking.bookingCode}`,
                   refundAmount: _amount,
                 },
-              });
+              })
             } else {
               resolve({
                 status: StatusCodes.BAD_REQUEST,
@@ -292,40 +411,51 @@ const refundMomo = async (bookingId, amount) => {
                   msg: `${response.message} For booking ${transaction.transaction_booking.bookingCode}`,
                   refundAmount: _amount,
                 },
-              });
+              })
             }
-          });
+          })
 
           res.on("end", () => {
-            console.log("No more data in response.");
-          });
-        });
+            console.log("No more data in response.")
+          })
+        })
 
         req.on("error", (e) => {
-          console.log(`Problem with request: ${e.message}`);
+          console.log(`Problem with request: ${e.message}`)
           reject({
             status: 500,
             data: {
               msg: "Internal server error",
             },
-          });
-        });
+          })
+        })
 
-        req.write(requestBody);
-        req.end();
+        req.write(requestBody)
+        req.end()
       }
 
-  } catch (error) {
-    console.log("Error:", error);
-  }
-})
-};
+    } catch (error) {
+      console.log("Error:", error)
+    }
+  })
+}
+
+const getPayOsPaymentResponse = (req) =>
+  new Promise(async (resolve, reject) => {
+    resolve({
+      status: StatusCodes.OK,
+      data: {
+        msg: "OK"
+      }
+    })
+  })
+
 
 const getMoMoPaymentResponse = (req) =>
   new Promise(async (resolve, reject) => {
     try {
-      const ipnData = req.body;
-      const bookingId = ipnData.extraData;
+      const ipnData = req.body
+      const bookingId = ipnData.extraData
       if (ipnData.resultCode === 0) {
         const bookingDetail = await db.BookingDetail.findOne({
           raw: true,
@@ -381,7 +511,7 @@ const getMoMoPaymentResponse = (req) =>
               ],
             },
           ],
-        });
+        })
 
         const routeSegment = await db.RouteSegment.findAll({
           raw: true,
@@ -390,20 +520,20 @@ const getMoMoPaymentResponse = (req) =>
             routeId: bookingDetail.booking_detail_ticket.ticket_tour.routeId,
           },
           order: [["index", "ASC"]],
-        });
+        })
 
         const tourName =
-          bookingDetail.booking_detail_ticket.ticket_tour.tourName;
+          bookingDetail.booking_detail_ticket.ticket_tour.tourName
         const bookedStationId =
-          bookingDetail.detail_booking.booking_departure_station.stationId;
+          bookingDetail.detail_booking.booking_departure_station.stationId
         const tourDepartureTime = new Date(
           bookingDetail.booking_detail_ticket.ticket_tour.departureDate
-        ).getTime();
+        ).getTime()
         const busArrivalTimeToBookedStation = calculateTotalTime(
           routeSegment,
           tourDepartureTime,
           bookedStationId
-        );
+        )
         const formatDepartureDate = `${busArrivalTimeToBookedStation
           .getDate()
           .toString()
@@ -421,17 +551,17 @@ const getMoMoPaymentResponse = (req) =>
                 .padStart(2, "0")}:${busArrivalTimeToBookedStation
                   .getSeconds()
                   .toString()
-                  .padStart(2, "0")}`;
+                  .padStart(2, "0")}`
         const tourDuration =
-          bookingDetail.booking_detail_ticket.ticket_tour.duration;
-        const totalPrice = bookingDetail.detail_booking.totalPrice;
+          bookingDetail.booking_detail_ticket.ticket_tour.duration
+        const totalPrice = bookingDetail.detail_booking.totalPrice
         const stationName =
-          bookingDetail.detail_booking.booking_departure_station.stationName;
+          bookingDetail.detail_booking.booking_departure_station.stationName
         const busPlate =
-          bookingDetail.booking_detail_ticket.ticket_tour.tour_bus.busPlate;
-        const bookingCode = bookingDetail.detail_booking.bookingCode;
+          bookingDetail.booking_detail_ticket.ticket_tour.tour_bus.busPlate
+        const bookingCode = bookingDetail.detail_booking.bookingCode
 
-        const qrDataURL = await qr.toDataURL(`bookingId: ${bookingId}`);
+        const qrDataURL = await qr.toDataURL(`bookingId: ${bookingId}`)
         const htmlContent = {
           body: {
             name: bookingDetail.detail_booking.booking_user.userName,
@@ -451,19 +581,19 @@ const getMoMoPaymentResponse = (req) =>
             ],
             signature: "Sincerely",
           },
-        };
+        }
         mailer.sendMail(
           bookingDetail.detail_booking.booking_user.email,
           "Tour booking tickets",
           htmlContent,
           qrDataURL
-        );
+        )
         //Find if there are any product of a booking
         const productOrder = await db.ProductOrder.findOne({
           where: {
             bookingId: bookingDetail.detail_booking.bookingId,
           },
-        });
+        })
 
         if (productOrder) {
           await db.ProductOrder.update(
@@ -475,7 +605,7 @@ const getMoMoPaymentResponse = (req) =>
                 bookingId: bookingId,
               },
             }
-          );
+          )
         }
 
         db.Booking.update(
@@ -488,7 +618,7 @@ const getMoMoPaymentResponse = (req) =>
             },
             individualHooks: true,
           }
-        );
+        )
 
         db.BookingDetail.update(
           {
@@ -500,7 +630,7 @@ const getMoMoPaymentResponse = (req) =>
             },
             individualHooks: true,
           }
-        );
+        )
 
         db.Transaction.update(
           {
@@ -513,14 +643,14 @@ const getMoMoPaymentResponse = (req) =>
             },
             individualHooks: true,
           }
-        );
+        )
 
         resolve({
           status: StatusCodes.OK,
           data: {
             msg: "Payment process successfully!",
           },
-        });
+        })
       } else {
         // Payment fail
         resolve({
@@ -529,50 +659,50 @@ const getMoMoPaymentResponse = (req) =>
             msg: "Payment process failed!",
             bookingId: bookingId,
           },
-        });
+        })
       }
     } catch (error) {
-      console.error(error);
+      console.error(error)
       resolve({
         status: 500,
         data: {
           msg: "Error processing payment",
         },
-      });
+      })
     }
-  });
+  })
 
 function calculateTotalTime(routeSegments, startTime, departureStationId) {
-  const averageSpeedKmPerHour = 30;
-  const metersPerKilometer = 1000;
-  const millisecondsPerHour = 60 * 60 * 1000;
-  const additionalTimeAtStation = 5 * 60 * 1000; // 5 minutes in milliseconds
+  const averageSpeedKmPerHour = 30
+  const metersPerKilometer = 1000
+  const millisecondsPerHour = 60 * 60 * 1000
+  const additionalTimeAtStation = 5 * 60 * 1000 // 5 minutes in milliseconds
 
   const averageSpeedMetersPerMillisecond =
-    (averageSpeedKmPerHour * metersPerKilometer) / millisecondsPerHour;
+    (averageSpeedKmPerHour * metersPerKilometer) / millisecondsPerHour
 
-  let totalSegmentTime = 0;
+  let totalSegmentTime = 0
 
   for (const segment of routeSegments) {
     if (segment.departureStationId === departureStationId) {
-      break;
+      break
     }
 
     const timeTaken =
       segment.distance / averageSpeedMetersPerMillisecond +
-      additionalTimeAtStation;
-    totalSegmentTime += timeTaken;
+      additionalTimeAtStation
+    totalSegmentTime += timeTaken
   }
 
-  const estimatedArrivalTime = startTime + totalSegmentTime;
+  const estimatedArrivalTime = startTime + totalSegmentTime
 
-  return new Date(estimatedArrivalTime);
+  return new Date(estimatedArrivalTime)
 }
 
 const paymentOffline = (bookingId) =>
   new Promise(async (resolve, reject) => {
     try {
-      const _bookingId = bookingId;
+      const _bookingId = bookingId
       const bookingDetail = await db.BookingDetail.findOne({
         where: {
           bookingId: _bookingId,
@@ -587,21 +717,21 @@ const paymentOffline = (bookingId) =>
             },
           },
         ],
-      });
+      })
       if (!bookingDetail) {
         resolve({
           status: StatusCodes.NOT_FOUND,
           data: {
             msg: `Booking not found!`,
           },
-        });
+        })
       }
 
       const transaction = await db.Transaction.findOne({
         where: {
           bookingId: _bookingId,
         },
-      });
+      })
 
       if (!transaction) {
         resolve({
@@ -609,7 +739,7 @@ const paymentOffline = (bookingId) =>
           data: {
             msg: `Booking transaction not found!`,
           },
-        });
+        })
       } else {
         if (transaction.status === STATUS.PAID) {
           resolve({
@@ -617,7 +747,7 @@ const paymentOffline = (bookingId) =>
             data: {
               msg: `Booking transaction already paid!`,
             },
-          });
+          })
         } else {
           db.Booking.update(
             {
@@ -630,7 +760,7 @@ const paymentOffline = (bookingId) =>
               },
               individualHooks: true,
             }
-          );
+          )
 
           db.BookingDetail.update(
             {
@@ -642,7 +772,7 @@ const paymentOffline = (bookingId) =>
               },
               individualHooks: true,
             }
-          );
+          )
 
           db.Transaction.update(
             {
@@ -654,25 +784,27 @@ const paymentOffline = (bookingId) =>
               },
               individualHooks: true,
             }
-          );
+          )
 
           resolve({
             status: StatusCodes.OK,
             data: {
               msg: "Payment process successfully",
             },
-          });
+          })
         }
       }
     } catch (error) {
-      console.log(error);
-      reject(error);
+      console.log(error)
+      reject(error)
     }
-  });
+  })
 
 module.exports = {
   createMoMoPaymentRequest,
+  createPayOSPaymentRequest,
   refundMomo,
   getMoMoPaymentResponse,
+  getPayOsPaymentResponse,
   paymentOffline,
-};
+}
