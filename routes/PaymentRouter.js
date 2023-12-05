@@ -103,7 +103,37 @@ router.put("/offline", controllers.paymentOffline);
 
 router.post("/momo-ipn", controllers.getPaymentMomo);
 
-router.get("/payos", controllers.getPayOsPaymentResponse);
+/**
+ * @swagger
+ * /api/v1/payments/pay-os:
+ *   get:
+ *     summary: Receive PayOs Response
+ *     tags: [Payment]
+ *     parameters:
+ *       - in: query
+ *         name: code
+ *         schema:
+ *           type: string
+ *         required: true
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         required: true
+ *       - in: query
+ *         name: orderCode
+ *         schema:
+ *           type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ */
+router.get("/pay-os", controllers.getPayOsPaymentResponse);
 
 // /**
 //  * @swagger

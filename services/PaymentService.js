@@ -145,102 +145,102 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
     }
   })
 
-const createPayOSPaymentRequest = (query) => new Promise(async (resolve, reject) => {
-  try {
-    const booking = await db.Booking.findOne({
-      where: { bookingCode: query.bookingCode },
-    })
-
-    if (!booking) {
-      resolve({
-        status: StatusCodes.NOT_FOUND,
-        data: {
-          msg: `Booking not found!`,
-        },
+  const createPayOSPaymentRequest = (query) => new Promise(async (resolve, reject) => {
+    try {
+      const booking = await db.Booking.findOne({
+        where: { bookingCode: query.bookingCode },
       })
-      return
-    } else {
-      const transaction = await db.Transaction.findOne({
-        where: { bookingId: booking.bookingId },
-        include: {
-          model: db.Booking,
-          as: "transaction_booking",
-          attributes: ["endPaymentTime"],
-        },
-      })
-      if (!transaction) {
+  
+      if (!booking) {
         resolve({
           status: StatusCodes.NOT_FOUND,
           data: {
-            msg: `Booking transaction not found!`,
+            msg: `Booking not found!`,
           },
         })
         return
       } else {
-        if (transaction.status === STATUS.PAID) {
+        const transaction = await db.Transaction.findOne({
+          where: { bookingId: booking.bookingId },
+          include: {
+            model: db.Booking,
+            as: "transaction_booking",
+            attributes: ["endPaymentTime"],
+          },
+        })
+        if (!transaction) {
           resolve({
-            status: StatusCodes.BAD_REQUEST,
+            status: StatusCodes.NOT_FOUND,
             data: {
-              msg: "Booking transaction already paid!",
+              msg: `Booking transaction not found!`,
             },
           })
           return
-        }
-        const currentDate = new Date()
-        currentDate.setHours(currentDate.getHours() + 7)
-        const endBookingTime = new Date(
-          transaction.transaction_booking.endPaymentTime
-        )
-        if (endBookingTime <= currentDate) {
-          resolve({
-            status: StatusCodes.BAD_REQUEST,
-            data: {
-              msg: "Booking transaction expired!",
-            },
-          })
-          return
+        } else {
+          if (transaction.status === STATUS.PAID) {
+            resolve({
+              status: StatusCodes.BAD_REQUEST,
+              data: {
+                msg: "Booking transaction already paid!",
+              },
+            })
+            return
+          }
+          const currentDate = new Date()
+          currentDate.setHours(currentDate.getHours() + 7)
+          const endBookingTime = new Date(
+            transaction.transaction_booking.endPaymentTime
+          )
+          if (endBookingTime <= currentDate) {
+            resolve({
+              status: StatusCodes.BAD_REQUEST,
+              data: {
+                msg: "Booking transaction expired!",
+              },
+            })
+            return
+          }
         }
       }
+  
+      const payOS = new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY);
+      const amountNumber = Number(query.amount);
+  
+      const body = {
+        orderCode: Number(String(new Date().getTime()).slice(-6)),
+        amount: amountNumber,
+        description: query.bookingCode,
+        cancelUrl: query.cancelUrl,
+        returnUrl: query.returnUrl
+      };
+  
+      const paymentLinkRes = await payOS.createPaymentLink(body);
+  
+      resolve({
+        status: StatusCodes.OK,
+        data: {
+          msg: `Creating payment url successfully!`,
+          bin: paymentLinkRes.bin,
+          checkoutUrl: paymentLinkRes.checkoutUrl,
+          accountNumber: paymentLinkRes.accountNumber,
+          accountName: paymentLinkRes.accountName,
+          amount: paymentLinkRes.amount,
+          description: paymentLinkRes.description,
+          orderCode: paymentLinkRes.orderCode,
+          qrCode: paymentLinkRes.qrCode,
+        },
+      });
+  
+    } catch (error) {
+      console.error(error);
+      reject({
+        status: StatusCodes.INTERNAL_SERVER_ERROR,
+        data: {
+          msg: "Something went wrong!"
+        }
+      })
     }
-
-    const payOS = new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY);
-    const amountNumber = Number(query.amount);
-
-    const body = {
-      orderCode: Number(String(new Date().getTime()).slice(-6)),
-      amount: amountNumber,
-      description: query.bookingCode,
-      cancelUrl: query.cancelUrl,
-      returnUrl: query.returnUrl
-    };
-
-    const paymentLinkRes = await payOS.createPaymentLink(body);
-
-    resolve({
-      status: StatusCodes.OK,
-      data: {
-        msg: `Creating payment url successfully!`,
-        bin: paymentLinkRes.bin,
-        checkoutUrl: paymentLinkRes.checkoutUrl,
-        accountNumber: paymentLinkRes.accountNumber,
-        accountName: paymentLinkRes.accountName,
-        amount: paymentLinkRes.amount,
-        description: paymentLinkRes.description,
-        orderCode: paymentLinkRes.orderCode,
-        qrCode: paymentLinkRes.qrCode,
-      },
-    });
-
-  } catch (error) {
-    console.error(error);
-    reject({
-      status: StatusCodes.INTERNAL_SERVER_ERROR,
-      data: {
-        msg: "Something went wrong!"
-      }
-    })
-  }
-})
+  })
 
 const refundMomo = async (bookingId, amount) => {
   return new Promise(async (resolve, reject) => {
@@ -414,36 +414,40 @@ const refundMomo = async (bookingId, amount) => {
   })
 }
 
-const getPayOsPaymentResponse = (req) =>
-  new Promise(async (resolve, reject) => {
-    // try {
-    //   const payOS = new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY);
-    //   const booking = await payOS.getPaymentLinkInfomation(req.id);
-    //   if (!booking) {
-    //     resolve({
-    //       status: 400,
-    //       data: {
-    //         msg: "Not found!",
-    //       },
-    //     });
-    //   }
-    //   resolve({
-    //     status: 200,
-    //     data: {
-    //       booking
-    //     },
-    //   });
-    // } catch (error) {
-    //   reject({
-    //     status: 500,
-    //     data: {
-    //       msg: "Internal server error",
-    //     },
-    //   })
-    // }
+const getPayOsPaymentResponse = async (req) => {
+    try {
+      const code = req.query.code
+      const status = req.query.status
+      const orderCode = req.query.orderCode
 
-    console.log(req.query);
-  })
+      const payOS = new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY)
+      const order = await payOS.getPaymentLinkInfomation(orderCode)
+      console.log(order)
+      if(!order){
+        return {
+          status: StatusCodes.INTERNAL_SERVER_ERROR,
+          data: {
+            msg: "No order found!"
+          }
+        }
+      }
+      return {
+        status: StatusCodes.OK,
+        data: {
+          msg: "Got order!",
+          data: order
+        }
+      }
+    } catch (error) {
+      console.log(error)
+      return {
+        status: StatusCodes.INTERNAL_SERVER_ERROR,
+        data: {
+          msg: "Something went wrong!"
+        }
+      }
+    }
+  }
 
 const getMoMoPaymentResponse = (req) =>
   new Promise(async (resolve, reject) => {

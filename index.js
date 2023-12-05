@@ -72,7 +72,7 @@ const start = () => {
     app.listen(PORT, () => {
       console.log(`Server is listening on ${PORT}...`);
       cron.schedule('*/30 * * * *', () => {
-        //deleteExpiredOtp()
+        deleteExpiredOtp()
         deleteUnPaidBooking()
       })
       cron.schedule('00 12,00 * * *', () => {
