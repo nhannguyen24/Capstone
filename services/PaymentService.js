@@ -223,7 +223,9 @@ const createPayOSPaymentRequest = (amount, bookingId) => new Promise(async (reso
     //Create the HTTPS objects
     const https = require("https")
     const options = {
-      hostname: "https://api-merchant.payos.vn/v2/payment-requests",
+      hostname: "api-merchant.payos.vn",
+      port: 443,
+      path: "/v2/payment-requests",
       method: "POST",
       headers: {
         "Content-Type": "application/json",
