@@ -35,7 +35,6 @@ const router = express.Router();
  *          enum:
  *              - Weekly
  *              - Monthly
- *              - Yearly
  *     responses:
  *       200:
  *         description: OK
@@ -57,6 +56,7 @@ const router = express.Router();
  *                      totalAvailableTours: 1,
  *                      totalFinishedTours: 1   
  *                  },
+ *                  tours: []
  *               }
  */
 router.get("/", verifyToken, roleAuthen(["Manager"]), controllers.getStatistics);

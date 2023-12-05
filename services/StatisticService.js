@@ -35,7 +35,7 @@ const getStatistics = async (req) => {
         let periodicityDateArr = []
         const currentDate = new Date()
         currentDate.setHours(currentDate.getHours() + 7)
-        if(periodicity !== null && periodicity !== undefined){
+        if (periodicity !== null && periodicity !== undefined) {
             if (PERIODICITY.WEEKLY === periodicity.toUpperCase()) {
                 const noTimeCurrentDateString = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${(currentDate.getDate() - 1).toString().padStart(2, '0')}T00:00:00.000Z`
 
@@ -46,26 +46,27 @@ const getStatistics = async (req) => {
                 const month = (currentDate.getMonth() + 1).toString().padStart(2, '0')
                 const year = currentDate.getFullYear()
 
-                periodicityDateArr = getStartAndEndDatesForAllLastestMonths(year, month)
-            } else if (PERIODICITY.YEARLY === periodicity.toUpperCase()) {
-                const year = currentDate.getFullYear()
-                periodicityDateArr = getStartAndEndDatesForLast3Years(year)
+                periodicityDateArr = getStartAndEndDatesForLast7Months(year, month)
             }
+            //  else if (PERIODICITY.YEARLY === periodicity.toUpperCase()) {
+            //     const year = currentDate.getFullYear()
+            //     periodicityDateArr = getStartAndEndDatesForLast3Years(year)
+            // }
         } else {
-            if(startDate !== "" && endDate !== ""){
+            if (startDate !== "" && endDate !== "") {
                 const _startDate = new Date(startDate)
                 const _endDate = new Date(endDate)
-                if(_startDate > _endDate){
-                    periodicityDateArr.push({ startDate: endDate + "T00:00:00.000Z", endDate: startDate  + "T23:59:59.000Z"})
+                if (_startDate > _endDate) {
+                    periodicityDateArr.push({ startDate: endDate + "T00:00:00.000Z", endDate: startDate + "T23:59:59.000Z" })
                 } else {
-                    periodicityDateArr.push({ startDate: startDate + "T00:00:00.000Z", endDate: endDate  + "T23:59:59.000Z"})
+                    periodicityDateArr.push({ startDate: startDate + "T00:00:00.000Z", endDate: endDate + "T23:59:59.000Z" })
                 }
             } else {
-                if(startDate !== ""){
+                if (startDate !== "") {
                     periodicityDateArr.push({ startDate: startDate + "T00:00:00.000Z", endDate: "" })
                 }
-                if(endDate !== ""){
-                    periodicityDateArr.push({ startDate: "", endDate: endDate  + "T23:59:59.000Z"})
+                if (endDate !== "") {
+                    periodicityDateArr.push({ startDate: "", endDate: endDate + "T23:59:59.000Z" })
                 }
             }
         }
@@ -156,7 +157,7 @@ const getStatistics = async (req) => {
                             }
                         ]
                     })
-    
+
                     bookings.map((booking) => {
                         if (BOOKING_STATUS.CANCELED === booking.bookingStatus) {
                             totalCancelTickets += booking.booking_detail.quantity
@@ -165,7 +166,7 @@ const getStatistics = async (req) => {
                             totalBookedTickets += booking.booking_detail.quantity
                             bookedTicketsQuantity += booking.booking_detail.quantity
                         }
-    
+
                         if (STATUS.REFUNDED === booking.booking_transaction.status) {
                             if (booking.booking_transaction.refundAmount !== 0) {
                                 totalMoneyEarned += (booking.booking_transaction.amount - booking.booking_transaction.refundAmount)
@@ -179,7 +180,7 @@ const getStatistics = async (req) => {
                             totalTicketsMoneyEarned += booking.booking_transaction.amount
                         }
                     })
-    
+
                     // tour_ticket.ticket_booking = bookings
                     tour_ticket.ticket_statistic = { bookedTicketsQuantity: bookedTicketsQuantity, cancelTicketsQuantity: cancelTicketsQuantity, totalTicketsMoneyEarned: totalTicketsMoneyEarned }
                     if (!toursMap[tourId]) {
@@ -206,7 +207,7 @@ const getStatistics = async (req) => {
                 }
                 totalCreatedTours++
             })
-            tourList.push({date: date, tours: combinedTours})
+            tourList.push({ date: date, tours: combinedTours })
         })
         await Promise.all(tourPromises)
 
@@ -255,7 +256,7 @@ function getStartAndEndDatesForLast7Weeks(currentDate) {
     const currentDayOfWeek = currentDate.getDay()
     //Calculate the the number of day left until monday
     const daysSinceLastMonday = (currentDayOfWeek + 6) % 7
-    
+
     const lastMonday = new Date(currentDate.getTime() - (daysSinceLastMonday * millisecondsInOneDay))
 
     const weeks = []
@@ -271,30 +272,39 @@ function getStartAndEndDatesForLast7Weeks(currentDate) {
     return weeks
 }
 
-function getStartAndEndDatesForLast3Years(year) {
-    const years = []
-    for(let i = 0; i < 3; i++){
-        const firstDayOfYear = new Date(year - i, 0, 1)
-        firstDayOfYear.setHours(firstDayOfYear.getHours() + 7)
-        const lastDayOfYear = new Date(year - i, 11, 31)
-        lastDayOfYear.setHours(lastDayOfYear.getHours() + 7)
-        lastDayOfYear.setTime(lastDayOfYear.getTime() + millisecondsInOneDay - 1)
+// function getStartAndEndDatesForLast3Years(year) {
+//     const years = []
+//     for(let i = 0; i < 3; i++){
+//         const firstDayOfYear = new Date(year - i, 0, 1)
+//         firstDayOfYear.setHours(firstDayOfYear.getHours() + 7)
+//         const lastDayOfYear = new Date(year - i, 11, 31)
+//         lastDayOfYear.setHours(lastDayOfYear.getHours() + 7)
+//         lastDayOfYear.setTime(lastDayOfYear.getTime() + millisecondsInOneDay - 1)
 
-        years.push({ startDate: firstDayOfYear, endDate: lastDayOfYear })
-    }
-    return years
-}
+//         years.push({ startDate: firstDayOfYear, endDate: lastDayOfYear })
+//     }
+//     return years
+// }
 
-function getStartAndEndDatesForAllLastestMonths(year, month) {
+function getStartAndEndDatesForLast7Months(year, month) {
+    let _year = year
+    let _month = 1
+
     const months = []
-    for (let i = 1; i <= month; i++) {
-        const firstDayOfMonth = new Date(year, i - 1, 1)
+    for (let i = 1; i <= 7; i++) {
+        if (_month === 0) {
+            _month = 12
+            _year--
+        }
+        const firstDayOfMonth = new Date(_year, _month - 1, 1)
         firstDayOfMonth.setHours(firstDayOfMonth.getHours() + 7)
-        const lastDayOfMonth = new Date(year, i, 0)
+
+        const lastDayOfMonth = new Date(_year, _month, 0)
         lastDayOfMonth.setHours(lastDayOfMonth.getHours() + 7)
         lastDayOfMonth.setTime(lastDayOfMonth.getTime() + millisecondsInOneDay - 1)
 
         months.push({ startDate: firstDayOfMonth, endDate: lastDayOfMonth })
+        _month--
     }
     return months
 }
