@@ -86,7 +86,6 @@ const getAllForm = (
                     }
                 })
 
-                // console.log(currentTour);
                 form.dataValues.currentTour = currentTour
                 form.dataValues.desireTour = desireTour
             }
