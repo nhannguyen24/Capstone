@@ -103,26 +103,28 @@ router.put("/offline", controllers.paymentOffline);
 
 router.post("/momo-ipn", controllers.getPaymentMomo);
 
-/**
- * @swagger
- * /api/v1/payments/{id}:
- *   get:
- *     summary: Get payment result of payOS
- *     tags: [Payment]
- *     parameters:
- *       - in: query
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- */
-router.get("/:id", controllers.getPayOsPaymentResponse);
+router.get("/payos", controllers.getPayOsPaymentResponse);
+
+// /**
+//  * @swagger
+//  * /api/v1/payments/{id}:
+//  *   get:
+//  *     summary: Get payment result of payOS
+//  *     tags: [Payment]
+//  *     parameters:
+//  *       - in: query
+//  *         name: id
+//  *         schema:
+//  *           type: string
+//  *         required: true
+//  *     responses:
+//  *       200:
+//  *         description: OK
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: object
+//  */
+// router.get("/:id", controllers.getPayOsPaymentResponse);
 
 module.exports = router;

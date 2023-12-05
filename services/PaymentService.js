@@ -416,31 +416,33 @@ const refundMomo = async (bookingId, amount) => {
 
 const getPayOsPaymentResponse = (req) =>
   new Promise(async (resolve, reject) => {
-    try {
-      const payOS = new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY);
-      const booking = await payOS.getPaymentLinkInfomation(req.id);
-      if (!booking) {
-        resolve({
-          status: 400,
-          data: {
-            msg: "Not found!",
-          },
-        });
-      }
-      resolve({
-        status: 200,
-        data: {
-          booking
-        },
-      });
-    } catch (error) {
-      reject({
-        status: 500,
-        data: {
-          msg: "Internal server error",
-        },
-      })
-    }
+    // try {
+    //   const payOS = new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY);
+    //   const booking = await payOS.getPaymentLinkInfomation(req.id);
+    //   if (!booking) {
+    //     resolve({
+    //       status: 400,
+    //       data: {
+    //         msg: "Not found!",
+    //       },
+    //     });
+    //   }
+    //   resolve({
+    //     status: 200,
+    //     data: {
+    //       booking
+    //     },
+    //   });
+    // } catch (error) {
+    //   reject({
+    //     status: 500,
+    //     data: {
+    //       msg: "Internal server error",
+    //     },
+    //   })
+    // }
+
+    console.log(req);
   })
 
 const getMoMoPaymentResponse = (req) =>
