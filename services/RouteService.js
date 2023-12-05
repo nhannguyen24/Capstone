@@ -550,7 +550,6 @@ const deleteRoute = (id) =>
                     }
                 ]
             })
-            // console.log(tourExist);
 
             if (tourExist) {
                 resolve({

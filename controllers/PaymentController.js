@@ -60,7 +60,7 @@ const paymentPayOs = async (req, res) => {
         }
 
         if (Object.keys(errors).length === 0) {
-            const response = await services.createPayOSPaymentRequest(amount)
+            const response = await services.createPayOSPaymentRequest(req.query)
             return res.status(response.status).json(response.data)
         } else {
             return res.status(StatusCodes.BAD_REQUEST).json(errors)
