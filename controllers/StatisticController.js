@@ -6,7 +6,7 @@ const { StatusCodes } = require('http-status-codes');
 const getStatistics = async (req, res) => {
     try {
         const errors = {}
-        const periodicityEnumArray = [Periodicityenum.WEEKLY, Periodicityenum.MONTHLY, Periodicityenum.YEARLY]
+        const periodicityEnumArray = [Periodicityenum.WEEKLY, Periodicityenum.MONTHLY]
         const periodicity = req.query.periodicity
         const startDate = req.query.startDate || ""
         const endDate = req.query.endDate || ""

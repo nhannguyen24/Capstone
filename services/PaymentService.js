@@ -240,13 +240,13 @@ const createPayOSPaymentRequest = (amount, bookingId) => new Promise(async (reso
       res.setEncoding("utf8")
       res.on("data", (body) => {
         console.log("Body: ", JSON.parse(body))
-        const resData = JSON.parse(body)
-        if("00" === resData.code){
+        const res = JSON.parse(body)
+        if("00" === res.code){
           resolve({
             status: StatusCodes.OK,
             data: {
               msg: "Get link payment successfully!",
-              url: resData.data.checkoutUrl,
+              url: res.data.checkoutUrl,
             },
           })
         } else {
