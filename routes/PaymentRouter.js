@@ -56,11 +56,13 @@ router.post("/momo", controllers.paymentMomo)
  *         schema:
  *           type: string
  *           example: https://walletfpt.com
+ *         required: true
  *       - in: query
  *         name: returnUrl
  *         schema:
  *           type: string
  *           example: https://walletfpt.com
+ *         required: true
  *       - in: query
  *         name: bookingCode
  *         schema:
