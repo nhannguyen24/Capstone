@@ -5,7 +5,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/v1/payments:
+ * /api/v1/payments/momo:
  *   post:
  *     summary: Pay with Momo
  *     tags: [Payment]
@@ -36,7 +36,35 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.post("/", controllers.paymentMomo);
+router.post("/momo", controllers.paymentMomo)
+
+/**
+ * @swagger
+ * /api/v1/payments/pay-os:
+ *   post:
+ *     summary: Pay with Pay OS
+ *     tags: [Payment]
+ *     parameters: 
+ *       - in: query
+ *         name: returnUrl
+ *         schema:
+ *           type: string
+ *           example: https://walletfpt.com
+ *       - in: query
+ *         name: amount
+ *         schema:
+ *           type: string
+ *           example: 1000
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ */
+router.post("/pay-os", controllers.paymentPayOs)
 
 /**
  * @swagger
@@ -61,5 +89,6 @@ router.post("/", controllers.paymentMomo);
 router.put("/offline", controllers.paymentOffline);
 
 router.post("/momo-ipn", controllers.getPaymentMomo);
+router.post("/pay-os-response", controllers.getPayOsPaymentResponse);
 
 module.exports = router;
