@@ -442,7 +442,7 @@ const getPayOsPaymentResponse = (req) =>
     //   })
     // }
 
-    console.log(req);
+    console.log(req.query);
   })
 
 const getMoMoPaymentResponse = (req) =>
