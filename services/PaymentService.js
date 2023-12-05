@@ -298,7 +298,7 @@ const createPayOSPaymentRequest = (query) => new Promise(async (resolve, reject)
     const paymentLinkRes = await payOS.createPaymentLink(body);
 
     resolve({
-      status: StatusCodes.NOT_FOUND,
+      status: StatusCodes.OK,
       data: {
         msg: `Creating payment url successfully!`,
         bin: paymentLinkRes.bin,
