@@ -497,36 +497,32 @@ const refundMomo = async (bookingId, amount) => {
 
 const getPayOsPaymentResponse = (req) =>
   new Promise(async (resolve, reject) => {
-    // resolve({
-    //   status: StatusCodes.OK,
-    //   data: {
-    //     msg: "OK"
-    //   }
-    // })
-
-    console.log("payment handler");
-    const webhookData = payOS.verifyPaymentWebhookData(req.body);
-
-    if (
-      ["Ma giao dich thu nghiem", "VQRIO123"].includes(webhookData.description)
-    ) {
-      console.log("payment handler test 123");
-      return res.json({
-        error: 0,
-        message: "Ok",
-        data: webhookData
+    try {
+      const payOS = new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY);
+      const booking = await payOS.getPaymentLinkInfomation(req.id);
+      if (!booking) {
+        resolve({
+          status: 400,
+          data: {
+            msg: "Not found!",
+          },
+        });
+      }
+      resolve({
+        status: 200,
+        data: {
+          booking
+        },
       });
+    } catch (error) {
+      reject({
+        status: 500,
+        data: {
+          msg: "Internal server error",
+        },
+      })
     }
-
-    // Source code uses webhook data
-    console.log("payment handler test final");
-    resolve ({
-      error: 0,
-      message: "HUHU",
-      data: webhookData
-    });
   })
-
 
 const getMoMoPaymentResponse = (req) =>
   new Promise(async (resolve, reject) => {
