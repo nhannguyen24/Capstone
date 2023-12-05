@@ -145,102 +145,102 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
     }
   })
 
-  const createPayOSPaymentRequest = (query) => new Promise(async (resolve, reject) => {
-    try {
-      const booking = await db.Booking.findOne({
-        where: { bookingCode: query.bookingCode },
+const createPayOSPaymentRequest = (query) => new Promise(async (resolve, reject) => {
+  try {
+    const booking = await db.Booking.findOne({
+      where: { bookingCode: query.bookingCode },
+    })
+
+    if (!booking) {
+      resolve({
+        status: StatusCodes.NOT_FOUND,
+        data: {
+          msg: `Booking not found!`,
+        },
       })
-  
-      if (!booking) {
+      return
+    } else {
+      const transaction = await db.Transaction.findOne({
+        where: { bookingId: booking.bookingId },
+        include: {
+          model: db.Booking,
+          as: "transaction_booking",
+          attributes: ["endPaymentTime"],
+        },
+      })
+      if (!transaction) {
         resolve({
           status: StatusCodes.NOT_FOUND,
           data: {
-            msg: `Booking not found!`,
+            msg: `Booking transaction not found!`,
           },
         })
         return
       } else {
-        const transaction = await db.Transaction.findOne({
-          where: { bookingId: booking.bookingId },
-          include: {
-            model: db.Booking,
-            as: "transaction_booking",
-            attributes: ["endPaymentTime"],
-          },
-        })
-        if (!transaction) {
+        if (transaction.status === STATUS.PAID) {
           resolve({
-            status: StatusCodes.NOT_FOUND,
+            status: StatusCodes.BAD_REQUEST,
             data: {
-              msg: `Booking transaction not found!`,
+              msg: "Booking transaction already paid!",
             },
           })
           return
-        } else {
-          if (transaction.status === STATUS.PAID) {
-            resolve({
-              status: StatusCodes.BAD_REQUEST,
-              data: {
-                msg: "Booking transaction already paid!",
-              },
-            })
-            return
-          }
-          const currentDate = new Date()
-          currentDate.setHours(currentDate.getHours() + 7)
-          const endBookingTime = new Date(
-            transaction.transaction_booking.endPaymentTime
-          )
-          if (endBookingTime <= currentDate) {
-            resolve({
-              status: StatusCodes.BAD_REQUEST,
-              data: {
-                msg: "Booking transaction expired!",
-              },
-            })
-            return
-          }
+        }
+        const currentDate = new Date()
+        currentDate.setHours(currentDate.getHours() + 7)
+        const endBookingTime = new Date(
+          transaction.transaction_booking.endPaymentTime
+        )
+        if (endBookingTime <= currentDate) {
+          resolve({
+            status: StatusCodes.BAD_REQUEST,
+            data: {
+              msg: "Booking transaction expired!",
+            },
+          })
+          return
         }
       }
-  
-      const payOS = new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY);
-      const amountNumber = Number(query.amount);
-  
-      const body = {
-        orderCode: Number(String(new Date().getTime()).slice(-6)),
-        amount: amountNumber,
-        description: query.bookingCode,
-        cancelUrl: query.cancelUrl,
-        returnUrl: query.returnUrl
-      };
-  
-      const paymentLinkRes = await payOS.createPaymentLink(body);
-  
-      resolve({
-        status: StatusCodes.OK,
-        data: {
-          msg: `Creating payment url successfully!`,
-          bin: paymentLinkRes.bin,
-          checkoutUrl: paymentLinkRes.checkoutUrl,
-          accountNumber: paymentLinkRes.accountNumber,
-          accountName: paymentLinkRes.accountName,
-          amount: paymentLinkRes.amount,
-          description: paymentLinkRes.description,
-          orderCode: paymentLinkRes.orderCode,
-          qrCode: paymentLinkRes.qrCode,
-        },
-      });
-  
-    } catch (error) {
-      console.error(error);
-      reject({
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        data: {
-          msg: "Something went wrong!"
-        }
-      })
     }
-  })
+
+    const payOS = new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY);
+    const amountNumber = Number(query.amount);
+
+    const body = {
+      orderCode: Number(String(new Date().getTime()).slice(-6)),
+      amount: amountNumber,
+      description: query.bookingCode,
+      cancelUrl: query.cancelUrl,
+      returnUrl: query.returnUrl
+    };
+
+    const paymentLinkRes = await payOS.createPaymentLink(body);
+
+    resolve({
+      status: StatusCodes.OK,
+      data: {
+        msg: `Creating payment url successfully!`,
+        bin: paymentLinkRes.bin,
+        checkoutUrl: paymentLinkRes.checkoutUrl,
+        accountNumber: paymentLinkRes.accountNumber,
+        accountName: paymentLinkRes.accountName,
+        amount: paymentLinkRes.amount,
+        description: paymentLinkRes.description,
+        orderCode: paymentLinkRes.orderCode,
+        qrCode: paymentLinkRes.qrCode,
+      },
+    });
+
+  } catch (error) {
+    console.error(error);
+    reject({
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+      data: {
+        msg: "Something went wrong!"
+      }
+    })
+  }
+})
 
 const refundMomo = async (bookingId, amount) => {
   return new Promise(async (resolve, reject) => {
@@ -415,39 +415,224 @@ const refundMomo = async (bookingId, amount) => {
 }
 
 const getPayOsPaymentResponse = async (req) => {
-    try {
-      const code = req.query.code
-      const status = req.query.status
-      const orderCode = req.query.orderCode
+  try {
+    const code = req.query.code
+    const status = req.query.status
+    const orderCode = req.query.orderCode
+    const bookingId = req.query.bookingId
 
-      const payOS = new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY)
-      const order = await payOS.getPaymentLinkInfomation(orderCode)
-      console.log(order)
-      if(!order){
-        return {
-          status: StatusCodes.INTERNAL_SERVER_ERROR,
-          data: {
-            msg: "No order found!"
-          }
-        }
+    const booking = await db.Booking.findOne({
+      where: {
+        bookingId: bookingId
       }
+    })
+
+    if (!booking) {
       return {
-        status: StatusCodes.OK,
+        status: StatusCodes.NOT_FOUND,
         data: {
-          msg: "Got order!",
-          data: order
-        }
-      }
-    } catch (error) {
-      console.log(error)
-      return {
-        status: StatusCodes.INTERNAL_SERVER_ERROR,
-        data: {
-          msg: "Something went wrong!"
+          msg: "Booking not found!",
         }
       }
     }
+
+    if (BOOKING_STATUS.DRAFT !== booking.bookingStatus) {
+      return {
+        status: StatusCodes.BAD_REQUEST,
+        data: {
+          msg: "Booking already paid!",
+        }
+      }
+    }
+
+    if ("00" == code && STATUS.PAID === status) {
+      const bookingDetail = await db.BookingDetail.findOne({
+        raw: true,
+        nest: true,
+        where: {
+          bookingId: bookingId,
+        },
+        include: [
+          {
+            model: db.Ticket,
+            as: "booking_detail_ticket",
+            include: {
+              model: db.Tour,
+              as: "ticket_tour",
+              attributes: [
+                "tourName",
+                "routeId",
+                "departureDate",
+                "duration",
+                "status",
+              ],
+              include: {
+                model: db.Bus,
+                as: "tour_bus",
+                attributes: ["busPlate"],
+              },
+            },
+            attributes: {
+              exclude: ["tourid", "ticketTypeId", "updatedAt", "createdAt"],
+            },
+          },
+          {
+            model: db.Booking,
+            as: "detail_booking",
+            include: [
+              {
+                model: db.User,
+                as: "booking_user",
+                attributes: ["userName", "email"],
+              },
+              {
+                model: db.Station,
+                as: "booking_departure_station",
+                attributes: ["stationId", "stationName"],
+              },
+            ],
+            attributes: [
+              "bookingId",
+              "bookingCode",
+              "customerId",
+              "departureStationId",
+              "totalPrice",
+            ],
+          },
+        ],
+      })
+
+      const routeSegment = await db.RouteSegment.findAll({
+        raw: true,
+        nest: true,
+        where: {
+          routeId: bookingDetail.booking_detail_ticket.ticket_tour.routeId,
+        },
+        order: [["index", "ASC"]],
+      })
+
+      const tourName =
+        bookingDetail.booking_detail_ticket.ticket_tour.tourName
+      const bookedStationId =
+        bookingDetail.detail_booking.booking_departure_station.stationId
+      const tourDepartureTime = new Date(
+        bookingDetail.booking_detail_ticket.ticket_tour.departureDate
+      ).getTime()
+      const busArrivalTimeToBookedStation = calculateTotalTime(
+        routeSegment,
+        tourDepartureTime,
+        bookedStationId
+      )
+      const formatDepartureDate = `${busArrivalTimeToBookedStation
+        .getDate()
+        .toString()
+        .padStart(2, "0")}/${(busArrivalTimeToBookedStation.getMonth() + 1)
+          .toString()
+          .padStart(
+            2,
+            "0"
+          )}/${busArrivalTimeToBookedStation.getFullYear()}  |  ${busArrivalTimeToBookedStation
+            .getHours()
+            .toString()
+            .padStart(2, "0")}:${busArrivalTimeToBookedStation
+              .getMinutes()
+              .toString()
+              .padStart(2, "0")}:${busArrivalTimeToBookedStation
+                .getSeconds()
+                .toString()
+                .padStart(2, "0")}`
+      const tourDuration =
+        bookingDetail.booking_detail_ticket.ticket_tour.duration
+      const totalPrice = bookingDetail.detail_booking.totalPrice
+      const stationName =
+        bookingDetail.detail_booking.booking_departure_station.stationName
+      const busPlate =
+        bookingDetail.booking_detail_ticket.ticket_tour.tour_bus.busPlate
+      const bookingCode = bookingDetail.detail_booking.bookingCode
+
+      const qrDataURL = await qr.toDataURL(`bookingId: ${bookingId}`)
+      const htmlContent = {
+        body: {
+          name: bookingDetail.detail_booking.booking_user.userName,
+          intro: [
+            `Thank you for choosing <b>NBTour</b> booking system. Here is your <b>QR code<b> attachment for upcomming tour tickets`,
+            `<b>Tour Information:</b>`,
+            `  - Tour Name: <b>${tourName}</b>`,
+            `  - Tour Departure Date: <b>${formatDepartureDate}</b>`,
+            `  - Departure Station: <b>${stationName}</b>`,
+            `  - Booking Code: <b>${bookingCode}</b>`,
+            `  - Bus plate: <b>${busPlate}</b>`,
+            `  - Tour Duration: <b>${tourDuration}</b>`,
+            `  - Tour Total Price: <b>${totalPrice}</b>`,
+          ],
+          outro: [
+            `If you have any questions or need assistance, please to reach out to our customer support team at nbtour@gmail.com.`,
+          ],
+          signature: "Sincerely",
+        },
+      }
+      mailer.sendMail(
+        bookingDetail.detail_booking.booking_user.email,
+        "Tour booking tickets",
+        htmlContent,
+        qrDataURL
+      )
+
+      db.Booking.update(
+        {
+          bookingStatus: BOOKING_STATUS.ON_GOING,
+        },
+        {
+          where: {
+            bookingId: bookingId,
+          },
+          individualHooks: true,
+        }
+      )
+
+      db.BookingDetail.update(
+        {
+          status: STATUS.ACTIVE,
+        },
+        {
+          where: {
+            bookingId: bookingId,
+          },
+          individualHooks: true,
+        }
+      )
+
+      db.Transaction.update(
+        {
+          transactionCode: orderCode,
+          status: STATUS.PAID,
+        },
+        {
+          where: {
+            bookingId: bookingId,
+          },
+          individualHooks: true,
+        }
+      )
+    }
+
+    return {
+      status: StatusCodes.OK,
+      data: {
+        msg: "Got order!",
+        data: order
+      }
+    }
+  } catch (error) {
+    console.log(error)
+    return {
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+      data: {
+        msg: "Something went wrong!"
+      }
+    }
   }
+}
 
 const getMoMoPaymentResponse = (req) =>
   new Promise(async (resolve, reject) => {
