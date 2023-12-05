@@ -5,7 +5,9 @@ const mailer = require("../utils/MailerUtil")
 const qr = require("qrcode")
 const BOOKING_STATUS = require("../enums/BookingStatusEnum")
 const { StatusCodes } = require("http-status-codes")
-require('dotenv').config()
+require('dotenv').config();
+const PayOS = require("@payos/node");
+
 const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
   new Promise(async (resolve, reject) => {
     try {
@@ -143,134 +145,175 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
     }
   })
 
-const createPayOSPaymentRequest = (amount, bookingId) => new Promise(async (resolve, reject) => {
+// const createPayOSPaymentRequest = (amount, bookingId) => new Promise(async (resolve, reject) => {
+//   try {
+//     var partnerCode = "PAYOS"
+//     const clientkey = process.env.PAY_OS_CLIENT_KEY
+//     const apikey = process.env.PAY_OS_API_KEY
+//     var amount = amount
+//     var orderCode = partnerCode + new Date().getTime()
+//     var description = "Pay PayOs"
+//     var cancelUrl = "https://tour-customer-git-main-quanvtse151000.vercel.app/tour/9bdec9fc-f1ea-4e6d-9b01-ef2add4e34f0"
+//     var returnUrl = "https://tour-customer-git-main-quanvtse151000.vercel.app"
+//     //"https://nbtour-fc9f59891cf4.herokuapp.com/api/v1/payments/pay-os-response"
+
+//     // const transaction = await db.Transaction.findOne({
+//     //   where: { bookingId: bookingId },
+//     //   include: {
+//     //     model: db.Booking,
+//     //     as: "transaction_booking",
+//     //     attributes: ["endPaymentTime"],
+//     //   },
+//     // })
+//     // if (!transaction) {
+//     //   return {
+//     //     status: StatusCodes.NOT_FOUND,
+//     //     data: {
+//     //       msg: `Booking transaction not found!`,
+//     //     },
+//     //   }
+
+//     // }
+//     // if (transaction.status === STATUS.PAID) {
+//     //   return {
+//     //     status: StatusCodes.BAD_REQUEST,
+//     //     data: {
+//     //       msg: "Booking transaction already paid!",
+//     //     },
+//     //   }
+//     // }
+//     // const currentDate = new Date()
+//     // currentDate.setHours(currentDate.getHours() + 7)
+//     // const endBookingTime = new Date(
+//     //   transaction.transaction_booking.endPaymentTime
+//     // )
+//     // if (endBookingTime <= currentDate) {
+//     //   resolve({
+//     //     status: StatusCodes.BAD_REQUEST,
+//     //     data: {
+//     //       msg: "Booking transaction expired!",
+//     //     },
+//     //   })
+//     // }
+
+//     var rawSignature =
+//       "&amount=" +
+//       amount +
+//       "&cancelURl=" +
+//       cancelUrl +
+//       "&description=" +
+//       description +
+//       "&orderCode=" +
+//       orderCode +
+//       "&returnUrl=" +
+//       returnUrl
+//       console.log(apikey.toString())
+//     var signature = crypto
+//       .createHmac("sha256", apikey.toString())
+//       .update(rawSignature)
+//       .digest("hex")
+
+//     const requestBody = JSON.stringify({
+//       orderCode: orderCode,
+//       amount: amount,
+//       description: description,
+//       cancelUrl: cancelUrl,
+//       returnUrl: returnUrl,
+//       signature: signature
+//     })
+
+//     //Create the HTTPS objects
+//     const https = require("https")
+//     const options = {
+//       hostname: "api-merchant.payos.vn",
+//       port: 443,
+//       path: "/v2/payment-requests",
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         "Content-Length": Buffer.byteLength(requestBody),
+//         "x-api-key": apikey,
+//         "x-client-id": clientkey,
+//       },
+//     }
+
+//     //Send the request and get the response
+//     const req = https.request(options, (res) => {
+//       res.setEncoding("utf8")
+//       res.on("data", (body) => {
+//         console.log("Body: ", JSON.parse(body))
+//         const resData = JSON.parse(body)
+//         if("00" === resData.code){
+//           resolve({
+//             status: StatusCodes.OK,
+//             data: {
+//               msg: "Get link payment successfully!",
+//               url: resData.data.checkoutUrl,
+//             },
+//           })
+//         } else {
+//           resolve({
+//             status: StatusCodes.OK,
+//             data: {
+//               msg: resData.desc,
+//             },
+//           })
+//         }
+
+//       })
+//     })
+
+//     req.on("error", (e) => {
+//       console.log(`Problem with request: ${e}`)
+//     })
+
+//     // write data to request body
+//     req.write(requestBody)
+//     req.end()
+
+//   } catch (error) {
+//     console.error(error)
+//     reject({
+//       status: StatusCodes.INTERNAL_SERVER_ERROR,
+//       data: {
+//         msg: "Something went wrong!"
+//       }
+//     })
+//   }
+// })
+
+const createPayOSPaymentRequest = (query) => new Promise(async (resolve, reject) => {
   try {
-    var partnerCode = "PAYOS"
-    const clientkey = process.env.PAY_OS_CLIENT_KEY
-    const apikey = process.env.PAY_OS_API_KEY
-    var amount = amount
-    var orderCode = partnerCode + new Date().getTime()
-    var description = "Pay PayOs"
-    var cancelUrl = "https://tour-customer-git-main-quanvtse151000.vercel.app/tour/9bdec9fc-f1ea-4e6d-9b01-ef2add4e34f0"
-    var returnUrl = "https://tour-customer-git-main-quanvtse151000.vercel.app"
-    //"https://nbtour-fc9f59891cf4.herokuapp.com/api/v1/payments/pay-os-response"
+    const payOS = new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY);
+    const amountNumber = Number(query.amount);
 
-    // const transaction = await db.Transaction.findOne({
-    //   where: { bookingId: bookingId },
-    //   include: {
-    //     model: db.Booking,
-    //     as: "transaction_booking",
-    //     attributes: ["endPaymentTime"],
-    //   },
-    // })
-    // if (!transaction) {
-    //   return {
-    //     status: StatusCodes.NOT_FOUND,
-    //     data: {
-    //       msg: `Booking transaction not found!`,
-    //     },
-    //   }
+    const body = {
+      orderCode: Number(String(new Date().getTime()).slice(-6)),
+      amount: amountNumber,
+      description: query.bookingCode,
+      cancelUrl: query.cancelUrl,
+      returnUrl: query.returnUrl
+    };
 
-    // }
-    // if (transaction.status === STATUS.PAID) {
-    //   return {
-    //     status: StatusCodes.BAD_REQUEST,
-    //     data: {
-    //       msg: "Booking transaction already paid!",
-    //     },
-    //   }
-    // }
-    // const currentDate = new Date()
-    // currentDate.setHours(currentDate.getHours() + 7)
-    // const endBookingTime = new Date(
-    //   transaction.transaction_booking.endPaymentTime
-    // )
-    // if (endBookingTime <= currentDate) {
-    //   resolve({
-    //     status: StatusCodes.BAD_REQUEST,
-    //     data: {
-    //       msg: "Booking transaction expired!",
-    //     },
-    //   })
-    // }
+    const paymentLinkRes = await payOS.createPaymentLink(body);
 
-    var rawSignature =
-      "&amount=" +
-      amount +
-      "&cancelURl=" +
-      cancelUrl +
-      "&description=" +
-      description +
-      "&orderCode=" +
-      orderCode +
-      "&returnUrl=" +
-      returnUrl
-      console.log(apikey.toString())
-    var signature = crypto
-      .createHmac("sha256", apikey.toString())
-      .update(rawSignature)
-      .digest("hex")
-
-    const requestBody = JSON.stringify({
-      orderCode: orderCode,
-      amount: amount,
-      description: description,
-      cancelUrl: cancelUrl,
-      returnUrl: returnUrl,
-      signature: signature
-    })
-
-    //Create the HTTPS objects
-    const https = require("https")
-    const options = {
-      hostname: "api-merchant.payos.vn",
-      port: 443,
-      path: "/v2/payment-requests",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Content-Length": Buffer.byteLength(requestBody),
-        "x-api-key": apikey,
-        "x-client-id": clientkey,
+    resolve({
+      status: StatusCodes.NOT_FOUND,
+      data: {
+        msg: `Creating payment url successfully!`,
+        bin: paymentLinkRes.bin,
+        checkoutUrl: paymentLinkRes.checkoutUrl,
+        accountNumber: paymentLinkRes.accountNumber,
+        accountName: paymentLinkRes.accountName,
+        amount: paymentLinkRes.amount,
+        description: paymentLinkRes.description,
+        orderCode: paymentLinkRes.orderCode,
+        qrCode: paymentLinkRes.qrCode,
       },
-    }
-
-    //Send the request and get the response
-    const req = https.request(options, (res) => {
-      res.setEncoding("utf8")
-      res.on("data", (body) => {
-        console.log("Body: ", JSON.parse(body))
-        const resData = JSON.parse(body)
-        if("00" === resData.code){
-          resolve({
-            status: StatusCodes.OK,
-            data: {
-              msg: "Get link payment successfully!",
-              url: resData.data.checkoutUrl,
-            },
-          })
-        } else {
-          resolve({
-            status: StatusCodes.OK,
-            data: {
-              msg: resData.desc,
-            },
-          })
-        }
-
-      })
-    })
-
-    req.on("error", (e) => {
-      console.log(`Problem with request: ${e}`)
-    })
-
-    // write data to request body
-    req.write(requestBody)
-    req.end()
+    });
 
   } catch (error) {
-    console.error(error)
+    console.error(error);
     reject({
       status: StatusCodes.INTERNAL_SERVER_ERROR,
       data: {
@@ -454,12 +497,34 @@ const refundMomo = async (bookingId, amount) => {
 
 const getPayOsPaymentResponse = (req) =>
   new Promise(async (resolve, reject) => {
-    resolve({
-      status: StatusCodes.OK,
-      data: {
-        msg: "OK"
-      }
-    })
+    // resolve({
+    //   status: StatusCodes.OK,
+    //   data: {
+    //     msg: "OK"
+    //   }
+    // })
+
+    console.log("payment handler");
+    const webhookData = payOS.verifyPaymentWebhookData(req.body);
+
+    if (
+      ["Ma giao dich thu nghiem", "VQRIO123"].includes(webhookData.description)
+    ) {
+      console.log("payment handler test 123");
+      return res.json({
+        error: 0,
+        message: "Ok",
+        data: webhookData
+      });
+    }
+
+    // Source code uses webhook data
+    console.log("payment handler test final");
+    resolve ({
+      error: 0,
+      message: "HUHU",
+      data: webhookData
+    });
   })
 
 
