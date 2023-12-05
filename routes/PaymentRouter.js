@@ -106,10 +106,15 @@ router.post("/momo-ipn", controllers.getPaymentMomo);
 /**
  * @swagger
  * /api/v1/payments/pay-os:
- *   get:
- *     summary: Receive PayOs Response
+ *   put:
+ *     summary: Update booking payment using pay os
  *     tags: [Payment]
  *     parameters:
+ *       - in: path
+ *         name: bookingId
+ *         schema:
+ *           type: string
+ *         required: true
  *       - in: query
  *         name: code
  *         schema:
@@ -133,7 +138,7 @@ router.post("/momo-ipn", controllers.getPaymentMomo);
  *             schema:
  *               type: object
  */
-router.get("/pay-os", controllers.getPayOsPaymentResponse);
+router.put("/pay-os", controllers.getPayOsPaymentResponse);
 
 // /**
 //  * @swagger
