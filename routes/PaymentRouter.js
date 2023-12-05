@@ -56,11 +56,13 @@ router.post("/momo", controllers.paymentMomo)
  *         schema:
  *           type: string
  *           example: https://walletfpt.com
+ *         required: true
  *       - in: query
  *         name: returnUrl
  *         schema:
  *           type: string
  *           example: https://walletfpt.com
+ *         required: true
  *       - in: query
  *         name: bookingCode
  *         schema:
@@ -100,6 +102,29 @@ router.post("/pay-os", controllers.paymentPayOs)
 router.put("/offline", controllers.paymentOffline);
 
 router.post("/momo-ipn", controllers.getPaymentMomo);
-router.post("/payos", controllers.getPayOsPaymentResponse);
+
+router.get("/payos", controllers.getPayOsPaymentResponse);
+
+// /**
+//  * @swagger
+//  * /api/v1/payments/{id}:
+//  *   get:
+//  *     summary: Get payment result of payOS
+//  *     tags: [Payment]
+//  *     parameters:
+//  *       - in: query
+//  *         name: id
+//  *         schema:
+//  *           type: string
+//  *         required: true
+//  *     responses:
+//  *       200:
+//  *         description: OK
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: object
+//  */
+// router.get("/:id", controllers.getPayOsPaymentResponse);
 
 module.exports = router;
