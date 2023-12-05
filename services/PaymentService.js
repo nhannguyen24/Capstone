@@ -239,15 +239,25 @@ const createPayOSPaymentRequest = (amount, bookingId) => new Promise(async (reso
     const req = https.request(options, (res) => {
       res.setEncoding("utf8")
       res.on("data", (body) => {
-        console.log("request", requestBody)
         console.log("Body: ", JSON.parse(body))
-        resolve({
-          status: StatusCodes.OK,
-          data: {
-            msg: "Get link payment successfully!",
-            url: JSON.parse(body).data.checkoutUrl,
-          },
-        })
+        const resData = JSON.parse(body)
+        if("00" === resData.code){
+          resolve({
+            status: StatusCodes.OK,
+            data: {
+              msg: "Get link payment successfully!",
+              url: resData.data.checkoutUrl,
+            },
+          })
+        } else {
+          resolve({
+            status: StatusCodes.OK,
+            data: {
+              msg: resData.desc,
+            },
+          })
+        }
+
       })
     })
 
@@ -261,7 +271,7 @@ const createPayOSPaymentRequest = (amount, bookingId) => new Promise(async (reso
 
   } catch (error) {
     console.error(error)
-    resolve({
+    reject({
       status: StatusCodes.INTERNAL_SERVER_ERROR,
       data: {
         msg: "Something went wrong!"
