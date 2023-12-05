@@ -207,7 +207,7 @@ const createPayOSPaymentRequest = (amount, bookingId) => new Promise(async (reso
       returnUrl
 
     var signature = crypto
-      .createHmac("sha256", apikey)
+      .createHmac("sha256", apikey.toString())
       .update(rawSignature)
       .digest("hex")
 
