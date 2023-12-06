@@ -974,6 +974,15 @@ const createBookingWeb = async (req) => {
         let discountPrice = 0
         if (_routeSegments.length > 0) {
             for (const segment of _routeSegments) {
+                if(segment.distance === null || segment.distance === undefined){
+                    console.error(`RouteSegment ${segment.routeSegmentId} distance null!`)
+                    return {
+                        status: StatusCodes.INTERNAL_SERVER_ERROR,
+                        data:{
+                            msg: "An error has occurred while calculating totalPrice!",
+                        }
+                    }
+                }
                 if (segment.index < _routeSegment.index) {
                     distanceToBookedDepartureStation += parseFloat(segment.distance)
                 }
@@ -990,7 +999,7 @@ const createBookingWeb = async (req) => {
             }
             totalPrice = discountPrice
         }
-
+        totalPrice = Math.floor(totalPrice / 1000) * 1000
         /** 
          * Begin booking creation process and roll back if error
          */
@@ -1282,15 +1291,22 @@ const createBookingOffline = async (req) => {
         let distanceToBookedDepartureStation = 0
         if (_routeSegments.length > 0) {
             for (const segment of _routeSegments) {
+                if(segment.distance === null || segment.distance === undefined){
+                    console.error(`RouteSegment ${segment.routeSegmentId} distance null!`)
+                    return {
+                        status: StatusCodes.INTERNAL_SERVER_ERROR,
+                        data:{
+                            msg: "An error has occurred while calculating totalPrice!",
+                        }
+                    }
+                }
                 if (segment.index < _routeSegment.index) {
                     distanceToBookedDepartureStation += parseFloat(segment.distance)
                 }
                 totalDistance += parseFloat(segment.distance)
             }
             const discountPercentage = parseFloat(distanceToBookedDepartureStation) / parseFloat(totalDistance)
-            /**
-             * 0.5 = 50%
-             */
+
             if (discountPercentage !== 0) {
                 if (discountPercentage >= 0.5) {
                     totalPrice = totalPrice * discountPercentage
@@ -1299,6 +1315,7 @@ const createBookingOffline = async (req) => {
                 }
             }
         }
+        totalPrice = Math.floor(totalPrice / 1000) * 1000
         /**
          * Begin booking creation process and roll back if error
          */
