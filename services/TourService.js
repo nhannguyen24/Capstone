@@ -1061,7 +1061,9 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                         })
                     }
 
-                    const createTicketPromises = tickets.map(async (ticketTypeId) => {
+                    let isValidTickets = false
+                    const dependTickets = []
+                    const promises = tickets.map(async (ticketTypeId) => {
                         const ticketType = await db.TicketType.findOne({
                             where: {
                                 ticketTypeId: ticketTypeId
@@ -1077,6 +1079,30 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 }
                             })
                         }
+
+                        if(ticketType.dependsOnGuardian === 0){
+                            isValidTickets = true
+                        } else {
+                            dependTickets.push(ticketType.ticketTypeName)
+                        }
+                    })
+                    await Promise(promises)
+
+                    if(!isValidTickets){
+                        return {
+                            status: StatusCodes.BAD_REQUEST,
+                            data: {
+                                msg: `[${dependTickets}] need other guardian ticket to go with!`,
+                            }
+                        }
+                    }
+                    const createTicketPromises = tickets.map(async (ticketTypeId) => {
+                        const ticketType = await db.TicketType.findOne({
+                            where: {
+                                ticketTypeId: ticketTypeId
+                            },
+                            transaction: t,
+                        })
 
                         let day = DAY_ENUM.NORMAL
 
@@ -1545,8 +1571,6 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
             }
             i++
         }
-
-        console.log(errors);
 
         redisClient.keys('*tours_*', (error, keys) => {
             if (error) {

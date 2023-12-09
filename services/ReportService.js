@@ -102,7 +102,7 @@ const getReportsById = async (reportId) => {
                 msg: `Get report successfully`,
                 report: report
             } : {
-                msg: `No report found!`,
+                msg: `Report not found!`,
                 report: {}
             }
         }

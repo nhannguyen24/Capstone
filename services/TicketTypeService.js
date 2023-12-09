@@ -127,7 +127,7 @@ const updateTicketType = async (req) => {
                     return {
                         status: StatusCodes.BAD_REQUEST,
                         data: {
-                            msg: `Ticket Type Name existed`,
+                            msg: `Ticket Type Name existed!`,
                         }
                     }
                 }

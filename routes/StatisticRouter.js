@@ -59,7 +59,7 @@ const router = express.Router();
  *                  tours: []
  *               }
  */
-router.get("/", verifyToken, roleAuthen(["Manager"]), controllers.getStatistics);
+router.get("/", verifyToken, roleAuthen(["Manager", "Admin"]), controllers.getStatistics);
 //  *      - in: query
 //  *        name: bookingStatus
 //  *        schema:
@@ -70,20 +70,4 @@ router.get("/", verifyToken, roleAuthen(["Manager"]), controllers.getStatistics)
 //  *        explode: false
 //  *        description: "Allowed values: Ongoing, Canceled, Finished"
 
-
-/*
- *      - in: query
- *        name: tourStatus
- *        schema:
- *          type: array
- *          items: 
- *              type: string
- *        style: form
- *        explode: false
- *        description: "Allowed values: Available, Started, Canceled, Finished"
- *      - in: query
- *        name: time
- *        schema:
- *          type: string
- */
 module.exports = router;

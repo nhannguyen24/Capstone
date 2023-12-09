@@ -196,6 +196,8 @@ router.get("/:id", controllers.getBookingDetailByBookingId)
  *              properties:
  *                  totalPrice:
  *                      type: integer
+ *                  paymentType:
+ *                      type: string
  *                  departureStationId:
  *                      type: string
  *                  user:
@@ -206,6 +208,7 @@ router.get("/:id", controllers.getBookingDetailByBookingId)
  *                      type: array
  *            example: {
  *              totalPrice: 220000,
+ *              paymentType: (MOMO|PAY-OS),
  *              departureStationId: 267aa90c-763c-406e-a7bc-944eae45020d,
  *              user: {
  *                  email: tminhquan@gmail.com,
