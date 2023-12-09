@@ -2,6 +2,7 @@ const db = require('../models')
 const { Op } = require('sequelize')
 const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
+const TRANSACTION_TYPE = require("../enums/TransactionTypeEnum")
 const BOOKING_STATUS = require("../enums/BookingStatusEnum")
 const PaymentService = require('../services/PaymentService')
 
@@ -43,13 +44,13 @@ async function cancelTourAndRefundIfUnderbooked() {
         endBookingDate: {
           [Op.lte]: currentDate
         },
-        tourStatus: TOUR_STATUS.AVAILABLE,
+        tourStatus: TOUR_STATUS.AVAILABLE
       },
       attributes: ["tourId"]
     })
 
     if (tours.length === 0) {
-      console.log("No under booked tour were found.")
+      console.log("No under booked tours were found.")
     } else {
       for (const tour of tours) {
         const bookings = await db.BookingDetail.findAll({
@@ -60,7 +61,7 @@ async function cancelTourAndRefundIfUnderbooked() {
               model: db.Ticket,
               as: "booking_detail_ticket",
               where: {
-                tourId: tour.tourId,
+                tourId: tour.tourId
               }
             },
             {
@@ -71,7 +72,7 @@ async function cancelTourAndRefundIfUnderbooked() {
                 bookingStatus: BOOKING_STATUS.ON_GOING
               }
             }
-          ],
+          ]
         })
 
         var totalBookedTickets = 0
@@ -80,63 +81,78 @@ async function cancelTourAndRefundIfUnderbooked() {
         })
 
         if (totalBookedTickets < 5) {
-          const transaction = await db.Transaction.findOne({
-            where: {
-              bookingId: bookings.bookingId
-            }
-          })
-
-          const amount = parseInt(transaction.amount)
-          for (const booking of bookings) {
-            PaymentService.refundMomo(booking.bookingId, amount, (refundResult) => {
-              if (refundResult.status !== 200) {
-                console.log(refundResult)
-              } else {
-                db.Booking.update({
-                  bookingStatus: BOOKING_STATUS.CANCELED,
-                }, {
-                  where: {
-                    bookingId: booking.bookingId
-                  },
-                  individualHooks: true,
-                });
-
-                db.BookingDetail.update({
-                  status: BOOKING_STATUS.CANCELED,
-                }, {
-                  where: {
-                    bookingId: booking.bookingId
-                  },
-                  individualHooks: true,
-                })
-
-                db.Transaction.update({
-                  refundAmount: refundResult.data.refundAmount,
-                  status: STATUS.REFUNDED
-                }, {
-                  where: {
-                    bookingId: booking.bookingId
-                  },
-                  individualHooks: true,
-                });
-                console.log(refundResult)
-              }
-            })
-          }
-
-          db.Tour.update(
-            {
-              tourStatus: TOUR_STATUS.CANCELED
-            },
-            {
-              where: {
-                tourId: tour.tourId
-              },
-              individualHooks: true,
-            }
+          const bookingIdList = Array.from(
+            new Set(bookings.map((booking) => booking.bookingId))
           )
-          console.log("Tour Status Update", tour.tourId)
 
+          await db.sequelize.transaction(async (t) => {
+            for (const bookingId of bookingIdList) {
+              const transaction = await db.Transaction.findOne({
+                raw: true,
+                where: {
+                  bookingId: bookingId
+                }
+              })
+
+              if (transaction) {
+                const amount = parseInt(transaction.amount)
+
+                if (transaction.transactionType === TRANSACTION_TYPE.MOMO) {
+                  const refundResult = await PaymentService.refundMomo(
+                    bookingId,
+                    amount
+                  )
+
+                  if (refundResult?.status === StatusCodes.OK) {
+                    await Promise.all([
+                      db.Booking.update(
+                        { bookingStatus: BOOKING_STATUS.CANCELED },
+                        { where: { bookingId: bookingId }, transaction: t }
+                      ),
+                      db.BookingDetail.update(
+                        { status: BOOKING_STATUS.CANCELED },
+                        { where: { bookingId: bookingId }, transaction: t }
+                      ),
+                      db.Transaction.update(
+                        {
+                          refundAmount: amount,
+                          status: STATUS.REFUNDED
+                        },
+                        { where: { bookingId: bookingId }, transaction: t }
+                      )
+                    ])
+                    console.log(`Refund to booking: ${bookingId}`)
+                  } else {
+                    console.error(`Error refund to: ${bookingId}`)
+                  }
+                } else if (
+                  transaction.transactionType === TRANSACTION_TYPE.PAY_OS
+                ) {
+                  await Promise.all([
+                    db.Booking.update(
+                      { bookingStatus: BOOKING_STATUS.CANCELED },
+                      { where: { bookingId: bookingId }, transaction: t }
+                    ),
+                    db.BookingDetail.update(
+                      { status: BOOKING_STATUS.CANCELED },
+                      { where: { bookingId: bookingId }, transaction: t }
+                    ),
+                    db.Transaction.update(
+                      { status: STATUS.REFUNDED },
+                      { where: { bookingId: bookingId }, transaction: t }
+                    )
+                  ])
+                  console.log(`Booking canceled (No refund Pay-Os): ${bookingId}`)
+                }
+              }
+            }
+
+            await db.Tour.update(
+              { tourStatus: TOUR_STATUS.CANCELED },
+              { where: { tourId: tour.tourId }, transaction: t }
+            )
+            console.log("Cancel tour: ", tour.tourId)
+          })
         }
       }
     }

@@ -75,7 +75,7 @@ const start = () => {
         deleteExpiredOtp()
         deleteUnPaidBooking()
       })
-      cron.schedule('00 12,00 * * *', () => {
+      cron.schedule('00 00,00 * * *', () => {
         cancelTourAndRefundIfUnderbooked()
       })
     });
