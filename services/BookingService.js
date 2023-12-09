@@ -1524,15 +1524,6 @@ const cancelBooking = async (bookingId) => {
             }
         }
 
-        if(TRANSACTION_TYPE.PAY_OS === bookingDetail.detail_booking.booking_transaction.transactionType){
-            return {
-                status: StatusCodes.BAD_REQUEST,
-                data: {
-                    msg: `Refund for Pay-Os transaction is unavailable at the moment!`,
-                }
-            }
-        }
-
         const otp = await db.Otp.findOne({
             where: {
                 otpType: OTP_TYPE.CANCEL_BOOKING,
@@ -1584,6 +1575,42 @@ const cancelBooking = async (bookingId) => {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Cannot cancel because tour finished!`,
+                }
+            }
+        }
+
+        if(TRANSACTION_TYPE.PAY_OS === bookingDetail.detail_booking.booking_transaction.transactionType){
+            db.Booking.update({
+                bookingStatus: BOOKING_STATUS.CANCELED,
+            }, {
+                where: {
+                    bookingId: _bookingId
+                },
+                individualHooks: true,
+            })
+
+            db.BookingDetail.update({
+                status: BOOKING_STATUS.CANCELED,
+            }, {
+                where: {
+                    bookingId: _bookingId
+                },
+                individualHooks: true,
+            })
+
+            db.Transaction.update({
+                status: STATUS.REFUNDED
+            }, {
+                where: {
+                    bookingId: _bookingId
+                },
+                individualHooks: true,
+            })
+            return {
+                status: StatusCodes.OK,
+                data: {
+                    msg: "Cancel booking successfully!",
+                    refundAmount: 0,
                 }
             }
         }
@@ -1675,7 +1702,7 @@ const cancelBooking = async (bookingId) => {
             return {
                 status: StatusCodes.OK,
                 data: {
-                    msg: "Booking canceled successfully!",
+                    msg: "Cancel booking successfully!",
                     refundAmount: refundResult.data.refundAmount,
                 }
             }
