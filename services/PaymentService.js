@@ -158,7 +158,6 @@ const createPayOSPaymentRequest = (query) => new Promise(async (resolve, reject)
           msg: `Booking not found!`,
         },
       })
-      return
     } else {
       const transaction = await db.Transaction.findOne({
         where: { bookingId: booking.bookingId },
@@ -175,7 +174,6 @@ const createPayOSPaymentRequest = (query) => new Promise(async (resolve, reject)
             msg: `Booking transaction not found!`,
           },
         })
-        return
       } else {
         if (transaction.status === STATUS.PAID) {
           resolve({
@@ -184,7 +182,6 @@ const createPayOSPaymentRequest = (query) => new Promise(async (resolve, reject)
               msg: "Booking transaction already paid!",
             },
           })
-          return
         }
         const currentDate = new Date()
         currentDate.setHours(currentDate.getHours() + 7)
@@ -198,7 +195,6 @@ const createPayOSPaymentRequest = (query) => new Promise(async (resolve, reject)
               msg: "Booking transaction expired!",
             },
           })
-          return
         }
       }
     }
@@ -307,9 +303,6 @@ const refundMomo = async (bookingId, amount) => {
           }
         }
         let _amount = parseInt(amount)
-        // var partnerCode = "MOMODH1S20220711"
-        // var accessKey = "xs6XvGNPuH4AxAL9"
-        // var secretkey = "ZTP0gGrCP2KmUnWbjMvtOrAZ7NzCNRzo"
         var partnerCode = "MOMO"
         var accessKey = process.env.MOMO_ACCESS_KEY
         var secretkey = process.env.MOMO_SECRET_KEY
@@ -445,7 +438,7 @@ const getPayOsPaymentResponse = async (req) => {
       }
     }
 
-    if ("00" == code && STATUS.PAID === status) {
+    if ("00" == code && "PAID" === status) {
       const bookingDetail = await db.BookingDetail.findOne({
         raw: true,
         nest: true,
@@ -614,14 +607,20 @@ const getPayOsPaymentResponse = async (req) => {
           individualHooks: true,
         }
       )
+
+      return {
+        status: StatusCodes.OK,
+        data: {
+          msg: "Payment process successfully!",
+        },
+      }
     }
 
     return {
-      status: StatusCodes.OK,
+      status: StatusCodes.BAD_REQUEST,
       data: {
-        msg: "Got order!",
-        data: order
-      }
+        msg: "Payment process failed!",
+      },
     }
   } catch (error) {
     console.log(error)
@@ -926,7 +925,7 @@ const paymentOffline = (bookingId) =>
       } else {
         if (transaction.status === STATUS.PAID) {
           resolve({
-            status: StatusCodes.FORBIDDEN,
+            status: StatusCodes.BAD_REQUEST,
             data: {
               msg: `Booking transaction already paid!`,
             },

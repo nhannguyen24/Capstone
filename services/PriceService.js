@@ -80,7 +80,6 @@ const getPrices = async (req) => {
 
 const getPriceById = async (priceId) => {
     try {
-
         const price = await db.Price.findOne({
             where: {
                 priceId: priceId
@@ -139,13 +138,29 @@ const createPrice = async (req) => {
             }
         }
 
-        const price = await db.Price.create({ ticketTypeId: ticketTypeId, amount: amount, day: day })
+        const price = await db.Price.findOne({
+            where: {
+                ticketTypeId: ticketTypeId,
+                day: day
+            }
+        })
+
+        if(price){
+            return {
+                status: StatusCodes.BAD_REQUEST,
+                data: {
+                    msg: `Duplicate price!`,
+                }
+            }
+        }
+
+        const created = await db.Price.create({ ticketTypeId: ticketTypeId, amount: amount, day: day })
 
         return {
             status: StatusCodes.CREATED,
             data: {
                 msg: 'Create price successfully',
-                price: price
+                price: created
             }
         }
     } catch (error) {

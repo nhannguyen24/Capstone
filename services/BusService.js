@@ -149,7 +149,7 @@ const createBus = async (req) => {
         return {
             status: created ? StatusCodes.CREATED : StatusCodes.BAD_REQUEST,
             data: {
-                msg: created ? 'Create bus successfully' : 'Bus plate already exists',
+                msg: created ? 'Create bus successfully' : 'Bus plate existed',
                 bus: bus
             }
         }
@@ -239,7 +239,7 @@ const updateBus = async (req) => {
 
                 if (tour) {
                     return {
-                        status: StatusCodes.CONFLICT,
+                        status: StatusCodes.BAD_REQUEST,
                         data: {
                             msg: `Cannot update bus status because bus currently has an on going tour`,
                             tour: tour
@@ -308,7 +308,7 @@ const deleteBus = async (busId) => {
 
         if (tour) {
             return {
-                status: StatusCodes.CONFLICT,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Cannot update bus status to Deactive because bus is currently has an ongoing tour`,
                     tour: tour

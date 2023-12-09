@@ -194,7 +194,7 @@ const createTicket = async (req) => {
         }
         if (TOUR_STATUS.AVAILABLE !== tour.tourStatus && STATUS.ACTIVE !== tour.status) {
             return {
-                status: StatusCodes.CONFLICT,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Tour started or Deactive`,
                 }
@@ -236,7 +236,7 @@ const createTicket = async (req) => {
         })
         if (!price) {
             return {
-                status: StatusCodes.CONFLICT,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Ticket type doesn't have a price for day: ${tour.departureDate}(${day})`,
                 }
@@ -333,7 +333,7 @@ const updateTicket = async (req) => {
             })
             if (!price) {
                 return {
-                    status: StatusCodes.CONFLICT,
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: `Ticket type doesn't have a price for day: ${tourDepartureDate}`,
                     }
@@ -438,7 +438,7 @@ const deleteTicket = async (ticketId) => {
         const activeTickets = tickets.filter((ticket) => ticket.status === STATUS.ACTIVE)
         if (activeTickets.length < 2) {
             return {
-                status: StatusCodes.CONFLICT,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Cannot delete ticket because tour ${ticket.tourId} need to has atleast 1 available ticket`,
                 }
