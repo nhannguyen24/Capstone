@@ -145,7 +145,7 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
     }
   })
 
-const createPayOSPaymentRequest = (query) => new Promise(async (resolve, reject) => {
+const createPayOsPaymentRequest = (query) => new Promise(async (resolve, reject) => {
   try {
     const booking = await db.Booking.findOne({
       where: { bookingCode: query.bookingCode },
@@ -984,7 +984,7 @@ const paymentOffline = (bookingId) =>
 
 module.exports = {
   createMoMoPaymentRequest,
-  createPayOSPaymentRequest,
+  createPayOsPaymentRequest,
   refundMomo,
   getMoMoPaymentResponse,
   getPayOsPaymentResponse,

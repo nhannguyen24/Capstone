@@ -1504,6 +1504,9 @@ const cancelBooking = async (bookingId) => {
                             model: db.User,
                             as: "booking_user",
                             attributes: ["userId"],
+                        }, {
+                            model: db.Transaction,
+                            as: "booking_transaction"
                         }
                     ],
                     attributes: {
@@ -1517,6 +1520,15 @@ const cancelBooking = async (bookingId) => {
                 status: StatusCodes.NOT_FOUND,
                 data: {
                     msg: `Booking not found!`,
+                }
+            }
+        }
+
+        if(TRANSACTION_TYPE.PAY_OS === bookingDetail.detail_booking.booking_transaction.transactionType){
+            return {
+                status: StatusCodes.BAD_REQUEST,
+                data: {
+                    msg: `Refund for Pay-Os transaction is unavailable at the moment!`,
                 }
             }
         }
