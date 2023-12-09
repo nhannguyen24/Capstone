@@ -974,7 +974,9 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 driverId: chosenDriver.userId,
                                 busId: chosenBus.busId,
                                 isScheduled: true,
-                                ...body,
+                                description: body.description,
+                                routeId: body.routeId,
+                                duration: body.duration,
                             },
                             transaction: t,
                         })
@@ -1051,7 +1053,9 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 departureDate: tDepartureDate,
                                 tourName: tourName,
                                 departureStationId: uniqueStationArray[0],
-                                ...body,
+                                description: body.description,
+                                routeId: body.routeId,
+                                duration: body.duration,
                             },
                             transaction: t,
                         })
