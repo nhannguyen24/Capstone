@@ -1663,7 +1663,6 @@ const cancelBooking = async (bookingId) => {
         }
 
         const refundResult = await PaymentService.refundMomo(_bookingId, amount)
-        //const refundResult = await PaymentService.refundMomo(_bookingId, amount)
         if (refundResult === null || refundResult === undefined) {
             return {
                 status: StatusCodes.BAD_REQUEST,
