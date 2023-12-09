@@ -9,7 +9,7 @@ async function deleteExpiredOtp() {
   console.log("Delete expired otp starting...")
   try {
     const currentDate = new Date()
-    currentDate.setHours(currentDate.getHours() + 8)
+    currentDate.setHours(currentDate.getHours() + 7)
     db.Otp.destroy({
       where: {
         timeExpired: {

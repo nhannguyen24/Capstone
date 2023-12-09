@@ -39,6 +39,7 @@ const validateOtp = async (req) => {
                 }
             }
         }
+
         const otpMatches = await bcrypt.compare(otpCode, otp.otpCode)
         if (!otpMatches) {
             return {
@@ -48,8 +49,12 @@ const validateOtp = async (req) => {
                 }
             }
         }
+
+        const newExpiredTimeWhenOtpIsValid = new Date(otp.timeExpired)
+        newExpiredTimeWhenOtpIsValid.setHours(newExpiredTimeWhenOtpIsValid.getHours() + 1)
         await db.Otp.update({
             isAllow: true,
+            timeExpired: newExpiredTimeWhenOtpIsValid
         }, {
             where: {
                 otpId: otp.otpId

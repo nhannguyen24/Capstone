@@ -6,7 +6,6 @@ const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
 const TRANSACTION_TYPE = require("../enums/TransactionTypeEnum")
 const OTP_TYPE = require("../enums/OtpTypeEnum")
-const OtpService = require("./OtpService")
 const PaymentService = require("./PaymentService")
 
 const getBookingDetailByBookingId = async (bookingId) => {
@@ -1122,14 +1121,14 @@ const createBookingOffline = async (req) => {
 
         const departureDateMinusThirtyMinutes = new Date(tour.departureDate)
         departureDateMinusThirtyMinutes.setMinutes(departureDateMinusThirtyMinutes.getMinutes() - 30)
-        if(departureDateMinusThirtyMinutes > currentDate){
-            return {
-                status: StatusCodes.BAD_REQUEST,
-                data: {
-                    msg: `Tour can only be booked 30 minutes before departure time!`,
-                }
-            }
-        }
+        // if(departureDateMinusThirtyMinutes > currentDate){
+        //     return {
+        //         status: StatusCodes.BAD_REQUEST,
+        //         data: {
+        //             msg: `Tour can only be booked after ${departureDateMinusThirtyMinutes}!`,
+        //         }
+        //     }
+        // }
 
         station = await db.Station.findOne({
             where: {
@@ -1408,15 +1407,23 @@ const checkInQrCode = async (bookingId, tourId) => {
         }
         if (bookingDetail.booking_detail_ticket.ticket_tour.tourId !== tourId) {
             return {
-                status: StatusCodes.FORBIDDEN,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Booking belong to different tour!`,
                 }
             }
         }
+        if (bookingDetail.detail_booking.isAttended === true) {
+            return {
+                status: StatusCodes.BAD_REQUEST,
+                data: {
+                    msg: `Booking already attended!`,
+                }
+            }
+        }
         if (TOUR_STATUS.FINISHED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus && TOUR_STATUS.CANCELED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
             return {
-                status: StatusCodes.FORBIDDEN,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Cannot take attendance because tour is finished or canceled!`,
                 }
@@ -1424,7 +1431,7 @@ const checkInQrCode = async (bookingId, tourId) => {
         }
         if (BOOKING_STATUS.CANCELED === bookingDetail.detail_booking.bookingStatus) {
             return {
-                status: StatusCodes.FORBIDDEN,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Cannot take attendance because booking is canceled!`,
                 }
@@ -1436,21 +1443,13 @@ const checkInQrCode = async (bookingId, tourId) => {
         thirtyMinutesBeforeDepartureDate.setMinutes(thirtyMinutesBeforeDepartureDate.getMinutes() - 30)
         if (thirtyMinutesBeforeDepartureDate > currentDate) {
             return {
-                status: StatusCodes.FORBIDDEN,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
-                    msg: `Check-in is allowed only 30 minutes before the tour departure time.`,
+                    msg: `Check-in is allowed after ${thirtyMinutesBeforeDepartureDate}`,
                 }
             }
         }
 
-        if (bookingDetail.detail_booking.isAttended === true) {
-            return {
-                status: StatusCodes.FORBIDDEN,
-                data: {
-                    msg: `Booking already attended!`,
-                }
-            }
-        }
         await db.Booking.update({ isAttended: true }, {
             where: {
                 bookingId: bookingId
@@ -1476,7 +1475,7 @@ const checkInQrCode = async (bookingId, tourId) => {
             }
         }
     }
-};
+}
 
 const cancelBooking = async (bookingId) => {
     try {
@@ -1568,11 +1567,11 @@ const cancelBooking = async (bookingId) => {
                 }
             }
         }
-        if (TOUR_STATUS.AVAILABLE !== bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
+        if (TOUR_STATUS.FINISHED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
-                    msg: `Cannot cancel because tour finished or started!`,
+                    msg: `Cannot cancel because tour finished!`,
                 }
             }
         }
@@ -1624,7 +1623,6 @@ const cancelBooking = async (bookingId) => {
             amount = amount * 80 / 100
         }
 
-
         const refundResult = await PaymentService.refundMomo(_bookingId, amount)
         //const refundResult = await PaymentService.refundMomo(_bookingId, amount)
         if (refundResult === null || refundResult === undefined) {
@@ -1635,7 +1633,6 @@ const cancelBooking = async (bookingId) => {
                 }
             }
         } else if (refundResult.status === StatusCodes.OK) {
-            console.log("Update Refund")
             db.Booking.update({
                 bookingStatus: BOOKING_STATUS.CANCELED,
             }, {
@@ -1671,7 +1668,6 @@ const cancelBooking = async (bookingId) => {
                 }
             }
         } else {
-            console.log("Failed to refund", refundResult)
             return refundResult
         }
 

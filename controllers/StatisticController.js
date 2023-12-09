@@ -23,7 +23,21 @@ const getStatistics = async (req, res) => {
         if((startDate !== "" || endDate !== "") && (periodicity !== null && periodicity !== undefined)){
             errors.filter = "Can only filter between Date or Periodicity!"
         }
-        
+
+        if(startDate !== ""){
+            const _startDate = new Date(startDate)
+            if(_startDate.toString() === "Invalid Date"){
+                errors.startDate = "Start date need to be a date!"
+            }
+        }
+
+        if(endDate !== ""){
+            const _endDate = new Date(endDate)
+            if(_endDate.toString() === "Invalid Date"){
+                errors.endDate = "End date need to be a date!"
+            }
+        }
+
         if (Object.keys(errors).length === 0) {
             const response = await services.getStatistics(req);
             return res.status(response.status).json(response.data);

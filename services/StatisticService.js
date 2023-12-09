@@ -48,10 +48,6 @@ const getStatistics = async (req) => {
 
                 periodicityDateArr = getStartAndEndDatesForLast7Months(year, month)
             }
-            //  else if (PERIODICITY.YEARLY === periodicity.toUpperCase()) {
-            //     const year = currentDate.getFullYear()
-            //     periodicityDateArr = getStartAndEndDatesForLast3Years(year)
-            // }
         } else {
             if (startDate !== "" && endDate !== "") {
                 const _startDate = new Date(startDate)
@@ -181,7 +177,6 @@ const getStatistics = async (req) => {
                         }
                     })
 
-                    // tour_ticket.ticket_booking = bookings
                     tour_ticket.ticket_statistic = { bookedTicketsQuantity: bookedTicketsQuantity, cancelTicketsQuantity: cancelTicketsQuantity, totalTicketsMoneyEarned: totalTicketsMoneyEarned }
                     if (!toursMap[tourId]) {
                         toursMap[tourId] = { tourId: tourId, ...rest, tour_ticket: [tour_ticket] }
@@ -254,7 +249,7 @@ const getStatistics = async (req) => {
 
 function getStartAndEndDatesForLast7Weeks(currentDate) {
     const currentDayOfWeek = currentDate.getDay()
-    //Calculate the the number of day left until monday
+
     const daysSinceLastMonday = (currentDayOfWeek + 6) % 7
 
     const lastMonday = new Date(currentDate.getTime() - (daysSinceLastMonday * millisecondsInOneDay))
@@ -272,23 +267,9 @@ function getStartAndEndDatesForLast7Weeks(currentDate) {
     return weeks
 }
 
-// function getStartAndEndDatesForLast3Years(year) {
-//     const years = []
-//     for(let i = 0; i < 3; i++){
-//         const firstDayOfYear = new Date(year - i, 0, 1)
-//         firstDayOfYear.setHours(firstDayOfYear.getHours() + 7)
-//         const lastDayOfYear = new Date(year - i, 11, 31)
-//         lastDayOfYear.setHours(lastDayOfYear.getHours() + 7)
-//         lastDayOfYear.setTime(lastDayOfYear.getTime() + millisecondsInOneDay - 1)
-
-//         years.push({ startDate: firstDayOfYear, endDate: lastDayOfYear })
-//     }
-//     return years
-// }
-
 function getStartAndEndDatesForLast7Months(year, month) {
     let _year = year
-    let _month = 1
+    let _month = month
 
     const months = []
     for (let i = 1; i <= 7; i++) {
