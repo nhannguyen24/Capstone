@@ -1594,7 +1594,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
 
         await t.commit()
         resolve({
-            status: errors ? 201 : 404,
+            status: errors ? StatusCodes.CREATED : StatusCodes.BAD_REQUEST,
             data: {
                 msg: errors ? `Create tour using excel file successfully` : `Cannot create tour using excel`,
                 createdTour: createdTour,
