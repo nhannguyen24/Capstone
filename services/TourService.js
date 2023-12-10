@@ -1228,19 +1228,31 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
 
         const currentDate = new Date()
         currentDate.setHours(currentDate.getHours() + 7)
-        await readXlsxFile(uploadedFile.buffer).then((rows) => {
+        await readXlsxFile(uploadedFile.buffer).then(async (rows) => {
             for (let j = 3; j <= 12; j++) {
                 let isValidRow = true
                 let isValidTicket = false
+                let isTiketDependsOnGuardian = true
                 let isNotEmptyRow = true
                 let rowError = []
                 let tickets = []
+                let dependTickets = []
                 for (let i = 0; i < ticketList.length; i++) {
                     let ticket = { ticketName: rows[2][8 + i], isSelect: rows[j][8 + i] !== null && rows[j][8 + i] === "x" ? true : false }
                     if (rows[j][8 + i]) {
                         isValidTicket = true
+                        const _ticket = await db.TicketType.findOne({
+                            where: {
+                                ticketTypeName: rows[2][8 + i]
+                            }
+                        })
+                        if(!_ticket.dependsOnGuardian){
+                            isTiketDependsOnGuardian = false
+                        } else {
+                            dependTickets.push(ticket.ticketName)
+                        }
+                        tickets.push(ticket)
                     }
-                    tickets.push(ticket)
                 }
                 let tour = {
                     tourName: rows[j][1],
@@ -1321,8 +1333,12 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                         rowError.push(error)
                         isValidRow = false
                     }
-                    if (isValidTicket == false) {
+                    if (!isValidTicket) {
                         let error = `Tour need to has atleast 1 ticket choosen`
+                        rowError.push(error)
+                        isValidRow = false
+                    } else if(isTiketDependsOnGuardian){
+                        let error = `[${dependTickets}] need other guardian ticket to go with!`
                         rowError.push(error)
                         isValidRow = false
                     }
@@ -1484,7 +1500,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
             } else {
                 createdTour.push(createTour.tourName)
             }
-            const tourJson = createTour.toJSON();
+            const tourJson = createTour.toJSON()
 
             let index = 0
             for (const stationId of uniqueStationArray) {
