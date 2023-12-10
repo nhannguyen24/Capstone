@@ -10,6 +10,8 @@ const downloadTourTemplate = async (req, res) => {
         const filePath = path.join(__dirname, `../template/${fileName}`);
 
         const routes = await db.Route.findAll({
+            raw: true,
+            order: [["updatedAt", "DESC"]],
             where: {
                 status: STATUS.ACTIVE
             },
@@ -24,8 +26,7 @@ const downloadTourTemplate = async (req, res) => {
             attributes: ["ticketTypeName", "description"],
         })
 
-        const routeNames = [`"${routes.map(route => route.routeName).join(',')}"`]
-        const buffer = await copyAndModifyExcelInMemory(filePath, ticketTypes, routeNames)
+        const buffer = await copyAndModifyExcelInMemory(filePath, ticketTypes, routes)
         const file = {
             fieldname: 'file',
             originalname: fileName,
@@ -35,26 +36,41 @@ const downloadTourTemplate = async (req, res) => {
             size: buffer.length,
         };
         req.file = file
-        FirebaseService.uploadFile(req, res)
+        await FirebaseService.uploadFile(req, res)
     } catch (error) {
-        console.log(error)
+        console.error(error)
     }
 }
 
-const copyAndModifyExcelInMemory = async (mainFilePath, ticketTypes, routeNames) => {
+const copyAndModifyExcelInMemory = async (mainFilePath, ticketTypes, routes) => {
     try {
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.readFile(mainFilePath);
-
+        const routesLength =  routes.length
         const worksheet = workbook.getWorksheet(1);
+        for(let i = 0; i < routesLength; i++){
+            const routeNameRow = worksheet.getRow(18 + i)
+            const routeNameCell = routeNameRow.getCell(2)
+
+            routeNameCell.style = {
+                font: {
+                    name: 'Calibri',
+                    size: 12,
+                    color: { argb: '000000' },
+                    bold: true
+                },
+            }
+
+            routeNameCell.value = `${routes[i].routeName}`
+        }
         for (let rowNum = 4; rowNum <= 13; rowNum++) {
             const ticketLength = ticketTypes.length
             for (let i = 0; i < ticketLength; i++) {
-                const ticketRow = worksheet.getRow(3);
-                const ticketCell = ticketRow.getCell(9 + i);
+                const ticketRow = worksheet.getRow(3)
+                const ticketCell = ticketRow.getCell(9 + i)
 
-                const ticketDescriptionRow = worksheet.getRow(17 + i);
-                const ticketDescriptionCell = ticketDescriptionRow.getCell(9);
+                const ticketDescriptionRow = worksheet.getRow(18 + i)
+                const ticketDescriptionCell = ticketDescriptionRow.getCell(8)
                 ticketCell.style = {
                     fill: {
                         type: 'pattern',
@@ -104,15 +120,15 @@ const copyAndModifyExcelInMemory = async (mainFilePath, ticketTypes, routeNames)
                 cell.dataValidation = cellValidation;
             }
 
+            const routeFormulaeString = `$B$18:$A$${18+routesLength-1}`
             const routeRow = worksheet.getRow(rowNum);
             const routeCell = routeRow.getCell(8);
             const routeValidation = {
                 type: 'list',
                 allowBlank: true,
-                showErrorMessage: true,
-                formulae: routeNames,
-            };
-            routeCell.dataValidation = routeValidation;
+                formulae: [routeFormulaeString],
+            }
+            routeCell.dataValidation = routeValidation
         }
 
         const buffer = await workbook.xlsx.writeBuffer();
@@ -122,6 +138,6 @@ const copyAndModifyExcelInMemory = async (mainFilePath, ticketTypes, routeNames)
         console.error('Error copying and modifying the Excel file in memory:', error);
         throw error;
     }
-};
+}
 
 module.exports = { downloadTourTemplate }

@@ -1366,7 +1366,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
         })
 
         //Create Process Start HERE
-        const duplicateTourNames = new Set();
+        const duplicateTourNames = new Set()
         for (const tour of tours) {
             let i = 1;
 
@@ -1463,7 +1463,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                 i++
                 continue
             }
-            duplicateTourNames.add(tour.tourName);
+            duplicateTourNames.add(tour.tourName)
             setUpTour = {
                 tourName: tour.tourName,
                 description: tour.description,
