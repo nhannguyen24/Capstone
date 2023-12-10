@@ -1065,13 +1065,13 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                     const dependTickets = []
                     const promises = tickets.map(async (ticketTypeId) => {
                         const ticketType = await db.TicketType.findOne({
+                            raw: true,
                             where: {
                                 ticketTypeId: ticketTypeId
                             },
-                            transaction: t,
                         })
-
                         if (!ticketType) {
+                            await t.rollback()
                             resolve({
                                 status: StatusCodes.NOT_FOUND,
                                 data: {
@@ -1079,126 +1079,129 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 }
                             })
                         }
-
-                        if(ticketType.dependsOnGuardian === 0){
+                        if (ticketType.dependsOnGuardian === 0) {
                             isValidTickets = true
                         } else {
                             dependTickets.push(ticketType.ticketTypeName)
                         }
                     })
-                    await Promise(promises)
 
-                    if(!isValidTickets){
-                        return {
+                    await Promise.all(promises)
+
+                    if (!isValidTickets) {
+                        await t.rollback()
+                        resolve({
                             status: StatusCodes.BAD_REQUEST,
                             data: {
                                 msg: `[${dependTickets}] need other guardian ticket to go with!`,
                             }
-                        }
-                    }
-                    const createTicketPromises = tickets.map(async (ticketTypeId) => {
-                        const ticketType = await db.TicketType.findOne({
-                            where: {
-                                ticketTypeId: ticketTypeId
-                            },
-                            transaction: t,
                         })
+                    } else {
+                        const createTicketPromises = tickets.map(async (ticketTypeId) => {
+                            const ticketType = await db.TicketType.findOne({
+                                where: {
+                                    ticketTypeId: ticketTypeId
+                                },
+                            })
 
-                        let day = DAY_ENUM.NORMAL
+                            let day = DAY_ENUM.NORMAL
 
-                        const tourDepartureDate = new Date(createTour[0].departureDate)
-                        const dayOfWeek = tourDepartureDate.getDay()
-                        if (dayOfWeek === 0 || dayOfWeek === 6) {
-                            day = DAY_ENUM.WEEKEND
-                        }
-                        const date = tourDepartureDate.getDate()
-                        const month = tourDepartureDate.getMonth()
-                        const dateMonth = `${date}-${month}`
-                        if (SPECIAL_DAY.includes(dateMonth)) {
-                            day = DAY_ENUM.HOLIDAY
-                        }
+                            const tourDepartureDate = new Date(createTour[0].departureDate)
+                            const dayOfWeek = tourDepartureDate.getDay()
+                            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                                day = DAY_ENUM.WEEKEND
+                            }
+                            const date = tourDepartureDate.getDate()
+                            const month = tourDepartureDate.getMonth()
+                            const dateMonth = `${date}-${month}`
+                            if (SPECIAL_DAY.includes(dateMonth)) {
+                                day = DAY_ENUM.HOLIDAY
+                            }
 
-                        const price = await db.Price.findOne({
-                            where: {
-                                ticketTypeId: ticketType.ticketTypeId,
-                                day: day,
+                            const price = await db.Price.findOne({
+                                where: {
+                                    ticketTypeId: ticketType.ticketTypeId,
+                                    day: day,
+                                }
+                            })
+                            if (!price) {
+                                await t.rollback()
+                                resolve({
+                                    status: StatusCodes.BAD_REQUEST,
+                                    data: {
+                                        msg: `Ticket type doesn't have a price for day`,
+                                    }
+                                })
+                            } else {
+                                await db.Ticket.findOrCreate({
+                                    where: {
+                                        ticketTypeId: ticketTypeId,
+                                        tourId: createTour[0].tourId
+                                    },
+                                    defaults: { ticketTypeId: ticketTypeId, tourId: createTour[0].tourId, },
+                                    transaction: t,
+                                })
                             }
                         })
-                        if (!price) {
-                            resolve({
-                                status: StatusCodes.CONFLICT,
-                                data: {
-                                    msg: `Ticket type doesn't have a price for day`,
-                                }
-                            })
-                        } else {
-                            await db.Ticket.findOrCreate({
-                                where: {
-                                    ticketTypeId: ticketTypeId,
-                                    tourId: createTour[0].tourId
-                                },
-                                defaults: { ticketTypeId: ticketTypeId, tourId: createTour[0].tourId, },
-                                transaction: t,
-                            })
-                        }
-                    })
-                    await Promise.all(createTicketPromises)
+                        await Promise.all(createTicketPromises)
 
-                    if (createTour[1]) {
-                        if (images) {
-                            const createImagePromises = images.map(async (image) => {
-                                await db.Image.create({
-                                    image: image,
+                        if (createTour[1]) {
+                            if (images) {
+                                const createImagePromises = images.map(async (image) => {
+                                    await db.Image.create({
+                                        image: image,
+                                        tourId: createTour[0].tourId,
+                                    }, { transaction: t })
+                                })
+
+                                await Promise.all(createImagePromises)
+                            }
+
+                            let index = 0
+                            for (const stationId of uniqueStationArray) {
+                                index += 1
+                                await db.TourDetail.create({
                                     tourId: createTour[0].tourId,
+                                    stationId: stationId,
+                                    index: index,
                                 }, { transaction: t })
-                            })
-
-                            await Promise.all(createImagePromises)
+                            }
                         }
 
-                        let index = 0
-                        for (const stationId of uniqueStationArray) {
-                            index += 1
-                            await db.TourDetail.create({
-                                tourId: createTour[0].tourId,
-                                stationId: stationId,
-                                index: index,
-                            }, { transaction: t })
-                        }
-                    }
+                        resolve({
+                            status: createTour[1] ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
+                            data: {
+                                msg: createTour[1]
+                                    ? "Create new tour successfully"
+                                    : "Cannot create new tour/Tour name already exists",
+                                tour: createTour[1] ? createTour[0].dataValues : null,
+                                assignResult: availableTourGuide.length > 0 && availableDriver.length > 0 && availableBuses.length > 0 && createTour[1]
+                                    ? "Assign employee to tour successfully!"
+                                    : 'Cannot assign employee to tour',
+                            }
+                        })
 
-                    resolve({
-                        status: createTour[1] ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
-                        data: {
-                            msg: createTour[1]
-                                ? "Create new tour successfully"
-                                : "Cannot create new tour/Tour name already exists",
-                            tour: createTour[1] ? createTour[0].dataValues : null,
-                            assignResult: availableTourGuide.length > 0 && availableDriver.length > 0 && availableBuses.length > 0 && createTour[1]
-                                ? "Assign employee to tour successfully!"
-                                : 'Cannot assign employee to tour',
-                        }
-                    })
-
-                    redisClient.keys('*tours_*', (error, keys) => {
-                        if (error) {
-                            console.error('Error retrieving keys:', error)
-                            return
-                        }
-                        // Delete each key individually
-                        keys.forEach((key) => {
-                            redisClient.del(key, (deleteError, reply) => {
-                                if (deleteError) {
-                                    console.error(`Error deleting key ${key}:`, deleteError)
-                                } else {
-                                    console.log(`Key ${key} deleted successfully`)
-                                }
+                        redisClient.keys('*tours_*', (error, keys) => {
+                            if (error) {
+                                console.error('Error retrieving keys:', error)
+                                return
+                            }
+                            // Delete each key individually
+                            keys.forEach((key) => {
+                                redisClient.del(key, (deleteError, reply) => {
+                                    if (deleteError) {
+                                        console.error(`Error deleting key ${key}:`, deleteError)
+                                    } else {
+                                        console.log(`Key ${key} deleted successfully`)
+                                    }
+                                })
                             })
                         })
-                    })
+                    }
                 }
                 await t.commit()
             })
+
         } catch (error) {
             if (transaction) {
                 // Rollback the transaction in case of an error
