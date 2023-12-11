@@ -1241,17 +1241,19 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                     let ticket = { ticketName: rows[2][8 + i], isSelect: rows[j][8 + i] !== null && rows[j][8 + i] === "x" ? true : false }
                     if (rows[j][8 + i]) {
                         isValidTicket = true
-                        const _ticket = await db.TicketType.findOne({
+                        const _ticket = await Promise.all([db.TicketType.findOne({
                             where: {
                                 ticketTypeName: rows[2][8 + i]
                             }
-                        })
-                        if(!_ticket.dependsOnGuardian){
-                            isTiketDependsOnGuardian = false
-                        } else {
-                            dependTickets.push(ticket.ticketName)
+                        })]);
+                        for (const forTicket of _ticket) {
+                            if(!forTicket.dependsOnGuardian){
+                                isTiketDependsOnGuardian = false
+                            } else {
+                                dependTickets.push(ticket.ticketName)
+                            }
+                            tickets.push(ticket)
                         }
-                        tickets.push(ticket)
                     }
                 }
                 let tour = {
@@ -1610,9 +1612,9 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
 
         await t.commit()
         resolve({
-            status: errors ? StatusCodes.BAD_REQUEST : StatusCodes.CREATED,
+            status: errors.length > 0 ? StatusCodes.BAD_REQUEST : StatusCodes.CREATED,
             data: {
-                msg: errors ? `Cannot create tour using excel` : `Create tour using excel file successfully`,
+                msg: errors.length > 0 ? `Cannot create tour using excel` : `Create tour using excel file successfully`,
                 createdTour: createdTour,
                 errors: errors
             }
@@ -1621,10 +1623,11 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
         await t.rollback()
         console.error(error)
 
-        reject({
+        resolve({
             status: StatusCodes.INTERNAL_SERVER_ERROR,
             data: {
                 msg: "An error has occurred!",
+                errors: error.message
             }
         })
     }
