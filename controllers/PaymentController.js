@@ -45,7 +45,7 @@ const paymentPayOs = async (req, res) => {
         const errors = {}
 
         if(bookingId.trim() === ""){
-            errors.bookingId = "Booking required!"
+            errors.bookingId = "Booking Id required!"
         }
         if(returnUrl.trim() === ""){
             errors.returnUrl = "Return url required!"
