@@ -204,7 +204,7 @@ const createPayOsPaymentRequest = async (amount, bookingId, returnUrl, cancelUrl
     const body = {
       orderCode: Number(String(new Date().getTime()).slice(-6)),
       amount: amountNumber,
-      description: bookingId,
+      description: "Pay booking",
       cancelUrl: cancelUrl,
       returnUrl: returnUrl
     };
