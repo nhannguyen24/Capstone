@@ -115,7 +115,7 @@ const getBookingDetailByBookingId = async (bookingId) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -395,7 +395,7 @@ const getBookings = async (req) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -691,7 +691,7 @@ const getBookingsByEmail = async (req) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -849,7 +849,7 @@ const createBookingWeb = async (req) => {
                 include: {
                     model: db.TicketType,
                     as: "ticket_type",
-                    attributes: ["ticketTypeName","dependsOnGuardian"]
+                    attributes: ["ticketTypeName", "dependsOnGuardian"]
                 }
             })
 
@@ -879,7 +879,7 @@ const createBookingWeb = async (req) => {
                 }
             }
 
-            if(_ticket.ticket_type.dependsOnGuardian === 0){
+            if (_ticket.ticket_type.dependsOnGuardian === 0) {
                 isValidTickets = true
             } else {
                 dependTickets.push(_ticket.ticket_type.ticketTypeName)
@@ -890,7 +890,7 @@ const createBookingWeb = async (req) => {
             ticketList.push(_ticket)
         }
 
-        if(!isValidTickets){
+        if (!isValidTickets) {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
@@ -973,11 +973,11 @@ const createBookingWeb = async (req) => {
         let discountPrice = 0
         if (_routeSegments.length > 0) {
             for (const segment of _routeSegments) {
-                if(segment.distance === null || segment.distance === undefined){
+                if (segment.distance === null || segment.distance === undefined) {
                     console.error(`RouteSegment ${segment.routeSegmentId} distance null!`)
                     return {
                         status: StatusCodes.INTERNAL_SERVER_ERROR,
-                        data:{
+                        data: {
                             msg: "An error has occurred while calculating totalPrice!",
                         }
                     }
@@ -988,15 +988,17 @@ const createBookingWeb = async (req) => {
                 totalDistance += parseFloat(segment.distance)
             }
 
-            for (const ticket of ticketList) {
-                const pricePerMeter = (ticket.price.amount * ticket.quantity) / parseFloat(totalDistance)
-                discountPrice = discountPrice + (distanceToBookedDepartureStation * pricePerMeter)
+            const participateDistance = totalDistance - distanceToBookedDepartureStation
+            const discountPercentage = 1
+            if (participateDistance <= 1000) {
+                //70% total price
+                discountPercentage = discountPercentage - 0.3
+            } else if (participateDistance <= 3000) {
+                //80% total price
+                discountPercentage = discountPercentage - 0.2
             }
 
-            for (const product of productList) {
-                discountPrice += (product.quantity * product.price)
-            }
-            totalPrice = discountPrice
+            totalPrice = totalPrice * discountPercentage
         }
         totalPrice = Math.floor(totalPrice / 1000) * 1000
         /** 
@@ -1021,7 +1023,7 @@ const createBookingWeb = async (req) => {
             console.error(error)
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
-                data:{
+                data: {
                     msg: "An error has occurred!",
                 }
             }
@@ -1039,7 +1041,7 @@ const createBookingWeb = async (req) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -1121,14 +1123,14 @@ const createBookingOffline = async (req) => {
 
         const departureDateMinusThirtyMinutes = new Date(tour.departureDate)
         departureDateMinusThirtyMinutes.setMinutes(departureDateMinusThirtyMinutes.getMinutes() - 30)
-        // if(departureDateMinusThirtyMinutes > currentDate){
-        //     return {
-        //         status: StatusCodes.BAD_REQUEST,
-        //         data: {
-        //             msg: `Tour can only be booked after ${departureDateMinusThirtyMinutes}!`,
-        //         }
-        //     }
-        // }
+        if (departureDateMinusThirtyMinutes > currentDate) {
+            return {
+                status: StatusCodes.BAD_REQUEST,
+                data: {
+                    msg: `Tour can only be booked after ${departureDateMinusThirtyMinutes}!`,
+                }
+            }
+        }
 
         station = await db.Station.findOne({
             where: {
@@ -1192,7 +1194,7 @@ const createBookingOffline = async (req) => {
                 include: {
                     model: db.TicketType,
                     as: "ticket_type",
-                    attributes: ["ticketTypeName","dependsOnGuardian"]
+                    attributes: ["ticketTypeName", "dependsOnGuardian"]
                 }
             })
 
@@ -1222,7 +1224,7 @@ const createBookingOffline = async (req) => {
                 }
             }
 
-            if(_ticket.ticket_type.dependsOnGuardian === 0){
+            if (_ticket.ticket_type.dependsOnGuardian === 0) {
                 isValidTickets = true
             } else {
                 dependTickets.push(_ticket.ticket_type.ticketTypeName)
@@ -1233,7 +1235,7 @@ const createBookingOffline = async (req) => {
             ticketList.push(_ticket)
         }
 
-        if(!isValidTickets){
+        if (!isValidTickets) {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
@@ -1290,11 +1292,11 @@ const createBookingOffline = async (req) => {
         let distanceToBookedDepartureStation = 0
         if (_routeSegments.length > 0) {
             for (const segment of _routeSegments) {
-                if(segment.distance === null || segment.distance === undefined){
+                if (segment.distance === null || segment.distance === undefined) {
                     console.error(`RouteSegment ${segment.routeSegmentId} distance null!`)
                     return {
                         status: StatusCodes.INTERNAL_SERVER_ERROR,
-                        data:{
+                        data: {
                             msg: "An error has occurred while calculating totalPrice!",
                         }
                     }
@@ -1304,15 +1306,17 @@ const createBookingOffline = async (req) => {
                 }
                 totalDistance += parseFloat(segment.distance)
             }
-            const discountPercentage = parseFloat(distanceToBookedDepartureStation) / parseFloat(totalDistance)
-
-            if (discountPercentage !== 0) {
-                if (discountPercentage >= 0.5) {
-                    totalPrice = totalPrice * discountPercentage
-                } else {
-                    totalPrice = totalPrice * discountPercentage
-                }
+            const participateDistance = totalDistance - distanceToBookedDepartureStation
+            const discountPercentage = 1
+            if (participateDistance <= 1000) {
+                //70% total price
+                discountPercentage = discountPercentage - 0.3
+            } else if (participateDistance <= 3000) {
+                //80% total price
+                discountPercentage = discountPercentage - 0.2
             }
+
+            totalPrice = totalPrice * discountPercentage
         }
         totalPrice = Math.floor(totalPrice / 1000) * 1000
         /**
@@ -1333,7 +1337,7 @@ const createBookingOffline = async (req) => {
             console.error(error)
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
-                data:{
+                data: {
                     msg: "An error has occurred!",
                 }
             }
@@ -1351,7 +1355,7 @@ const createBookingOffline = async (req) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -1470,7 +1474,7 @@ const checkInQrCode = async (bookingId, tourId) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -1579,7 +1583,7 @@ const cancelBooking = async (bookingId) => {
             }
         }
 
-        if(TRANSACTION_TYPE.PAY_OS === bookingDetail.detail_booking.booking_transaction.transactionType){
+        if (TRANSACTION_TYPE.PAY_OS === bookingDetail.detail_booking.booking_transaction.transactionType) {
             db.Booking.update({
                 bookingStatus: BOOKING_STATUS.CANCELED,
             }, {
@@ -1713,7 +1717,7 @@ const cancelBooking = async (bookingId) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
