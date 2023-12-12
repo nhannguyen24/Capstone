@@ -238,10 +238,14 @@ async function rejectForm() {
 
     db.Form.update({ status: FORM_STATUS.REJECTED }, {
       where: {
+        // [Op.or]: [{status: FORM_STATUS.PENDING}, {status: FORM_STATUS.ACCEPTED}],
+        status: {
+          [Op.or]: [FORM_STATUS.PENDING, FORM_STATUS.ACCEPTED]
+        },
         createdAt: {
           [Op.lt]: twentyFourHoursAgo, // Op.lt means less than
         },
-      },
+      }, individualHooks: true,
     }).then(changedRows => {
       if (changedRows > 0) {
         console.log(`Successfully change status ${changedRows} form to rejected`);
