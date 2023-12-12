@@ -1,7 +1,7 @@
-const db = require('../models');
-const { Op } = require('sequelize');
-const STATUS = require("../enums/StatusEnum");
-const { StatusCodes } = require('http-status-codes');
+const db = require('../models')
+const { Op } = require('sequelize')
+const STATUS = require("../enums/StatusEnum")
+const { StatusCodes } = require('http-status-codes')
 
 const getBuses = async (req) => {
     try {
@@ -54,15 +54,15 @@ const getBuses = async (req) => {
                     },
                 },
             ],
-        });
+        })
         const totalBus = await db.Bus.count({
             where: whereClause,
-        });
+        })
 
         return {
-            status: StatusCodes.OK,
+            status: buses.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
             data: {
-                msg: `Get buses successfully`,
+                msg: buses.length > 0 ? `Get buses successfully` : `Buses not found!`,
                 paging: {
                     page: page,
                     limit: limit,
@@ -106,16 +106,13 @@ const getBusById = async (busId) => {
                     },
                 },
             ],
-        });
+        })
 
         return {
             status: bus ? StatusCodes.OK : StatusCodes.NOT_FOUND,
-            data: bus ? {
-                msg: `Get bus successfully`,
+            data: {
+                msg: bus ? `Get bus successfully` : `Bus not found`,
                 bus: bus
-            } : {
-                msg: `Bus not found`,
-                bus: {}
             }
         }
     } catch (error) {
@@ -139,12 +136,12 @@ const createBus = async (req) => {
         const [bus, created] = await db.Bus.findOrCreate({
             where: { busPlate: busPlate },
             defaults: { busPlate: busPlate, numberSeat: seat, isDoubleDecker: isDoubleDecker }
-        });
+        })
 
         await db.Image.create({
             image: image,
             busId: bus.dataValues.busId,
-        });
+        })
 
         return {
             status: created ? StatusCodes.CREATED : StatusCodes.BAD_REQUEST,
@@ -165,7 +162,7 @@ const createBus = async (req) => {
 }
 
 const updateBus = async (req) => {
-    const t = await db.sequelize.transaction();
+    const t = await db.sequelize.transaction()
     try {
         const busId = req.params.id
         const busPlate = req.body.busPlate || ""
@@ -193,16 +190,17 @@ const updateBus = async (req) => {
         if (busPlate !== "") {
             const bus = await db.Bus.findOne({
                 where: {
-                    busPlate: busPlate
+                    busPlate: busPlate,
+                    busId: {
+                        [Op.ne]: busId
+                    }
                 }
             })
             if (bus) {
-                if (bus.busId !== busId) {
-                    return {
-                        status: StatusCodes.BAD_REQUEST,
-                        data: {
-                            msg: `Bus plate already existed!`,
-                        }
+                return {
+                    status: StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg: `Bus plate already existed!`,
                     }
                 }
             }
@@ -218,14 +216,6 @@ const updateBus = async (req) => {
         }
 
         if (status !== "") {
-            if (bus.status === status) {
-                return {
-                    status: StatusCodes.BAD_REQUEST,
-                    data: {
-                        msg: `Bus status is already ${bus.status}`,
-                    }
-                }
-            }
             if (STATUS.DEACTIVE == status) {
                 const tour = await db.Tour.findOne({
                     where: {
@@ -342,4 +332,4 @@ const deleteBus = async (busId) => {
     }
 }
 
-module.exports = { getBuses, getBusById, createBus, updateBus, deleteBus };
+module.exports = { getBuses, getBusById, createBus, updateBus, deleteBus }

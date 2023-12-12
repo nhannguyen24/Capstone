@@ -118,6 +118,8 @@ router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createTicketT
  *                      type: string
  *                  description:
  *                      type: string
+ *                  dependsOnGuardian:
+ *                      type: boolean
  *     responses:
  *       200:
  *         description: OK

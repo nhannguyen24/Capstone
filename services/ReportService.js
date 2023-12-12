@@ -233,7 +233,7 @@ const updateReport = async (req) => {
                 return{
                     status: StatusCodes.FORBIDDEN,
                     data: {
-                        msg: `A response from another manager has been recorded for this report!`,
+                        msg: `A response from different manager has been recorded for this report!`,
                     }
                 }
             }
