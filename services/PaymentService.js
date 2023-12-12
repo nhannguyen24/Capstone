@@ -4,6 +4,7 @@ const STATUS = require("../enums/StatusEnum")
 const mailer = require("../utils/MailerUtil")
 const qr = require("qrcode")
 const BOOKING_STATUS = require("../enums/BookingStatusEnum")
+const TRANSACTION_TYPE = require("../enums/TransactionTypeEnum")
 const { StatusCodes } = require("http-status-codes")
 require('dotenv').config();
 const PayOS = require("@payos/node");
@@ -598,6 +599,7 @@ const getPayOsPaymentResponse = async (req) => {
       db.Transaction.update(
         {
           transactionCode: orderCode,
+          transactionType: TRANSACTION_TYPE.PAY_OS,
           status: STATUS.PAID,
         },
         {
@@ -817,6 +819,7 @@ const getMoMoPaymentResponse = (req) =>
         db.Transaction.update(
           {
             transactionCode: ipnData.transId,
+            transactionType: TRANSACTION_TYPE.MOMO,
             status: STATUS.PAID,
           },
           {
