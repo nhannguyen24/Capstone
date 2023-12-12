@@ -238,6 +238,7 @@ async function rejectForm() {
 
     db.Form.update({ status: FORM_STATUS.REJECTED }, {
       where: {
+        status: FORM_STATUS.PENDING,
         createdAt: {
           [Op.lt]: twentyFourHoursAgo, // Op.lt means less than
         },
