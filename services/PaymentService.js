@@ -204,7 +204,7 @@ const createPayOsPaymentRequest = async (amount, bookingId, returnUrl, cancelUrl
     const body = {
       orderCode: Number(String(new Date().getTime()).slice(-6)),
       amount: amountNumber,
-      description: bookingId,
+      description: "Pay booking",
       cancelUrl: cancelUrl,
       returnUrl: returnUrl
     };
@@ -394,7 +394,7 @@ const refundMomo = async (bookingId, amount) => {
         req.on("error", (e) => {
           console.log(`Problem with request: ${e.message}`)
           reject({
-            status: 500,
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
             data: {
               msg: "Internal server error",
             },
