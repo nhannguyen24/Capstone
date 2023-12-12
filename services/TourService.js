@@ -687,32 +687,32 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                 const tourBeginBookingDate = new Date(body.beginBookingDate)
                 const tourEndBookingDate = new Date(body.endBookingDate)
 
-                // if (currentDate > tourBeginBookingDate) {
-                //     resolve({
-                //         status: StatusCodes.BAD_REQUEST,
-                //         data: {
-                //             msg: "Begin booking date can't be equal or earlier than current date"
-                //         }
-                //     })
-                //     return
-                // } else if (tourBeginBookingDate >= tourEndBookingDate) {
-                //     resolve({
-                //         status: StatusCodes.BAD_REQUEST,
-                //         data: {
-                //             msg: "Begin booking date can't be equal or later than End booking date",
-                //         }
-                //     })
-                //     return
-                // } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
-                //     resolve({
-                //         status: StatusCodes.BAD_REQUEST,
-                //         data: {
-                //             msg: "End booking date must be 24 hours earlier than Departure date",
-                //         }
-                //     })
-                //     return
-                // }
-                // else {
+                if (currentDate > tourBeginBookingDate) {
+                    resolve({
+                        status: StatusCodes.BAD_REQUEST,
+                        data: {
+                            msg: "Begin booking date can't be equal or earlier than current date"
+                        }
+                    })
+                    return
+                } else if (tourBeginBookingDate >= tourEndBookingDate) {
+                    resolve({
+                        status: StatusCodes.BAD_REQUEST,
+                        data: {
+                            msg: "Begin booking date can't be equal or later than End booking date",
+                        }
+                    })
+                    return
+                } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
+                    resolve({
+                        status: StatusCodes.BAD_REQUEST,
+                        data: {
+                            msg: "End booking date must be 24 hours earlier than Departure date",
+                        }
+                    })
+                    return
+                }
+                else {
                     // Initialize the schedule
                     const findScheduledTour = await db.Tour.findAll({
                         raw: true, nest: true,
@@ -1199,7 +1199,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             })
                         })
                     }
-                // }
+                }
                 await t.commit()
             })
 
