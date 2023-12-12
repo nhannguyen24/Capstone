@@ -55,19 +55,16 @@ router.post("/momo", controllers.paymentMomo)
  *         name: cancelUrl
  *         schema:
  *           type: string
- *           example: https://walletfpt.com
  *         required: true
  *       - in: query
  *         name: returnUrl
  *         schema:
  *           type: string
- *           example: https://walletfpt.com
  *         required: true
  *       - in: query
- *         name: bookingCode
+ *         name: bookingId
  *         schema:
  *           type: string
- *           example: BO1698916700546
  *         required: true
  *     responses:
  *       200:
@@ -110,7 +107,7 @@ router.post("/momo-ipn", controllers.getPaymentMomo);
  *     summary: Update booking payment using pay os
  *     tags: [Payment]
  *     parameters:
- *       - in: path
+ *       - in: query
  *         name: bookingId
  *         schema:
  *           type: string
