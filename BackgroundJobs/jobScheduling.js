@@ -242,7 +242,7 @@ async function rejectForm() {
         createdAt: {
           [Op.lt]: twentyFourHoursAgo, // Op.lt means less than
         },
-      },
+      }, individualHooks: true,
     }).then(changedRows => {
       if (changedRows > 0) {
         console.log(`Successfully change status ${changedRows} form to rejected`);
