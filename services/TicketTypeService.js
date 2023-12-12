@@ -118,19 +118,20 @@ const updateTicketType = async (req) => {
                 where: {
                     ticketTypeName: {
                         [Op.like]: ticketTypeName
+                    },
+                    ticketTypeId: {
+                        [Op.ne]: ticketTypeId
                     }
                 }
             })
 
             if (ticketType) {
-                if(ticketType.ticketTypeId !== ticketTypeId){
                     return {
                         status: StatusCodes.BAD_REQUEST,
                         data: {
                             msg: `Ticket Type Name existed!`,
                         }
                     }
-                }
             }
             updateTicketType.ticketTypeName = ticketTypeName
         }
