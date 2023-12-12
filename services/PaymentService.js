@@ -146,57 +146,55 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
     }
   })
 
-const createPayOsPaymentRequest = (amount, bookingId, returnUrl, cancelUrl) => new Promise(async (resolve, reject) => {
+const createPayOsPaymentRequest = async (amount, bookingId, returnUrl, cancelUrl) => {
   try {
     const booking = await db.Booking.findOne({
       where: { bookingId: bookingId }
     })
 
     if (!booking) {
-      resolve({
+      return {
         status: StatusCodes.NOT_FOUND,
         data: {
           msg: `Booking not found!`,
         },
-      })
-    } else {
-      const transaction = await db.Transaction.findOne({
-        where: { bookingId: booking.bookingId },
-        include: {
-          model: db.Booking,
-          as: "transaction_booking",
-          attributes: ["endPaymentTime"],
+      }
+    }
+    const transaction = await db.Transaction.findOne({
+      where: { bookingId: booking.bookingId },
+      include: {
+        model: db.Booking,
+        as: "transaction_booking",
+        attributes: ["endPaymentTime"],
+      },
+    })
+    if (!transaction) {
+      return {
+        status: StatusCodes.NOT_FOUND,
+        data: {
+          msg: `Booking transaction not found!`,
         },
-      })
-      if (!transaction) {
-        resolve({
-          status: StatusCodes.NOT_FOUND,
-          data: {
-            msg: `Booking transaction not found!`,
-          },
-        })
-      } else {
-        if (transaction.status === STATUS.PAID) {
-          resolve({
-            status: StatusCodes.BAD_REQUEST,
-            data: {
-              msg: "Booking transaction already paid!",
-            },
-          })
-        }
-        const currentDate = new Date()
-        currentDate.setHours(currentDate.getHours() + 7)
-        const endBookingTime = new Date(
-          transaction.transaction_booking.endPaymentTime
-        )
-        if (endBookingTime <= currentDate) {
-          resolve({
-            status: StatusCodes.BAD_REQUEST,
-            data: {
-              msg: "Booking transaction expired!",
-            },
-          })
-        }
+      }
+    }
+    if (transaction.status === STATUS.PAID) {
+      return {
+        status: StatusCodes.BAD_REQUEST,
+        data: {
+          msg: "Booking transaction already paid!",
+        },
+      }
+    }
+    const currentDate = new Date()
+    currentDate.setHours(currentDate.getHours() + 7)
+    const endBookingTime = new Date(
+      transaction.transaction_booking.endPaymentTime
+    )
+    if (endBookingTime <= currentDate) {
+      return {
+        status: StatusCodes.BAD_REQUEST,
+        data: {
+          msg: "Booking transaction expired!",
+        },
       }
     }
 
@@ -211,33 +209,38 @@ const createPayOsPaymentRequest = (amount, bookingId, returnUrl, cancelUrl) => n
       returnUrl: returnUrl
     };
 
-    const paymentLinkRes = await payOS.createPaymentLink(body);
+    const paymentLinkRes = await payOS.createPaymentLink(body)
 
-    resolve({
-      status: StatusCodes.OK,
-      data: {
+    return {
+      status: paymentLinkRes ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
+      data: paymentLinkRes ? {
         msg: `Creating payment url successfully!`,
-        bin: paymentLinkRes.bin,
-        checkoutUrl: paymentLinkRes.checkoutUrl,
-        accountNumber: paymentLinkRes.accountNumber,
-        accountName: paymentLinkRes.accountName,
-        amount: paymentLinkRes.amount,
-        description: paymentLinkRes.description,
-        orderCode: paymentLinkRes.orderCode,
-        qrCode: paymentLinkRes.qrCode,
-      },
-    });
+        payment:  paymentLinkRes
+        // bin: paymentLinkRes.bin,
+        // checkoutUrl: paymentLinkRes.checkoutUrl,
+        // accountNumber: paymentLinkRes.accountNumber,
+        // accountName: paymentLinkRes.accountName,
+        // amount: paymentLinkRes.amount,
+        // description: paymentLinkRes.description,
+        // orderCode: paymentLinkRes.orderCode,
+        // qrCode: paymentLinkRes.qrCode,
+      } : {
+        msg: "Failed to get payment url pay-os",
+        payment: {}
+      }
+    }
 
   } catch (error) {
     console.error(error);
-    reject({
+    return {
       status: StatusCodes.INTERNAL_SERVER_ERROR,
       data: {
-        msg: "Something went wrong!"
+        msg: "Something went wrong while trying to get pay-os payment request!"
       }
-    })
+    }
   }
-})
+}
+
 
 const refundMomo = async (bookingId, amount) => {
   return new Promise(async (resolve, reject) => {
