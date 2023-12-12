@@ -62,7 +62,7 @@ const getBuses = async (req) => {
         return {
             status: buses.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
             data: {
-                msg: buses.length > 0 ?  `Get buses successfully` : `Buses not found!`,
+                msg: buses.length > 0 ? `Get buses successfully` : `Buses not found!`,
                 paging: {
                     page: page,
                     limit: limit,
@@ -113,7 +113,7 @@ const getBusById = async (busId) => {
             data: {
                 msg: bus ? `Get bus successfully` : `Bus not found`,
                 bus: bus
-            } 
+            }
         }
     } catch (error) {
         console.error(error)
@@ -190,16 +190,17 @@ const updateBus = async (req) => {
         if (busPlate !== "") {
             const bus = await db.Bus.findOne({
                 where: {
-                    busPlate: busPlate
+                    busPlate: busPlate,
+                    busId: {
+                        [Op.ne]: busId
+                    }
                 }
             })
             if (bus) {
-                if (bus.busId !== busId) {
-                    return {
-                        status: StatusCodes.BAD_REQUEST,
-                        data: {
-                            msg: `Bus plate already existed!`,
-                        }
+                return {
+                    status: StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg: `Bus plate already existed!`,
                     }
                 }
             }
@@ -215,14 +216,6 @@ const updateBus = async (req) => {
         }
 
         if (status !== "") {
-            if (bus.status === status) {
-                return {
-                    status: StatusCodes.BAD_REQUEST,
-                    data: {
-                        msg: `Bus status is already ${bus.status}`,
-                    }
-                }
-            }
             if (STATUS.DEACTIVE == status) {
                 const tour = await db.Tour.findOne({
                     where: {
