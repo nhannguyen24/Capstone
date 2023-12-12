@@ -238,7 +238,10 @@ async function rejectForm() {
 
     db.Form.update({ status: FORM_STATUS.REJECTED }, {
       where: {
-        status: FORM_STATUS.PENDING,
+        // [Op.or]: [{status: FORM_STATUS.PENDING}, {status: FORM_STATUS.ACCEPTED}],
+        status: {
+          [Op.or]: [FORM_STATUS.PENDING, FORM_STATUS.ACCEPTED]
+        },
         createdAt: {
           [Op.lt]: twentyFourHoursAgo, // Op.lt means less than
         },
