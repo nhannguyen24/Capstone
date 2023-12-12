@@ -112,7 +112,6 @@ const createBookingWeb = async (req, res) => {
     try {
         const errors = {}
         const totalPrice = req.body.totalPrice || ""
-        const paymentType = req.body.paymentType || ""
         const departureStationId = req.body.departureStationId || ""
         const user = req.body.user
         const tickets = req.body.tickets
@@ -126,9 +125,6 @@ const createBookingWeb = async (req, res) => {
                     errors.totalPrice = "Total price needs to be atleast 1000"
                 }
             }
-        }
-        if (paymentType.trim() === "") {
-            errors.paymentType = "Payment type required!"
         }
         if (departureStationId.trim() === "") {
             errors.departureStationId = "Departure station required!"

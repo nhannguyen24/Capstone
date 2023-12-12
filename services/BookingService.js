@@ -705,7 +705,6 @@ const createBookingWeb = async (req) => {
         const products = req.body.products || []
         let totalPrice = req.body.totalPrice
         const departureStationId = req.body.departureStationId
-        const paymentType = req.body.paymentType
         /**
          * Checking if Admin or Manager not allow to book
          */
@@ -1009,7 +1008,7 @@ const createBookingWeb = async (req) => {
             await db.sequelize.transaction(async (t) => {
                 booking = await db.Booking.create({ totalPrice: totalPrice, customerId: resultUser[0].dataValues.userId, departureStationId: station.stationId, bookingStatus: BOOKING_STATUS.DRAFT }, { transaction: t });
 
-                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, transactionType: paymentType, status: STATUS.DRAFT }, { transaction: t })
+                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, status: STATUS.DRAFT }, { transaction: t })
 
                 for (const ticket of ticketList) {
                     await db.BookingDetail.create({ ticketPrice: ticket.price.amount, bookingId: booking.bookingId, ticketId: ticket.ticketId, quantity: ticket.quantity, status: STATUS.DRAFT }, { transaction: t });
