@@ -146,10 +146,10 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
     }
   })
 
-const createPayOsPaymentRequest = (query) => new Promise(async (resolve, reject) => {
+const createPayOsPaymentRequest = (amount, bookingId, returnUrl, cancelUrl) => new Promise(async (resolve, reject) => {
   try {
     const booking = await db.Booking.findOne({
-      where: { bookingCode: query.bookingCode },
+      where: { bookingId: bookingId }
     })
 
     if (!booking) {
@@ -201,14 +201,14 @@ const createPayOsPaymentRequest = (query) => new Promise(async (resolve, reject)
     }
 
     const payOS = new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY);
-    const amountNumber = Number(query.amount);
+    const amountNumber = Number(amount);
 
     const body = {
       orderCode: Number(String(new Date().getTime()).slice(-6)),
       amount: amountNumber,
-      description: query.bookingCode,
-      cancelUrl: query.cancelUrl,
-      returnUrl: query.returnUrl
+      description: bookingId,
+      cancelUrl: cancelUrl,
+      returnUrl: returnUrl
     };
 
     const paymentLinkRes = await payOS.createPaymentLink(body);
@@ -434,7 +434,7 @@ const getPayOsPaymentResponse = async (req) => {
       return {
         status: StatusCodes.BAD_REQUEST,
         data: {
-          msg: "Booking already paid!",
+          msg: "Booking not available for payment!",
         }
       }
     }
