@@ -4,6 +4,7 @@ const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
 const TRANSACTION_TYPE = require("../enums/TransactionTypeEnum")
 const BOOKING_STATUS = require("../enums/BookingStatusEnum")
+const FORM_STATUS = require("../enums/ReportStatusEnum")
 const PaymentService = require('../services/PaymentService')
 
 async function deleteExpiredOtp() {
@@ -225,4 +226,36 @@ function deleteUnPaidBooking() {
   }
 }
 
-module.exports = { deleteExpiredOtp, deleteUnPaidBooking, cancelTourAndRefundIfUnderbooked }
+async function rejectForm() {
+  console.log("Rejecting unresponse form after 24h starting...")
+  try {
+    // Get the current date and time
+    const currentDate = new Date()
+    currentDate.setHours(currentDate.getHours() + 7)
+
+    // Calculate the date and time more than 24 hours ago
+    const twentyFourHoursAgo = new Date(currentDate - 24 * 60 * 60 * 1000)
+
+    db.Form.update({ status: FORM_STATUS.REJECTED }, {
+      where: {
+        createdAt: {
+          [Op.lt]: twentyFourHoursAgo, // Op.lt means less than
+        },
+      },
+    }).then(changedRows => {
+      if (changedRows > 0) {
+        console.log(`Successfully change status ${changedRows} form to rejected`);
+      } else {
+        console.log('No unresponse forms records were found.');
+      }
+    })
+      .catch(error => {
+        console.error('Error change status unresponse forms:', error);
+      });
+
+  } catch (error) {
+    console.error('Error change status unresponse forms:', error)
+  }
+}
+
+module.exports = { deleteExpiredOtp, deleteUnPaidBooking, cancelTourAndRefundIfUnderbooked, rejectForm }

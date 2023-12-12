@@ -9,6 +9,7 @@ const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", 
 const readXlsxFile = require('read-excel-file/node')
 const { StatusCodes } = require("http-status-codes")
 const { sendNotification } = require("../utils/NotificationUtil")
+const fs = require('fs');
 
 const getAllTour = (
     { page, limit, order, tourName, address, tourStatus, status, routeId, tourGuideId, driverId, departureDate, endDate, ...query }
@@ -686,32 +687,32 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                 const tourBeginBookingDate = new Date(body.beginBookingDate)
                 const tourEndBookingDate = new Date(body.endBookingDate)
 
-                if (currentDate > tourBeginBookingDate) {
-                    resolve({
-                        status: StatusCodes.BAD_REQUEST,
-                        data: {
-                            msg: "Begin booking date can't be equal or earlier than current date"
-                        }
-                    })
-                    return
-                } else if (tourBeginBookingDate >= tourEndBookingDate) {
-                    resolve({
-                        status: StatusCodes.BAD_REQUEST,
-                        data: {
-                            msg: "Begin booking date can't be equal or later than End booking date",
-                        }
-                    })
-                    return
-                } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
-                    resolve({
-                        status: StatusCodes.BAD_REQUEST,
-                        data: {
-                            msg: "End booking date must be 24 hours earlier than Departure date",
-                        }
-                    })
-                    return
-                }
-                else {
+                // if (currentDate > tourBeginBookingDate) {
+                //     resolve({
+                //         status: StatusCodes.BAD_REQUEST,
+                //         data: {
+                //             msg: "Begin booking date can't be equal or earlier than current date"
+                //         }
+                //     })
+                //     return
+                // } else if (tourBeginBookingDate >= tourEndBookingDate) {
+                //     resolve({
+                //         status: StatusCodes.BAD_REQUEST,
+                //         data: {
+                //             msg: "Begin booking date can't be equal or later than End booking date",
+                //         }
+                //     })
+                //     return
+                // } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
+                //     resolve({
+                //         status: StatusCodes.BAD_REQUEST,
+                //         data: {
+                //             msg: "End booking date must be 24 hours earlier than Departure date",
+                //         }
+                //     })
+                //     return
+                // }
+                // else {
                     // Initialize the schedule
                     const findScheduledTour = await db.Tour.findAll({
                         raw: true, nest: true,
@@ -1198,7 +1199,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             })
                         })
                     }
-                }
+                // }
                 await t.commit()
             })
 
@@ -1247,7 +1248,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                             }
                         })]);
                         for (const forTicket of _ticket) {
-                            if(!forTicket.dependsOnGuardian){
+                            if (!forTicket.dependsOnGuardian) {
                                 isTiketDependsOnGuardian = false
                             } else {
                                 dependTickets.push(ticket.ticketName)
@@ -1339,7 +1340,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                         let error = `Tour need to has atleast 1 ticket choosen`
                         rowError.push(error)
                         isValidRow = false
-                    } else if(isTiketDependsOnGuardian){
+                    } else if (isTiketDependsOnGuardian) {
                         let error = `[${dependTickets}] need other guardian ticket to go with!`
                         rowError.push(error)
                         isValidRow = false
@@ -2981,7 +2982,24 @@ const cloneTour = (id, body) =>
             })
             // reject(error)
         }
-    })
+    });
+
+// const createTourTest = () => {
+//     new Promise(async (resolve, reject) => {
+//         try {
+//             const sqlQuery = fs.readFileSync('path/to/your/query.sql', 'utf8');
+//             db.sequelize.query(sqlQuery, { type: Sequelize.QueryTypes.SELECT })
+//                 .then(results => {
+//                     console.log(results);
+//                 })
+//                 .catch(error => {
+//                     console.error(error);
+//                 });
+//         } catch (error) {
+
+//         }
+//     })
+// }
 
 module.exports = {
     updateTour,
