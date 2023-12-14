@@ -1385,7 +1385,6 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
         })
 
         //Create Process Start HERE
-        const duplicateTourNames = new Set()
         for (const tour of tours) {
             let i = 1;
 
@@ -1476,13 +1475,6 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                 }
             })
 
-            if (duplicateTourNames.has(tour.tourName)) {
-                let error = `Duplicate tour name within excel: ${tour.tourName} `
-                errors.push({ line: i, tourError: error })
-                i++
-                continue
-            }
-            duplicateTourNames.add(tour.tourName)
             setUpTour = {
                 tourName: tour.tourName,
                 description: tour.description,

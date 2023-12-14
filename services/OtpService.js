@@ -28,9 +28,17 @@ const validateOtp = async (req) => {
             }
         }
 
+        if(otp.isAllow){
+            return {
+                status: StatusCodes.BAD_REQUEST,
+                data: {
+                    msg: "OTP already validate!",
+                },
+            }
+        }
+
         const currentDate = new Date()
         currentDate.setHours(currentDate.getHours() + 7)
-
         if (otp.timeExpired < currentDate) {
             return {
                 status: StatusCodes.GONE,
@@ -52,14 +60,14 @@ const validateOtp = async (req) => {
 
         const newExpiredTimeWhenOtpIsValid = new Date(otp.timeExpired)
         newExpiredTimeWhenOtpIsValid.setHours(newExpiredTimeWhenOtpIsValid.getHours() + 1)
+
         await db.Otp.update({
             isAllow: true,
             timeExpired: newExpiredTimeWhenOtpIsValid
         }, {
             where: {
                 otpId: otp.otpId
-            }
-            , individualHooks: true
+            }, individualHooks: true
         })
 
         return {
@@ -162,7 +170,7 @@ function generateOtpContent(userName, otpType, otpCode) {
             break
         case OTP_TYPE.BOOKING_TOUR:
             otpMessage =
-                "We noticed that you requested a <b>Tour Booking</b> using this email. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>"
+                "We noticed that you requested a <b>Booking Ticket</b> using this email. Please use the following OTP to confirm that this is you. <br><b>This OTP is valid for 15 minutes</b>.</br>"
             break
         case OTP_TYPE.CANCEL_BOOKING:
             otpMessage =

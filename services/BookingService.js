@@ -969,7 +969,6 @@ const createBookingWeb = async (req) => {
 
         let totalDistance = 0
         let distanceToBookedDepartureStation = 0
-        let discountPrice = 0
         if (_routeSegments.length > 0) {
             for (const segment of _routeSegments) {
                 if (segment.distance === null || segment.distance === undefined) {
@@ -988,7 +987,7 @@ const createBookingWeb = async (req) => {
             }
 
             const participateDistance = totalDistance - distanceToBookedDepartureStation
-            const discountPercentage = 1
+            let discountPercentage = 1
             if (participateDistance <= 1000) {
                 //70% total price
                 discountPercentage = discountPercentage - 0.3
@@ -1306,7 +1305,7 @@ const createBookingOffline = async (req) => {
                 totalDistance += parseFloat(segment.distance)
             }
             const participateDistance = totalDistance - distanceToBookedDepartureStation
-            const discountPercentage = 1
+            let discountPercentage = 1
             if (participateDistance <= 1000) {
                 //70% total price
                 discountPercentage = discountPercentage - 0.3
