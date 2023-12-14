@@ -11,6 +11,15 @@ const getAllTour = async (req, res) => {
     }
 };
 
+const getAllTourManager = async (req, res) => {
+    try {
+        const response = await services.getAllTourManager(req.query);
+        return res.status(response.status).json(response.data);
+    } catch (error) {
+        throw new InternalServerError(error);
+    }
+};
+
 const getTourById = async (req, res) => {
     try {
         const { id: tourId } = req.params;
@@ -26,7 +35,7 @@ const getTourById = async (req, res) => {
         } else {
             return res.status(StatusCodes.BAD_REQUEST).json(errors);
         }
-        
+
     } catch (error) {
         throw new InternalServerError(error.message);
     }
@@ -50,7 +59,7 @@ const createTour = async (req, res) => {
         } else {
             return res.status(StatusCodes.BAD_REQUEST).json(errors);
         }
-        
+
     } catch (error) {
         throw new InternalServerError(error);
     }
@@ -130,7 +139,7 @@ const cloneTour = async (req, res) => {
         if (id.trim() === "") {
             errors.id = 'Please provide id';
         }
-        
+
         if (Object.keys(errors).length === 0) {
             const response = await services.cloneTour(id, req.body);
             return res.status(response.status).json(response.data);
@@ -142,4 +151,13 @@ const cloneTour = async (req, res) => {
     }
 };
 
-module.exports = { getAllTour, createTour, createTourByFile, updateTour, deleteTour, getTourById, assignTour, cloneTour };
+const createTourDemo = async (req, res) => {
+    try {
+        const response = await services.createTourDemo();
+        return res.status(response.status).json(response.data);
+    } catch (error) {
+        throw new InternalServerError(error.message);
+    }
+};
+
+module.exports = { getAllTour, createTour, createTourByFile, updateTour, deleteTour, getTourById, assignTour, cloneTour, getAllTourManager, createTourDemo };

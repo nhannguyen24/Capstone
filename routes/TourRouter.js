@@ -137,6 +137,89 @@ router.get("/", controllers.getAllTour);
 
 /**
  * @swagger
+ * /api/v1/tours/manager/management:
+ *   get:
+ *     security: 
+ *         - BearerAuth: []
+ *     summary: Returns the list of all the tours
+ *     tags: [Tour]
+ *     parameters:
+ *       - name: tourName
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Find tour by tourName
+ *       - name: routeId
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Find tour by routeId
+ *       - name: tourGuideId
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Find tour by tourGuideId
+ *       - name: driverId
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Find tour by driverId
+ *       - name: departureDate
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Find tour from departure date (2023-11-10)
+ *       - name: endDate
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Find tour to end date (2023-11-10)
+ *       - name: tourStatus
+ *         in: query
+ *         schema:
+ *           type: string
+ *           enum: ["Available", "Started", "Canceled", "Finished"]
+ *         description: Find tour by tour status
+ *       - name: status
+ *         in: query
+ *         schema:
+ *           type: string
+ *           enum: ["Active", "Deactive"]
+ *         description: Find tour by status
+ *       - name: page
+ *         in: query
+ *         schema:
+ *           type: int
+ *         description: Paging page number
+ *       - name: limit
+ *         in: query
+ *         schema:
+ *           type: int
+ *         description: Paging limit row to get in 1 page
+ *       - name: order[0]
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Sort by (tourName/createdAt)
+ *       - name: order[1]
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Sort ASC/DESC
+ *     responses:
+ *       200:
+ *         description: Get the list of the tours successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Tour'
+ */
+router.get("/manager/management", controllers.getAllTourManager);
+
+/**
+ * @swagger
  * /api/v1/tours/{id}:
  *   get:
  *     security: 
@@ -198,6 +281,26 @@ router.get("/:id", controllers.getTourById);
  *                 $ref: '#/components/schemas/Tour'
  */
 router.post("/", verifyToken, roleAuthen(["Admin", "Manager"]), controllers.createTour);
+
+/**
+ * @swagger
+ * /api/v1/tours/create/demo:
+ *   post:
+ *     security:
+ *       - BearerAuth: []
+ *     summary: Create new tour
+ *     tags: [Tour]
+ *     responses:
+ *       200:
+ *         description: Create new tour successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Tour'
+ */
+router.post("/create/demo", controllers.createTourDemo);
 
 /**
  * @swagger
