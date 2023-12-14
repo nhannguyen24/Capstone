@@ -102,8 +102,7 @@ const getPaymentMomo = async (req, res) => {
 
 const getPayOsPaymentResponse = async (req, res) => {
     try {
-        const response = await services.getPayOsPaymentResponse(req)
-        return res.status(response.status).json(response.data)
+        services.getPayOsPaymentResponse(req)
     } catch (error) {
         throw new InternalServerError(error)
     }
