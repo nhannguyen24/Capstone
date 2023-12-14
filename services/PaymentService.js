@@ -8,6 +8,7 @@ const TRANSACTION_TYPE = require("../enums/TransactionTypeEnum")
 const { StatusCodes } = require("http-status-codes")
 require('dotenv').config();
 const PayOS = require("@payos/node");
+const { or } = require("sequelize")
 
 const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
   new Promise(async (resolve, reject) => {
@@ -146,7 +147,7 @@ const createMoMoPaymentRequest = (amounts, redirect, bookingId) =>
     }
   })
 
-const createPayOsPaymentRequest = async (amount, bookingId, returnUrl, cancelUrl) => {
+const createPayOsPaymentRequest = async (amount, bookingId, cancelUrl) => {
   try {
     const booking = await db.Booking.findOne({
       where: { bookingId: bookingId }
@@ -206,16 +207,26 @@ const createPayOsPaymentRequest = async (amount, bookingId, returnUrl, cancelUrl
       amount: amountNumber,
       description: "Pay booking",
       cancelUrl: cancelUrl,
-      returnUrl: returnUrl
+      returnUrl: "https://nbtour-fc9f59891cf4.herokuapp.com/api/v1/payments/pay-os"
     };
 
     const paymentLinkRes = await payOS.createPaymentLink(body)
-
+    console.log(paymentLinkRes)
+    if (paymentLinkRes) {
+      if ("00" === paymentLinkRes.code)
+        await db.Transaction.update({
+          transactionCode: paymentLinkRes.data.orderCode
+        }, {
+          where: {
+            bookingId: booking.bookingId
+          }, individualHooks: true,
+        })
+    }
     return {
       status: paymentLinkRes ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
       data: paymentLinkRes ? {
         msg: `Creating payment url successfully!`,
-        payment:  paymentLinkRes
+        payment: paymentLinkRes
         // bin: paymentLinkRes.bin,
         // checkoutUrl: paymentLinkRes.checkoutUrl,
         // accountNumber: paymentLinkRes.accountNumber,
@@ -416,225 +427,195 @@ const getPayOsPaymentResponse = async (req) => {
     const code = req.query.code
     const status = req.query.status
     const orderCode = req.query.orderCode
-    const bookingId = req.query.bookingId
 
     const booking = await db.Booking.findOne({
-      where: {
-        bookingId: bookingId
+      include: {
+        model: db.Transaction,
+        as: "booking_transaction",
+        where: {
+          transactionCode: orderCode
+        }
       }
     })
 
     if (!booking) {
-      return {
-        status: StatusCodes.NOT_FOUND,
-        data: {
-          msg: "Booking not found!",
-        }
-      }
-    }
-
-    if (BOOKING_STATUS.DRAFT !== booking.bookingStatus) {
-      return {
-        status: StatusCodes.BAD_REQUEST,
-        data: {
-          msg: "Booking not available for payment!",
-        }
-      }
-    }
-
-    if ("00" == code && "PAID" === status) {
-      const bookingDetail = await db.BookingDetail.findOne({
-        raw: true,
-        nest: true,
-        where: {
-          bookingId: bookingId,
-        },
-        include: [
-          {
-            model: db.Ticket,
-            as: "booking_detail_ticket",
-            include: {
-              model: db.Tour,
-              as: "ticket_tour",
-              attributes: [
-                "tourName",
-                "routeId",
-                "departureDate",
-                "duration",
-                "status",
-              ],
+      console.error("Booking not found with orderCode: ", orderCode)
+    } else {
+      if ("00" == code && "PAID" === status) {
+        const bookingDetail = await db.BookingDetail.findOne({
+          raw: true,
+          nest: true,
+          where: {
+            bookingId: booking.bookingId,
+          },
+          include: [
+            {
+              model: db.Ticket,
+              as: "booking_detail_ticket",
               include: {
-                model: db.Bus,
-                as: "tour_bus",
-                attributes: ["busPlate"],
+                model: db.Tour,
+                as: "ticket_tour",
+                attributes: [
+                  "tourName",
+                  "routeId",
+                  "departureDate",
+                  "duration",
+                  "status",
+                ],
+                include: {
+                  model: db.Bus,
+                  as: "tour_bus",
+                  attributes: ["busPlate"],
+                },
+              },
+              attributes: {
+                exclude: ["tourid", "ticketTypeId", "updatedAt", "createdAt"],
               },
             },
-            attributes: {
-              exclude: ["tourid", "ticketTypeId", "updatedAt", "createdAt"],
+            {
+              model: db.Booking,
+              as: "detail_booking",
+              include: [
+                {
+                  model: db.User,
+                  as: "booking_user",
+                  attributes: ["userName", "email"],
+                },
+                {
+                  model: db.Station,
+                  as: "booking_departure_station",
+                  attributes: ["stationId", "stationName"],
+                },
+              ],
+              attributes: [
+                "bookingId",
+                "bookingCode",
+                "customerId",
+                "departureStationId",
+                "totalPrice",
+              ],
             },
-          },
-          {
-            model: db.Booking,
-            as: "detail_booking",
-            include: [
-              {
-                model: db.User,
-                as: "booking_user",
-                attributes: ["userName", "email"],
-              },
-              {
-                model: db.Station,
-                as: "booking_departure_station",
-                attributes: ["stationId", "stationName"],
-              },
-            ],
-            attributes: [
-              "bookingId",
-              "bookingCode",
-              "customerId",
-              "departureStationId",
-              "totalPrice",
-            ],
-          },
-        ],
-      })
+          ],
+        })
 
-      const routeSegment = await db.RouteSegment.findAll({
-        raw: true,
-        nest: true,
-        where: {
-          routeId: bookingDetail.booking_detail_ticket.ticket_tour.routeId,
-        },
-        order: [["index", "ASC"]],
-      })
+        const routeSegment = await db.RouteSegment.findAll({
+          raw: true,
+          nest: true,
+          where: {
+            routeId: bookingDetail.booking_detail_ticket.ticket_tour.routeId,
+          },
+          order: [["index", "ASC"]],
+        })
 
-      const tourName =
-        bookingDetail.booking_detail_ticket.ticket_tour.tourName
-      const bookedStationId =
-        bookingDetail.detail_booking.booking_departure_station.stationId
-      const tourDepartureTime = new Date(
-        bookingDetail.booking_detail_ticket.ticket_tour.departureDate
-      ).getTime()
-      const busArrivalTimeToBookedStation = calculateTotalTime(
-        routeSegment,
-        tourDepartureTime,
-        bookedStationId
-      )
-      const formatDepartureDate = `${busArrivalTimeToBookedStation
-        .getDate()
-        .toString()
-        .padStart(2, "0")}/${(busArrivalTimeToBookedStation.getMonth() + 1)
+        const tourName =
+          bookingDetail.booking_detail_ticket.ticket_tour.tourName
+        const bookedStationId =
+          bookingDetail.detail_booking.booking_departure_station.stationId
+        const tourDepartureTime = new Date(
+          bookingDetail.booking_detail_ticket.ticket_tour.departureDate
+        ).getTime()
+        const busArrivalTimeToBookedStation = calculateTotalTime(
+          routeSegment,
+          tourDepartureTime,
+          bookedStationId
+        )
+        const formatDepartureDate = `${busArrivalTimeToBookedStation
+          .getDate()
           .toString()
-          .padStart(
-            2,
-            "0"
-          )}/${busArrivalTimeToBookedStation.getFullYear()}  |  ${busArrivalTimeToBookedStation
-            .getHours()
+          .padStart(2, "0")}/${(busArrivalTimeToBookedStation.getMonth() + 1)
             .toString()
-            .padStart(2, "0")}:${busArrivalTimeToBookedStation
-              .getMinutes()
+            .padStart(
+              2,
+              "0"
+            )}/${busArrivalTimeToBookedStation.getFullYear()}  |  ${busArrivalTimeToBookedStation
+              .getHours()
               .toString()
               .padStart(2, "0")}:${busArrivalTimeToBookedStation
-                .getSeconds()
+                .getMinutes()
                 .toString()
-                .padStart(2, "0")}`
-      const tourDuration =
-        bookingDetail.booking_detail_ticket.ticket_tour.duration
-      const totalPrice = bookingDetail.detail_booking.totalPrice
-      const stationName =
-        bookingDetail.detail_booking.booking_departure_station.stationName
-      const busPlate =
-        bookingDetail.booking_detail_ticket.ticket_tour.tour_bus.busPlate
-      const bookingCode = bookingDetail.detail_booking.bookingCode
+                .padStart(2, "0")}:${busArrivalTimeToBookedStation
+                  .getSeconds()
+                  .toString()
+                  .padStart(2, "0")}`
+        const tourDuration =
+          bookingDetail.booking_detail_ticket.ticket_tour.duration
+        const totalPrice = bookingDetail.detail_booking.totalPrice
+        const stationName =
+          bookingDetail.detail_booking.booking_departure_station.stationName
+        const busPlate =
+          bookingDetail.booking_detail_ticket.ticket_tour.tour_bus.busPlate
+        const bookingCode = bookingDetail.detail_booking.bookingCode
 
-      const qrDataURL = await qr.toDataURL(`bookingId: ${bookingId}`)
-      const htmlContent = {
-        body: {
-          name: bookingDetail.detail_booking.booking_user.userName,
-          intro: [
-            `Thank you for choosing <b>NBTour</b> booking system. Here is your <b>QR code<b> attachment for upcomming tour tickets`,
-            `<b>Tour Information:</b>`,
-            `  - Tour Name: <b>${tourName}</b>`,
-            `  - Tour Departure Date: <b>${formatDepartureDate}</b>`,
-            `  - Departure Station: <b>${stationName}</b>`,
-            `  - Booking Code: <b>${bookingCode}</b>`,
-            `  - Bus plate: <b>${busPlate}</b>`,
-            `  - Tour Duration: <b>${tourDuration}</b>`,
-            `  - Tour Total Price: <b>${totalPrice}</b>`,
-          ],
-          outro: [
-            `If you have any questions or need assistance, please to reach out to our customer support team at nbtour@gmail.com.`,
-          ],
-          signature: "Sincerely",
-        },
+        const qrDataURL = await qr.toDataURL(`bookingId: ${bookingId}`)
+        const htmlContent = {
+          body: {
+            name: bookingDetail.detail_booking.booking_user.userName,
+            intro: [
+              `Thank you for choosing <b>NBTour</b> booking system. Here is your <b>QR code<b> attachment for upcomming tour tickets`,
+              `<b>Tour Information:</b>`,
+              `  - Tour Name: <b>${tourName}</b>`,
+              `  - Tour Departure Date: <b>${formatDepartureDate}</b>`,
+              `  - Departure Station: <b>${stationName}</b>`,
+              `  - Booking Code: <b>${bookingCode}</b>`,
+              `  - Bus plate: <b>${busPlate}</b>`,
+              `  - Tour Duration: <b>${tourDuration}</b>`,
+              `  - Tour Total Price: <b>${totalPrice}</b>`,
+            ],
+            outro: [
+              `If you have any questions or need assistance, please to reach out to our customer support team at nbtour@gmail.com.`,
+            ],
+            signature: "Sincerely",
+          },
+        }
+        mailer.sendMail(
+          bookingDetail.detail_booking.booking_user.email,
+          "Tour booking tickets",
+          htmlContent,
+          qrDataURL
+        )
+
+        db.Booking.update(
+          {
+            bookingStatus: BOOKING_STATUS.ON_GOING,
+          },
+          {
+            where: {
+              bookingId: booking.bookingId,
+            },
+            individualHooks: true,
+          }
+        )
+
+        db.BookingDetail.update(
+          {
+            status: STATUS.ACTIVE,
+          },
+          {
+            where: {
+              bookingId: booking.bookingId,
+            },
+            individualHooks: true,
+          }
+        )
+
+        db.Transaction.update(
+          {
+            transactionType: TRANSACTION_TYPE.PAY_OS,
+            status: STATUS.PAID,
+          },
+          {
+            where: {
+              bookingId: booking.bookingId,
+            },
+            individualHooks: true,
+          }
+        )
       }
-      mailer.sendMail(
-        bookingDetail.detail_booking.booking_user.email,
-        "Tour booking tickets",
-        htmlContent,
-        qrDataURL
-      )
-
-      db.Booking.update(
-        {
-          bookingStatus: BOOKING_STATUS.ON_GOING,
-        },
-        {
-          where: {
-            bookingId: bookingId,
-          },
-          individualHooks: true,
-        }
-      )
-
-      db.BookingDetail.update(
-        {
-          status: STATUS.ACTIVE,
-        },
-        {
-          where: {
-            bookingId: bookingId,
-          },
-          individualHooks: true,
-        }
-      )
-
-      db.Transaction.update(
-        {
-          transactionCode: orderCode,
-          transactionType: TRANSACTION_TYPE.PAY_OS,
-          status: STATUS.PAID,
-        },
-        {
-          where: {
-            bookingId: bookingId,
-          },
-          individualHooks: true,
-        }
-      )
-
-      return {
-        status: StatusCodes.OK,
-        data: {
-          msg: "Payment process successfully!",
-        },
-      }
+      console.log("Update payment successfully for ", orderCode)
     }
-
-    return {
-      status: StatusCodes.BAD_REQUEST,
-      data: {
-        msg: "Payment process failed!",
-      },
-    }
+    console.log("Payment failed for ", orderCode)
   } catch (error) {
-    console.log(error)
-    return {
-      status: StatusCodes.INTERNAL_SERVER_ERROR,
-      data: {
-        msg: "Something went wrong!"
-      }
-    }
+    console.error("Error while fetching payment response: ", error)
   }
 }
 

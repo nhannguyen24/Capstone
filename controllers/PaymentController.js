@@ -1,5 +1,5 @@
 const services = require('../services/PaymentService')
-const {BadRequestError, InternalServerError} = require('../errors/Index')
+const { BadRequestError, InternalServerError } = require('../errors/Index')
 const { StatusCodes } = require('http-status-codes')
 
 const paymentMomo = async (req, res) => {
@@ -9,7 +9,7 @@ const paymentMomo = async (req, res) => {
         const bookingId = req.query.bookingId || ""
         const errors = {}
 
-        if(bookingId.trim() === ""){
+        if (bookingId.trim() === "") {
             errors.bookingId = "Booking required!"
         }
 
@@ -40,17 +40,13 @@ const paymentPayOs = async (req, res) => {
     try {
         const amount = req.query.amount || ""
         const bookingId = req.query.bookingId || ""
-        const returnUrl = req.query.returnUrl || ""
         const cancelUrl = req.query.cancelUrl || ""
         const errors = {}
 
-        if(bookingId.trim() === ""){
+        if (bookingId.trim() === "") {
             errors.bookingId = "Booking Id required!"
         }
-        if(returnUrl.trim() === ""){
-            errors.returnUrl = "Return url required!"
-        }
-        if(cancelUrl.trim() === ""){
+        if (cancelUrl.trim() === "") {
             errors.cancelUrl = "Cancel url required!"
         }
 
@@ -67,7 +63,7 @@ const paymentPayOs = async (req, res) => {
         }
 
         if (Object.keys(errors).length === 0) {
-            const response = await services.createPayOsPaymentRequest(amount, bookingId, returnUrl, cancelUrl)
+            const response = await services.createPayOsPaymentRequest(amount, bookingId, cancelUrl)
             return res.status(response.status).json(response.data)
         } else {
             return res.status(StatusCodes.BAD_REQUEST).json(errors)
@@ -81,7 +77,7 @@ const paymentOffline = async (req, res) => {
     try {
         const bookingId = req.query.bookingId || ""
         const errors = {}
-        if(bookingId.trim() === ""){
+        if (bookingId.trim() === "") {
             errors.bookingId = "Id required!"
         }
         if (Object.keys(errors).length === 0) {
@@ -106,30 +102,7 @@ const getPaymentMomo = async (req, res) => {
 
 const getPayOsPaymentResponse = async (req, res) => {
     try {
-        const code = req.query.code || ""
-        const status = req.query.status || ""
-        const orderCode = req.query.orderCode || ""
-        const bookingId = req.query.bookingId || ""
-        const errors = {}
-        if(bookingId.trim() === ""){
-            errors.bookingId = "Booking Id required!"
-        }
-        if(orderCode.trim() === ""){
-            errors.orderCode = "Order code required!"
-        }
-        if(status.trim() === ""){
-            errors.status = "Status required!"
-        }
-        if(code.trim() === ""){
-            errors.code = "Code required!"
-        }
-
-        if (Object.keys(errors).length === 0) {
-            const response = await services.getPayOsPaymentResponse(req)
-            return res.status(response.status).json(response.data)
-        } else {
-            return res.status(StatusCodes.BAD_REQUEST).json(errors)
-        }
+        services.getPayOsPaymentResponse(req)
     } catch (error) {
         throw new InternalServerError(error)
     }
