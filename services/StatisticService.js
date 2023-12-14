@@ -128,6 +128,7 @@ const getStatistics = async (req) => {
                     var bookedTicketsQuantity = 0
                     var cancelTicketsQuantity = 0
                     var totalTicketsMoneyEarned = 0
+                    var totalTourMoneyEarned = 0
                     const { tourId, tour_ticket, ...rest } = tour
                     const bookings = await db.Booking.findAll({
                         raw: true,
@@ -155,6 +156,7 @@ const getStatistics = async (req) => {
                     })
 
                     bookings.map((booking) => {
+                        //Calculate ticket quantity for canceled and non-canceled
                         if (BOOKING_STATUS.CANCELED === booking.bookingStatus) {
                             totalCancelTickets += booking.booking_detail.quantity
                             cancelTicketsQuantity += booking.booking_detail.quantity
@@ -162,24 +164,24 @@ const getStatistics = async (req) => {
                             totalBookedTickets += booking.booking_detail.quantity
                             bookedTicketsQuantity += booking.booking_detail.quantity
                         }
-
+                        //Calculate money earned for canceled and non-canceled
                         if (STATUS.REFUNDED === booking.booking_transaction.status) {
                             if (booking.booking_transaction.refundAmount !== 0) {
                                 totalMoneyEarned += (booking.booking_transaction.amount - booking.booking_transaction.refundAmount)
-                                totalTicketsMoneyEarned += (booking.booking_transaction.amount - booking.booking_transaction.refundAmount)
+                                totalTourMoneyEarned += (booking.booking_transaction.amount - booking.booking_transaction.refundAmount)
                             } else {
                                 totalMoneyEarned += booking.booking_transaction.amount
-                                totalTicketsMoneyEarned += booking.booking_transaction.amount
+                                totalTourMoneyEarned += booking.booking_transaction.amount
                             }
                         } else {
                             totalMoneyEarned += booking.booking_transaction.amount
-                            totalTicketsMoneyEarned += booking.booking_transaction.amount
+                            totalTourMoneyEarned += booking.booking_transaction.amount
                         }
                     })
 
-                    tour_ticket.ticket_statistic = { bookedTicketsQuantity: bookedTicketsQuantity, cancelTicketsQuantity: cancelTicketsQuantity, totalTicketsMoneyEarned: totalTicketsMoneyEarned }
+                    tour_ticket.ticket_statistic = { bookedTicketsQuantity: bookedTicketsQuantity, cancelTicketsQuantity: cancelTicketsQuantity }
                     if (!toursMap[tourId]) {
-                        toursMap[tourId] = { tourId: tourId, ...rest, tour_ticket: [tour_ticket] }
+                        toursMap[tourId] = { tourId: tourId, totalTourMoneyEarned: totalTourMoneyEarned, ...rest, tour_ticket: [tour_ticket] }
                     } else {
                         toursMap[tourId].tour_ticket.push(tour_ticket)
                     }
@@ -207,7 +209,14 @@ const getStatistics = async (req) => {
         await Promise.all(tourPromises)
 
         tourList.sort((a, b) => new Date(a.date.startDate) - new Date(b.date.startDate))
-
+        tourList.forEach((item) => {
+            item.tours.sort((a, b) => {
+                const totalProfitA = a.totalTourMoneyEarned;
+                const totalProfitB = b.totalTourMoneyEarned;
+        
+                return totalProfitB - totalProfitA;
+            })
+        })
         const booking_statistic = {
             totalBookedTickets: totalBookedTickets,
             totalCancelTickets: totalCancelTickets,
