@@ -424,10 +424,11 @@ const refundMomo = async (bookingId, amount) => {
 
 const getPayOsPaymentResponse = async (req) => {
   try {
-    const code = req.query.code
-    const status = req.query.status
-    const orderCode = req.query.orderCode
+    const code = req.query.code || ""
+    const status = req.query.status || ""
+    const orderCode = req.query.orderCode || ""
 
+    if(code !== "" && status !== "" && orderCode !== ""){
     const booking = await db.Booking.findOne({
       include: {
         model: db.Transaction,
@@ -614,6 +615,9 @@ const getPayOsPaymentResponse = async (req) => {
       console.log("Update payment successfully for ", orderCode)
     }
     console.log("Payment failed for ", orderCode)
+  } else {
+    console.log("Some payment field empty while getting pay os response")
+  }
   } catch (error) {
     console.error("Error while fetching payment response: ", error)
   }
