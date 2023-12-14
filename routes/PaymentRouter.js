@@ -100,19 +100,7 @@ router.put("/offline", controllers.paymentOffline);
 
 router.post("/momo-ipn", controllers.getPaymentMomo);
 
-/**
- * @swagger
- * /api/v1/payments/pay-os:
- *   get:
- *     tags: [Payment]
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- */
+
 router.get("/pay-os", controllers.getPayOsPaymentResponse);
 
 // /**
