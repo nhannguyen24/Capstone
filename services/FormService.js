@@ -172,6 +172,34 @@ const getFormById = (formId) =>
 const createForm = (body, userId) =>
     new Promise(async (resolve, reject) => {
         try {
+            const findTour = await db.Tour.findOne({
+                where: { tourId: body.currentTour }
+            })
+
+            if (!findTour) {
+                resolve({
+                    status: StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg: `Cannot find current tour with id: ${body.currentTour}!`,
+                    }
+                });
+                return;
+            }
+
+            const findChangeTour = await db.Tour.findOne({
+                where: { tourId: body.desireTour }
+            })
+
+            if (!findChangeTour) {
+                resolve({
+                    status: StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg: `Cannot find desire tour with id: ${body.desireTour}!`,
+                    }
+                });
+                return;
+            }
+
             const createForm = await db.Form.create(
                 {
                     userId: userId,
