@@ -889,7 +889,7 @@ const createBookingWeb = async (req) => {
             _ticket.quantity = ticket.quantity
             ticketList.push(_ticket)
         }
-        
+
         const checkSameTourbookedBoking = await db.BookingDetail.findOne({
             include: [
                 {
@@ -898,7 +898,7 @@ const createBookingWeb = async (req) => {
                     where: {
                         tourId: tourId,
                     }
-                },{
+                }, {
                     model: db.Booking,
                     as: "detail_booking",
                     where: {
@@ -911,8 +911,8 @@ const createBookingWeb = async (req) => {
             ]
         })
 
-        if(!checkSameTourbookedBoking){
-            if (!isValidTickets) {
+        if (!isValidTickets) {
+            if (!checkSameTourbookedBoking) {
                 return {
                     status: StatusCodes.BAD_REQUEST,
                     data: {
@@ -962,34 +962,34 @@ const createBookingWeb = async (req) => {
             }
         }
 
-        const productList = []
-        for (const e of products) {
-            const product = await db.Product.findOne({
-                raw: true,
-                where: {
-                    productId: e.productId
-                },
-                attributes: ["productId", "price"]
-            })
-            if (!product) {
-                return {
-                    status: StatusCodes.NOT_FOUND,
-                    data: {
-                        msg: `Product not found!`,
-                    }
-                }
-            }
-            if (STATUS.DEACTIVE === product.status) {
-                return {
-                    status: StatusCodes.BAD_REQUEST,
-                    data: {
-                        msg: `Product not availale!`,
-                    }
-                }
-            }
-            product.quantity = e.quantity
-            productList.push(product)
-        }
+        // const productList = []
+        // for (const e of products) {
+        //     const product = await db.Product.findOne({
+        //         raw: true,
+        //         where: {
+        //             productId: e.productId
+        //         },
+        //         attributes: ["productId", "price"]
+        //     })
+        //     if (!product) {
+        //         return {
+        //             status: StatusCodes.NOT_FOUND,
+        //             data: {
+        //                 msg: `Product not found!`,
+        //             }
+        //         }
+        //     }
+        //     if (STATUS.DEACTIVE === product.status) {
+        //         return {
+        //             status: StatusCodes.BAD_REQUEST,
+        //             data: {
+        //                 msg: `Product not availale!`,
+        //             }
+        //         }
+        //     }
+        //     product.quantity = e.quantity
+        //     productList.push(product)
+        // }
 
         let totalDistance = 0
         let distanceToBookedDepartureStation = 0
@@ -1019,7 +1019,6 @@ const createBookingWeb = async (req) => {
                 //80% total price
                 discountPercentage = discountPercentage - 0.2
             }
-
             totalPrice = totalPrice * discountPercentage
         }
         totalPrice = Math.floor(totalPrice / 1000) * 1000
@@ -1673,6 +1672,7 @@ const cancelBooking = async (bookingId) => {
         }
 
         const refundResult = await PaymentService.refundMomo(_bookingId, amount)
+        console.log(refundResult)
         if (refundResult === null || refundResult === undefined) {
             return {
                 status: StatusCodes.BAD_REQUEST,
