@@ -962,34 +962,34 @@ const createBookingWeb = async (req) => {
             }
         }
 
-        // const productList = []
-        // for (const e of products) {
-        //     const product = await db.Product.findOne({
-        //         raw: true,
-        //         where: {
-        //             productId: e.productId
-        //         },
-        //         attributes: ["productId", "price"]
-        //     })
-        //     if (!product) {
-        //         return {
-        //             status: StatusCodes.NOT_FOUND,
-        //             data: {
-        //                 msg: `Product not found!`,
-        //             }
-        //         }
-        //     }
-        //     if (STATUS.DEACTIVE === product.status) {
-        //         return {
-        //             status: StatusCodes.BAD_REQUEST,
-        //             data: {
-        //                 msg: `Product not availale!`,
-        //             }
-        //         }
-        //     }
-        //     product.quantity = e.quantity
-        //     productList.push(product)
-        // }
+        const productList = []
+        for (const e of products) {
+            const product = await db.Product.findOne({
+                raw: true,
+                where: {
+                    productId: e.productId
+                },
+                attributes: ["productId", "price"]
+            })
+            if (!product) {
+                return {
+                    status: StatusCodes.NOT_FOUND,
+                    data: {
+                        msg: `Product not found!`,
+                    }
+                }
+            }
+            if (STATUS.DEACTIVE === product.status) {
+                return {
+                    status: StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg: `Product not availale!`,
+                    }
+                }
+            }
+            product.quantity = e.quantity
+            productList.push(product)
+        }
 
         let totalDistance = 0
         let distanceToBookedDepartureStation = 0
