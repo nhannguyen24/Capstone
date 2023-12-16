@@ -1074,6 +1074,7 @@ const createBookingOffline = async (req) => {
     try {
         const user = req.body.user
         const tickets = req.body.tickets
+        const tourId = tickets[0].tourId
         let totalPrice = req.body.totalPrice
         const departureStationId = req.body.departureStationId
         /**
