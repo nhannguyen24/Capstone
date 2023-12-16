@@ -47,7 +47,25 @@ async function cancelTourAndRefundIfUnderbooked() {
         },
         tourStatus: TOUR_STATUS.AVAILABLE
       },
-      attributes: ["tourId"]
+      attributes: ["tourId"],
+      // include: [
+      //   {
+      //     model: db.User,
+      //     as: "tour_tourguide",
+      //     attributes: [
+      //       "userId",
+      //       "deviceToken",
+      //     ],
+      //   },
+      //   {
+      //     model: db.User,
+      //     as: "tour_driver",
+      //     attributes: [
+      //       "userId",
+      //       "deviceToken",
+      //     ],
+      //   },
+      // ]
     })
 
     if (tours.length === 0) {
@@ -152,6 +170,23 @@ async function cancelTourAndRefundIfUnderbooked() {
               { tourStatus: TOUR_STATUS.CANCELED },
               { where: { tourId: tour.tourId }, transaction: t }
             )
+
+            // await db.Notification.create({
+            //   title: `Hủy chuyến đi`,
+            //   body: `Chuyến đi ${tour.tourName} đã bị hủy vì không đủ số lượng khách!`,
+            //   deviceToken: tour.tour_tourguide.deviceToken,
+            //   notiType: "Thông báo",
+            //   userId: tour.tourGuideId
+            // }, { transaction: t })
+
+            // await db.Notification.create({
+            //   title: `Hủy chuyến đi`,
+            //   body: `Chuyến đi ${tour.tourName} đã bị hủy vì không đủ số lượng khách!`,
+            //   deviceToken: tour.tour_driver.deviceToken,
+            //   notiType: "Thông báo",
+            //   userId: tour.driverId
+            // }, { transaction: t })
+
             console.log("Cancel tour: ", tour.tourId)
           })
         }

@@ -18,7 +18,7 @@ const getAllTracking = (
                 ...queries,
             });
             resolve({
-                status: trackings ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+                status: StatusCodes.OK,
                 data: {
                     msg: trackings ? "Got trackings" : "Cannot find trackings",
                     trackings: trackings,

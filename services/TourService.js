@@ -325,7 +325,7 @@ const getAllTour = (
                     redisClient.setEx(`tours_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}_${departureDate}_${endDate}`, 3600, JSON.stringify(tours))
 
                     resolve({
-                        status: tours ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+                        status: StatusCodes.OK,
                         data: {
                             msg: tours ? "Got tours" : "Tours not found!",
                             tours: tours,

@@ -28,7 +28,7 @@ const getAllLanguage = (
             });
 
             resolve({
-                status: languages ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+                status: StatusCodes.OK,
                 data: {
                     msg: languages ? "Got languages" : "Cannot find languages",
                     languages: languages,

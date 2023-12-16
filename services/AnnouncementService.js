@@ -67,7 +67,7 @@ const getAllAnnouncement = (
                             }
                             
                             resolve({
-                                status: announcements ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+                                status: StatusCodes.OK,
                                 data: {
                                     msg: announcements ? "Got announcements" : "Cannot find announcements",
                                     announcements: announcements,
