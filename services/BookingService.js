@@ -889,7 +889,7 @@ const createBookingWeb = async (req) => {
             _ticket.quantity = ticket.quantity
             ticketList.push(_ticket)
         }
-
+        //Check the booking information for the same tour and the same user
         const checkSameTourbookedBoking = await db.BookingDetail.findOne({
             include: [
                 {
@@ -910,10 +910,10 @@ const createBookingWeb = async (req) => {
                 }
             ]
         })
-        console.log("CHECK BOOKING: ", checkSameTourbookedBoking)
-        console.log("CHECK VALID TICKET: ", isValidTickets)
-        if (!isValidTickets) {
-            if (checkSameTourbookedBoking === null || checkSameTourbookedBoking === undefined) {
+
+        //If not found => Check ticket is depend on guardian
+        if (checkSameTourbookedBoking === null || checkSameTourbookedBoking === undefined) {
+            if (!isValidTickets) {
                 return {
                     status: StatusCodes.BAD_REQUEST,
                     data: {
