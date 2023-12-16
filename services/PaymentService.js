@@ -560,7 +560,7 @@ const getPayOsPaymentResponse = async (req) => {
               `  - Booking Code: <b>${bookingCode}</b>`,
               `  - Bus plate: <b>${busPlate}</b>`,
               `  - Tour Duration: <b>${tourDuration}</b>`,
-              `  - Tour Total Price: <b>${totalPrice}</b>`,
+              `  - Tour Total Price: <b>${totalPrice} VNĐ</b>`,
             ],
             outro: [
               `If you have any questions or need assistance, please to reach out to our customer support team at nbtour@gmail.com.`,
@@ -746,7 +746,7 @@ const getMoMoPaymentResponse = (req) =>
               `  - Booking Code: <b>${bookingCode}</b>`,
               `  - Bus plate: <b>${busPlate}</b>`,
               `  - Tour Duration: <b>${tourDuration}</b>`,
-              `  - Tour Total Price: <b>${totalPrice}</b>`,
+              `  - Tour Total Price: <b>${totalPrice} VNĐ</b>`,
             ],
             outro: [
               `If you have any questions or need assistance, please to reach out to our customer support team at nbtour@gmail.com.`,

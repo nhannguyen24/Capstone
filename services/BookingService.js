@@ -702,6 +702,7 @@ const createBookingWeb = async (req) => {
     try {
         const user = req.body.user
         const tickets = req.body.tickets
+        const tourId = tickets[0].tourId
         const products = req.body.products || []
         let totalPrice = req.body.totalPrice
         const departureStationId = req.body.departureStationId
@@ -709,6 +710,7 @@ const createBookingWeb = async (req) => {
          * Checking if Admin or Manager not allow to book
          */
         const email = user.email.replace(/\s/g, '').toLowerCase()
+
         const resultUser = await db.User.findOrCreate({
             where: {
                 email: email
@@ -752,7 +754,6 @@ const createBookingWeb = async (req) => {
             }
         }
 
-
         /**
          * Checking if tour, departure station exist
          */
@@ -761,7 +762,7 @@ const createBookingWeb = async (req) => {
         let _routeSegments = []
         const tour = await db.Tour.findOne({
             where: {
-                tourId: tickets[0].tourId,
+                tourId: tourId
             },
             include: {
                 model: db.Bus,
@@ -888,12 +889,35 @@ const createBookingWeb = async (req) => {
             _ticket.quantity = ticket.quantity
             ticketList.push(_ticket)
         }
+        
+        const checkSameTourbookedBoking = await db.BookingDetail.findOne({
+            include: [
+                {
+                    model: db.Ticket,
+                    as: "booking_detail_ticket",
+                    where: {
+                        tourId: tourId,
+                    }
+                },{
+                    model: db.Booking,
+                    as: "detail_booking",
+                    where: {
+                        customerId: resultUser[0].dataValues.userId,
+                        bookingStatus: {
+                            [Op.eq]: BOOKING_STATUS.ON_GOING
+                        }
+                    },
+                }
+            ]
+        })
 
-        if (!isValidTickets) {
-            return {
-                status: StatusCodes.BAD_REQUEST,
-                data: {
-                    msg: `[${dependTickets}] need other guardian ticket to go with!`,
+        if(!checkSameTourbookedBoking){
+            if (!isValidTickets) {
+                return {
+                    status: StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg: `[${dependTickets}] need other guardian ticket to go with!`,
+                    }
                 }
             }
         }
@@ -1090,7 +1114,7 @@ const createBookingOffline = async (req) => {
         let _routeSegments = []
         const tour = await db.Tour.findOne({
             where: {
-                tourId: tickets[0].tourId,
+                tourId: tourId
             },
             include: {
                 model: db.Bus,
@@ -1178,9 +1202,7 @@ const createBookingOffline = async (req) => {
          * Checking ticketId and priceId and calculate booked ticket quantity
          */
         const ticketList = []
-        const dependTickets = []
         let seatBookingQuantity = 0
-        let isValidTickets = false
         for (const ticket of tickets) {
             const _ticket = await db.Ticket.findOne({
                 raw: true,
@@ -1222,24 +1244,9 @@ const createBookingOffline = async (req) => {
                 }
             }
 
-            if (_ticket.ticket_type.dependsOnGuardian === 0) {
-                isValidTickets = true
-            } else {
-                dependTickets.push(_ticket.ticket_type.ticketTypeName)
-            }
-
             _ticket.price = price
             _ticket.quantity = ticket.quantity
             ticketList.push(_ticket)
-        }
-
-        if (!isValidTickets) {
-            return {
-                status: StatusCodes.BAD_REQUEST,
-                data: {
-                    msg: `[${dependTickets}] need other guardian ticket to go with!`,
-                }
-            }
         }
 
         /**
