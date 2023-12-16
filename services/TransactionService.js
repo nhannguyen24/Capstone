@@ -10,7 +10,6 @@ const getTransactions = async (req) => {
         const bookingId = req.query.bookingId || ""
         const transactionCode = req.query.transactionCode || ""
         const transactionType = req.query.transactionType || ""
-        const isSuccess = req.query.isSuccess || ""
         const status = req.query.status || ""
 
         let whereClause = {}
@@ -25,15 +24,6 @@ const getTransactions = async (req) => {
         
         if(bookingId.trim() !== ""){
             whereClause.bookingId = bookingId
-        }
-
-        if(isSuccess !== ""){
-            if(isSuccess === "true") {
-                isSuccess = 1
-            } else if(isSuccess === "false"){
-                isSuccess = 0
-            }
-            whereClause.isSuccess = isSuccess
         }
 
         if(status !== ""){
@@ -61,8 +51,8 @@ const getTransactions = async (req) => {
         });
 
         return{
-            status: transactions.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
-            data: transactions.length > 0 ? {
+            status: StatusCodes.OK,
+            data: {
                 msg: `Get transactions successfully`,
                 paging: {
                     page: page,
@@ -70,14 +60,6 @@ const getTransactions = async (req) => {
                     total: totalTrans
                 },
                 transactions: transactions
-            } : {
-                msg: `Transactions not found!`,
-                paging: {
-                    page: page,
-                    limit: limit,
-                    total: totalTrans
-                },
-                transactions: []
             }
         }
 

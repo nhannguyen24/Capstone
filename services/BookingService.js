@@ -910,9 +910,10 @@ const createBookingWeb = async (req) => {
                 }
             ]
         })
-
+        console.log("CHECK BOOKING: ", checkSameTourbookedBoking)
+        console.log("CHECK VALID TICKET: ", isValidTickets)
         if (!isValidTickets) {
-            if (!checkSameTourbookedBoking) {
+            if (checkSameTourbookedBoking === null || checkSameTourbookedBoking === undefined) {
                 return {
                     status: StatusCodes.BAD_REQUEST,
                     data: {

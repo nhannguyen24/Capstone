@@ -49,8 +49,8 @@ const getReports = async (req) => {
         });
 
         return{
-            status: reports.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
-            data: reports.length > 0 ? {
+            status: StatusCodes.OK,
+            data: {
                 msg: `Get reports successfully`,
                 paging: {
                     page: page,
@@ -58,15 +58,7 @@ const getReports = async (req) => {
                     total: totalReport
                 },
                 reports: reports,
-            } : {
-                msg: `Reports not found!`,
-                paging: {
-                    page: page,
-                    limit: limit,
-                    total: totalReport
-                },
-                reports: [],
-            },
+            }
         }
 
     } catch (error) {

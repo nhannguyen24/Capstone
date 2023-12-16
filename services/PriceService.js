@@ -47,8 +47,8 @@ const getPrices = async (req) => {
         })
 
         return {
-            status: prices.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
-            data: prices.length > 0 ? {
+            status: StatusCodes.OK,
+            data: {
                 msg: `Get prices successfully`,
                 paging: {
                     page: page,
@@ -56,14 +56,6 @@ const getPrices = async (req) => {
                     total: totalPrice
                 },
                 prices: prices
-            } : {
-                msg: `Prices not found!`,
-                paging: {
-                    page: page,
-                    limit: limit,
-                    total: totalPrice
-                },
-                prices: []
             }
         }
 

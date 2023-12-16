@@ -235,17 +235,12 @@ const getStatistics = async (req) => {
         }
 
         return {
-            status: tourList.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
-            data: tourList.length > 0 ? {
+            status: StatusCodes.OK,
+            data: {
                 msg: `Get statistic successfully`,
                 booking_statistic: booking_statistic,
                 tour_statistic: tour_statistic,
                 result: tourList
-            } : {
-                msg: `Could not find any statistics based on your request!`,
-                booking_statistic: booking_statistic,
-                tour_statistic: tour_statistic,
-                result: []
             }
         }
     } catch (error) {
