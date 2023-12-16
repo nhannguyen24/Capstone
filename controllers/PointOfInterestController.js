@@ -1,5 +1,6 @@
 const services = require('../services/PointOfInterestService');
 const {InternalServerError} = require('../errors/Index');
+const { StatusCodes } = require("http-status-codes");
 
 const getAllPointOfInterest = async (req, res) => {
     try {
