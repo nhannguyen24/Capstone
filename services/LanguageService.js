@@ -150,6 +150,24 @@ const deleteLanguage = (id) =>
                 return;
             }
 
+            const findSound = await db.Sound.findOne({
+                raw: true,
+                where: {
+                    languageId: id,
+                    status: STATUS.ACTIVE,
+                  }
+            });
+
+            if (findSound) {
+                resolve({
+                    status: StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg: "Cannot delete this language! There is sound using this language!",
+                    }
+                });
+                return;
+            }
+
             const languages = await db.Language.update(
                 { status: "Deactive" },
                 {
@@ -157,6 +175,7 @@ const deleteLanguage = (id) =>
                     individualHooks: true,
                 }
             );
+
             resolve({
                 status: languages[0] > 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                 data: {

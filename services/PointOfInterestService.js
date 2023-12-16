@@ -330,6 +330,24 @@ const deletePointOfInterest = (id) =>
                 return;
             }
 
+            const findRoute = await db.RoutePointDetail.findOne({
+                raw: true,
+                where: {
+                    poiId: id,
+                    status: STATUS.ACTIVE,
+                  }
+            });
+
+            if (findRoute) {
+                resolve({
+                    status: StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg: "Cannot delete this point of interest! There is route using this point of interest!",
+                    }
+                });
+                return;
+            }
+
             const pois = await db.PointOfInterest.update(
                 { status: "Deactive" },
                 {

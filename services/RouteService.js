@@ -540,15 +540,14 @@ const deleteRoute = (id) =>
             }
 
             const tourExist = await db.Tour.findOne({
-                raw: true, nest: true,
-                include: [
-                    {
-                        model: db.Route,
-                        as: "tour_route",
-                        attributes: ["routeId"],
-                        where: {routeId: id}
-                    }
-                ]
+                raw: true,
+                where: {
+                    routeId: id,
+                    status: STATUS.ACTIVE,
+                    tourStatus: {
+                        [Op.in]: ['Started', 'Available'],
+                    },
+                },
             })
 
             if (tourExist) {

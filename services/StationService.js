@@ -2,6 +2,7 @@ const db = require("../models");
 const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
 const { StatusCodes } = require("http-status-codes");
+const STATUS = require("../enums/StatusEnum");
 
 const getAllStation = (
     { page, limit, order, stationName, address, status, ...query },
@@ -211,6 +212,24 @@ const deleteStation = (id) =>
                     status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: "The station already deactive!",
+                    }
+                });
+                return;
+            }
+
+            const findRoute = await db.RouteSegment.findOne({
+                raw: true,
+                where: {
+                    [Op.or]: [{departureStationId: id}, {endStationId: id}],
+                    status: STATUS.ACTIVE,
+                  }
+            });
+
+            if (findRoute) {
+                resolve({
+                    status: StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg: "Cannot delete this station! There is route using this station!",
                     }
                 });
                 return;
