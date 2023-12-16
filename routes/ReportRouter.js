@@ -35,6 +35,10 @@ const router = express.Router();
  *         schema:
  *           type: string
  *       - in: query
+ *         name: tourId
+ *         schema:
+ *           type: string
+ *       - in: query
  *         name: reportStatus
  *         schema:
  *           type: string

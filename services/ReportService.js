@@ -9,14 +9,18 @@ const getReports = async (req) => {
         const limit = parseInt(req.query.limit)
         const offset = (page - 1) * limit
         const reportUserId = req.query.reportUserId || ""
+        const tourId = req.query.tourId || ""
         const reportStatus = req.query.reportStatus || ""
 
         let whereClause = {}
         if (reportUserId !== "") {
-            whereClause.reportUserId = reportUserId
+            whereClause.reportUserId = reportUserId.trim()
+        }
+        if (tourId !== "") {
+            whereClause.tourId = tourId.trim()
         }
         if (reportStatus !== "") {
-            whereClause.reportStatus = reportStatus
+            whereClause.reportStatus = reportStatus.trim()
         }
 
         const reports = await db.Report.findAll({

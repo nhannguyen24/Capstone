@@ -57,11 +57,6 @@ router.post("/momo", controllers.paymentMomo)
  *           type: string
  *         required: true
  *       - in: query
- *         name: returnUrl
- *         schema:
- *           type: string
- *         required: true
- *       - in: query
  *         name: bookingId
  *         schema:
  *           type: string
