@@ -102,7 +102,7 @@ const getStatistics = async (req) => {
                 nest: true,
                 where: whereClause,
                 attributes: {
-                    exclude: ["createdAt", "updatedAt", "busId", "status", "beginBookingDate", "endBookingDate", "tourGuideId", "driverId", "isScheduled"]
+                    exclude: ["createdAt", "updatedAt", "busId", "status", "beginBookingDate", "endBookingDate", "tourGuideId", "driverId", "isScheduled", "routeId"]
                 },
                 include: [
                     {
@@ -119,6 +119,10 @@ const getStatistics = async (req) => {
                         model: db.Bus,
                         as: "tour_bus",
                         attributes: ["numberSeat"]
+                    },{
+                        model: db.Route,
+                        as: "tour_route",
+                        attributes: ["routeId", "routeName"]
                     }
                 ]
             })
@@ -127,7 +131,6 @@ const getStatistics = async (req) => {
                 const bookingPromises = tours.map(async (tour) => {
                     var bookedTicketsQuantity = 0
                     var cancelTicketsQuantity = 0
-                    var totalTicketsMoneyEarned = 0
                     var totalTourMoneyEarned = 0
                     const { tourId, tour_ticket, ...rest } = tour
                     const bookings = await db.Booking.findAll({
