@@ -60,9 +60,9 @@ const getBuses = async (req) => {
         })
 
         return {
-            status: buses.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+            status: StatusCodes.OK,
             data: {
-                msg: buses.length > 0 ? `Get buses successfully` : `Buses not found!`,
+                msg: `Get buses successfully`,
                 paging: {
                     page: page,
                     limit: limit,

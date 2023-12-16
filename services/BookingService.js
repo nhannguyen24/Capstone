@@ -889,7 +889,7 @@ const createBookingWeb = async (req) => {
             _ticket.quantity = ticket.quantity
             ticketList.push(_ticket)
         }
-
+        //Check the booking information for the same tour and the same user
         const checkSameTourbookedBoking = await db.BookingDetail.findOne({
             include: [
                 {
@@ -911,8 +911,9 @@ const createBookingWeb = async (req) => {
             ]
         })
 
-        if (!isValidTickets) {
-            if (!checkSameTourbookedBoking) {
+        //If not found => Check ticket is depend on guardian
+        if (checkSameTourbookedBoking === null || checkSameTourbookedBoking === undefined) {
+            if (!isValidTickets) {
                 return {
                     status: StatusCodes.BAD_REQUEST,
                     data: {
@@ -962,34 +963,34 @@ const createBookingWeb = async (req) => {
             }
         }
 
-        // const productList = []
-        // for (const e of products) {
-        //     const product = await db.Product.findOne({
-        //         raw: true,
-        //         where: {
-        //             productId: e.productId
-        //         },
-        //         attributes: ["productId", "price"]
-        //     })
-        //     if (!product) {
-        //         return {
-        //             status: StatusCodes.NOT_FOUND,
-        //             data: {
-        //                 msg: `Product not found!`,
-        //             }
-        //         }
-        //     }
-        //     if (STATUS.DEACTIVE === product.status) {
-        //         return {
-        //             status: StatusCodes.BAD_REQUEST,
-        //             data: {
-        //                 msg: `Product not availale!`,
-        //             }
-        //         }
-        //     }
-        //     product.quantity = e.quantity
-        //     productList.push(product)
-        // }
+        const productList = []
+        for (const e of products) {
+            const product = await db.Product.findOne({
+                raw: true,
+                where: {
+                    productId: e.productId
+                },
+                attributes: ["productId", "price"]
+            })
+            if (!product) {
+                return {
+                    status: StatusCodes.NOT_FOUND,
+                    data: {
+                        msg: `Product not found!`,
+                    }
+                }
+            }
+            if (STATUS.DEACTIVE === product.status) {
+                return {
+                    status: StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg: `Product not availale!`,
+                    }
+                }
+            }
+            product.quantity = e.quantity
+            productList.push(product)
+        }
 
         let totalDistance = 0
         let distanceToBookedDepartureStation = 0

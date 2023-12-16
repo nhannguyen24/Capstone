@@ -76,8 +76,8 @@ const getTickets = async (req) => {
         }
 
         return {
-            status: tickets.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
-            data: tickets.length > 0 ? {
+            status: StatusCodes.OK,
+            data: {
                 msg: `Get list of tickets successfully`,
                 paging: {
                     page: page,
@@ -85,14 +85,6 @@ const getTickets = async (req) => {
                     total: totalTicket
                 },
                 tickets: tickets
-            } : {
-                msg: `Ticket not found!`,
-                paging: {
-                    page: page,
-                    limit: limit,
-                    total: totalTicket
-                },
-                tickets: []
             }
         }
 

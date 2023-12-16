@@ -102,7 +102,7 @@ const getStatistics = async (req) => {
                 nest: true,
                 where: whereClause,
                 attributes: {
-                    exclude: ["createdAt", "updatedAt", "busId", "status", "beginBookingDate", "endBookingDate", "tourGuideId", "driverId", "isScheduled"]
+                    exclude: ["createdAt", "updatedAt", "busId", "status", "beginBookingDate", "endBookingDate", "tourGuideId", "driverId", "isScheduled", "routeId"]
                 },
                 include: [
                     {
@@ -119,6 +119,10 @@ const getStatistics = async (req) => {
                         model: db.Bus,
                         as: "tour_bus",
                         attributes: ["numberSeat"]
+                    },{
+                        model: db.Route,
+                        as: "tour_route",
+                        attributes: ["routeId", "routeName"]
                     }
                 ]
             })
@@ -127,7 +131,6 @@ const getStatistics = async (req) => {
                 const bookingPromises = tours.map(async (tour) => {
                     var bookedTicketsQuantity = 0
                     var cancelTicketsQuantity = 0
-                    var totalTicketsMoneyEarned = 0
                     var totalTourMoneyEarned = 0
                     const { tourId, tour_ticket, ...rest } = tour
                     const bookings = await db.Booking.findAll({
@@ -232,17 +235,12 @@ const getStatistics = async (req) => {
         }
 
         return {
-            status: tourList.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
-            data: tourList.length > 0 ? {
+            status: StatusCodes.OK,
+            data: {
                 msg: `Get statistic successfully`,
                 booking_statistic: booking_statistic,
                 tour_statistic: tour_statistic,
                 result: tourList
-            } : {
-                msg: `Could not find any statistics based on your request!`,
-                booking_statistic: booking_statistic,
-                tour_statistic: tour_statistic,
-                result: []
             }
         }
     } catch (error) {

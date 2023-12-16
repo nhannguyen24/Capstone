@@ -50,11 +50,6 @@ const router = express.Router();
  *              - Cash
  *         description: Search by transaction type
  *       - in: query
- *         name: isSuccess
- *         schema:
- *           type: boolean
- *         description: Filter by success status
- *       - in: query
  *         name: status
  *         schema:
  *           type: string

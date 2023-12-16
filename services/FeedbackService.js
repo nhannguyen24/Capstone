@@ -48,8 +48,8 @@ const getFeedbacks = async (req) => {
         })
 
         return {
-            status: feedbacks.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
-            data: feedbacks.length > 0 ? {
+            status: StatusCodes.OK,
+            data: {
                 msg: `Get list of feedbacks successfully`,
                 paging: {
                     page: page,
@@ -57,14 +57,6 @@ const getFeedbacks = async (req) => {
                     total: totalFeedback
                 },
                 feedbacks: feedbacks
-            } : {
-                msg: `Feedbacks not found!`,
-                paging: {
-                    page: page,
-                    limit: limit,
-                    total: totalFeedback
-                },
-                feedbacks: []
             }
         }
 
@@ -102,10 +94,10 @@ const getFeedbackById = async (feedbackId) => {
         return {
             status: feedback ? StatusCodes.OK : StatusCodes.NOT_FOUND,
             data: feedback ? {
-                msg: `Get feedbacks successfully`,
+                msg: `Get feedback successfully`,
                 feedback: feedback
             } : {
-                msg: `No feedbacks found!`,
+                msg: `Feedback not found!`,
                 feedback: {}
             }
         }
