@@ -1417,21 +1417,6 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                 continue
             }
 
-            const resultTour = await db.Tour.findOne({
-                raw: true,
-                nest: true,
-                where: {
-                    tourName: tour.tourName
-                },
-            })
-
-            if (resultTour) {
-                let error = `Tour name existed: ${tour.tourName}`
-                errors.push({ line: i, tourError: error })
-                i++
-                continue
-            }
-
             const station = await db.Route.findAll({
                 raw: true,
                 nest: true,
