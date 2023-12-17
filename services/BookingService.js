@@ -884,11 +884,8 @@ const createBookingWeb = async (req) => {
         })
 
         //If not found => Check ticket is depend on guardian
-        console.log(checkSameTourbookedBoking)
         if (!isValidTickets) {
-            console.log("Ticket not valid")
             if (!checkSameTourbookedBoking) {
-                console.log("Inside check booking")
                 return {
                     status: StatusCodes.BAD_REQUEST,
                     data: {
