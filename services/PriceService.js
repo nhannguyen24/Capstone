@@ -165,7 +165,8 @@ const createPrice = async (req) => {
             }
         }
 
-        const created = await db.Price.create({ ticketTypeId: ticketTypeId, amount: amount, day: day })
+        const roundedAmount = Math.floor(amount / 1000) * 1000
+        const created = await db.Price.create({ ticketTypeId: ticketTypeId, amount: roundedAmount, day: day })
 
         return {
             status: StatusCodes.CREATED,
