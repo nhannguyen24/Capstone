@@ -1,9 +1,9 @@
-const controllers = require('../controllers/TicketTypeController');
-const express = require('express');
-const verifyToken = require('../middlewares/VerifyToken');
-const {roleAuthen} = require('../middlewares/VerifyRole');
+const controllers = require('../controllers/TicketTypeController')
+const express = require('express')
+const verifyToken = require('../middlewares/VerifyToken')
+const {roleAuthen} = require('../middlewares/VerifyRole')
 
-const router = express.Router();
+const router = express.Router()
 
 /**
  * @swagger
@@ -22,7 +22,7 @@ const router = express.Router();
  *             schema:
  *               type: object
  */
-router.get("/", verifyToken, roleAuthen(["Manager"]), controllers.getTicketTypes);
+router.get("/", verifyToken, roleAuthen(["Manager"]), controllers.getTicketTypes)
 
 /**
  * @swagger
@@ -47,7 +47,7 @@ router.get("/", verifyToken, roleAuthen(["Manager"]), controllers.getTicketTypes
  *             schema:
  *               type: object
  */
-router.get("/:id", verifyToken, roleAuthen(["Manager"]), controllers.getTicketTypeById);
+router.get("/:id", verifyToken, roleAuthen(["Manager"]), controllers.getTicketTypeById)
 
 
 /**
@@ -73,9 +73,9 @@ router.get("/:id", verifyToken, roleAuthen(["Manager"]), controllers.getTicketTy
  *                      type: boolean
  *            example:
  *              {
- *                  ticketTypeName: Vé người lớn,
- *                  description: Vé dành cho người lớn trên 15 tuổi,
- *                  dependsOnGuardian: true or false,
+ *                  ticketTypeName: Vé không cho ai cả,
+ *                  description: Vé này chỉ cho mỗi mình tôi thôi,
+ *                  dependsOnGuardian: true,
  *              }
  *     responses:
  *       201:
@@ -91,7 +91,7 @@ router.get("/:id", verifyToken, roleAuthen(["Manager"]), controllers.getTicketTy
  *             schema:
  *               type: object
  */
-router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createTicketType);
+router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createTicketType)
 
 /**
  * @swagger
@@ -134,7 +134,7 @@ router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createTicketT
  *             schema:
  *               type: string
  */
-router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updateTicketType);
+router.put("/:id", verifyToken, roleAuthen(["Manager"]), controllers.updateTicketType)
 
 
-module.exports = router;
+module.exports = router

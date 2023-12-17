@@ -31,6 +31,11 @@ const router = express.Router();
  *         required: true
  *         description: Maximum items per page
  *       - in: query
+ *         name: ticketTypeId
+ *         schema:
+ *           type: string
+ *         description: Filter by ticket type
+ *       - in: query
  *         name: day
  *         schema:
  *           type: string
@@ -96,7 +101,7 @@ router.get("/", verifyToken, roleAuthen(["Manager"]), controllers.getPrices);
  *             schema:
  *               type: object
  */
-router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createPrice);
+router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createPrice)
 
 /**
  * @swagger
@@ -142,7 +147,7 @@ router.get("/:id", verifyToken, roleAuthen(["Manager"]), controllers.getPriceByI
  *           type: string
  *         required: true
  *     requestBody:
- *       description: Price data to update
+ *       description: the day attribute is the price of that day that you want to update the price
  *       required: true
  *       content:
  *         application/json:
