@@ -1,8 +1,6 @@
 const db = require('../models')
 const { Op } = require('sequelize')
-const STATUS = require("../enums/StatusEnum")
 const TOUR_STATUS = require("../enums/TourStatusEnum")
-const DAY = require("../enums/PriceDayEnum")
 const DAY_ENUM = require("../enums/PriceDayEnum");
 const { StatusCodes } = require('http-status-codes');
 const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
@@ -12,6 +10,7 @@ const getPrices = async (req) => {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
         const offset = parseInt((page - 1) * limit)
+        const ticketTypeId = req.query.ticketTypeId || ""
         const day = req.query.day || ""
         const status = req.query.status || ""
 
@@ -20,6 +19,26 @@ const getPrices = async (req) => {
         if (day !== "") {
             whereClause.day = day
         }
+
+        if (ticketTypeId !== "") {
+            const ticketType = await db.TicketType.findOne({
+                where: {
+                    ticketTypeId: ticketTypeId
+                }
+            })
+
+            if (!ticketType) {
+                return {
+                    status: StatusCodes.NOT_FOUND,
+                    data: {
+                        msg: "Ticket type not found!",
+                    }
+                }
+            }
+            whereClause.ticketTypeId = ticketTypeId
+        }
+
+
 
         if (status !== "") {
             whereClause.status = status
@@ -63,7 +82,7 @@ const getPrices = async (req) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -102,7 +121,7 @@ const getPriceById = async (priceId) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -137,7 +156,7 @@ const createPrice = async (req) => {
             }
         })
 
-        if(price){
+        if (price) {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
@@ -159,7 +178,7 @@ const createPrice = async (req) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -235,23 +254,23 @@ const updatePrice = async (req) => {
             const date = departureDate.getDate();
             const month = departureDate.getMonth();
             const dateMonth = `${date}-${month}`;
-        
+
             if (DAY_ENUM.NORMAL === day) {
                 if (!SPECIAL_DAY.includes(dateMonth) && [1, 2, 3, 4, 5].includes(dayOfWeek)) {
                     return true;
                 }
             }
-        
+
             if (DAY_ENUM.WEEKEND === day) {
                 if (!SPECIAL_DAY.includes(dateMonth) && [0, 6].includes(dayOfWeek)) {
                     return true;
                 }
             }
-        
+
             if (DAY_ENUM.HOLIDAY === day && SPECIAL_DAY.includes(dateMonth)) {
                 return true;
             }
-        
+
             return false;
         })
 
@@ -291,7 +310,7 @@ const updatePrice = async (req) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }

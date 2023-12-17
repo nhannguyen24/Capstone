@@ -1,19 +1,21 @@
-const db = require('../models');
-const { Op } = require('sequelize');
-const STATUS = require("../enums/StatusEnum");
-const { StatusCodes } = require('http-status-codes');
+const db = require('../models')
+const { Op } = require('sequelize')
+const STATUS = require("../enums/StatusEnum")
+const { StatusCodes } = require('http-status-codes')
 
 const getTicketTypes = async (req) => {
     try {
-        const ticketTypes = await db.TicketType.findAll();
+        const ticketTypes = await db.TicketType.findAll({
+            include: {
+                model: db.Price,
+                as: "ticket_type_price"
+            }
+        })
         return {
-            status: ticketTypes.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
-            data: ticketTypes.length > 0 ? {
+            status: StatusCodes.OK,
+            data: {
                 msg: `Get list of ticket types successfully`,
                 ticketTypes: ticketTypes
-            } : {
-                msg: `Ticket types not found!`,
-                ticketTypes: []
             }
         }
     } catch (error) {
@@ -32,8 +34,12 @@ const getTicketTypeById = async (ticketTypeId) => {
         const ticketType = await db.TicketType.findOne({
             where: {
                 ticketTypeId: ticketTypeId
+            },
+            include: {
+                model: db.Price,
+                as: "ticket_type_price"
             }
-        });
+        })
         return {
             status: ticketType ? StatusCodes.OK : StatusCodes.NOT_FOUND,
             data: ticketType ? {
@@ -69,7 +75,7 @@ const createTicketType = async (req) => {
                 }
             },
             defaults: { ticketTypeName: ticketTypeName, description: description, dependsOnGuardian: dependsOnGuardian }
-        });
+        })
 
         return {
             status: created ? StatusCodes.CREATED : StatusCodes.BAD_REQUEST,
@@ -90,7 +96,7 @@ const createTicketType = async (req) => {
 }
 
 const updateTicketType = async (req) => {
-    const t = await db.sequelize.transaction();
+    const t = await db.sequelize.transaction()
     try {
         const ticketTypeId = req.params.id
         const ticketTypeName = req.body.ticketTypeName || ""
@@ -169,4 +175,4 @@ const updateTicketType = async (req) => {
     }
 }
 
-module.exports = { getTicketTypes, getTicketTypeById, createTicketType, updateTicketType };
+module.exports = { getTicketTypes, getTicketTypeById, createTicketType, updateTicketType }
