@@ -178,7 +178,7 @@ const getAllRoute = (
                             }
                             
                             resolve({
-                                status: routes ? 200 : StatusCodes.NOT_FOUND,
+                                status: StatusCodes.OK,
                                 data: {
                                     msg: routes ? "Got routes" : "Cannot find routes",
                                     routes: routes,

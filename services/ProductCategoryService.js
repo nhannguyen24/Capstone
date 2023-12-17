@@ -34,7 +34,6 @@ const getAllProductCategory = (
                 }
             });
         } catch (error) {
-            console.log(error);
             reject(error);
         }
     });

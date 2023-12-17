@@ -100,7 +100,7 @@ const getAllPointOfInterest = (
                             }
                             
                             resolve({
-                                status: pois ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+                                status: StatusCodes.OK,
                                 data: {
                                     msg: pois ? "Got pois" : "Cannot find pois",
                                     pois: pois,

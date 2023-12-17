@@ -91,7 +91,7 @@ const getAllForm = (
             }
 
             resolve({
-                status: forms ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+                status: StatusCodes.OK,
                 data: {
                     msg: forms ? "Got forms" : "Cannot find forms",
                     forms: forms,

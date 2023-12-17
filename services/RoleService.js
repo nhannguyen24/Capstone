@@ -1,5 +1,6 @@
 const db = require('../models');
 const { Op } = require('sequelize');
+const { StatusCodes } = require("http-status-codes");
 
 const getAllRoles = ({ roleName, ...query }) => new Promise(async (resolve, reject) => {
     try {
@@ -11,7 +12,7 @@ const getAllRoles = ({ roleName, ...query }) => new Promise(async (resolve, reje
             ...queries,
         });
         resolve({
-            status: roles ? 200 : 404,
+            status: StatusCodes.OK,
             data: {
                 msg: roles ? `Got role` : 'Cannot find role',
                 roles: roles

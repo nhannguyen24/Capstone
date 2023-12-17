@@ -57,7 +57,7 @@ const getAllStation = (
                             }
                             
                             resolve({
-                                status: stations ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+                                status: StatusCodes.OK,
                                 data: {
                                     msg: stations ? "Got stations" : "Cannot find stations",
                                     stations: stations,

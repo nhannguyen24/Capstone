@@ -63,7 +63,7 @@ const getAllUsers = ({ page, limit, order, userName, email, status, roleName, ..
 
 
           resolve({
-            status: users ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+            status: StatusCodes.OK,
             data: {
               msg: users ? "Got user" : "User not found!",
               users: users,

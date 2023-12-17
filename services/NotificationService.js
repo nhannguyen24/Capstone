@@ -48,7 +48,7 @@ const getAllNotification = (
             });
 
             resolve({
-                status: notifications ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+                status: StatusCodes.OK,
                 data: {
                     msg: notifications ? "Got notifications" : "Cannot find notifications",
                     notifications: notifications,
