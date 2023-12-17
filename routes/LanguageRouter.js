@@ -73,7 +73,7 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  *               items:
  *                 $ref: '#/components/schemas/Language'
  */
-router.get("/", verifyToken, controllers.getAllLanguage);
+router.get("/", controllers.getAllLanguage);
 
 /**
  * @swagger
