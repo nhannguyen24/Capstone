@@ -2022,23 +2022,23 @@ const updateTour = (id, { images, ...body }) =>
         let transaction
         try {
             transaction = await db.sequelize.transaction(async (t) => {
-                const tour = await db.Tour.findOne({
-                    where: {
-                        tourName: body?.tourName,
-                        tourId: {
-                            [Op.ne]: id
-                        }
-                    }
-                })
+                // const tour = await db.Tour.findOne({
+                //     where: {
+                //         tourName: body?.tourName,
+                //         tourId: {
+                //             [Op.ne]: id
+                //         }
+                //     }
+                // })
 
-                if (tour !== null) {
-                    resolve({
-                        status: StatusCodes.CONFLICT,
-                        data: {
-                            msg: "Tour name already exists"
-                        }
-                    })
-                } else {
+                // if (tour !== null) {
+                //     resolve({
+                //         status: StatusCodes.CONFLICT,
+                //         data: {
+                //             msg: "Tour name already exists"
+                //         }
+                //     })
+                // } else {
                     const currentDate = new Date()
                     currentDate.setHours(currentDate.getHours() + 7)
                     const tDepartureDate = new Date(body.departureDate)
@@ -2288,7 +2288,7 @@ const updateTour = (id, { images, ...body }) =>
                         })
 
                     }
-                }
+                // }
                 await t.commit()
             })
         } catch (error) {

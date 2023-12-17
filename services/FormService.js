@@ -258,7 +258,7 @@ const updateForm = (id, body) =>
                     transaction: t
                 });
 
-                if (body.status == STATUS.APPROVED) {
+                if (body.status == STATUS.APPROVED) { 
                     const form = await db.Form.findOne({
                         where: { formId: id },
                         raw: true,
