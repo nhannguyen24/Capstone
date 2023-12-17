@@ -727,34 +727,6 @@ const createBookingWeb = async (req) => {
         }
 
         /**
-         * Sending OTP 
-        */
-        const otp = await db.Otp.findOne({
-            where: {
-                otpType: OTP_TYPE.BOOKING_TOUR,
-                userId: resultUser[0].dataValues.userId
-            }
-        })
-
-        if (!otp) {
-            return {
-                status: StatusCodes.FORBIDDEN,
-                data: {
-                    msg: `Action not allow, Please validate OTP!`,
-                }
-            }
-        }
-
-        if (!otp.isAllow) {
-            return {
-                status: StatusCodes.FORBIDDEN,
-                data: {
-                    msg: `Action not allow, Please validate OTP!`,
-                }
-            }
-        }
-
-        /**
          * Checking if tour, departure station exist
          */
         let station
@@ -912,8 +884,11 @@ const createBookingWeb = async (req) => {
         })
 
         //If not found => Check ticket is depend on guardian
-        if (checkSameTourbookedBoking === null || checkSameTourbookedBoking === undefined) {
-            if (!isValidTickets) {
+        console.log(checkSameTourbookedBoking)
+        if (!isValidTickets) {
+            console.log("Ticket not valid")
+            if (!checkSameTourbookedBoking) {
+                console.log("Inside check booking")
                 return {
                     status: StatusCodes.BAD_REQUEST,
                     data: {
@@ -959,6 +934,34 @@ const createBookingWeb = async (req) => {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
                     msg: `Tickets available ${availableSeats}, but you requested ${seatBookingQuantity}`,
+                }
+            }
+        }
+
+        /**
+         * Sending OTP 
+        */
+        const otp = await db.Otp.findOne({
+            where: {
+                otpType: OTP_TYPE.BOOKING_TOUR,
+                userId: resultUser[0].dataValues.userId
+            }
+        })
+
+        if (!otp) {
+            return {
+                status: StatusCodes.FORBIDDEN,
+                data: {
+                    msg: `Action not allow, Please validate OTP!`,
+                }
+            }
+        }
+
+        if (!otp.isAllow) {
+            return {
+                status: StatusCodes.FORBIDDEN,
+                data: {
+                    msg: `Action not allow, Please validate OTP!`,
                 }
             }
         }
