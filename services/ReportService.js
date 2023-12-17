@@ -37,6 +37,11 @@ const getReports = async (req) => {
                         attributes: ["roleId", "roleName"],
                     }
                 },
+                {
+                    model: db.Tour,
+                    as: "report_tour",
+                    attributes: ["tourId", "tourName"]
+                }
             ],
             attributes: {
                 exclude: ["reportUserId", "responseUserId"]
@@ -89,6 +94,11 @@ const getReportsById = async (reportId) => {
                         attributes: ["roleId", "roleName"],
                     }
                 },
+                {
+                    model: db.Tour,
+                    as: "report_tour",
+                    attributes: ["tourId", "tourName"]
+                }
             ],
         });
 
