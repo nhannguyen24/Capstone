@@ -288,6 +288,21 @@ const updateTicket = async (req) => {
                 }
             }
         }
+        const checkBookedTicket = await db.bookingDetail.findOne({
+            where: {
+                ticketId: ticketId,
+                status: STATUS.ACTIVE
+            }
+        })
+
+        if(checkBookedTicket){
+            return {
+                status: StatusCodes.BAD_REQUEST,
+                data: {
+                    msg: `Cannot update, ticket has already been booked!`,
+                }
+            }
+        }
 
         if (ticketTypeId.trim() !== "") {
             const ticketType = await db.TicketType.findOne({
@@ -421,14 +436,30 @@ const deleteTicket = async (ticketId) => {
             }
         }
 
-        const tickets = await db.Ticket.findAll({
+        const checkBookedTicket = await db.bookingDetail.findOne({
             where: {
-                tourId: ticket.tourId
+                ticketId: ticketId,
+                status: STATUS.ACTIVE
             }
         })
 
-        const activeTickets = tickets.filter((ticket) => ticket.status === STATUS.ACTIVE)
-        if (activeTickets.length < 2) {
+        if(checkBookedTicket){
+            return {
+                status: StatusCodes.BAD_REQUEST,
+                data: {
+                    msg: `Cannot update, ticket has already been booked!`,
+                }
+            }
+        }
+
+        const tickets = await db.Ticket.findAll({
+            where: {
+                tourId: ticket.tourId,
+                status: STATUS.ACTIVE
+            }
+        })
+
+        if (tickets.length < 2) {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
