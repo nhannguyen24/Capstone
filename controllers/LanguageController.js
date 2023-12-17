@@ -4,8 +4,7 @@ const { StatusCodes } = require("http-status-codes");
 
 const getAllLanguage = async (req, res) => {
     try {
-        const { roleName } = req.user;
-        const response = await services.getAllLanguage(req.query, roleName);
+        const response = await services.getAllLanguage(req.query);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
