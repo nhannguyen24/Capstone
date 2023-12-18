@@ -759,6 +759,19 @@ const createBookingWeb = async (req) => {
             }
         }
 
+        // const currentDate = new Date()
+        // const endBookingDate = new Date(tour.endBookingDate)
+        // currentDate.setHours(currentDate.getHours() +7)
+
+        // if(endBookingDate < currentDate){
+        //     return {
+        //         status: StatusCodes.BAD_REQUEST,
+        //         data: {
+        //             msg: `Booking date ended!`,
+        //         }
+        //     }
+        // }
+
         station = await db.Station.findOne({
             where: {
                 stationId: departureStationId
