@@ -48,14 +48,16 @@ const router = express.Router();
  *           enum: 
  *              - MOMO
  *              - Cash
+ *              - PAY-OS
  *         description: Search by transaction type
  *       - in: query
  *         name: status
  *         schema:
  *           type: string
  *           enum:
- *              - Active
- *              - Deactive
+ *              - DRAFT
+ *              - PAID
+ *              - REFUNDED
  *         description: Filter by status
  * 
  *     responses:
@@ -67,6 +69,58 @@ const router = express.Router();
  *               type: object
  */
 router.get("/", verifyToken, roleAuthen(["Manager", "Customer"]), controllers.getTransactions);
+
+/**
+ * @swagger
+ * /api/v1/transactions/paid-manager:
+ *   get:
+ *     security: 
+ *         - BearerAuth: []
+ *     summary: Get transactions of tour for paid back to manager
+ *     tags: [Transaction]
+ *     parameters:
+ *       - in: query
+ *         name: tourId
+ *         schema:
+ *           type: string
+ *         required: true
+ *           example: 014b7e96-2587-40a2-8962-007e82438570
+ *         description: Search by tourId
+ * 
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ */
+router.get("/paid-manager", verifyToken, roleAuthen(["Manager"]), controllers.getTourTransactionOfflineForPaidBackToManager)
+
+/**
+ * @swagger
+ * /api/v1/transactions/paid-manager:
+ *   put:
+ *     security: 
+ *         - BearerAuth: []
+ *     summary: Manager receive money from booking offline and change status
+ *     tags: [Transaction]
+ *     parameters:
+ *       - in: query
+ *         name: tourId
+ *         schema:
+ *           type: string
+ *         required: true
+ * 
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ */
+router.put("/paid-manager", verifyToken, roleAuthen(["Manager"]), controllers.paidBackToManager)
 
 /**
  * @swagger
