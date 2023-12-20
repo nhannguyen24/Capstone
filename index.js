@@ -8,9 +8,14 @@ const initRoutes = require("./routes/Index");
 const swaggerUi = require("swagger-ui-express");
 const swaggerJSDoc = require("swagger-jsdoc");
 require("./config/ConnectionDatabase");
+const compression = require('compression');
 
+app.use(
+  compression({
+    threshold: 0
+  })
+)
 app.use(express.urlencoded({ extended: false }));
-
 app.use(express.static("client"));
 
 app.use(
@@ -71,11 +76,11 @@ const start = () => {
   try {
     app.listen(PORT, () => {
       console.log(`Server is listening on ${PORT}...`);
-      cron.schedule('*/30 * * * *', () => {
-        deleteExpiredOtp()
-        deleteUnPaidBooking()
-        rejectForm()
-      })
+      // cron.schedule('*/30 * * * *', () => {
+      //   deleteExpiredOtp()
+      //   deleteUnPaidBooking()
+      //   rejectForm()
+      // })
       cron.schedule('00 00,00 * * *', () => {
         cancelTourAndRefundIfUnderbooked()
       })

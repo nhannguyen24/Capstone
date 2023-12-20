@@ -3,8 +3,7 @@ const { Op } = require("sequelize");
 const { StatusCodes } = require("http-status-codes");
 
 const getAllLanguage = (
-    { page, limit, order, language, address, status, ...query },
-    roleName
+    { page, limit, order, language, address, status, ...query }
 ) =>
     new Promise(async (resolve, reject) => {
         try {
@@ -19,9 +18,6 @@ const getAllLanguage = (
             }
             if (language) query.language = { [Op.substring]: language };
             if (status) query.status = { [Op.eq]: status };
-            if (roleName !== "Admin") {
-                query.status = { [Op.notIn]: ['Deactive'] };
-            }
             const languages = await db.Language.findAll({
                 where: query,
                 ...queries,

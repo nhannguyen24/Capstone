@@ -1417,21 +1417,6 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                 continue
             }
 
-            const resultTour = await db.Tour.findOne({
-                raw: true,
-                nest: true,
-                where: {
-                    tourName: tour.tourName
-                },
-            })
-
-            if (resultTour) {
-                let error = `Tour name existed: ${tour.tourName}`
-                errors.push({ line: i, tourError: error })
-                i++
-                continue
-            }
-
             const station = await db.Route.findAll({
                 raw: true,
                 nest: true,
@@ -3510,7 +3495,7 @@ const createTourDemo = () =>
                         beginBookingDate: tourBeginBookingDate,
                         endBookingDate: tourEndBookingDate,
                         departureDate: tDepartureDate,
-                        tourName: "Chuyến đi xa nhà cùng gia đình tới Nha Trang",
+                        tourName: "Chuyến đi xa nhà thú vị cùng bạn bè ở Nha Trang",
                         departureStationId: uniqueStationArray[0],
                         tourGuideId: chosenTourGuide.userId,
                         driverId: chosenDriver.userId,
@@ -3526,7 +3511,7 @@ const createTourDemo = () =>
                         beginBookingDate: tourBeginBookingDate,
                         endBookingDate: tourEndBookingDate,
                         departureDate: tDepartureDate,
-                        tourName: "Chuyến đi xa nhà cùng gia đình tới Nha Trang",
+                        tourName: "Chuyến đi xa nhà thú vị cùng bạn bè ở Nha Trang",
                         departureStationId: uniqueStationArray[0],
                         description: "Chuyến đi có cảnh đẹp",
                         routeId: "5598c174-335b-441e-9151-25106f402ee4",
