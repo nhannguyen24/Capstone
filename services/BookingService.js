@@ -1044,7 +1044,7 @@ const createBookingWeb = async (req) => {
             await db.sequelize.transaction(async (t) => {
                 booking = await db.Booking.create({ totalPrice: totalPrice, customerId: resultUser[0].dataValues.userId, departureStationId: station.stationId, bookingStatus: BOOKING_STATUS.DRAFT }, { transaction: t });
 
-                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, status: STATUS.DRAFT }, { transaction: t })
+                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, isPaidToManager: false, status: STATUS.DRAFT }, { transaction: t })
 
                 for (const ticket of ticketList) {
                     await db.BookingDetail.create({ ticketPrice: ticket.price.amount, bookingId: booking.bookingId, ticketId: ticket.ticketId, quantity: ticket.quantity, status: STATUS.DRAFT }, { transaction: t });
@@ -1346,7 +1346,7 @@ const createBookingOffline = async (req) => {
             await db.sequelize.transaction(async (t) => {
                 booking = await db.Booking.create({ totalPrice: totalPrice, customerId: userId, departureStationId: station.stationId, isAttended: false, bookingStatus: BOOKING_STATUS.DRAFT }, { transaction: t });
 
-                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, transactionType: TRANSACTION_TYPE.CASH, status: STATUS.DRAFT }, { transaction: t })
+                await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, transactionType: TRANSACTION_TYPE.CASH, isPaidToManager: false, status: STATUS.DRAFT }, { transaction: t })
 
                 for (const ticket of ticketList) {
                     await db.BookingDetail.create({ ticketPrice: ticket.price.amount, bookingId: booking.bookingId, ticketId: ticket.ticketId, quantity: ticket.quantity, status: STATUS.DRAFT }, { transaction: t });
