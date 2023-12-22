@@ -19,10 +19,9 @@ module.exports = {
       departureStation: {
         type: Sequelize.STRING,
       },
-      tourStatus: {
-        type: Sequelize.ENUM,
-        values: ["Available", "Started", "Canceled", "Finished"],
-        defaultValue: 'Available',
+      isScheduled: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
       },
       tourId: {
         type: Sequelize.UUID,
@@ -51,6 +50,11 @@ module.exports = {
           model: 'buses',
           key: 'busId'
         }
+      },
+      tourStatus: {
+        type: Sequelize.ENUM,
+        values: ["Available", "Started", "Canceled", "Finished"],
+        defaultValue: 'Available',
       },
       status: {
         type: Sequelize.ENUM,

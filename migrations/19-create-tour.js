@@ -15,14 +15,6 @@ module.exports = {
       description: {
         type: Sequelize.STRING,
       },
-      departureDate: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
-      endDate: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
       duration: {
         type: Sequelize.TIME,
         allowNull: false,
@@ -34,10 +26,6 @@ module.exports = {
       geoJson: {
         type: Sequelize.JSON,
         allowNull: false,
-      },
-      isScheduled: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: false,
       },
       status: {
         type: Sequelize.ENUM,

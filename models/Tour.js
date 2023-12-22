@@ -29,7 +29,6 @@ module.exports = (sequelize, DataTypes) => {
     duration: DataTypes.TIME,
     distance: DataTypes.DECIMAL(18,2),
     geoJson: DataTypes.JSON,
-    isScheduled: DataTypes.BOOLEAN,
     status: {
       type: DataTypes.ENUM,
       values: ["Active", "Deactive"],
