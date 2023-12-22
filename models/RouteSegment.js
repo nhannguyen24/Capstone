@@ -11,9 +11,9 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      RouteSegment.belongsTo(models.Route, {
-        foreignKey: 'routeId',
-        as: 'segment_route'
+      RouteSegment.belongsTo(models.Tour, {
+        foreignKey: 'tourId',
+        as: 'segment_tour'
       });
       
       RouteSegment.belongsTo(models.Station, {
@@ -44,7 +44,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     // stopoverTime: DataTypes.TIME,
     index: DataTypes.INTEGER,
-    routeId: {
+    tourId: {
       type: DataTypes.UUID
     },
     departureStationId: {

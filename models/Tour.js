@@ -11,29 +11,15 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Tour.belongsTo(models.Route, {
-        foreignKey: "routeId",
-        targetKey: 'routeId',
-        as: "tour_route",
-      });
       
+      // Tour.belongsTo(models.Route, {
+      //   foreignKey: "routeId",
+      //   targetKey: 'routeId',
+      //   as: "tour_route",
+      // });
+      Tour.hasMany(models.RouteSegment, { as: 'tour_segment', foreignKey: 'tourId'});
       Tour.hasMany(models.Ticket, { as: 'tour_ticket', foreignKey: 'tourId'});
       Tour.hasOne(models.Report, { as: 'tour_report', foreignKey: 'tourId'});
-      
-      Tour.belongsTo(models.Bus, {
-        foreignKey: 'busId',
-        as: 'tour_bus'
-      });
-      
-      Tour.belongsTo(models.User, {
-        foreignKey: 'tourGuideId',
-        as: 'tour_tourguide'
-      });
-      
-      Tour.belongsTo(models.User, {
-        foreignKey: 'driverId',
-        as: 'tour_driver'
-      });
       
       Tour.hasMany(models.Image, { as: 'tour_image', foreignKey: 'tourId'});
     }
@@ -46,24 +32,10 @@ module.exports = (sequelize, DataTypes) => {
     },
     tourName: DataTypes.STRING,
     description: DataTypes.STRING,
-    beginBookingDate: DataTypes.DATE,
-    endBookingDate: DataTypes.DATE,
-    departureDate: DataTypes.DATE,
     duration: DataTypes.TIME,
+    distance: DataTypes.DECIMAL(18,2),
+    geoJson: DataTypes.JSON,
     isScheduled: DataTypes.BOOLEAN,
-    routeId: {
-      type: DataTypes.UUID
-    },
-    departureStationId: DataTypes.STRING,
-    tourGuideId: {
-      type: DataTypes.UUID
-    },
-    driverId: {
-      type: DataTypes.UUID
-    },
-    busId: {
-      type: DataTypes.UUID
-    },
     tourStatus: {
       type: DataTypes.ENUM,
       values: ["Available", "Started", "Canceled", "Finished"],

@@ -2,23 +2,21 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Routes', {
-      routeId: {
+    await queryInterface.createTable('TicketTypes', {
+      ticketTypeId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      routeName: {
+      ticketTypeName: {
         type: Sequelize.STRING,
 	      allowNull: false,
       },
-      distance: {
-        type: Sequelize.DECIMAL(18,2),
-	      allowNull: false,
+      description: {
+        type: Sequelize.STRING,
       },
-      geoJson: {
-        type: Sequelize.JSON,
-        allowNull: false,
+      dependsOnGuardian: {
+        type: Sequelize.BOOLEAN,
       },
       status: {
         type: Sequelize.ENUM,
@@ -38,6 +36,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Routes');
+    await queryInterface.dropTable('TicketTypes');
   }
 };

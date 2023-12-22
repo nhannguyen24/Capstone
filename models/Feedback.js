@@ -16,10 +16,10 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'userId',
         as: "feedback_user",
       });
-      Feedback.belongsTo(models.Route, {
-        foreignKey: "routeId",
-        targetKey: 'routeId',
-        as: "feedback_route",
+      Feedback.belongsTo(models.Tour, {
+        foreignKey: "tourId",
+        targetKey: 'tourId',
+        as: "feedback_tour",
       });
       // Feedback.hasMany(models.Image, { as: 'feedback_image', foreignKey: 'feedbackId'});
     }
@@ -34,7 +34,7 @@ module.exports = (sequelize, DataTypes) => {
     userId: {
       type: DataTypes.UUID
     },
-    routeId: {
+    tourId: {
       type: DataTypes.UUID
     },
     stars: {

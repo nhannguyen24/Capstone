@@ -15,20 +15,24 @@ module.exports = {
       description: {
         type: Sequelize.STRING,
       },
-      beginBookingDate: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
-      endBookingDate: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
       departureDate: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
+      endDate: {
         type: Sequelize.DATE,
         allowNull: false,
       },
       duration: {
         type: Sequelize.TIME,
+        allowNull: false,
+      },
+      distance: {
+        type: Sequelize.DECIMAL(18, 2),
+        allowNull: false,
+      },
+      geoJson: {
+        type: Sequelize.JSON,
         allowNull: false,
       },
       isScheduled: {
@@ -37,34 +41,6 @@ module.exports = {
       },
       departureStationId: {
         type: Sequelize.STRING,
-      },
-      routeId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'routes',
-          key: 'routeId'
-        }
-      },
-      tourGuideId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'users',
-          key: 'userId'
-        }
-      },
-      driverId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'users',
-          key: 'userId'
-        }
-      },
-      busId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'buses',
-          key: 'busId'
-        }
       },
       tourStatus: {
         type: Sequelize.ENUM,

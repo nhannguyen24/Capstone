@@ -19,11 +19,11 @@ module.exports = {
           key: 'userId'
         }
       },
-      routeId: {
+      tourId: {
         type: Sequelize.UUID,
         references: {
-          model: 'routes',
-          key: 'routeId'
+          model: 'tours',
+          key: 'tourId'
         }
       },
       status: {

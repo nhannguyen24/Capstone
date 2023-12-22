@@ -2,18 +2,18 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('RouteSegments', {
-      routeSegmentId: {
+    await queryInterface.createTable('Schedules', {
+      scheduleId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      // stopoverTime: {
-      //   type: Sequelize.TIME,
-      //   allowNull: false,
-      // },
-      index: {
-        type: Sequelize.INTEGER,
+      departureDate: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
+      endDate: {
+        type: Sequelize.DATE,
         allowNull: false,
       },
       tourId: {
@@ -23,18 +23,25 @@ module.exports = {
           key: 'tourId'
         }
       },
-      departureStationId: {
+      tourGuideId: {
         type: Sequelize.UUID,
         references: {
-          model: 'stations',
-          key: 'stationId'
+          model: 'users',
+          key: 'userId'
         }
       },
-      endStationId: {
+      driverId: {
         type: Sequelize.UUID,
         references: {
-          model: 'stations',
-          key: 'stationId'
+          model: 'users',
+          key: 'userId'
+        }
+      },
+      busId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'buses',
+          key: 'busId'
         }
       },
       status: {
@@ -55,6 +62,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('RouteSegments');
+    await queryInterface.dropTable('Schedules');
   }
 };
