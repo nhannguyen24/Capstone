@@ -83,9 +83,9 @@ router.get("/", verifyToken, roleAuthen(["Manager", "Customer"]), controllers.ge
  *         name: tourId
  *         schema:
  *           type: string
- *         required: true
  *           example: 014b7e96-2587-40a2-8962-007e82438570
  *         description: Search by tourId
+ *         required: true
  * 
  *     responses:
  *       200:
