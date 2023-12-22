@@ -26,11 +26,6 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'poiId',
         as: "image_poi",
       });
-      Image.belongsTo(models.Product, {
-        foreignKey: "productId",
-        targetKey: 'productId',
-        as: "image_product",
-      });
     }
   }
   Image.init({
@@ -47,9 +42,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.UUID,
     },
     poiId: {
-      type: DataTypes.UUID,
-    },
-    productId: {
       type: DataTypes.UUID,
     },
     status: {

@@ -11,16 +11,10 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      
-      // Tour.belongsTo(models.Route, {
-      //   foreignKey: "routeId",
-      //   targetKey: 'routeId',
-      //   as: "tour_route",
-      // });
+      Tour.hasMany(models.Schedule, { as: 'tour_schedule', foreignKey: 'tourId'});
       Tour.hasMany(models.RouteSegment, { as: 'tour_segment', foreignKey: 'tourId'});
       Tour.hasMany(models.Ticket, { as: 'tour_ticket', foreignKey: 'tourId'});
       Tour.hasOne(models.Report, { as: 'tour_report', foreignKey: 'tourId'});
-      
       Tour.hasMany(models.Image, { as: 'tour_image', foreignKey: 'tourId'});
     }
   }

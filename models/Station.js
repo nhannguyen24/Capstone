@@ -15,17 +15,17 @@ module.exports = (sequelize, DataTypes) => {
       // Station.hasMany(models.RouteSegment, { as: 'departure_station_segment', foreignKey: 'stationId'});
       // Station.hasMany(models.RouteSegment, { as: 'end_station_segment', foreignKey: 'stationId'});
       
-      Station.belongsToMany(models.Route, {
+      Station.belongsToMany(models.Tour, {
         through: 'RouteSegment',
         foreignKey: 'departureStationId',
-        otherKey: 'routeId',
+        otherKey: 'tourId',
         as: "departure_station_segment",
       });
 
-      Station.belongsToMany(models.Route, {
+      Station.belongsToMany(models.Tour, {
         through: 'RouteSegment',
         foreignKey: 'endStationId',
-        otherKey: 'routeId',
+        otherKey: 'tourId',
         as: "end_station_segment",
       });
     }
