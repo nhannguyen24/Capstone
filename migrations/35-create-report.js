@@ -16,12 +16,35 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      customerId: {
+      reportUserId: {
         type: Sequelize.UUID,
         references: {
           model: 'users',
           key: 'userId'
         }
+      },
+      response: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      scheduleId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'schedules',
+          key: 'scheduleId'
+        }
+      },
+      responseUserId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'users',
+          key: 'userId'
+        }
+      },
+      reportStatus: {
+        type: Sequelize.ENUM,
+        values: ["Approved", "Pending", "Rejected"],
+        defaultValue: 'Pending',
       },
       status: {
         type: Sequelize.ENUM,

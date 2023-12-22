@@ -21,6 +21,12 @@ module.exports = (sequelize, DataTypes) => {
         as: "booking_departure_station",
       });
 
+      Booking.belongsTo(models.Schedule, {
+        foreignKey: "scheduleId",
+        targetKey: 'scheduleId',
+        as: "booking_schedule",
+      });
+
       Booking.hasOne(models.Transaction, { as: 'booking_transaction', foreignKey: 'bookingId' });
 
       Booking.belongsToMany(models.TicketType, {
@@ -44,6 +50,9 @@ module.exports = (sequelize, DataTypes) => {
     bookingCode: DataTypes.STRING,
     totalPrice: DataTypes.INTEGER,
     customerId: {
+      type: DataTypes.UUID
+    },
+    scheduleId: {
       type: DataTypes.UUID
     },
     departureStationId: {

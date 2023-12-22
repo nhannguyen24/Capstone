@@ -31,6 +31,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'driverId',
         as: 'schedule_driver'
       });
+
+      Schedule.hasMany(models.Booking, { as: 'schedule_booking', foreignKey: 'scheduleId'});
+      Schedule.hasMany(models.Tracking, { as: 'schedule_tracking', foreignKey: 'scheduleId'});
+      Schedule.hasMany(models.Booking, { as: 'schedule_booking', foreignKey: 'scheduleId'});
     }
   }
   Schedule.init({
@@ -55,13 +59,13 @@ module.exports = (sequelize, DataTypes) => {
     busId: {
       type: DataTypes.UUID
     },
-    tourStatus: {
+    scheduleStatus: {
       type: DataTypes.ENUM,
       values: ["Available", "Started", "Canceled", "Finished"],
       validate: {
         isIn: {
           args: [["Available", "Started", "Canceled", "Finished"]],
-          msg: 'Invalid value for tour.status (Available, Started, Canceled, Finished)'
+          msg: 'Invalid value for schedule.status (Available, Started, Canceled, Finished)'
         }
       }
     },
@@ -71,7 +75,7 @@ module.exports = (sequelize, DataTypes) => {
       validate: {
         isIn: {
           args: [["Active", "Deactive"]],
-          msg: 'Invalid value for tour.status (Active, Deactive)'
+          msg: 'Invalid value for schedule.status (Active, Deactive)'
         }
       }
     },

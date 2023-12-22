@@ -12,11 +12,11 @@ module.exports = {
         type: Sequelize.JSON,
         allowNull: false,
       },
-      tourId: {
+      scheduleId: {
         type: Sequelize.UUID,
         references: {
-          model: 'tours',
-          key: 'tourId'
+          model: 'schedules',
+          key: 'scheduleId'
         }
       },
       busId: {

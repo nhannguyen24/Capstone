@@ -8,12 +8,16 @@ module.exports = {
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      date: {
-        type: Sequelize.DATE,
-        allowNull: false,
+      transactionCode: {
+        type: Sequelize.ENUM,
+        values: ["MOMO", "PAY-OS", "Cash"],
       },
       amount: {
-        type: Sequelize.DECIMAL(3,3),
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      transactionType: {
+        type: Sequelize.DECIMAL(3, 3),
         allowNull: false,
       },
       bookingId: {
@@ -23,10 +27,14 @@ module.exports = {
           key: 'bookingId'
         }
       },
+      refundAmount: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
       status: {
         type: Sequelize.ENUM,
-        values: ["Active", "Deactive"],
-        defaultValue: 'Active',
+        values: ["Draft", "Paid", "Refunded"],
+        defaultValue: 'Draft',
       },
       createdAt: {
         allowNull: false,

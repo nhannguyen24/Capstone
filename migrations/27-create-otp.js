@@ -8,7 +8,7 @@ module.exports = {
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      otp: {
+      otpCode: {
         type: Sequelize.STRING,
         allowNull: false,
       },
@@ -27,9 +27,9 @@ module.exports = {
           key: 'userId'
         }
       },
-      type: {
+      otpType: {
         type: Sequelize.ENUM,
-        values: ["ChangePassword", "GetBookingByEmail", "BookingTour"],
+        values: ["ChangePassword", "GetBookingByEmail", "BookingTour", "CancelBooking", "ForgotPassword"],
       },
       status: {
         type: Sequelize.ENUM,

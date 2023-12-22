@@ -11,9 +11,9 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Tracking.belongsTo(models.Tour, {
-        foreignKey: "tourId",
-        as: "tracking_tour",
+      Tracking.belongsTo(models.Schedule, {
+        foreignKey: "scheduleId",
+        as: "tracking_schedule",
       });
 
       Tracking.belongsTo(models.Bus, {
@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
     },
     coordinates: DataTypes.JSON,
-    tourId: {
+    scheduleId: {
       type: DataTypes.UUID
     },
     busId: {

@@ -20,6 +20,10 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
+      isAttended: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+      },
       customerId: {
         type: Sequelize.UUID,
         references: {
@@ -27,9 +31,20 @@ module.exports = {
           key: 'userId'
         }
       },
+      departureStationId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'stations',
+          key: 'stationId'
+        }
+      },
+      endPaymentTime: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
       bookingStatus: {
         type: Sequelize.ENUM,
-        values: ["Ongoing", "Canceled", "Finished"],
+        values: ["Draft", "Ongoing", "Canceled", "Finished"],
         defaultValue: 'Ongoing',
       },
       status: {
