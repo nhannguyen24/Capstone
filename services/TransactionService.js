@@ -1,5 +1,7 @@
 const { StatusCodes } = require('http-status-codes');
 const db = require('../models');
+const STATUS = require('../enums/StatusEnum')
+const TRANSACTION_TYPE = require('../enums/TransactionTypeEnum')
 const { Op } = require('sequelize');
 
 const getTransactions = async (req) => {
@@ -14,19 +16,19 @@ const getTransactions = async (req) => {
 
         let whereClause = {}
 
-        if(transactionCode.trim() !== ""){
+        if (transactionCode.trim() !== "") {
             whereClause.transactionCode = transactionCode
         }
 
-        if(transactionType.trim() !== ""){
+        if (transactionType.trim() !== "") {
             whereClause.transactionType = transactionType
         }
-        
-        if(bookingId.trim() !== ""){
+
+        if (bookingId.trim() !== "") {
             whereClause.bookingId = bookingId
         }
 
-        if(status !== ""){
+        if (status !== "") {
             whereClause.status = status
         }
 
@@ -39,7 +41,7 @@ const getTransactions = async (req) => {
                 {
                     model: db.Booking,
                     as: "transaction_booking",
-                    attributes: {exclude: ["createdAt", "updatedAt"]}
+                    attributes: { exclude: ["createdAt", "updatedAt"] }
                 }
             ],
             limit: limit,
@@ -50,7 +52,7 @@ const getTransactions = async (req) => {
             where: whereClause,
         });
 
-        return{
+        return {
             status: StatusCodes.OK,
             data: {
                 msg: `Get transactions successfully`,
@@ -67,12 +69,197 @@ const getTransactions = async (req) => {
         console.error(error);
     }
 }
+const getTourTransactionOfflineForPaidBackToManager = async (tourId) => {
+    try {
+        const tour = await db.Tour.findOne({
+            where: {
+                tourId: tourId
+            }
+        })
+        if (!tour) {
+            return {
+                status: StatusCodes.NOT_FOUND,
+                data: {
+                    msg: "Tour not found!"
+                }
+            }
+        }
+
+        const tourData = await db.Tour.findOne({
+            where: {
+                tourId: tourId
+            },
+            include: {
+                model: db.Ticket,
+                as: "tour_ticket",
+                include: {
+                    model: db.BookingDetail,
+                    as: "ticket_booking_detail",
+                    group: "bookingId",
+                    include: {
+                        model: db.Booking,
+                        as: "detail_booking",
+                        include: {
+                            model: db.Transaction,
+                            as: "booking_transaction",
+                            where: {
+                                transactionType: TRANSACTION_TYPE.CASH,
+                                status: STATUS.PAID
+                            },
+                        }
+                    }
+                }
+            },
+        })
+        let isPaidToManager = false
+        const uniqueTransactions = new Set();
+        const filteredBookingTransactions = tourData.tour_ticket
+            .flatMap((ticket) =>
+                ticket.ticket_booking_detail
+                    .filter((bookingDetail) =>
+                        bookingDetail.detail_booking && bookingDetail.detail_booking.booking_transaction
+                    )
+                    .map((bookingDetail) => bookingDetail.detail_booking.booking_transaction)
+            )
+            .filter((transaction) => {
+                if (transaction && transaction.transactionId) {
+                    if (!uniqueTransactions.has(transaction.transactionId)) {
+                        uniqueTransactions.add(transaction.transactionId);
+                        return true
+                    }
+                    if (transaction.isPaidToManager === true) {
+                        isPaidToManager = true
+                    }
+                }
+                return false
+            })
+        const totalAmount = filteredBookingTransactions.reduce((total, transaction) => total + transaction.amount, 0)
+
+        return {
+            status: StatusCodes.OK,
+            data: {
+                msg: `Get transactions for paid back successfully`,
+                totalAmount: totalAmount,
+                isPaidToManager: isPaidToManager,
+                transactions: filteredBookingTransactions
+            }
+        }
+
+    } catch (error) {
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data: {
+                msg: "Something went wrong while fetching transactions!"
+            }
+        }
+    }
+}
+
+const paidBackToManager = async (tourId) => {
+    try {
+        const tour = await db.Tour.findOne({
+            where: {
+                tourId: tourId
+            }
+        })
+        if (!tour) {
+            return {
+                status: StatusCodes.NOT_FOUND,
+                data: {
+                    msg: "Tour not found!"
+                }
+            }
+        }
+
+        const tourData = await db.Tour.findOne({
+            where: {
+                tourId: tourId
+            },
+            include: {
+                model: db.Ticket,
+                as: "tour_ticket",
+                include: {
+                    model: db.BookingDetail,
+                    as: "ticket_booking_detail",
+                    group: "bookingId",
+                    include: {
+                        model: db.Booking,
+                        as: "detail_booking",
+                        include: {
+                            model: db.Transaction,
+                            as: "booking_transaction",
+                            where: {
+                                transactionType: TRANSACTION_TYPE.CASH,
+                                isPaidToManager: false,
+                                status: STATUS.PAID
+                            },
+                        }
+                    }
+                }
+            },
+        })
+
+        const uniqueTransactions = new Set();
+        const filteredBookingTransactions = tourData.tour_ticket
+            .flatMap((ticket) =>
+                ticket.ticket_booking_detail
+                    .filter((bookingDetail) =>
+                        bookingDetail.detail_booking && bookingDetail.detail_booking.booking_transaction
+                    )
+                    .map((bookingDetail) => bookingDetail.detail_booking.booking_transaction)
+            )
+            .filter((transaction) => {
+                if (transaction && transaction.transactionId) {
+                    if (!uniqueTransactions.has(transaction.transactionId)) {
+                        uniqueTransactions.add(transaction.transactionId);
+                        return true
+                    }
+                }
+                return false
+            })
+
+            if(filteredBookingTransactions.length === 0){
+                return {
+                    status: StatusCodes.NOT_FOUND,
+                    data: {
+                        msg: "Tour got no offline bookings or already paid back to manager!"
+                    }
+                }
+            }
+
+            filteredBookingTransactions.map((transaction) => {
+                db.Transaction.update({isPaidToManager: true}, {
+                    where: {
+                        transactionId: transaction.transactionId
+                    }
+                })
+            })
+
+        return {
+            status: StatusCodes.OK,
+            data: {
+                msg: `Update paid back to manager successfully!`,
+                isPaidToManager: true
+            }
+        }
+
+    } catch (error) {
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data: {
+                msg: "Something went wrong while update paid back to manager!"
+            }
+        }
+    }
+}
 
 const getTransactionById = async (transactionId) => {
     try {
         const transaction = await db.Transaction.findOne({
             where: {
-                transtionId: transactionId
+                transactionId: transactionId
             },
             order: [
                 ["updatedAt", "DESC"]
@@ -88,7 +275,7 @@ const getTransactionById = async (transactionId) => {
             }
         });
 
-        return{
+        return {
             status: transaction ? StatusCodes.OK : StatusCodes.NOT_FOUND,
             data: transaction ? {
                 msg: `Get list of transactions successfully`,
@@ -104,4 +291,4 @@ const getTransactionById = async (transactionId) => {
     }
 }
 
-module.exports = { getTransactions, getTransactionById };
+module.exports = { getTransactions, getTransactionById, getTourTransactionOfflineForPaidBackToManager, paidBackToManager };

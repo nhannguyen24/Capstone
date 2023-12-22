@@ -602,6 +602,7 @@ const getPayOsPaymentResponse = async (req) => {
         db.Transaction.update(
           {
             transactionType: TRANSACTION_TYPE.PAY_OS,
+            isPaidToManager: true,
             status: STATUS.PAID,
           },
           {
@@ -808,6 +809,7 @@ const getMoMoPaymentResponse = (req) =>
           {
             transactionCode: ipnData.transId,
             transactionType: TRANSACTION_TYPE.MOMO,
+            isPaidToManager: true,
             status: STATUS.PAID,
           },
           {

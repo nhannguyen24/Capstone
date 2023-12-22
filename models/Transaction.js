@@ -41,6 +41,9 @@ module.exports = (sequelize, DataTypes) => {
     bookingId: {
       type: DataTypes.UUID
     },
+    isPaidToManager: {
+      type: DataTypes.BOOLEAN
+    },
     status: {
       type: DataTypes.ENUM,
       values: [["Draft", "Paid", "Refunded"],],

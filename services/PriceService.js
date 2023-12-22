@@ -164,7 +164,6 @@ const createPrice = async (req) => {
                 }
             }
         }
-
         const roundedAmount = Math.floor(amount / 1000) * 1000
         const created = await db.Price.create({ ticketTypeId: ticketTypeId, amount: roundedAmount, day: day })
 
