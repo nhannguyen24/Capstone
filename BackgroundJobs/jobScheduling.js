@@ -1,11 +1,11 @@
-const db = require('../models')
-const { Op } = require('sequelize')
-const STATUS = require("../enums/StatusEnum")
-const TOUR_STATUS = require("../enums/TourStatusEnum")
-const TRANSACTION_TYPE = require("../enums/TransactionTypeEnum")
-const BOOKING_STATUS = require("../enums/BookingStatusEnum")
-const FORM_STATUS = require("../enums/ReportStatusEnum")
-const PaymentService = require('../services/PaymentService')
+const db = require('../models');
+const { Op } = require('sequelize');
+const STATUS = require("../enums/StatusEnum");
+const TOUR_STATUS = require("../enums/TourStatusEnum");
+const TRANSACTION_TYPE = require("../enums/TransactionTypeEnum");
+const BOOKING_STATUS = require("../enums/BookingStatusEnum");
+const FORM_STATUS = require("../enums/ReportStatusEnum");
+const PaymentService = require('../services/PaymentService');
 
 async function deleteExpiredOtp() {
   console.log("Delete expired otp starting...")

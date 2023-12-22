@@ -3,7 +3,7 @@ const db = require("../models");
 const jwt = require("jsonwebtoken");
 const bcrypt = require('bcryptjs');
 const { StatusCodes } = require("http-status-codes");
-const redisClient = require("../config/RedisConfig")
+const redisClient = require("../config/RedisConfig");
 const hashPassword = password => bcrypt.hashSync(password, bcrypt.genSaltSync(8));
 
 const register = ({ email, password, confirmPass, roleId }) => new Promise(async (resolve, reject) => {
