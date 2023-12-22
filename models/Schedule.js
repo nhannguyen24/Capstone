@@ -41,6 +41,17 @@ module.exports = (sequelize, DataTypes) => {
     },
     departureDate: DataTypes.DATE,
     endDate: DataTypes.TIME,
+    departureStation: DataTypes.STRING,
+    tourStatus: {
+      type: DataTypes.ENUM,
+      values: ["Available", "Started", "Canceled", "Finished"],
+      validate: {
+        isIn: {
+          args: [["Available", "Started", "Canceled", "Finished"]],
+          msg: 'Invalid value for tour.status (Available, Started, Canceled, Finished)'
+        }
+      }
+    },
     tourId: {
       type: DataTypes.UUID
     },

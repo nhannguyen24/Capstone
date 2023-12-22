@@ -16,6 +16,14 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
       },
+      departureStation: {
+        type: Sequelize.STRING,
+      },
+      tourStatus: {
+        type: Sequelize.ENUM,
+        values: ["Available", "Started", "Canceled", "Finished"],
+        defaultValue: 'Available',
+      },
       tourId: {
         type: Sequelize.UUID,
         references: {

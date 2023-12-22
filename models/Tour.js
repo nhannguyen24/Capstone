@@ -30,16 +30,6 @@ module.exports = (sequelize, DataTypes) => {
     distance: DataTypes.DECIMAL(18,2),
     geoJson: DataTypes.JSON,
     isScheduled: DataTypes.BOOLEAN,
-    tourStatus: {
-      type: DataTypes.ENUM,
-      values: ["Available", "Started", "Canceled", "Finished"],
-      validate: {
-        isIn: {
-          args: [["Available", "Started", "Canceled", "Finished"]],
-          msg: 'Invalid value for tour.status (Available, Started, Canceled, Finished)'
-        }
-      }
-    },
     status: {
       type: DataTypes.ENUM,
       values: ["Active", "Deactive"],

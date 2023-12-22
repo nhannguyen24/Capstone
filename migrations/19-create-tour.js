@@ -39,14 +39,6 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
       },
-      departureStationId: {
-        type: Sequelize.STRING,
-      },
-      tourStatus: {
-        type: Sequelize.ENUM,
-        values: ["Available", "Started", "Canceled", "Finished"],
-        defaultValue: 'Available',
-      },
       status: {
         type: Sequelize.ENUM,
         values: ["Active", "Deactive"],
