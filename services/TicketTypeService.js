@@ -1,6 +1,5 @@
 const db = require('../models')
 const { Op } = require('sequelize')
-const STATUS = require("../enums/StatusEnum")
 const { StatusCodes } = require('http-status-codes')
 
 const getTicketTypes = async (req) => {

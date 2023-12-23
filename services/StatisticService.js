@@ -102,7 +102,6 @@ const getStatistics = async (req) => {
             const tours = await db.Tour.findAll({
                 raw: true,
                 nest: true,
-                where: whereClause,
                 attributes: {
                     exclude: ["createdAt", "updatedAt", "status"]
                 },
@@ -110,11 +109,20 @@ const getStatistics = async (req) => {
                     {
                         model: db.Ticket,
                         as: "tour_ticket",
-                        attributes: ["ticketId", "status"],
+                        attributes: ["ticketId"],
                         include: {
                             model: db.TicketType,
                             as: "ticket_type",
                             attributes: ["ticketTypeName", "description"]
+                        }
+                    },
+                    {
+                        model: db.Schedule,
+                        as: "tour_schedule",
+                        where: whereClause,
+                        include: {
+                            model: db.Bus,
+                            as: "schedule_bus"
                         }
                     }
                 ]
@@ -125,28 +133,29 @@ const getStatistics = async (req) => {
                     var bookedTicketsQuantity = 0
                     var cancelTicketsQuantity = 0
                     var totalTourMoneyEarned = 0
-                    const { tourId, tour_ticket, ...rest } = tour
+                    const { tourId, tour_ticket, tour_schedule, ...rest } = tour
+
+                    //Find booking using IN with array of scheduleId 
                     const bookings = await db.Booking.findAll({
                         raw: true,
                         nest: true,
                         attributes: ["bookingId", "bookingDate", "totalPrice", "bookingStatus"],
+                        where: {
+                            bookingStatus: {
+                                [Op.ne]: BOOKING_STATUS.DRAFT
+                            },
+                            scheduleId: {
+                                [Op.in]: tour_schedule
+                            }
+                        },
                         include: [
                             {
                                 model: db.BookingDetail,
                                 as: "booking_detail",
-                                where: {
-                                    ticketId: tour_ticket.ticketId
-                                },
-                                attributes: {
-                                    exclude: ["createdAt", "updatedAt", "bookingId", "ticketId", "ticketPrice"]
-                                },
                             },
                             {
                                 model: db.Transaction,
                                 as: "booking_transaction",
-                                attributes: {
-                                    exclude: ["createdAt", "updatedAt", "bookingId", "transactionCode"]
-                                }
                             }
                         ]
                     })
