@@ -64,11 +64,15 @@ const createReport = async (req, res) => {
     try {
         const errors = {}
         const reportUserId = req.body.reportUserId || ""
+        const scheduleId = req.body.scheduleId || ""
         const title = req.body.title || ""
         const description = req.body.description || ""
 
         if (reportUserId.trim() === "") {
             errors.reportUserId = "Report user required!"
+        }
+        if (scheduleId.trim() === "") {
+            errors.scheduleId = "Tour schedule required!"
         }
 
         if(title.trim() === ""){
@@ -102,7 +106,7 @@ const updateReport = async (req, res) => {
             errors.reportId = "Id required!"
         }
         if (responseUserId.trim() === "") {
-            errors.responseUserId = "Response User id required!"
+            errors.responseUserId = "Response User required!"
         }
         if(response.trim() === "" && reportStatus.trim() === ""){
             errors.fields = "Update field required!"

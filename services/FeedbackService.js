@@ -1,20 +1,19 @@
 const db = require('../models')
 const { Op, sequelize } = require('sequelize')
-const STATUS = require("../enums/StatusEnum")
-const TOUR_STATUS = require("../enums/TourStatusEnum")
+const TOUR_SCHEDULE_STATUS = require("../enums/TourScheduleStatusEnum")
 const { StatusCodes } = require('http-status-codes')
 const getFeedbacks = async (req) => {
     try {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
         const offset = (page - 1) * limit
-        const routeId = req.query.routeId || ""
+        const tourId = req.query.tourId || ""
         const userId = req.query.userId || ""
 
         let whereClause = {}
 
-        if (routeId.trim() !== "") {
-            whereClause.routeId = routeId
+        if (tourId.trim() !== "") {
+            whereClause.tourId = tourId
         }
         if (userId.trim() !== "") {
             whereClause.userId = userId
@@ -29,13 +28,13 @@ const getFeedbacks = async (req) => {
                     attributes: ["userId", "userName", "avatar"]
                 },
                 {
-                    model: db.Route,
-                    as: "feedback_route",
-                    attributes: ["routeId", "routeName"]
+                    model: db.Tour,
+                    as: "feedback_tour",
+                    attributes: ["tourId", "tourName"]
                 },
             ],
             attributes: {
-                exclude: ["userId", "routeId"]
+                exclude: ["userId", "tourId"]
             },
             order: [
                 ["updatedAt", "DESC"]
@@ -64,7 +63,7 @@ const getFeedbacks = async (req) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -84,9 +83,9 @@ const getFeedbackById = async (feedbackId) => {
                     attributes: ["userId", "userName", "avatar"]
                 },
                 {
-                    model: db.Route,
-                    as: "feedback_route",
-                    attributes: ["routeId", "routeName"]
+                    model: db.Tour,
+                    as: "feedback_tour",
+                    attributes: ["tourId", "tourName"]
                 },
             ],
         })
@@ -106,7 +105,7 @@ const getFeedbackById = async (feedbackId) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -117,7 +116,7 @@ const createFeedback = async (req) => {
     const t = await db.sequelize.transaction()
     try {
         const customerId = req.body.customerId
-        const routeId = req.body.routeId
+        const tourId = req.body.tourId
         const stars = req.body.stars
         const description = req.body.description
 
@@ -137,72 +136,53 @@ const createFeedback = async (req) => {
             }
         }
 
-        //check route
-        const route = await db.Route.findOne({
+        //check tour existed
+        const tour = await db.Tour.findOne({
             where: {
-                routeId: routeId
+                tourId: tourId
             }
         })
 
-        if (!route) {
+        if (!tour) {
             return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
-                    msg: `Route not found!`
+                    msg: `Tour not found!`
                 }
             }
         }
 
         //Check if the user has gone on a tour
-        const isGoneOnTour = await db.BookingDetail.findOne({
+        const isGoneOnTour = await db.Booking.findOne({
             raw: true,
             nest: true,
             include: [
                 {
-                    model: db.Booking,
-                    as: "detail_booking",
+                    model: db.Schedule,
+                    as: "booking_schedule",
                     where: {
-                        isAttended: true
-                    },
-                    attributes: ["bookingId"],
-                    include: {
-                        model: db.User,
-                        as: "booking_user",
-                        where: {
-                            userId: customerId
-                        },
-                        attributes: ["userId", "userName"]
+                        tourId: tourId,
+                        scheduleStatus: TOUR_SCHEDULE_STATUS.FINISHED
                     }
-                },
-                {
-                    model: db.Ticket,
-                    as: "booking_detail_ticket",
-                    attributes: {
-                        exclude: ["ticketId"]
+                }, {
+                    model: db.User,
+                    as: "booking_user",
+                    where: {
+                        userId: customerId
                     },
-                    include: [
-                        {
-                            model: db.Tour,
-                            as: "ticket_tour",
-                            where: {
-                                tourStatus: TOUR_STATUS.FINISHED,
-                                routeId: routeId
-                            },
-                        }
-                    ]
-                },
+                    attributes: ["userId", "userName"]
+                }
             ],
-            attributes: {
-                exclude: ["bookingId", "ticketId", "createdAt", "updatedAt"]
-            }
-
+            where: {
+                isAttended: true
+            },
         })
 
         if (!isGoneOnTour) {
             return {
-                status: StatusCodes.FORBIDDEN,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
-                    msg: 'Not gone on this route or tour with this route not finished',
+                    msg: 'User not gone on this tour or tour not finished!',
                 }
             }
         }
@@ -210,9 +190,9 @@ const createFeedback = async (req) => {
         const [feedback, created] = await db.Feedback.findOrCreate({
             where: {
                 userId: customerId,
-                routeId: routeId
+                tourId: tourId
             },
-            defaults: { stars: stars, description: description, userId: customerId, routeId: routeId }
+            defaults: { stars: stars, description: description, userId: customerId, tourId: tourId }
         })
 
         await t.commit()
@@ -228,7 +208,7 @@ const createFeedback = async (req) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -288,7 +268,7 @@ const updateFeedback = async (req) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -329,7 +309,7 @@ const deleteFeedback = async (feedbackId) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }

@@ -25,10 +25,6 @@ const router = express.Router();
  *          type: string
  *        exammple: 2023-11-30
  *      - in: query
- *        name: routeId
- *        schema:
- *          type: string
- *      - in: query
  *        name: periodicity
  *        schema:
  *          type: string
