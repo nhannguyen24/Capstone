@@ -212,12 +212,6 @@ router.get("/:id", controllers.getBookingDetailByBookingId)
  *                  userName: Trần Minh Quân,
  *                  phone: "0123456789",
  *              },
- *              products: [
- *                  {
- *                      productId: 8d2340e0-acdd-4411-bcca-453c790cd8cd,
- *                      quantity: 1
- *                  }
- *              ],
  *              tickets: [
  *                  {
  *                      ticketId: 84eb6d17-808d-4e19-93f1-9cd371041d96,

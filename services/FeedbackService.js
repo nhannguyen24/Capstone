@@ -8,13 +8,13 @@ const getFeedbacks = async (req) => {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
         const offset = (page - 1) * limit
-        const routeId = req.query.routeId || ""
+        const tourId = req.query.tourId || ""
         const userId = req.query.userId || ""
 
         let whereClause = {}
 
-        if (routeId.trim() !== "") {
-            whereClause.routeId = routeId
+        if (tourId.trim() !== "") {
+            whereClause.tourId = tourId
         }
         if (userId.trim() !== "") {
             whereClause.userId = userId
@@ -29,13 +29,13 @@ const getFeedbacks = async (req) => {
                     attributes: ["userId", "userName", "avatar"]
                 },
                 {
-                    model: db.Route,
-                    as: "feedback_route",
-                    attributes: ["routeId", "routeName"]
+                    model: db.Tour,
+                    as: "feedback_tour",
+                    attributes: ["tourId", "tourName"]
                 },
             ],
             attributes: {
-                exclude: ["userId", "routeId"]
+                exclude: ["userId", "tourId"]
             },
             order: [
                 ["updatedAt", "DESC"]
@@ -84,9 +84,9 @@ const getFeedbackById = async (feedbackId) => {
                     attributes: ["userId", "userName", "avatar"]
                 },
                 {
-                    model: db.Route,
-                    as: "feedback_route",
-                    attributes: ["routeId", "routeName"]
+                    model: db.Tour,
+                    as: "feedback_tour",
+                    attributes: ["tourId", "tourName"]
                 },
             ],
         })
@@ -117,7 +117,7 @@ const createFeedback = async (req) => {
     const t = await db.sequelize.transaction()
     try {
         const customerId = req.body.customerId
-        const routeId = req.body.routeId
+        const tourId = req.body.tourId
         const stars = req.body.stars
         const description = req.body.description
 
@@ -137,18 +137,18 @@ const createFeedback = async (req) => {
             }
         }
 
-        //check route
-        const route = await db.Route.findOne({
+        //check tour existed
+        const tour = await db.Tour.findOne({
             where: {
-                routeId: routeId
+                tourId: tourId
             }
         })
 
-        if (!route) {
+        if (!tour) {
             return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
-                    msg: `Route not found!`
+                    msg: `Tour not found!`
                 }
             }
         }
@@ -186,7 +186,7 @@ const createFeedback = async (req) => {
                             as: "ticket_tour",
                             where: {
                                 tourStatus: TOUR_STATUS.FINISHED,
-                                routeId: routeId
+                                tourId: tourId
                             },
                         }
                     ]
@@ -202,7 +202,7 @@ const createFeedback = async (req) => {
             return {
                 status: StatusCodes.FORBIDDEN,
                 data: {
-                    msg: 'Not gone on this route or tour with this route not finished',
+                    msg: 'Not gone on this tour or tour not finished!',
                 }
             }
         }
@@ -210,9 +210,9 @@ const createFeedback = async (req) => {
         const [feedback, created] = await db.Feedback.findOrCreate({
             where: {
                 userId: customerId,
-                routeId: routeId
+                tourId: tourId
             },
-            defaults: { stars: stars, description: description, userId: customerId, routeId: routeId }
+            defaults: { stars: stars, description: description, userId: customerId, tourId: tourId }
         })
 
         await t.commit()

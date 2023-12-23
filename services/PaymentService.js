@@ -513,7 +513,7 @@ const getPayOsPaymentResponse = async (req) => {
         const bookedStationId =
           bookingDetail.detail_booking.booking_departure_station.stationId
         const tourDepartureTime = new Date(
-          bookingDetail.booking_detail_ticket.ticket_tour.departureDate
+          bookingDetail.booking_detail_ticket.ticket_tour.tour_schedule.departureDate
         ).getTime()
         const busArrivalTimeToBookedStation = calculateTotalTime(
           routeSegment,
@@ -643,17 +643,13 @@ const getMoMoPaymentResponse = (req) =>
               include: {
                 model: db.Tour,
                 as: "ticket_tour",
-                attributes: [
-                  "tourName",
-                  "routeId",
-                  "departureDate",
-                  "duration",
-                  "status",
-                ],
                 include: {
-                  model: db.Bus,
-                  as: "tour_bus",
-                  attributes: ["busPlate"],
+                  model: db.Schedule,
+                  as: "tour_schedule",
+                  include: {
+                    model: db.Bus,
+                    as: "schedule_bus"
+                  }
                 },
               },
               attributes: {
@@ -672,7 +668,7 @@ const getMoMoPaymentResponse = (req) =>
                 {
                   model: db.Station,
                   as: "booking_departure_station",
-                  attributes: ["stationId", "stationName"],
+                  attributes: ["stationId", "stationName", "address"],
                 },
               ],
               attributes: [
@@ -690,7 +686,7 @@ const getMoMoPaymentResponse = (req) =>
           raw: true,
           nest: true,
           where: {
-            routeId: bookingDetail.booking_detail_ticket.ticket_tour.routeId,
+            routeId: bookingDetail.booking_detail_ticket.ticket_tour.tourId,
           },
           order: [["index", "ASC"]],
         })
