@@ -208,29 +208,23 @@ router.get("/:id", controllers.getBookingDetailByBookingId)
  *              totalPrice: 220000,
  *              departureStationId: 267aa90c-763c-406e-a7bc-944eae45020d,
  *              user: {
- *                  email: tminhquan@gmail.com,
+ *                  email: tquan@gmail.com,
  *                  userName: Trần Minh Quân,
- *                  phone: "0123456789",
+ *                  phone: "0125224789",
  *              },
- *              products: [
- *                  {
- *                      productId: 8d2340e0-acdd-4411-bcca-453c790cd8cd,
- *                      quantity: 1
- *                  }
- *              ],
  *              tickets: [
  *                  {
- *                      ticketId: 84eb6d17-808d-4e19-93f1-9cd371041d96,
- *                      ticketTypeId: 3355c24a-741c-4e3b-9d2a-fa43c4c950c5,  
- *                      tourId: 112699ff-3965-468f-9830-d151b82a3d02,
- *                      priceId: cfa845b9-3182-4322-932d-05a6284e6928,
+ *                      ticketId: ,
+ *                      ticketTypeId: ,  
+ *                      scheduleId: ,
+ *                      priceId: ,
  *                      quantity: 1
  *                  },
  *                  {
- *                      ticketId: 507ff3ae-8e23-4587-863d-8eb2641f9117,
- *                      ticketTypeId: 99f73c58-7c81-4152-90f9-21e50637e9c8,  
- *                      tourId: 112699ff-3965-468f-9830-d151b82a3d02,
- *                      priceId: 83bdc7a1-c77e-46c7-b8f0-de7fd4bf5859,
+ *                      ticketId: ,
+ *                      ticketTypeId: ,  
+ *                      scheduleId: ,
+ *                      priceId: ,
  *                      quantity: 1
  *                  },
  *              ]
@@ -278,23 +272,23 @@ router.post("/web", controllers.createBookingWeb)
  *              totalPrice: 200000,
  *              departureStationId: 7da955dc-ee9a-4cc3-9011-a02002034aee,
  *              user: {
- *                  email: tminhquan@gmail.com,
+ *                  email: tminh@gmail.com,
  *                  userName: Trần Minh Quân,
  *                  phone: "0123456789",
  *              },
  *              tickets: [
  *                  {
- *                      ticketId: 844659ef-07ee-45d5-97c5-5e359b681dc8,
- *                      ticketTypeId: 3355c24a-741c-4e3b-9d2a-fa43c4c950c5,  
- *                      tourId: 067a26be-f5dd-4d53-892b-f45104113f98,
- *                      priceId: cfa845b9-3182-4322-932d-05a6284e6928,
+ *                      ticketId: ,
+ *                      ticketTypeId: ,  
+ *                      scheduleId: ,
+ *                      priceId: ,
  *                      quantity: 1
  *                  },
  *                  {
- *                      ticketId: c0ccf4bc-47d5-4a30-8fdc-71e5517fa905,
- *                      ticketTypeId: 99f73c58-7c81-4152-90f9-21e50637e9c8,  
- *                      tourId: 067a26be-f5dd-4d53-892b-f45104113f98,
- *                      priceId: 83bdc7a1-c77e-46c7-b8f0-de7fd4bf5859,
+ *                      ticketId: ,
+ *                      ticketTypeId: ,  
+ *                      scheduleId: ,
+ *                      priceId: ,
  *                      quantity: 1
  *                  },
  *              ]
@@ -330,7 +324,7 @@ router.post("/offline", verifyToken, roleAuthen(["TourGuide"]), controllers.crea
  *           type: string
  *         required: true
  *       - in: query
- *         name: tourId
+ *         name: scheduleId
  *         schema:
  *           type: string
  *         required: true

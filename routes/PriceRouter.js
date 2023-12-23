@@ -127,55 +127,55 @@ router.post("/", verifyToken, roleAuthen(["Manager"]), controllers.createPrice)
  *               type: object
  */
 router.get("/:id", verifyToken, roleAuthen(["Manager"]), controllers.getPriceById);
-/**
- * @swagger
- * /api/v1/prices/{id}/{ticketTypeId}:
- *   put:
- *     security: 
- *         - BearerAuth: []
- *     summary: Update price by id
- *     tags: [Price]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *       - in: path
- *         name: ticketTypeId
- *         schema:
- *           type: string
- *         required: true
- *     requestBody:
- *       description: the day attribute is the price of that day that you want to update the price
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *              type: object
- *              properties: 
- *                  amount: 
- *                      type: integer
- *                  day: 
- *                      type: string
- *                      enum:
- *                          - Holiday
- *                          - Weekend
- *                          - Normal
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *       400:
- *         description: Bad request
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- */
-router.put("/:id/:ticketTypeId", verifyToken, roleAuthen(["Manager"]), controllers.updatePrice);
+// /**
+//  * @swagger
+//  * /api/v1/prices/{id}/{ticketTypeId}:
+//  *   put:
+//  *     security: 
+//  *         - BearerAuth: []
+//  *     summary: Update price by id
+//  *     tags: [Price]
+//  *     parameters:
+//  *       - in: path
+//  *         name: id
+//  *         schema:
+//  *           type: string
+//  *         required: true
+//  *       - in: path
+//  *         name: ticketTypeId
+//  *         schema:
+//  *           type: string
+//  *         required: true
+//  *     requestBody:
+//  *       description: the day attribute is the price of that day that you want to update the price
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema:
+//  *              type: object
+//  *              properties: 
+//  *                  amount: 
+//  *                      type: integer
+//  *                  day: 
+//  *                      type: string
+//  *                      enum:
+//  *                          - Holiday
+//  *                          - Weekend
+//  *                          - Normal
+//  *     responses:
+//  *       200:
+//  *         description: OK
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: object
+//  *       400:
+//  *         description: Bad request
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: object
+//  */
+// router.put("/:id/:ticketTypeId", verifyToken, roleAuthen(["Manager"]), controllers.updatePrice);
 
 module.exports = router;

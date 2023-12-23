@@ -99,6 +99,8 @@ router.get("/:id", verifyToken, roleAuthen(["Manager", "Customer", "TourGuide", 
  *              properties:
  *                  reportUserId:
  *                      type: string
+ *                  scheduleId:
+ *                      type: string
  *                  title:
  *                      type: string
  *                  description:
@@ -106,7 +108,7 @@ router.get("/:id", verifyToken, roleAuthen(["Manager", "Customer", "TourGuide", 
  *            example:
  *              {
  *                  reportUserId: ,
- *                  tourId: ,
+ *                  scheduleId: ,
  *                  title: Viết tiêu đề ngắn gọn,
  *                  description: Mô tả,
  *              }

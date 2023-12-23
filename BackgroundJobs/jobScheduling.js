@@ -1,7 +1,7 @@
 const db = require('../models');
 const { Op } = require('sequelize');
 const STATUS = require("../enums/StatusEnum");
-const TOUR_STATUS = require("../enums/TourStatusEnum");
+const TOUR_SCHEDULE_STATUS = require("../enums/TourScheduleStatusEnum");
 const TRANSACTION_TYPE = require("../enums/TransactionTypeEnum");
 const BOOKING_STATUS = require("../enums/BookingStatusEnum");
 const FORM_STATUS = require("../enums/ReportStatusEnum");
@@ -45,7 +45,7 @@ async function cancelTourAndRefundIfUnderbooked() {
         endBookingDate: {
           [Op.lte]: currentDate
         },
-        tourStatus: TOUR_STATUS.AVAILABLE
+        tourStatus: TOUR_SCHEDULE_STATUS.AVAILABLE
       },
       attributes: ["tourId"],
       // include: [
@@ -167,7 +167,7 @@ async function cancelTourAndRefundIfUnderbooked() {
             }
 
             await db.Tour.update(
-              { tourStatus: TOUR_STATUS.CANCELED },
+              { tourStatus: TOUR_SCHEDULE_STATUS.CANCELED },
               { where: { tourId: tour.tourId }, transaction: t }
             )
 

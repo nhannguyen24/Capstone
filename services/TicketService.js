@@ -1,10 +1,8 @@
 const db = require('../models');
 const { Op } = require('sequelize');
 const STATUS = require("../enums/StatusEnum")
-const TOUR_STATUS = require("../enums/TourStatusEnum")
-const DAY_ENUM = require("../enums/PriceDayEnum");
 const { StatusCodes } = require('http-status-codes');
-const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
+
 const getTickets = async (req) => {
     try {
         const page = parseInt(req.query.page)
@@ -44,35 +42,22 @@ const getTickets = async (req) => {
             },
             limit: limit,
             offset: offset
-        });
+        })
 
         const totalTicket = await db.Ticket.count({
             where: whereClause,
         });
 
-        for (const e of tickets) {
-            let day = DAY_ENUM.NORMAL
-
-            const tourDepartureDate = new Date(e.ticket_tour.departureDate)
-            const dayOfWeek = tourDepartureDate.getDay()
-            if (dayOfWeek === 0 || dayOfWeek === 6) {
-                day = DAY_ENUM.WEEKEND
-            }
-            const date = tourDepartureDate.getDate()
-            const month = tourDepartureDate.getMonth()
-            const dateMonth = `${date}-${month}`
-            if (SPECIAL_DAY.includes(dateMonth)) {
-                day = DAY_ENUM.HOLIDAY
-            }
-
-            const price = await db.Price.findOne({
+        for (let ticket of tickets) {
+            const prices = await db.Price.findAll({
+                raw: true,
+                nest: true,
                 where: {
-                    ticketTypeId: e.ticket_type.ticketTypeId,
-                    day: day
+                    ticketTypeId: ticket.ticket_type.ticketTypeId,
                 },
                 attributes: ["priceId", "amount", "day"]
             })
-            e.dataValues.ticket_type.dataValues.price = price
+            ticket.ticket_type.prices = prices
         }
 
         return {
@@ -102,6 +87,8 @@ const getTickets = async (req) => {
 const getTicketById = async (ticketId) => {
     try {
         const ticket = await db.Ticket.findOne({
+            raw: true,
+            nest: true,
             where: {
                 ticketId: ticketId
             },
@@ -123,27 +110,14 @@ const getTicketById = async (ticketId) => {
                 exclude: ["ticketTypeId", "tourId"]
             }
         });
-        let day = DAY_ENUM.NORMAL
-
-        const tourDepartureDate = new Date(ticket.ticket_tour.departureDate)
-        const dayOfWeek = tourDepartureDate.getDay()
-        if (dayOfWeek === 0 || dayOfWeek === 6) {
-            day = DAY_ENUM.WEEKEND
-        }
-        const date = tourDepartureDate.getDate()
-        const month = tourDepartureDate.getMonth()
-        const dateMonth = `${date}-${month}`
-        if (SPECIAL_DAY.includes(dateMonth)) {
-            day = DAY_ENUM.HOLIDAY
-        }
-        const price = await db.Price.findOne({
+        
+        const prices = await db.Price.findAll({
             where: {
                 ticketTypeId: ticket.ticket_type.ticketTypeId,
-                day: day
             },
             attributes: ["priceId", "amount", "day"]
         })
-        ticket.dataValues.ticket_type.dataValues.price = price
+        ticket.ticket_type.prices = prices
 
         return {
             status: ticket ? StatusCodes.OK : StatusCodes.NOT_FOUND,
@@ -184,14 +158,6 @@ const createTicket = async (req) => {
                 }
             }
         }
-        if (TOUR_STATUS.AVAILABLE !== tour.tourStatus && STATUS.ACTIVE !== tour.status) {
-            return {
-                status: StatusCodes.BAD_REQUEST,
-                data: {
-                    msg: `Tour started or Deactive`,
-                }
-            }
-        }
 
         const ticketType = await db.TicketType.findOne({
             where: {
@@ -207,30 +173,16 @@ const createTicket = async (req) => {
             }
         }
 
-        let day = DAY_ENUM.NORMAL
-        const tourDepartureDate = new Date(tour.departureDate)
-        const dayOfWeek = tourDepartureDate.getDay()
-        if (dayOfWeek === 0 || dayOfWeek === 6) {
-            day = DAY_ENUM.WEEKEND
-        }
-        const date = tourDepartureDate.getDate()
-        const month = tourDepartureDate.getMonth()
-        const dateMonth = `${date}-${month}`
-        if (SPECIAL_DAY.includes(dateMonth)) {
-            day = DAY_ENUM.HOLIDAY
-        }
-
-        const price = await db.Price.findOne({
+        const prices = await db.Price.findAll({
             where: {
                 ticketTypeId: ticketType.ticketTypeId,
-                day: day,
             }
         })
-        if (!price) {
+        if (prices.length === 0) {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
-                    msg: `Ticket type doesn't have a price for day: ${tour.departureDate}(${day})`,
+                    msg: `Ticket type doesn't have prices`,
                 }
             }
         }
@@ -244,7 +196,7 @@ const createTicket = async (req) => {
         return {
             status: created ? StatusCodes.CREATED : StatusCodes.BAD_REQUEST,
             data: {
-                msg: created ? `Create ticket successfully for tour: ${tourId}` : `Ticket already exists in tour: ${tourId}`,
+                msg: created ? `Create ticket successfully!` : `Ticket already exists in tour!`,
                 ticket: created ? ticket : {}
             }
         }
@@ -276,7 +228,6 @@ const updateTicket = async (req) => {
             include: {
                 model: db.Tour,
                 as: "ticket_tour",
-                attributes: ["departureDate"]
             }
         });
 
@@ -319,30 +270,17 @@ const updateTicket = async (req) => {
                     }
                 }
             }
-            let day = DAY_ENUM.NORMAL
-            const tourDepartureDate = new Date(ticket.ticket_tour.departureDate)
-            const dayOfWeek = tourDepartureDate.getDay()
-            if (dayOfWeek === 0 || dayOfWeek === 6) {
-                day = DAY_ENUM.WEEKEND
-            }
-            const date = tourDepartureDate.getDate()
-            const month = tourDepartureDate.getMonth()
-            const dateMonth = `${date}-${month}`
-            if (SPECIAL_DAY.includes(dateMonth)) {
-                day = DAY_ENUM.HOLIDAY
-            }
 
-            const price = await db.Price.findOne({
+            const prices = await db.Price.findAll({
                 where: {
-                    ticketTypeId: ticketTypeId,
-                    day: day,
+                    ticketTypeId: ticketType.ticketTypeId,
                 }
             })
-            if (!price) {
+            if (prices.length === 0) {
                 return {
                     status: StatusCodes.BAD_REQUEST,
                     data: {
-                        msg: `Ticket type doesn't have a price for day: ${tourDepartureDate}`,
+                        msg: `Ticket type doesn't have prices`,
                     }
                 }
             }
@@ -350,7 +288,10 @@ const updateTicket = async (req) => {
                 where: {
                     tourId: ticket.tourId,
                     ticketTypeId: ticketType.ticketTypeId,
-                    status: STATUS.ACTIVE
+                    status: STATUS.ACTIVE,
+                    ticketId: {
+                        [Op.ne]: ticketId
+                    }
                 },
             })
 
@@ -366,18 +307,10 @@ const updateTicket = async (req) => {
         }
 
         if (status.trim() !== "") {
-            if (ticket.status === status) {
-                return {
-                    status: StatusCodes.BAD_REQUEST,
-                    data: {
-                        msg: `Status is already ${status}`,
-                    }
-                }
-            } 
             if (STATUS.DEACTIVE === status) {
                 const tickets = await db.Ticket.findAll({
                     where: {
-                        tourId: tourId,
+                        tourId: ticket.tourId,
                         status: STATUS.ACTIVE
                     }
                 })
@@ -386,12 +319,12 @@ const updateTicket = async (req) => {
                     return {
                         status: StatusCodes.BAD_REQUEST,
                         data: {
-                            msg: `Cannot update ticket status to "Deactive" because tour ${tour.tourId} need to has atleast 1 available ticket`,
-
+                            msg: `Cannot update ticket status to "Deactive" because tour need to has atleast 1 available ticket`,
                         }
                     }
                 }
             }
+            updateTicket.status = status
         }
 
         await db.Ticket.update(updateTicket, {
@@ -436,7 +369,7 @@ const deleteTicket = async (ticketId) => {
             }
         }
 
-        const checkBookedTicket = await db.bookingDetail.findOne({
+        const checkBookedTicket = await db.BookingDetail.findOne({
             where: {
                 ticketId: ticketId,
                 status: STATUS.ACTIVE
@@ -463,7 +396,7 @@ const deleteTicket = async (ticketId) => {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
-                    msg: `Cannot delete ticket because tour ${ticket.tourId} need to has atleast 1 available ticket`,
+                    msg: `Cannot delete ticket because tour need to has atleast 1 available ticket`,
                 }
             }
         }
@@ -472,7 +405,7 @@ const deleteTicket = async (ticketId) => {
             status: STATUS.DEACTIVE
         }, {
             where: {
-                ticketId: ticket.ticketId
+                ticketId: ticketId
             },
             individualHooks: true
         })

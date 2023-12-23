@@ -2,7 +2,7 @@ const db = require('../models')
 const { Op } = require('sequelize')
 const STATUS = require("../enums/StatusEnum")
 const BOOKING_STATUS = require("../enums/BookingStatusEnum")
-const TOUR_STATUS = require("../enums/TourStatusEnum")
+const TOUR_SCHEDULE_STATUS = require("../enums/TourScheduleStatusEnum")
 const PERIODICITY = require('../enums/PeriodicityEnum');
 const { StatusCodes } = require('http-status-codes')
 const millisecondsInOneDay = 24 * 60 * 60 * 1000
@@ -11,30 +11,32 @@ const getStatistics = async (req) => {
         const startDate = req.query.startDate || ""
         const endDate = req.query.endDate || ""
         const periodicity = req.query.periodicity
-        const routeId = req.query.routeId || ""
+        //const tourId = req.query.tourId || ""
 
         var whereClause = {}
-        if (routeId.trim() !== "") {
-            const route = await db.Route.findOne({
-                where: {
-                    routeId: routeId
-                }
-            })
+        // if (tourId.trim() !== "") {
+        //     const tour = await db.Tour.findOne({
+        //         where: {
+        //             tourId: tourId
+        //         }
+        //     })
 
-            if (!route) {
-                return {
-                    status: StatusCodes.NOT_FOUND,
-                    data: {
-                        msg: "Route not found!"
-                    }
-                }
-            }
-            whereClause.routeId = routeId
-        }
+        //     if (!tour) {
+        //         return {
+        //             status: StatusCodes.NOT_FOUND,
+        //             data: {
+        //                 msg: "Tour not found!"
+        //             }
+        //         }
+        //     }
+        //     whereClause.tourId = tourId
+        // }
 
         let periodicityDateArr = []
         const currentDate = new Date()
         currentDate.setHours(currentDate.getHours() + 7)
+
+        //Return the time for periodicity from current date
         if (periodicity !== null && periodicity !== undefined) {
             if (PERIODICITY.WEEKLY === periodicity.toUpperCase()) {
                 const noTimeCurrentDateString = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${(currentDate.getDate() - 1).toString().padStart(2, '0')}T00:00:00.000Z`
@@ -100,15 +102,14 @@ const getStatistics = async (req) => {
             const tours = await db.Tour.findAll({
                 raw: true,
                 nest: true,
-                where: whereClause,
                 attributes: {
-                    exclude: ["createdAt", "updatedAt", "busId", "status", "beginBookingDate", "endBookingDate", "tourGuideId", "driverId", "isScheduled", "routeId"]
+                    exclude: ["createdAt", "updatedAt", "status"]
                 },
                 include: [
                     {
                         model: db.Ticket,
                         as: "tour_ticket",
-                        attributes: ["ticketId", "status"],
+                        attributes: ["ticketId"],
                         include: {
                             model: db.TicketType,
                             as: "ticket_type",
@@ -116,13 +117,13 @@ const getStatistics = async (req) => {
                         }
                     },
                     {
-                        model: db.Bus,
-                        as: "tour_bus",
-                        attributes: ["numberSeat"]
-                    },{
-                        model: db.Route,
-                        as: "tour_route",
-                        attributes: ["routeId", "routeName"]
+                        model: db.Schedule,
+                        as: "tour_schedule",
+                        where: whereClause,
+                        include: {
+                            model: db.Bus,
+                            as: "schedule_bus"
+                        }
                     }
                 ]
             })
@@ -132,28 +133,29 @@ const getStatistics = async (req) => {
                     var bookedTicketsQuantity = 0
                     var cancelTicketsQuantity = 0
                     var totalTourMoneyEarned = 0
-                    const { tourId, tour_ticket, ...rest } = tour
+                    const { tourId, tour_ticket, tour_schedule, ...rest } = tour
+
+                    //Find booking using IN with array of scheduleId 
                     const bookings = await db.Booking.findAll({
                         raw: true,
                         nest: true,
                         attributes: ["bookingId", "bookingDate", "totalPrice", "bookingStatus"],
+                        where: {
+                            bookingStatus: {
+                                [Op.ne]: BOOKING_STATUS.DRAFT
+                            },
+                            scheduleId: {
+                                [Op.in]: tour_schedule
+                            }
+                        },
                         include: [
                             {
                                 model: db.BookingDetail,
                                 as: "booking_detail",
-                                where: {
-                                    ticketId: tour_ticket.ticketId
-                                },
-                                attributes: {
-                                    exclude: ["createdAt", "updatedAt", "bookingId", "ticketId", "ticketPrice"]
-                                },
                             },
                             {
                                 model: db.Transaction,
                                 as: "booking_transaction",
-                                attributes: {
-                                    exclude: ["createdAt", "updatedAt", "bookingId", "transactionCode"]
-                                }
                             }
                         ]
                     })
@@ -196,13 +198,13 @@ const getStatistics = async (req) => {
                 if (tour.tour_bus.numberSeat !== null) {
                     totalBusSeat += tour.tour_bus.numberSeat
                 }
-                if (TOUR_STATUS.CANCELED === tour.tourStatus) {
+                if (TOUR_SCHEDULE_STATUS.CANCELED === tour.tourStatus) {
                     totalCancelTours++
                 }
-                if (TOUR_STATUS.AVAILABLE === tour.tourStatus) {
+                if (TOUR_SCHEDULE_STATUS.AVAILABLE === tour.tourStatus) {
                     totalAvailableTours++
                 }
-                if (TOUR_STATUS.FINISHED === tour.tourStatus) {
+                if (TOUR_SCHEDULE_STATUS.FINISHED === tour.tourStatus) {
                     totalFinishedTours++
                 }
                 totalCreatedTours++
