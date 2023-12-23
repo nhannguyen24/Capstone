@@ -3,9 +3,8 @@ const { Op } = require("sequelize")
 const redisClient = require("../config/RedisConfig")
 const STATUS = require("../enums/StatusEnum")
 const TOUR_SCHEDULE_STATUS = require("../enums/TourScheduleStatusEnum")
-const DAY_ENUM = require("../enums/PriceDayEnum")
 const BOOKING_STATUS = require("../enums/BookingStatusEnum")
-const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
+const validationUtil = require('../utils/ValidationUtil')
 const readXlsxFile = require('read-excel-file/node')
 const { StatusCodes } = require("http-status-codes")
 const { sendNotification } = require("../utils/NotificationUtil")
@@ -215,22 +214,13 @@ const getAllTour = (
                     })
 
                     for (const tour of tours) {
-                        let day = DAY_ENUM.NORMAL
-
-                        const tourDepartureDate = new Date(tour.departureDate)
-                        const dayOfWeek = tourDepartureDate.getDay()
-                        if (dayOfWeek === 0 || dayOfWeek === 6) {
-                            day = DAY_ENUM.WEEKEND
-                        }
-                        const date = tourDepartureDate.getDate()
-                        const month = tourDepartureDate.getMonth()
-                        const dateMonth = `${date}-${month}`
-                        if (SPECIAL_DAY.includes(dateMonth)) {
-                            day = DAY_ENUM.HOLIDAY
-                        }
+                        //Fix to schedule departure date
+                        const day = validationUtil.convertDepartureDateToDayForPrices(tour.departureDate)
 
                         for (const ticket of tour.tour_ticket) {
                             const price = await db.Price.findOne({
+                                raw: true,
+                                nest: true,
                                 where: {
                                     ticketTypeId: ticket.ticket_type.ticketTypeId,
                                     day: day
@@ -244,7 +234,7 @@ const getAllTour = (
                                     ]
                                 }
                             })
-                            ticket.dataValues.ticket_type.dataValues.price = price
+                            ticket.ticket_type.price = price
                         }
 
                         const departureDate = new Date(tour.departureDate)
@@ -526,22 +516,12 @@ const getTourById = (tourId) =>
             })
 
             for (const tour of tours) {
-                let day = DAY_ENUM.NORMAL
-
-                const tourDepartureDate = new Date(tour.departureDate)
-                const dayOfWeek = tourDepartureDate.getDay()
-                if (dayOfWeek === 0 || dayOfWeek === 6) {
-                    day = DAY_ENUM.WEEKEND
-                }
-                const date = tourDepartureDate.getDate()
-                const month = tourDepartureDate.getMonth()
-                const dateMonth = `${date}-${month}`
-                if (SPECIAL_DAY.includes(dateMonth)) {
-                    day = DAY_ENUM.HOLIDAY
-                }
+                const day = validationUtil.convertDepartureDateToDayForPrices(tour.departureDate)
 
                 for (const ticket of tour.tour_ticket) {
                     const price = await db.Price.findOne({
+                        raw: true,
+                        nest: true,
                         where: {
                             ticketTypeId: ticket.ticket_type.ticketTypeId,
                             day: day
@@ -555,7 +535,7 @@ const getTourById = (tourId) =>
                             ]
                         }
                     })
-                    ticket.dataValues.ticket_type.dataValues.price = price
+                    ticket.ticket_type.price = price
                 }
 
                 const departureDate = new Date(tour.departureDate)
@@ -1103,20 +1083,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                     ticketTypeId: ticketTypeId
                                 },
                             })
-
-                            let day = DAY_ENUM.NORMAL
-
-                            const tourDepartureDate = new Date(createTour[0].departureDate)
-                            const dayOfWeek = tourDepartureDate.getDay()
-                            if (dayOfWeek === 0 || dayOfWeek === 6) {
-                                day = DAY_ENUM.WEEKEND
-                            }
-                            const date = tourDepartureDate.getDate()
-                            const month = tourDepartureDate.getMonth()
-                            const dateMonth = `${date}-${month}`
-                            if (SPECIAL_DAY.includes(dateMonth)) {
-                                day = DAY_ENUM.HOLIDAY
-                            }
+                            const day = validationUtil.convertDepartureDateToDayForPrices(tour.departureDate)
 
                             const price = await db.Price.findOne({
                                 where: {
@@ -1513,18 +1480,7 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                         continue
                     }
 
-                    let day = DAY_ENUM.NORMAL
-
-                    const dayOfWeek = tour.departureDate.getDay()
-                    if (dayOfWeek === 0 || dayOfWeek === 6) {
-                        day = DAY_ENUM.WEEKEND
-                    }
-                    const date = tour.departureDate.getDate()
-                    const month = tour.departureDate.getMonth()
-                    const dateMonth = `${date}-${month}`
-                    if (SPECIAL_DAY.includes(dateMonth)) {
-                        day = DAY_ENUM.HOLIDAY
-                    }
+                    const day = validationUtil.convertDepartureDateToDayForPrices(tour.departureDate)
 
                     const price = await db.Price.findOne({
                         where: {
@@ -2831,20 +2787,7 @@ const cloneTour = (id, body) =>
                                 })
                                 return
                             }
-
-                            let day = DAY_ENUM.NORMAL
-
-                            const tourDepartureDate = new Date(createTour.dataValues.departureDate)
-                            const dayOfWeek = tourDepartureDate.getDay()
-                            if (dayOfWeek === 0 || dayOfWeek === 6) {
-                                day = DAY_ENUM.WEEKEND
-                            }
-                            const date = tourDepartureDate.getDate()
-                            const month = tourDepartureDate.getMonth()
-                            const dateMonth = `${date}-${month}`
-                            if (SPECIAL_DAY.includes(dateMonth)) {
-                                day = DAY_ENUM.HOLIDAY
-                            }
+                            const day = validationUtil.convertDepartureDateToDayForPrices(createTour.dataValues.departureDate)
 
                             const price = await db.Price.findOne({
                                 where: {
@@ -3561,20 +3504,7 @@ const createTourDemo = () =>
                                 ticketTypeId: ticketTypeId
                             },
                         })
-
-                        let day = DAY_ENUM.NORMAL
-
-                        const tourDepartureDate = new Date(createTour.departureDate)
-                        const dayOfWeek = tourDepartureDate.getDay()
-                        if (dayOfWeek === 0 || dayOfWeek === 6) {
-                            day = DAY_ENUM.WEEKEND
-                        }
-                        const date = tourDepartureDate.getDate()
-                        const month = tourDepartureDate.getMonth()
-                        const dateMonth = `${date}-${month}`
-                        if (SPECIAL_DAY.includes(dateMonth)) {
-                            day = DAY_ENUM.HOLIDAY
-                        }
+                        const day = validationUtil.convertDepartureDateToDayForPrices(createTour.departureDate)
 
                         const price = await db.Price.findOne({
                             where: {
