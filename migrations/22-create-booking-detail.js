@@ -8,7 +8,7 @@ module.exports = {
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      TicketPrice: {
+      ticketPrice: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
@@ -18,6 +18,9 @@ module.exports = {
           model: 'bookings',
           key: 'bookingId'
         }
+      },
+      quantity: {
+        type: Sequelize.INTEGER,
       },
       ticketId: {
         type: Sequelize.UUID,

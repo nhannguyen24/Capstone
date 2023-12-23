@@ -2,25 +2,28 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Reports', {
-      reportId: {
+    await queryInterface.createTable('Trackings', {
+      trackingId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      title: {
-        type: Sequelize.STRING,
+      coordinates: {
+        type: Sequelize.JSON,
         allowNull: false,
       },
-      description: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      customerId: {
+      scheduleId: {
         type: Sequelize.UUID,
         references: {
-          model: 'users',
-          key: 'userId'
+          model: 'schedules',
+          key: 'scheduleId'
+        }
+      },
+      busId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'buses',
+          key: 'busId'
         }
       },
       status: {
@@ -41,6 +44,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Reports');
+    await queryInterface.dropTable('Trackings');
   }
 };

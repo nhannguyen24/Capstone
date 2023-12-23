@@ -39,12 +39,6 @@ module.exports = {
       refreshToken: {
         type: Sequelize.STRING,
       },
-      maxTour: {
-        type: Sequelize.INTEGER,
-      },
-      deviceToken: {
-        type: Sequelize.STRING,
-      },
       roleId: {
         type: Sequelize.UUID,
         references: {
@@ -66,6 +60,12 @@ module.exports = {
         allowNull: false,
         type: "TIMESTAMP",
         defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+      },
+      maxTour: {
+        type: Sequelize.INTEGER,
+      },
+      deviceToken: {
+        type: Sequelize.STRING,
       },
     });
   },

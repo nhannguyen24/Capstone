@@ -2,39 +2,39 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Otps', {
-      otpId: {
+    await queryInterface.createTable('Transactions', {
+      transactionId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      otp: {
-        type: Sequelize.STRING,
+      transactionCode: {
+        type: Sequelize.ENUM,
+        values: ["MOMO", "PAY-OS", "Cash"],
+      },
+      amount: {
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
-      timeExpired: {
-        type: Sequelize.DATE,
+      transactionType: {
+        type: Sequelize.DECIMAL(3, 3),
         allowNull: false,
       },
-      isAllow: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: 1,
-      },
-      userId: {
+      bookingId: {
         type: Sequelize.UUID,
         references: {
-          model: 'users',
-          key: 'userId'
+          model: 'bookings',
+          key: 'bookingId'
         }
       },
-      type: {
-        type: Sequelize.ENUM,
-        values: ["ChangePassword", "GetBookingByEmail", "BookingTour"],
+      refundAmount: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
       },
       status: {
         type: Sequelize.ENUM,
-        values: ["Active", "Deactive"],
-        defaultValue: 'Active',
+        values: ["Draft", "Paid", "Refunded"],
+        defaultValue: 'Draft',
       },
       createdAt: {
         allowNull: false,
@@ -49,6 +49,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Otps');
+    await queryInterface.dropTable('Transactions');
   }
 };

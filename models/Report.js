@@ -23,10 +23,10 @@ module.exports = (sequelize, DataTypes) => {
         as: "response_user",
       });
 
-      Report.belongsTo(models.Tour, {
-        foreignKey: "tourId",
-        targetKey: 'tourId',
-        as: "report_tour",
+      Report.belongsTo(models.Schedule, {
+        foreignKey: "scheduleId",
+        targetKey: 'scheduleId',
+        as: "report_schedule",
       });
     }
   }
@@ -42,7 +42,7 @@ module.exports = (sequelize, DataTypes) => {
     reportUserId: {
       type: DataTypes.UUID
     },
-    tourId: {
+    scheduleId: {
       type: DataTypes.UUID
     },
     responseUserId: {

@@ -2,26 +2,49 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Products', {
-      productId: {
+    await queryInterface.createTable('Reports', {
+      reportId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      productName: {
+      title: {
         type: Sequelize.STRING,
-	      allowNull: false,
-      },
-      price: {
-        type: Sequelize.INTEGER,
         allowNull: false,
       },
-      productCateId: {
+      description: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      reportUserId: {
         type: Sequelize.UUID,
         references: {
-          model: 'productcategories',
-          key: 'productCateId'
+          model: 'users',
+          key: 'userId'
         }
+      },
+      response: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      scheduleId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'schedules',
+          key: 'scheduleId'
+        }
+      },
+      responseUserId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'users',
+          key: 'userId'
+        }
+      },
+      reportStatus: {
+        type: Sequelize.ENUM,
+        values: ["Approved", "Pending", "Rejected"],
+        defaultValue: 'Pending',
       },
       status: {
         type: Sequelize.ENUM,
@@ -41,6 +64,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Products');
+    await queryInterface.dropTable('Reports');
   }
 };

@@ -14,14 +14,14 @@ const point = require('./PointOfInterestRouter')
 const uploadImage = require('./UploadFileRouter')
 const tour = require('./TourRouter');
 const transaction = require('./TransactionRouter');
-const route = require('./RouteRouter');
+// const route = require('./RouteRouter');
 const schedule = require('./ScheduleRouter');
-const productCate = require('./ProductCategoryRouter')
+// const productCate = require('./ProductCategoryRouter')
 const otp = require("./OtpRouter")
 const payment = require('./PaymentRouter');
 const announcement = require('./AnnouncementRouter');
 const report = require('./ReportRouter');
-const product = require('./ProductRouter');
+// const product = require('./ProductRouter');
 const language = require('./LanguageRouter');
 const sound = require('./SoundRouter');
 const templateDownload = require('./TemplateDownloadRouter');
@@ -54,16 +54,16 @@ const initRoutes = (app) => {
     app.use('/api/v1/roles', role);
     app.use('/api/v1/transactions', transaction);
     app.use('/api/v1/points', point);
-    app.use('/api/v1/routes', route);
+    // app.use('/api/v1/routes', route);
     app.use('/api/v1/otp', otp);
     app.use('/api/v1/firebase', uploadImage);
     app.use('/api/v1/tours', tour);
     // app.use('/api/v1/schedules', schedule);
-    app.use('/api/v1/productCates', productCate);
+    // app.use('/api/v1/productCates', productCate);
     app.use('/api/v1/announcements', announcement);
     app.use('/api/v1/payments', payment);
     app.use('/api/v1/reports', report);
-    app.use('/api/v1/products', product);
+    // app.use('/api/v1/products', product);
     app.use('/api/v1/languages', language);
     app.use('/api/v1/sounds', sound);
     app.use('/api/v1/download', templateDownload);

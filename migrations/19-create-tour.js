@@ -2,47 +2,30 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Schedules', {
-      scheduleId: {
+    await queryInterface.createTable('Tours', {
+      tourId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      departureDate: {
-        type: Sequelize.DATE,
+      tourName: {
+        type: Sequelize.STRING,
         allowNull: false,
       },
-      endDate: {
-        type: Sequelize.DATE,
+      description: {
+        type: Sequelize.STRING,
+      },
+      duration: {
+        type: Sequelize.TIME,
         allowNull: false,
       },
-      tourId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'tours',
-          key: 'tourId'
-        }
+      distance: {
+        type: Sequelize.DECIMAL(18, 2),
+        allowNull: false,
       },
-      tourGuideId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'users',
-          key: 'userId'
-        }
-      },
-      driverId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'users',
-          key: 'userId'
-        }
-      },
-      busId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'buses',
-          key: 'busId'
-        }
+      geoJson: {
+        type: Sequelize.JSON,
+        allowNull: false,
       },
       status: {
         type: Sequelize.ENUM,
@@ -62,6 +45,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Schedules');
+    await queryInterface.dropTable('Tours');
   }
 };
