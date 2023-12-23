@@ -30,9 +30,9 @@ module.exports = {
     up: function(queryInterface, Sequelize) {
       // logic for transforming into the new state
       return queryInterface.addColumn(
-        'TicketTypes',
-        'dependsOnGuardian',
-       Sequelize.BOOLEAN
+        'RouteSegments',
+        'distance',
+       Sequelize.FLOAT
       );
   
     },
@@ -40,8 +40,8 @@ module.exports = {
     down: function(queryInterface, Sequelize) {
       // logic for reverting the changes
       return queryInterface.removeColumn(
-        'TicketTypes',
-        'dependsOnGuardian',
+        'RouteSegments',
+        'distance',
       );
     }
   }

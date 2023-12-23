@@ -411,3 +411,13 @@
 // console.log("Sending....")
 // req.write(requestBody);
 // req.end();
+
+
+
+
+// *       - name: tourStatus
+// *         in: query
+// *         schema:
+// *           type: string
+// *           enum: ["Available", "Started", "Canceled", "Finished"]
+// *         description: Find tour by tour status

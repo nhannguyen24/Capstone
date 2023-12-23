@@ -23,30 +23,15 @@ const upload = multer({ storage: storage });
  *         description:
  *           type: string
  *           description: The tour description
- *         beginBookingDate:
+ *         duration:
  *           type: string
- *           description: The tour begin booking date
- *         endBookingDate:
+ *           description: The tour duration
+ *         distance:
  *           type: string
- *           description: The tour end booking date
- *         departureDate:
+ *           description: The tour distance
+ *         geoJson:
  *           type: string
- *           description: The tour departure date
- *         departureTime:
- *           type: string
- *           description: The tour departure time
- *         endTime:
- *           type: string
- *           description: The tour end time
- *         departureStationId:
- *           type: string
- *           description: The departure station of tour
- *         routeId:
- *           type: string
- *           description: The route of tour
- *         tourStatus:
- *           type: string
- *           description: The tour status('NotStarted','Ontour','Canceled','Finished')
+ *           description: The tour geoJson
  *         status:
  *           type: string
  *           description: The tour status('Active', 'Deactive')
@@ -66,21 +51,6 @@ const upload = multer({ storage: storage });
  *         schema:
  *           type: string
  *         description: Find tour by tourName
- *       - name: routeId
- *         in: query
- *         schema:
- *           type: string
- *         description: Find tour by routeId
- *       - name: tourGuideId
- *         in: query
- *         schema:
- *           type: string
- *         description: Find tour by tourGuideId
- *       - name: driverId
- *         in: query
- *         schema:
- *           type: string
- *         description: Find tour by driverId
  *       - name: departureDate
  *         in: query
  *         schema:
@@ -91,12 +61,6 @@ const upload = multer({ storage: storage });
  *         schema:
  *           type: string
  *         description: Find tour to end date (2023-11-10)
- *       - name: tourStatus
- *         in: query
- *         schema:
- *           type: string
- *           enum: ["Available", "Started", "Canceled", "Finished"]
- *         description: Find tour by tour status
  *       - name: status
  *         in: query
  *         schema:
@@ -149,21 +113,6 @@ router.get("/", controllers.getAllTour);
  *         schema:
  *           type: string
  *         description: Find tour by tourName
- *       - name: routeId
- *         in: query
- *         schema:
- *           type: string
- *         description: Find tour by routeId
- *       - name: tourGuideId
- *         in: query
- *         schema:
- *           type: string
- *         description: Find tour by tourGuideId
- *       - name: driverId
- *         in: query
- *         schema:
- *           type: string
- *         description: Find tour by driverId
  *       - name: departureDate
  *         in: query
  *         schema:
@@ -174,12 +123,6 @@ router.get("/", controllers.getAllTour);
  *         schema:
  *           type: string
  *         description: Find tour to end date (2023-11-10)
- *       - name: tourStatus
- *         in: query
- *         schema:
- *           type: string
- *           enum: ["Available", "Started", "Canceled", "Finished"]
- *         description: Find tour by tour status
  *       - name: status
  *         in: query
  *         schema:
@@ -259,14 +202,40 @@ router.get("/:id", controllers.getTourById);
  *                  example:
  *                    tourName: Chuyến đi tham quan buổi sáng
  *                    description: Một chuyến đi tuyệt vời
- *                    beginBookingDate: 2023-09-21T00:00:00Z
- *                    endBookingDate: 2023-09-22T00:00:00Z
- *                    departureDate: 2023-09-23T09:00:00Z
  *                    duration: 03:00:00
- *                    routeId: 8c382e13-8620-460a-bd95-96b1152c1368
+ *                    distance: 10.5
+ *                    geoJson:
+ *                           type: Feature
+ *                           geometry: 
+ *                                  type: LineString
+ *                                  coordinates: 
+ *                                        - [departureLongitude, departureLatitude]
+ *                                        - [waypoint1Longitude, waypoint1Latitude]
+ *                                        - [waypoint2Longitude, waypoint2Latitude]
+ *                                        - [endLongitude, endLatitude]
+ *                           properties: 
+ *                                  name: Route between Stations
+ *                    segments:
+ *                          - departureStationId: stationId
+ *                            endStationId: stationId
+ *                            distance: 100.2
+ *                            points:
+ *                                  - poiId
+ *                                  - poiId
+ *                          - departureStationId: stationId
+ *                            endStationId: stationId
+ *                            distance: 410.3
+ *                            points:
+ *                                  - poiId
+ *                                  - poiId
  *                    tickets:
  *                          - 3355c24a-741c-4e3b-9d2a-fa43c4c950c5
  *                          - 99f73c58-7c81-4152-90f9-21e50637e9c8
+ *                    schedules:
+ *                          - departureDate: 2023-09-23T09:00:00Z
+ *                            departureStationId: stationId
+ *                          - departureDate: 2023-09-23T09:00:00Z
+ *                            departureStationId: stationId
  *                    images:
  *                          - string
  *                          - string

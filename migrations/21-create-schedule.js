@@ -2,34 +2,23 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Bookings', {
-      bookingId: {
+    await queryInterface.createTable('Schedules', {
+      scheduleId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      bookingDate: {
+      departureDate: {
         type: Sequelize.DATE,
         allowNull: false,
       },
-      bookingCode: {
-        type: Sequelize.STRING,
+      endDate: {
+        type: Sequelize.DATE,
         allowNull: false,
       },
-      totalPrice: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-      isAttended: {
+      isScheduled: {
         type: Sequelize.BOOLEAN,
-        allowNull: false,
-      },
-      customerId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'users',
-          key: 'userId'
-        }
+        defaultValue: false,
       },
       departureStationId: {
         type: Sequelize.UUID,
@@ -38,14 +27,38 @@ module.exports = {
           key: 'stationId'
         }
       },
-      endPaymentTime: {
-        type: Sequelize.DATE,
-        allowNull: false,
+      tourId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'tours',
+          key: 'tourId'
+        }
       },
-      bookingStatus: {
+      tourGuideId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'users',
+          key: 'userId'
+        }
+      },
+      driverId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'users',
+          key: 'userId'
+        }
+      },
+      busId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'buses',
+          key: 'busId'
+        }
+      },
+      scheduleStatus: {
         type: Sequelize.ENUM,
-        values: ["Draft", "Ongoing", "Canceled", "Finished"],
-        defaultValue: 'Ongoing',
+        values: ["Available", "Started", "Canceled", "Finished"],
+        defaultValue: 'Available',
       },
       status: {
         type: Sequelize.ENUM,
@@ -65,6 +78,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Bookings');
+    await queryInterface.dropTable('Schedules');
   }
 };

@@ -2,26 +2,23 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Schedules', {
-      scheduleId: {
+    await queryInterface.createTable('RouteSegments', {
+      routeSegmentId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      departureDate: {
-        type: Sequelize.DATE,
+      // stopoverTime: {
+      //   type: Sequelize.TIME,
+      //   allowNull: false,
+      // },
+      // index: {
+      //   type: Sequelize.INTEGER,
+      //   allowNull: false,
+      // },
+      distance: {
+        type: Sequelize.FLOAT,
         allowNull: false,
-      },
-      endDate: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
-      departureStation: {
-        type: Sequelize.STRING,
-      },
-      isScheduled: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: false,
       },
       tourId: {
         type: Sequelize.UUID,
@@ -30,31 +27,19 @@ module.exports = {
           key: 'tourId'
         }
       },
-      tourGuideId: {
+      departureStationId: {
         type: Sequelize.UUID,
         references: {
-          model: 'users',
-          key: 'userId'
+          model: 'stations',
+          key: 'stationId'
         }
       },
-      driverId: {
+      endStationId: {
         type: Sequelize.UUID,
         references: {
-          model: 'users',
-          key: 'userId'
+          model: 'stations',
+          key: 'stationId'
         }
-      },
-      busId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'buses',
-          key: 'busId'
-        }
-      },
-      tourStatus: {
-        type: Sequelize.ENUM,
-        values: ["Available", "Started", "Canceled", "Finished"],
-        defaultValue: 'Available',
       },
       status: {
         type: Sequelize.ENUM,
@@ -74,6 +59,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Schedules');
+    await queryInterface.dropTable('RouteSegments');
   }
 };
