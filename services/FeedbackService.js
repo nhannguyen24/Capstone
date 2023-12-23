@@ -1,7 +1,6 @@
 const db = require('../models')
 const { Op, sequelize } = require('sequelize')
-const STATUS = require("../enums/StatusEnum")
-const TOUR_STATUS = require("../enums/TourStatusEnum")
+const TOUR_SCHEDULE_STATUS = require("../enums/TourScheduleStatusEnum")
 const { StatusCodes } = require('http-status-codes')
 const getFeedbacks = async (req) => {
     try {
@@ -64,7 +63,7 @@ const getFeedbacks = async (req) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -106,7 +105,7 @@ const getFeedbackById = async (feedbackId) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -154,55 +153,36 @@ const createFeedback = async (req) => {
         }
 
         //Check if the user has gone on a tour
-        const isGoneOnTour = await db.BookingDetail.findOne({
+        const isGoneOnTour = await db.Booking.findOne({
             raw: true,
             nest: true,
             include: [
                 {
-                    model: db.Booking,
-                    as: "detail_booking",
+                    model: db.Schedule,
+                    as: "booking_schedule",
                     where: {
-                        isAttended: true
-                    },
-                    attributes: ["bookingId"],
-                    include: {
-                        model: db.User,
-                        as: "booking_user",
-                        where: {
-                            userId: customerId
-                        },
-                        attributes: ["userId", "userName"]
+                        tourId: tourId,
+                        scheduleStatus: TOUR_SCHEDULE_STATUS.FINISHED
                     }
-                },
-                {
-                    model: db.Ticket,
-                    as: "booking_detail_ticket",
-                    attributes: {
-                        exclude: ["ticketId"]
+                }, {
+                    model: db.User,
+                    as: "booking_user",
+                    where: {
+                        userId: customerId
                     },
-                    include: [
-                        {
-                            model: db.Tour,
-                            as: "ticket_tour",
-                            where: {
-                                tourStatus: TOUR_STATUS.FINISHED,
-                                tourId: tourId
-                            },
-                        }
-                    ]
-                },
+                    attributes: ["userId", "userName"]
+                }
             ],
-            attributes: {
-                exclude: ["bookingId", "ticketId", "createdAt", "updatedAt"]
-            }
-
+            where: {
+                isAttended: true
+            },
         })
 
         if (!isGoneOnTour) {
             return {
-                status: StatusCodes.FORBIDDEN,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
-                    msg: 'Not gone on this tour or tour not finished!',
+                    msg: 'User not gone on this tour or tour not finished!',
                 }
             }
         }
@@ -228,7 +208,7 @@ const createFeedback = async (req) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -288,7 +268,7 @@ const updateFeedback = async (req) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }
@@ -329,7 +309,7 @@ const deleteFeedback = async (feedbackId) => {
         console.error(error)
         return {
             status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data:{
+            data: {
                 msg: "An error has occurred!",
             }
         }

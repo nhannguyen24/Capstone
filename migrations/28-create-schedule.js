@@ -16,8 +16,8 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
       },
-      departureStation: {
-        type: Sequelize.STRING,
+      departureStationId: {
+        type: Sequelize.UUID,
       },
       isScheduled: {
         type: Sequelize.BOOLEAN,

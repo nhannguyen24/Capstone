@@ -1,6 +1,6 @@
 const db = require('../models')
 const { Op } = require('sequelize')
-const TOUR_STATUS = require("../enums/TourStatusEnum")
+const TOUR_SCHEDULE_STATUS = require("../enums/TourScheduleStatusEnum")
 const DAY_ENUM = require("../enums/PriceDayEnum");
 const { StatusCodes } = require('http-status-codes');
 const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
@@ -217,7 +217,7 @@ const updatePrice = async (req) => {
         currentDate.setHours(currentDate.getHours() + 7)
 
         if (day !== "") {
-            whereClause.tourStatus = TOUR_STATUS.AVAILABLE
+            whereClause.scheduleStatus = TOUR_SCHEDULE_STATUS.AVAILABLE
             whereClause.departureDate = {
                 [Op.gte]: currentDate
             }
@@ -238,8 +238,12 @@ const updatePrice = async (req) => {
                     include: {
                         model: db.Tour,
                         as: "ticket_tour",
-                        where: whereClause,
-                        attributes: ["tourId", "tourName", "tourStatus", "departureDate"]
+                        attributes: ["tourId", "tourName", "tourStatus", "departureDate"],
+                        include: {
+                            model: db.Schedule,
+                            as: "tour_schedule",
+                            where: whereClause,
+                        }
                     }
 
                 }

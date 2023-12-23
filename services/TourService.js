@@ -2,7 +2,7 @@ const db = require("../models")
 const { Op } = require("sequelize")
 const redisClient = require("../config/RedisConfig")
 const STATUS = require("../enums/StatusEnum")
-const TOUR_STATUS = require("../enums/TourStatusEnum")
+const TOUR_SCHEDULE_STATUS = require("../enums/TourScheduleStatusEnum")
 const DAY_ENUM = require("../enums/PriceDayEnum")
 const BOOKING_STATUS = require("../enums/BookingStatusEnum")
 const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
@@ -2169,7 +2169,7 @@ const updateTour = (id, { images, ...body }) =>
                             transaction: t
                         })
 
-                        if (body.tourStatus == TOUR_STATUS.STARTED) {
+                        if (body.tourStatus == TOUR_SCHEDULE_STATUS.STARTED) {
                             await db.TourDetail.update({
                                 status: STATUS.NOTARRIVED,
                             }, {
@@ -2179,7 +2179,7 @@ const updateTour = (id, { images, ...body }) =>
                             })
                         }
 
-                        if (body.tourStatus == TOUR_STATUS.FINISHED) {
+                        if (body.tourStatus == TOUR_SCHEDULE_STATUS.FINISHED) {
                             await db.Bus.update({
                                 status: STATUS.ACTIVE,
                             }, {

@@ -3,7 +3,7 @@ const { Op } = require('sequelize');
 const { StatusCodes } = require('http-status-codes');
 const BOOKING_STATUS = require("../enums/BookingStatusEnum")
 const STATUS = require("../enums/StatusEnum")
-const TOUR_STATUS = require("../enums/TourStatusEnum")
+const TOUR_SCHEDULE_STATUS = require("../enums/TourScheduleStatusEnum")
 const TRANSACTION_TYPE = require("../enums/TransactionTypeEnum")
 const OTP_TYPE = require("../enums/OtpTypeEnum")
 const PaymentService = require("./PaymentService")
@@ -26,7 +26,21 @@ const getBookingDetailByBookingId = async (bookingId) => {
                     model: db.Station,
                     as: "booking_departure_station",
                     attributes: ["stationId", "stationName", "address"]
-                }
+                },
+                {
+                    model: db.Schedule,
+                    as: "booking_schedule",
+                    include: [
+                        {
+                            model: db.Tour,
+                            as: "schedule_tour",
+                        },
+                        {
+                            model: db.Bus,
+                            as: "schedule_bus"
+                        }
+                    ]
+                },
             ],
             attributes: {
                 exclude: ["customerId", "departureStationId"]
@@ -52,18 +66,6 @@ const getBookingDetailByBookingId = async (bookingId) => {
                 model: db.Ticket,
                 as: "booking_detail_ticket",
                 include: [
-                    {
-                        model: db.Tour,
-                        as: "ticket_tour",
-                        include: {
-                            model: db.Schedule,
-                            as: "tour_schedule",
-                            include: {
-                                model: db.Bus,
-                                as: "schedule_bus"
-                            }
-                        }
-                    },
                     {
                         model: db.TicketType,
                         as: "ticket_type",
@@ -258,25 +260,11 @@ const getBookings = async (req) => {
                             model: db.Ticket,
                             as: "booking_detail_ticket",
                             attributes: ["ticketId"],
-                            include: [
-                                {
-                                    model: db.Tour,
-                                    as: "ticket_tour",
-                                    include: {
-                                        model: db.Schedule,
-                                        as: "tour_schedule",
-                                        include: {
-                                            model: db.Bus,
-                                            as: "schedule_bus"
-                                        }
-                                    }
-                                },
-                                {
-                                    model: db.TicketType,
-                                    as: "ticket_type",
-                                    attributes: ["ticketTypeId", "ticketTypeName", "description"]
-                                }
-                            ]
+                            include: {
+                                model: db.TicketType,
+                                as: "ticket_type",
+                                attributes: ["ticketTypeId", "ticketTypeName", "description"]
+                            }
                         },
                         {
                             model: db.Booking,
@@ -291,7 +279,20 @@ const getBookings = async (req) => {
                                     model: db.Station,
                                     as: "booking_departure_station",
                                     attributes: ["stationId", "stationName", "address"]
-                                }
+                                },
+                                {
+                                    model: db.Schedule,
+                                    as: "booking_schedule",
+                                    include: [
+                                        {
+                                            model: db.Tour,
+                                            as: "schedule_tour",
+                                        }, {
+                                            model: db.Bus,
+                                            as: "schedule_bus"
+                                        }
+                                    ]
+                                },
                             ],
                             attributes: {
                                 exclude: ["customerId", "departureStationId"]
@@ -555,25 +556,11 @@ const getBookingsByEmail = async (req) => {
                             model: db.Ticket,
                             as: "booking_detail_ticket",
                             attributes: ["ticketId"],
-                            include: [
-                                {
-                                    model: db.Tour,
-                                    as: "ticket_tour",
-                                    include: {
-                                        model: db.Schedule,
-                                        as: "tour_schedule",
-                                        include: {
-                                            model: db.Bus,
-                                            as: "schedule_bus"
-                                        }
-                                    }
-                                },
-                                {
-                                    model: db.TicketType,
-                                    as: "ticket_type",
-                                    attributes: ["ticketTypeId", "ticketTypeName", "description"]
-                                }
-                            ]
+                            include: {
+                                model: db.TicketType,
+                                as: "ticket_type",
+                                attributes: ["ticketTypeId", "ticketTypeName", "description"]
+                            }
                         },
                         {
                             model: db.Booking,
@@ -588,14 +575,27 @@ const getBookingsByEmail = async (req) => {
                                     model: db.Station,
                                     as: "booking_departure_station",
                                     attributes: ["stationId", "stationName", "address"]
-                                }
+                                },
+                                {
+                                    model: db.Schedule,
+                                    as: "booking_schedule",
+                                    include: [
+                                        {
+                                            model: db.Tour,
+                                            as: "schedule_tour",
+                                        }, {
+                                            model: db.Bus,
+                                            as: "schedule_bus"
+                                        }
+                                    ]
+                                },
                             ],
                             attributes: {
                                 exclude: ["customerId", "departureStationId"]
                             },
                         }
                     ],
-                    attributes: ["bookingId", "quantity", "TicketPrice"],
+                    attributes: ["bookingId", "quantity", "ticketPrice"],
                 })
                 const transaction = await db.Transaction.findOne({
                     where: {
@@ -681,9 +681,9 @@ const createBookingWeb = async (req) => {
     try {
         const user = req.body.user
         const tickets = req.body.tickets
-        const tourId = tickets[0].tourId
+        const scheduleId = tickets[0].scheduleId
         let totalPrice = req.body.totalPrice
-        const departureStationId = req.body.departureStationId
+        const pickUpStationId = req.body.departureStationId
         /**
          * Checking if Admin or Manager not allow to book
          */
@@ -707,43 +707,38 @@ const createBookingWeb = async (req) => {
         /**
          * Checking if tour, departure station exist
          */
-        let station
-        let _routeSegment
-        let _routeSegments = []
-        const tour = await db.Tour.findOne({
+        let routeSegments = []
+        const tourSchedule = await db.Schedule.findOne({
             where: {
-                tourId: tourId
+                scheduleId: scheduleId
             },
             include: {
-                model: db.Schedule,
-                as: "tour_schedule",
-                include: {
-                    model: db.Bus,
-                    as: "schedule_bus",
-                    attributes: ["busId", "numberSeat"]
-                }
+                model: db.Bus,
+                as: "schedule_bus",
+                attributes: ["busId", "numberSeat"]
             }
         })
-        if (!tour) {
+        if (!tourSchedule) {
             return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
-                    msg: `Tour not found!`,
+                    msg: `Tour schedule not found!`,
                 }
             }
         }
-        if (TOUR_STATUS.AVAILABLE !== tour.tourStatus && STATUS.ACTIVE !== tour.status) {
+        if (TOUR_SCHEDULE_STATUS.AVAILABLE !== tourSchedule.scheduleStation && STATUS.ACTIVE !== tourSchedule.status) {
             return {
-                status: StatusCodes.FORBIDDEN,
+                status: StatusCodes.BAD_REQUEST,
                 data: {
-                    msg: `Tour not available for booking!`,
+                    msg: `Tour schedule not available for booking!`,
                 }
             }
         }
 
-        station = await db.Station.findOne({
+        //Check if pick up station is exist
+        const station = await db.Station.findOne({
             where: {
-                stationId: departureStationId
+                stationId: pickUpStationId
             }
         })
 
@@ -755,12 +750,15 @@ const createBookingWeb = async (req) => {
                 }
             }
         }
-
+        /** 
+         * Check if pick up station is within the tour route
+         */
+        const tourDepartureStation = tourSchedule.departureStationId
         const routeSegment = await db.RouteSegment.findOne({
             raw: true,
             where: {
-                tourId: tourId,
-                departureStationId: departureStationId,
+                tourId: tourSchedule.tourId,
+                departureStationId: pickUpStationId,
                 status: STATUS.ACTIVE,
             },
         })
@@ -771,18 +769,33 @@ const createBookingWeb = async (req) => {
                     msg: `Station not found within tour!`,
                 }
             }
-        } else {
-            if (routeSegment.index !== 1) {
-                const routeSegments = await db.RouteSegment.findAll({
-                    raw: true,
-                    where: {
-                        tourId: tourId,
-                    },
-                    order: [['index', 'ASC']]
-                })
-                _routeSegments = routeSegments
+        }
+        if (routeSegment.departureStationId !== tourDepartureStation) {
+            const resultRouteSegments = await db.RouteSegment.findAll({
+                raw: true,
+                where: {
+                    tourId: tourSchedule.tourId,
+                },
+            })
+
+            if (resultRouteSegments.length === 0) {
+                return {
+                    status: StatusCodes.NOT_FOUND,
+                    data: {
+                        msg: "Tour route segments not found!"
+                    }
+                }
             }
-            _routeSegment = routeSegment
+
+            routeSegments = resultRouteSegments.sort((a, b) => {
+                if (a.startStationId === tourDepartureStation && a.endStationId === b.startStationId) {
+                    return -1; // a should come before b
+                } else if (b.startStationId === tourDepartureStation && b.endStationId === a.startStationId) {
+                    return 1; // b should come before a
+                } else {
+                    return 0; // no specific order
+                }
+            })
         }
 
         /**
@@ -798,7 +811,7 @@ const createBookingWeb = async (req) => {
                 nest: true,
                 where: {
                     ticketId: ticket.ticketId,
-                    tourId: tourId
+                    tourId: tourSchedule.tourId
                 },
                 include: {
                     model: db.TicketType,
@@ -844,30 +857,19 @@ const createBookingWeb = async (req) => {
             ticketList.push(_ticket)
         }
         //Check the booking information for the same tour and the same user
-        const checkSameTourBookedBoking = await db.BookingDetail.findOne({
-            include: [
-                {
-                    model: db.Ticket,
-                    as: "booking_detail_ticket",
-                    where: {
-                        tourId: tourId,
-                    }
-                }, {
-                    model: db.Booking,
-                    as: "detail_booking",
-                    where: {
-                        customerId: resultUser[0].dataValues.userId,
-                        bookingStatus: {
-                            [Op.eq]: BOOKING_STATUS.ON_GOING
-                        }
-                    },
+        const checkSameTourBookedBoking = await db.Booking.findOne({
+            where: {
+                customerId: resultUser[0].dataValues.userId,
+                scheduleId: scheduleId,
+                bookingStatus: {
+                    [Op.eq]: BOOKING_STATUS.ON_GOING
                 }
-            ]
+            },
         })
 
         //If not found => Check ticket is depend on guardian
-        if (!isValidTickets) {
-            if (!checkSameTourBookedBoking) {
+        if (!checkSameTourBookedBoking) {
+            if (!isValidTickets) {
                 return {
                     status: StatusCodes.BAD_REQUEST,
                     data: {
@@ -888,7 +890,7 @@ const createBookingWeb = async (req) => {
                     model: db.Ticket,
                     as: "booking_detail_ticket",
                     where: {
-                        tourId: tourId,
+                        tourId: tourSchedule.tourId,
                     },
                 },
                 {
@@ -944,11 +946,12 @@ const createBookingWeb = async (req) => {
                 }
             }
         }
-        
+
         let totalDistance = 0
         let distanceToBookedDepartureStation = 0
-        if (_routeSegments.length > 0) {
-            for (const segment of _routeSegments) {
+        let includeInDistanceToBooked = true;
+        if (routeSegments.length > 0) {
+            for (const segment of routeSegments) {
                 if (segment.distance === null || segment.distance === undefined) {
                     console.error(`RouteSegment ${segment.routeSegmentId} distance null!`)
                     return {
@@ -959,7 +962,10 @@ const createBookingWeb = async (req) => {
                     }
                 }
                 //Sum up distance until departure station of this booking
-                if (segment.index < _routeSegment.index) {
+                if (segment.departureStationId === routeSegment.departureStationId) {
+                    includeInDistanceToBooked = false
+                }
+                if (includeInDistanceToBooked) {
                     distanceToBookedDepartureStation += parseFloat(segment.distance)
                 }
                 totalDistance += parseFloat(segment.distance)
@@ -986,7 +992,7 @@ const createBookingWeb = async (req) => {
         let booking
         try {
             await db.sequelize.transaction(async (t) => {
-                booking = await db.Booking.create({ totalPrice: totalPrice, customerId: resultUser[0].dataValues.userId, departureStationId: departureStationId, bookingStatus: BOOKING_STATUS.DRAFT }, { transaction: t });
+                booking = await db.Booking.create({ totalPrice: totalPrice, customerId: resultUser[0].dataValues.userId, departureStationId: pickUpStationId, scheduleId: scheduleId, bookingStatus: BOOKING_STATUS.DRAFT }, { transaction: t });
 
                 await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, isPaidToManager: false, status: STATUS.DRAFT }, { transaction: t })
 
@@ -1027,9 +1033,9 @@ const createBookingOffline = async (req) => {
     try {
         const user = req.body.user
         const tickets = req.body.tickets
-        const tourId = tickets[0].tourId
+        const scheduleId = tickets[0].scheduleId
         let totalPrice = req.body.totalPrice
-        const departureStationId = req.body.departureStationId
+        const pickUpStationId = req.body.departureStationId
         /**
          * Checking if Admin or Manager not allow to book
          */
@@ -1063,36 +1069,30 @@ const createBookingOffline = async (req) => {
         /**
          * Checking if tour, departure station exist
          */
-        let _routeSegment
-        let _routeSegments = []
-        const tour = await db.Tour.findOne({
+        let routeSegments = []
+        const tourSchedule = await db.Schedule.findOne({
             where: {
-                tourId: tourId
+                scheduleId: scheduleId
             },
             include: {
-                model: db.Schedule,
-                as: "tour_schedule",
-                include: {
-                    model: db.Bus,
-                    as: "schedule_bus",
-                    attributes: ["busId", "numberSeat"]
-                }
+                model: db.Bus,
+                as: "schedule_bus",
+                attributes: ["busId", "numberSeat"]
             }
         })
-        if (!tour) {
+        if (!tourSchedule) {
             return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
-                    msg: `Tour not found!`,
+                    msg: `Tour schedule not found!`,
                 }
             }
         }
-
-        if (TOUR_STATUS.FINISHED === tour.tourStatus || TOUR_STATUS.CANCELED === tour.tourStatus) {
+        if (TOUR_SCHEDULE_STATUS.AVAILABLE !== tourSchedule.scheduleStation && STATUS.ACTIVE !== tourSchedule.status) {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
-                    msg: `Tour not available for booking!`,
+                    msg: `Tour schedule not available for booking!`,
                 }
             }
         }
@@ -1100,7 +1100,7 @@ const createBookingOffline = async (req) => {
         const currentDate = new Date()
         currentDate.setHours(currentDate.getHours() + 7)
 
-        const departureDateMinusThirtyMinutes = new Date(tour.departureDate)
+        const departureDateMinusThirtyMinutes = new Date(tourSchedule.departureDate)
         departureDateMinusThirtyMinutes.setMinutes(departureDateMinusThirtyMinutes.getMinutes() - 30)
         if (departureDateMinusThirtyMinutes > currentDate) {
             return {
@@ -1113,7 +1113,7 @@ const createBookingOffline = async (req) => {
 
         const station = await db.Station.findOne({
             where: {
-                stationId: departureStationId
+                stationId: pickUpStationId
             }
         })
 
@@ -1126,34 +1126,50 @@ const createBookingOffline = async (req) => {
             }
         }
 
+        const tourDepartureStation = tourSchedule.departureStationId
         const routeSegment = await db.RouteSegment.findOne({
             raw: true,
             where: {
-                tourId: tourId,
-                departureStationId: departureStationId,
+                tourId: tourSchedule.tourId,
+                departureStationId: pickUpStationId,
                 status: STATUS.ACTIVE,
             },
         })
-
         if (!routeSegment) {
             return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
-                    msg: `Station not found within tour route!`,
+                    msg: `Station not found within tour!`,
                 }
             }
         }
-        if (routeSegment.index !== 1) {
-            const routeSegments = await db.RouteSegment.findAll({
+        if (routeSegment.departureStationId !== tourDepartureStation) {
+            const resultRouteSegments = await db.RouteSegment.findAll({
                 raw: true,
                 where: {
-                    tourId: tourId,
+                    tourId: tourSchedule.tourId,
                 },
-                order: [['index', 'ASC']]
             })
-            _routeSegments = routeSegments
+
+            if (resultRouteSegments.length === 0) {
+                return {
+                    status: StatusCodes.NOT_FOUND,
+                    data: {
+                        msg: "Tour route segments not found!"
+                    }
+                }
+            }
+
+            routeSegments = resultRouteSegments.sort((a, b) => {
+                if (a.startStationId === tourDepartureStation && a.endStationId === b.startStationId) {
+                    return -1; // a should come before b
+                } else if (b.startStationId === tourDepartureStation && b.endStationId === a.startStationId) {
+                    return 1; // b should come before a
+                } else {
+                    return 0; // no specific order
+                }
+            })
         }
-        _routeSegment = routeSegment
 
         /**
          * Checking ticketId and priceId and calculate booked ticket quantity
@@ -1165,7 +1181,7 @@ const createBookingOffline = async (req) => {
                 nest: true,
                 where: {
                     ticketId: ticket.ticketId,
-                    tourId: tourId
+                    tourId: tourSchedule.tourId
                 },
                 include: {
                     model: db.TicketType,
@@ -1209,8 +1225,9 @@ const createBookingOffline = async (req) => {
          */
         let totalDistance = 0
         let distanceToBookedDepartureStation = 0
-        if (_routeSegments.length > 0) {
-            for (const segment of _routeSegments) {
+        let includeInDistanceToBooked = true;
+        if (routeSegments.length > 0) {
+            for (const segment of routeSegments) {
                 if (segment.distance === null || segment.distance === undefined) {
                     console.error(`RouteSegment ${segment.routeSegmentId} distance null!`)
                     return {
@@ -1220,12 +1237,20 @@ const createBookingOffline = async (req) => {
                         }
                     }
                 }
-                if (segment.index < _routeSegment.index) {
+                //Sum up distance until departure station of this booking
+                if (segment.departureStationId === routeSegment.departureStationId) {
+                    includeInDistanceToBooked = false
+                }
+                if (includeInDistanceToBooked) {
                     distanceToBookedDepartureStation += parseFloat(segment.distance)
                 }
                 totalDistance += parseFloat(segment.distance)
             }
+
+            //Calculate the remain distance
             const participateDistance = totalDistance - distanceToBookedDepartureStation
+
+            // 1 = 100%
             let totalPricePercentage = 1
             if (participateDistance <= 1000) {
                 //70% total price
@@ -1234,7 +1259,6 @@ const createBookingOffline = async (req) => {
                 //80% total price
                 totalPricePercentage = totalPricePercentage - 0.2
             }
-
             totalPrice = totalPrice * totalPricePercentage
         }
         totalPrice = Math.floor(totalPrice / 1000) * 1000
@@ -1244,7 +1268,7 @@ const createBookingOffline = async (req) => {
         let booking
         try {
             await db.sequelize.transaction(async (t) => {
-                booking = await db.Booking.create({ totalPrice: totalPrice, customerId: userId, departureStationId: departureStationId, isAttended: false, bookingStatus: BOOKING_STATUS.DRAFT }, { transaction: t });
+                booking = await db.Booking.create({ totalPrice: totalPrice, customerId: userId, departureStationId: pickUpStationId, scheduleId: scheduleId, isAttended: false, bookingStatus: BOOKING_STATUS.DRAFT }, { transaction: t });
 
                 await db.Transaction.create({ amount: totalPrice, bookingId: booking.bookingId, transactionType: TRANSACTION_TYPE.CASH, isPaidToManager: false, status: STATUS.DRAFT }, { transaction: t })
 
@@ -1257,7 +1281,7 @@ const createBookingOffline = async (req) => {
             return {
                 status: StatusCodes.INTERNAL_SERVER_ERROR,
                 data: {
-                    msg: "An error has occurred! While create booking offline",
+                    msg: "An error has occurred! While booking tickets offline",
                 }
             }
         }
@@ -1281,49 +1305,33 @@ const createBookingOffline = async (req) => {
     }
 }
 
-const checkInQrCode = async (bookingId, tourId) => {
+const checkInQrCode = async (bookingId, scheduleId) => {
     const t = await db.sequelize.transaction();
     try {
-        const tour = await db.Tour.findOne({
+        const tourSchedule = await db.Schedule.findOne({
             where: {
-                tourId: tourId
+                scheduleId: scheduleId
             }
         })
-        if (!tour) {
+        if (!tourSchedule) {
             return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
-                    msg: `Tour not found!`,
+                    msg: `Tour schedule not found!`,
                 }
             }
         }
-        const bookingDetail = await db.BookingDetail.findOne({
-            attributes: ["bookingDetailId"],
+        const booking = await db.Booking.findOne({
             where: {
-                bookingId: bookingId
+                bookingId: bookingId,
             },
-            include: [
-                {
-                    model: db.Ticket,
-                    as: "booking_detail_ticket",
-                    attributes: ["ticketId"],
-                    include: {
-                        model: db.Tour,
-                        as: "ticket_tour",
-                        include: {
-                            model: db.Schedule,
-                            as: "tour_schedule",
-                        }
-                    }
-                },
-                {
-                    model: db.Booking,
-                    as: "detail_booking",
-                }
-            ]
+            include: {
+                model: db.Schedule,
+                as: "booking_schedule"
+            }
         })
 
-        if (!bookingDetail) {
+        if (!booking) {
             return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
@@ -1331,15 +1339,15 @@ const checkInQrCode = async (bookingId, tourId) => {
                 }
             }
         }
-        if (bookingDetail.booking_detail_ticket.ticket_tour.tourId !== tourId) {
+        if (booking.booking_schedule.scheduleId !== scheduleId) {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
-                    msg: `Booking belong to different tour!`,
+                    msg: `Booking belong to different tour schedule!`,
                 }
             }
         }
-        if (BOOKING_STATUS.CANCELED === bookingDetail.detail_booking.bookingStatus) {
+        if (BOOKING_STATUS.CANCELED === booking.bookingStatus) {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
@@ -1347,7 +1355,7 @@ const checkInQrCode = async (bookingId, tourId) => {
                 }
             }
         }
-        if (bookingDetail.detail_booking.isAttended === true) {
+        if (booking.isAttended === true) {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
@@ -1355,7 +1363,7 @@ const checkInQrCode = async (bookingId, tourId) => {
                 }
             }
         }
-        if (TOUR_STATUS.FINISHED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus || TOUR_STATUS.CANCELED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
+        if (TOUR_SCHEDULE_STATUS.FINISHED === booking.booking_schedule.scheduleStatus || TOUR_SCHEDULE_STATUS.CANCELED === booking.booking_schedule.scheduleStatus) {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
@@ -1366,7 +1374,7 @@ const checkInQrCode = async (bookingId, tourId) => {
 
         const currentDate = new Date()
         currentDate.setHours(currentDate.getHours() + 7)
-        const thirtyMinutesBeforeDepartureDate = new Date(bookingDetail.booking_detail_ticket.ticket_tour.departureDate)
+        const thirtyMinutesBeforeDepartureDate = new Date(booking.booking_schedule.departureDate)
         thirtyMinutesBeforeDepartureDate.setMinutes(thirtyMinutesBeforeDepartureDate.getMinutes() - 30)
         if (thirtyMinutesBeforeDepartureDate > currentDate) {
             return {
@@ -1406,46 +1414,23 @@ const checkInQrCode = async (bookingId, tourId) => {
 
 const cancelBooking = async (bookingId) => {
     try {
-        const _bookingId = bookingId
-        const bookingDetail = await db.BookingDetail.findOne({
+        const booking = await db.Booking.findOne({
             where: {
-                bookingId: _bookingId
+                bookingId: bookingId
             },
-            attributes: ["bookingDetailId"],
             include: [
                 {
-                    model: db.Ticket,
-                    as: "booking_detail_ticket",
-                    attributes: ["ticketId"],
-                    include: {
-                        model: db.Tour,
-                        as: "ticket_tour",
-                        include: {
-                            model: db.Schedule,
-                            as: "tour_schedule"
-                        }
-                    }
+                    model: db.Transaction,
+                    as: "booking_transaction"
                 },
                 {
-                    model: db.Booking,
-                    as: "detail_booking",
-                    include: [
-                        {
-                            model: db.User,
-                            as: "booking_user",
-                            attributes: ["userId"],
-                        }, {
-                            model: db.Transaction,
-                            as: "booking_transaction"
-                        }
-                    ],
-                    attributes: {
-                        exclude: ["customerId"]
-                    },
+                    model: db.Schedule,
+                    as: "booking_schedule"
                 }
             ]
         })
-        if (!bookingDetail) {
+
+        if (!booking) {
             return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
@@ -1454,7 +1439,7 @@ const cancelBooking = async (bookingId) => {
             }
         }
 
-        if (BOOKING_STATUS.CANCELED === bookingDetail.detail_booking.bookingStatus) {
+        if (BOOKING_STATUS.CANCELED === booking.bookingStatus) {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
@@ -1462,13 +1447,8 @@ const cancelBooking = async (bookingId) => {
                 }
             }
         }
-        const transaction = await db.Transaction.findOne({
-            where: {
-                bookingId: _bookingId
-            }
-        })
 
-        if (STATUS.DRAFT === transaction.status) {
+        if (STATUS.DRAFT === booking.bookingStatus) {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
@@ -1477,7 +1457,7 @@ const cancelBooking = async (bookingId) => {
             }
         }
 
-        if (TOUR_STATUS.FINISHED === bookingDetail.booking_detail_ticket.ticket_tour.tourStatus) {
+        if (TOUR_SCHEDULE_STATUS.FINISHED === booking.booking_schedule.scheduleStatus) {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
@@ -1489,7 +1469,7 @@ const cancelBooking = async (bookingId) => {
         const otp = await db.Otp.findOne({
             where: {
                 otpType: OTP_TYPE.CANCEL_BOOKING,
-                userId: bookingDetail.detail_booking.booking_user.userId
+                userId: booking.userId
             }
         })
         if (!otp) {
@@ -1510,12 +1490,12 @@ const cancelBooking = async (bookingId) => {
             }
         }
 
-        if (TRANSACTION_TYPE.PAY_OS === bookingDetail.detail_booking.booking_transaction.transactionType) {
+        if (TRANSACTION_TYPE.PAY_OS === booking.booking_transaction.transactionType) {
             db.Booking.update({
                 bookingStatus: BOOKING_STATUS.CANCELED,
             }, {
                 where: {
-                    bookingId: _bookingId
+                    bookingId: bookingId
                 },
                 individualHooks: true,
             })
@@ -1524,7 +1504,7 @@ const cancelBooking = async (bookingId) => {
                 status: BOOKING_STATUS.CANCELED,
             }, {
                 where: {
-                    bookingId: _bookingId
+                    bookingId: bookingId
                 },
                 individualHooks: true,
             })
@@ -1533,7 +1513,7 @@ const cancelBooking = async (bookingId) => {
                 status: STATUS.REFUNDED
             }, {
                 where: {
-                    bookingId: _bookingId
+                    bookingId: bookingId
                 },
                 individualHooks: true,
             })
@@ -1546,11 +1526,11 @@ const cancelBooking = async (bookingId) => {
             }
         }
 
-        var amount = parseInt(transaction.amount)
-        const departureDate = new Date(bookingDetail.booking_detail_ticket.ticket_tour.tour_schedule.departureDate)
+        var amount = parseInt(booking.booking_transaction.amount)
+        const tourDepartureDate = new Date(booking.booking_schedule.departureDate)
         const currentDate = new Date()
         currentDate.setHours(currentDate.getHours() + 7)
-        const timeDifference = departureDate - currentDate
+        const timeDifference = tourDepartureDate - currentDate
         const twoDaysInMillis = 2 * 24 * 60 * 60 * 1000 // 2 days in milliseconds
         const oneDayInMillis = 24 * 60 * 60 * 1000 // 1 day in milliseconds
         if (timeDifference <= oneDayInMillis) {
@@ -1558,7 +1538,7 @@ const cancelBooking = async (bookingId) => {
                 bookingStatus: BOOKING_STATUS.CANCELED,
             }, {
                 where: {
-                    bookingId: _bookingId
+                    bookingId: bookingId
                 },
                 individualHooks: true,
             })
@@ -1567,7 +1547,7 @@ const cancelBooking = async (bookingId) => {
                 status: BOOKING_STATUS.CANCELED,
             }, {
                 where: {
-                    bookingId: _bookingId
+                    bookingId: bookingId
                 },
                 individualHooks: true,
             })
@@ -1576,7 +1556,7 @@ const cancelBooking = async (bookingId) => {
                 status: STATUS.REFUNDED
             }, {
                 where: {
-                    bookingId: _bookingId
+                    bookingId: bookingId
                 },
                 individualHooks: true,
             })
@@ -1593,7 +1573,7 @@ const cancelBooking = async (bookingId) => {
             amount = amount * 80 / 100
         }
 
-        const refundResult = await PaymentService.refundMomo(_bookingId, amount)
+        const refundResult = await PaymentService.refundMomo(bookingId, amount)
         console.log(refundResult)
         if (refundResult === null || refundResult === undefined) {
             return {
@@ -1607,7 +1587,7 @@ const cancelBooking = async (bookingId) => {
                 bookingStatus: BOOKING_STATUS.CANCELED,
             }, {
                 where: {
-                    bookingId: _bookingId
+                    bookingId: bookingId
                 },
                 individualHooks: true,
             })
@@ -1616,7 +1596,7 @@ const cancelBooking = async (bookingId) => {
                 status: BOOKING_STATUS.CANCELED,
             }, {
                 where: {
-                    bookingId: _bookingId
+                    bookingId: bookingId
                 },
                 individualHooks: true,
             })
@@ -1626,7 +1606,7 @@ const cancelBooking = async (bookingId) => {
                 status: STATUS.REFUNDED
             }, {
                 where: {
-                    bookingId: _bookingId
+                    bookingId: bookingId
                 },
                 individualHooks: true,
             })

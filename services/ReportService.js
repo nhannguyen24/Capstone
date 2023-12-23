@@ -1,7 +1,7 @@
-const db = require('../models');
-const { Op, sequelize } = require('sequelize');
-const REPORT_STATUS = require("../enums/ReportStatusEnum");
-const { StatusCodes } = require('http-status-codes');
+const db = require('../models')
+const { Op, sequelize } = require('sequelize')
+const REPORT_STATUS = require("../enums/ReportStatusEnum")
+const { StatusCodes } = require('http-status-codes')
 
 const getReports = async (req) => {
     try {
@@ -13,11 +13,12 @@ const getReports = async (req) => {
         const reportStatus = req.query.reportStatus || ""
 
         let whereClause = {}
+        let whereClauseTour = {}
         if (reportUserId !== "") {
             whereClause.reportUserId = reportUserId.trim()
         }
         if (tourId !== "") {
-            whereClause.tourId = tourId.trim()
+            whereClauseTour.tourId = tourId.trim()
         }
         if (reportStatus !== "") {
             whereClause.reportStatus = reportStatus.trim()
@@ -38,9 +39,24 @@ const getReports = async (req) => {
                     }
                 },
                 {
-                    model: db.Tour,
-                    as: "report_tour",
-                    attributes: ["tourId", "tourName"]
+                    model: db.User,
+                    as: "response_user",
+                    attributes: ["userId", "userName"],
+                    include: {
+                        model: db.Role,
+                        as: "user_role",
+                        attributes: ["roleId", "roleName"],
+                    }
+                },
+                {
+                    model: db.Schedule,
+                    as: "report_schedule",
+                    where: whereClauseTour,
+                    include: {
+                        model: db.Tour,
+                        as: "schedule_tour",
+                        attributes: ["tourName"]
+                    }
                 }
             ],
             attributes: {
@@ -48,10 +64,17 @@ const getReports = async (req) => {
             },
             limit: limit,
             offset: offset
-        });
+        })
         const totalReport = await db.Report.count({
             where: whereClause,
-        });
+            include: [
+                {
+                    model: db.Schedule,
+                    as: "report_schedule",
+                    where: whereClauseTour,
+                }
+            ],
+        })
 
         return{
             status: StatusCodes.OK,
@@ -95,12 +118,29 @@ const getReportsById = async (reportId) => {
                     }
                 },
                 {
-                    model: db.Tour,
-                    as: "report_tour",
-                    attributes: ["tourId", "tourName"]
+                    model: db.User,
+                    as: "response_user",
+                    attributes: ["userId", "userName"],
+                    include: {
+                        model: db.Role,
+                        as: "user_role",
+                        attributes: ["roleId", "roleName"],
+                    }
+                },
+                {
+                    model: db.Schedule,
+                    as: "report_schedule",
+                    include: {
+                        model: db.Tour,
+                        as: "schedule_tour",
+                        attributes: ["tourName"]
+                    }
                 }
             ],
-        });
+            attributes: {
+                exclude: ["reportUserId", "responseUserId"]
+            },
+        })
 
         return{
             status: report ? StatusCodes.OK : StatusCodes.NOT_FOUND,
@@ -126,7 +166,7 @@ const getReportsById = async (reportId) => {
 const createReport = async (req) => {
     try {
         const reportUserId = req.body.reportUserId
-        const tourId = req.body.tourId || ""
+        const scheduleId = req.body.scheduleId
         const title = req.body.title
         const description = req.body.description
 
@@ -157,27 +197,27 @@ const createReport = async (req) => {
         }
 
         let setUpReport
-        if(tourId.trim() !== ""){
-            const tour = await db.Tour.findOne({
+        if(scheduleId.trim() !== ""){
+            const schedule = await db.Schedule.findOne({
                 where: {
-                    tourId: tourId
+                    scheduleId: scheduleId
                 }
             })
     
-            if(!tour){
+            if(!schedule){
                 return {
                     status: StatusCodes.NOT_FOUND,
                     data: {
-                        msg: "Tour not found!"
+                        msg: "Tour schedule not found!"
                     }
                 }
             }
-            setUpReport = { reportUserId: reportUserId, tourId: tourId, title: title, description: description, reportStatus: REPORT_STATUS.PENDING }
+            setUpReport = { reportUserId: reportUserId, scheduleId: scheduleId, title: title, description: description, reportStatus: REPORT_STATUS.PENDING }
         } else {
             setUpReport = { reportUserId: reportUserId, title: title, description: description, reportStatus: REPORT_STATUS.PENDING }
         }
 
-        const report = await db.Report.create(setUpReport);
+        const report = await db.Report.create(setUpReport)
 
         return{
             status: report ? StatusCodes.CREATED : StatusCodes.BAD_REQUEST,
@@ -198,7 +238,7 @@ const createReport = async (req) => {
 }
 
 const updateReport = async (req) => {
-    const t = await db.sequelize.transaction();
+    const t = await db.sequelize.transaction()
     try {
         const reportId = req.params.id || ""
         const responseUserId = req.body.responseUserId || ""
@@ -237,7 +277,7 @@ const updateReport = async (req) => {
         if(report.responseUserId !== null && report.responseUserId !== undefined){
             if(report.responseUserId !== responseUserId){
                 return{
-                    status: StatusCodes.FORBIDDEN,
+                    status: StatusCodes.BAD_REQUEST,
                     data: {
                         msg: `A response from different manager has been recorded for this report!`,
                     }
@@ -285,4 +325,4 @@ const updateReport = async (req) => {
     }
 }
 
-module.exports = { getReports, getReportsById, createReport, updateReport };
+module.exports = { getReports, getReportsById, createReport, updateReport }

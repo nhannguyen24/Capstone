@@ -32,9 +32,14 @@ module.exports = (sequelize, DataTypes) => {
         as: 'schedule_driver'
       });
 
+      Schedule.belongsTo(models.Station, {
+        foreignKey: 'departureStationId',
+        as: 'schedule_departure_station'
+      });
+
       Schedule.hasMany(models.Booking, { as: 'schedule_booking', foreignKey: 'scheduleId'});
       Schedule.hasMany(models.Tracking, { as: 'schedule_tracking', foreignKey: 'scheduleId'});
-      Schedule.hasMany(models.Booking, { as: 'schedule_booking', foreignKey: 'scheduleId'});
+
     }
   }
   Schedule.init({
@@ -45,7 +50,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     departureDate: DataTypes.DATE,
     endDate: DataTypes.TIME,
-    departureStation: DataTypes.STRING,
+    departureStationId: {
+      type: DataTypes.UUID
+    },
     isScheduled: DataTypes.BOOLEAN,
     tourId: {
       type: DataTypes.UUID
