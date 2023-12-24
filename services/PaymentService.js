@@ -616,12 +616,9 @@ const getMoMoPaymentResponse = (req) =>
         const busArrivalTimeToBookedStation = calculateTotalTime(routeSegments, tourDepartureTime, bookedStationId)
 
         const formatDepartureDate =
-          `${busArrivalTimeToBookedStation.getDate().toString().padStart(2, "0")}/
-        ${(busArrivalTimeToBookedStation.getMonth() + 1).toString().padStart(2, "0")}/
-        ${busArrivalTimeToBookedStation.getFullYear()}  |  
-        ${busArrivalTimeToBookedStation.getHours().toString().padStart(2, "0")}:
-        ${busArrivalTimeToBookedStation.getMinutes().toString().padStart(2, "0")}:
-        ${busArrivalTimeToBookedStation.getSeconds().toString().padStart(2, "0")}`
+        `${busArrivalTimeToBookedStation.getDate().toString().padStart(2, "0")}/${(busArrivalTimeToBookedStation.getMonth() + 1).toString().padStart(2, "0")}/${busArrivalTimeToBookedStation.getFullYear()}  |  
+        ${busArrivalTimeToBookedStation.getHours().toString().padStart(2, "0")}:${busArrivalTimeToBookedStation.getMinutes().toString().padStart(2, "0")}:${busArrivalTimeToBookedStation.getSeconds().toString().padStart(2, "0")}`
+
 
         const tourDuration = booking.booking_schedule.schedule_tour.duration
         const totalPrice = booking.totalPrice
