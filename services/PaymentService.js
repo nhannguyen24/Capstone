@@ -479,7 +479,7 @@ const getPayOsPaymentResponse = async (req) => {
           const stationName = booking.booking_departure_station.stationName
           const stationAddress = booking.booking_departure_station.address
           const busPlate = booking.booking_schedule.schedule_bus.busPlate
-          const bookingCode = bookingDetail.detail_booking.bookingCode
+          const bookingCode = booking.bookingCode
 
           const customerName = booking.booking_user.userName
 
@@ -632,7 +632,7 @@ const getMoMoPaymentResponse = (req) =>
         const stationName = booking.booking_departure_station.stationName
         const stationAddress = booking.booking_departure_station.address
         const busPlate = booking.booking_schedule.schedule_bus.busPlate
-        const bookingCode = bookingDetail.detail_booking.bookingCode
+        const bookingCode = booking.bookingCode
 
         const customerName = booking.booking_user.userName
 
