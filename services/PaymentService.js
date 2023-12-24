@@ -571,7 +571,7 @@ const getMoMoPaymentResponse = (req) =>
           raw: true,
           nest: true,
           where: {
-            bookingId: booking.bookingId,
+            bookingId: bookingId,
           },
           attributes: [
             "bookingId", "bookingCode", "totalPrice"
