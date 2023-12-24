@@ -35,15 +35,6 @@ const router = express.Router();
  *         schema:
  *           type: string
  *         description: Filter by ticket type
- *       - in: query
- *         name: day
- *         schema:
- *           type: string
- *           enum:
- *              - Normal
- *              - Weekend
- *              - Holiday
- *         description: Filter by day type
  * 
  *     responses:
  *       200:
@@ -75,17 +66,10 @@ router.get("/", verifyToken, roleAuthen(["Manager"]), controllers.getPrices);
  *                      minimum: 1000
  *                  ticketTypeId:
  *                      type: string
- *                  day:
- *                      type: string
- *                      enum:
- *                        - Holiday
- *                        - Weekend
- *                        - Normal
  *            example:
  *              {
  *                  amount: 150000,
  *                  ticketTypeId: d2dfa0b3-6b26-4a68-a093-05ca5f7f9cc6,
- *                  day: Normal|Weekend|Holiday
  *              }
  *     responses:
  *       201:
@@ -156,12 +140,6 @@ router.get("/:id", verifyToken, roleAuthen(["Manager"]), controllers.getPriceByI
 //  *              properties: 
 //  *                  amount: 
 //  *                      type: integer
-//  *                  day: 
-//  *                      type: string
-//  *                      enum:
-//  *                          - Holiday
-//  *                          - Weekend
-//  *                          - Normal
 //  *     responses:
 //  *       200:
 //  *         description: OK

@@ -4,7 +4,7 @@ const { StatusCodes } = require("http-status-codes");
 
 const getAllTour = async (req, res) => {
     try {
-        const response = await services.getAllTour(req.query);
+        const response = await services.test(req.query);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);

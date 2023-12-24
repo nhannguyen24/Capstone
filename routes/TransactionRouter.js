@@ -95,7 +95,7 @@ router.get("/", verifyToken, roleAuthen(["Manager", "Customer"]), controllers.ge
  *             schema:
  *               type: object
  */
-router.get("/paid-manager", verifyToken, roleAuthen(["Manager"]), controllers.getTourTransactionOfflineForPaidBackToManager)
+router.get("/paid-manager", verifyToken, roleAuthen(["Manager", "TourGuide"]), controllers.getTourTransactionOfflineForPaidBackToManager)
 
 /**
  * @swagger
@@ -120,7 +120,7 @@ router.get("/paid-manager", verifyToken, roleAuthen(["Manager"]), controllers.ge
  *             schema:
  *               type: object
  */
-router.put("/paid-manager", verifyToken, roleAuthen(["Manager"]), controllers.paidBackToManager)
+router.put("/paid-manager", verifyToken, roleAuthen(["Manager", "TourGuide"]), controllers.paidBackToManager)
 
 /**
  * @swagger
