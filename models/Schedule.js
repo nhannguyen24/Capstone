@@ -37,6 +37,7 @@ module.exports = (sequelize, DataTypes) => {
         as: 'schedule_departure_station'
       });
 
+      Schedule.hasMany(models.Report, { as: 'schedule_report', foreignKey: 'scheduleId'});
       Schedule.hasMany(models.Booking, { as: 'schedule_booking', foreignKey: 'scheduleId'});
       Schedule.hasMany(models.Tracking, { as: 'schedule_tracking', foreignKey: 'scheduleId'});
       Schedule.hasMany(models.TourDetail, { as: 'schedule_detail', foreignKey: 'scheduleId'});

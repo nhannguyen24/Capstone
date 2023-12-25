@@ -1,9 +1,6 @@
 const db = require('../models')
 const { Op } = require('sequelize')
-const TOUR_SCHEDULE_STATUS = require("../enums/TourScheduleStatusEnum")
-const DAY_ENUM = require("../enums/PriceDayEnum");
 const { StatusCodes } = require('http-status-codes');
-const SPECIAL_DAY = ["1-1", "20-1", "14-2", "8-3", "30-4", "1-5", "1-6", "2-9", "29-9", "20-10", "20-11", "25-12"]
 
 const getPrices = async (req) => {
     try {
@@ -11,14 +8,9 @@ const getPrices = async (req) => {
         const limit = parseInt(req.query.limit)
         const offset = parseInt((page - 1) * limit)
         const ticketTypeId = req.query.ticketTypeId || ""
-        const day = req.query.day || ""
         const status = req.query.status || ""
 
         const whereClause = {}
-
-        if (day !== "") {
-            whereClause.day = day
-        }
 
         if (ticketTypeId !== "") {
             const ticketType = await db.TicketType.findOne({
@@ -132,7 +124,6 @@ const createPrice = async (req) => {
     try {
         const amount = req.body.amount
         const ticketTypeId = req.body.ticketTypeId
-        const day = req.body.day
 
         const ticketType = await db.TicketType.findOne({
             where: {
@@ -152,7 +143,6 @@ const createPrice = async (req) => {
         const price = await db.Price.findOne({
             where: {
                 ticketTypeId: ticketTypeId,
-                day: day
             }
         })
 
@@ -165,7 +155,7 @@ const createPrice = async (req) => {
             }
         }
         const roundedAmount = Math.floor(amount / 1000) * 1000
-        const created = await db.Price.create({ ticketTypeId: ticketTypeId, amount: roundedAmount, day: day })
+        const created = await db.Price.create({ ticketTypeId: ticketTypeId, amount: roundedAmount})
 
         return {
             status: StatusCodes.CREATED,
@@ -191,7 +181,6 @@ const updatePrice = async (req) => {
         const priceId = req.params.id
         const ticketTypeId = req.params.ticketTypeId
         const amount = parseInt(req.body.amount) || ""
-        const day = req.body.day || ""
 
         const whereClause = {}
         const updatePrice = {}
@@ -200,7 +189,6 @@ const updatePrice = async (req) => {
             where: {
                 priceId: priceId,
                 ticketTypeId: ticketTypeId,
-                day: day
             }
         })
 
@@ -216,18 +204,10 @@ const updatePrice = async (req) => {
         const currentDate = new Date()
         currentDate.setHours(currentDate.getHours() + 7)
 
-        if (day !== "") {
-            whereClause.scheduleStatus = TOUR_SCHEDULE_STATUS.AVAILABLE
-            whereClause.departureDate = {
-                [Op.gte]: currentDate
-            }
-        }
-
         const price_result = await db.Price.findAll({
             where: {
                 priceId: priceId,
                 ticketTypeId: ticketTypeId,
-                day: day
             },
             include: {
                 model: db.TicketType,
@@ -252,31 +232,31 @@ const updatePrice = async (req) => {
 
         const ticket_list = price_result[0].price_ticket_type.type_ticket
 
-        const forbiddenTicket = ticket_list.find((ticket) => {
-            const departureDate = new Date(ticket.ticket_tour.departureDate);
-            const dayOfWeek = departureDate.getDay();
-            const date = departureDate.getDate();
-            const month = departureDate.getMonth();
-            const dateMonth = `${date}-${month}`;
+        // const forbiddenTicket = ticket_list.find((ticket) => {
+        //     const departureDate = new Date(ticket.ticket_tour.departureDate);
+        //     const dayOfWeek = departureDate.getDay();
+        //     const date = departureDate.getDate();
+        //     const month = departureDate.getMonth();
+        //     const dateMonth = `${date}-${month}`;
 
-            if (DAY_ENUM.NORMAL === day) {
-                if (!SPECIAL_DAY.includes(dateMonth) && [1, 2, 3, 4, 5].includes(dayOfWeek)) {
-                    return true;
-                }
-            }
+        //     if (DAY_ENUM.NORMAL === day) {
+        //         if (!SPECIAL_DAY.includes(dateMonth) && [1, 2, 3, 4, 5].includes(dayOfWeek)) {
+        //             return true;
+        //         }
+        //     }
 
-            if (DAY_ENUM.WEEKEND === day) {
-                if (!SPECIAL_DAY.includes(dateMonth) && [0, 6].includes(dayOfWeek)) {
-                    return true;
-                }
-            }
+        //     if (DAY_ENUM.WEEKEND === day) {
+        //         if (!SPECIAL_DAY.includes(dateMonth) && [0, 6].includes(dayOfWeek)) {
+        //             return true;
+        //         }
+        //     }
 
-            if (DAY_ENUM.HOLIDAY === day && SPECIAL_DAY.includes(dateMonth)) {
-                return true;
-            }
+        //     if (DAY_ENUM.HOLIDAY === day && SPECIAL_DAY.includes(dateMonth)) {
+        //         return true;
+        //     }
 
-            return false;
-        })
+        //     return false;
+        // })
 
         if (forbiddenTicket) {
             return {
@@ -289,10 +269,6 @@ const updatePrice = async (req) => {
 
         if (amount !== "") {
             updatePrice.amount = amount
-        }
-
-        if (day !== "") {
-            updatePrice.day = day
         }
 
         await db.Price.update(updatePrice, {

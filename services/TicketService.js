@@ -55,7 +55,7 @@ const getTickets = async (req) => {
                 where: {
                     ticketTypeId: ticket.ticket_type.ticketTypeId,
                 },
-                attributes: ["priceId", "amount", "day"]
+                attributes: ["priceId", "amount"]
             })
             ticket.ticket_type.prices = prices
         }
@@ -115,7 +115,7 @@ const getTicketById = async (ticketId) => {
             where: {
                 ticketTypeId: ticket.ticket_type.ticketTypeId,
             },
-            attributes: ["priceId", "amount", "day"]
+            attributes: ["priceId", "amount"]
         })
         ticket.ticket_type.prices = prices
 

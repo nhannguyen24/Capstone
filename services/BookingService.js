@@ -735,6 +735,21 @@ const createBookingWeb = async (req) => {
             }
         }
 
+        const currentDate = new Date()
+        currentDate.setHours(currentDate.getHours() + 7)
+        const tourDepartureDate = new Date(tourSchedule.departureDate)
+        const checkAvailableBookingDate = tourDepartureDate - currentDate
+        const oneDayInMillis = 24 * 60 * 60 * 1000
+
+        if (checkAvailableBookingDate <= oneDayInMillis) {
+            return {
+                status: StatusCodes.BAD_REQUEST,
+                data: {
+                    msg: `Tour schedule not available for booking!`,
+                }
+            }
+        }
+
         //Check if pick up station is exist
         const station = await db.Station.findOne({
             where: {
@@ -909,8 +924,8 @@ const createBookingWeb = async (req) => {
             totalBookedSeat += bookingDetail.quantity
         }
 
-        if (seatBookingQuantity + totalBookedSeat > tour.tour_schedule.schedule_bus.numberSeat) {
-            const availableSeats = tour.tour_schedule.schedule_bus.numberSeat - totalBookedSeat;
+        if (seatBookingQuantity + totalBookedSeat > tourSchedule.schedule_bus.numberSeat) {
+            const availableSeats = tourSchedule.schedule_bus.numberSeat - totalBookedSeat;
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
@@ -1102,14 +1117,14 @@ const createBookingOffline = async (req) => {
 
         const departureDateMinusThirtyMinutes = new Date(tourSchedule.departureDate)
         departureDateMinusThirtyMinutes.setMinutes(departureDateMinusThirtyMinutes.getMinutes() - 30)
-        if (departureDateMinusThirtyMinutes > currentDate) {
-            return {
-                status: StatusCodes.BAD_REQUEST,
-                data: {
-                    msg: `Tour can only be booked after ${departureDateMinusThirtyMinutes}!`,
-                }
-            }
-        }
+        // if (departureDateMinusThirtyMinutes > currentDate) {
+        //     return {
+        //         status: StatusCodes.BAD_REQUEST,
+        //         data: {
+        //             msg: `Tour can only be booked after ${departureDateMinusThirtyMinutes.toISOString()}!`,
+        //         }
+        //     }
+        // }
 
         const station = await db.Station.findOne({
             where: {

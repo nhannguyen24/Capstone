@@ -200,8 +200,6 @@ router.get("/:id", controllers.getBookingDetailByBookingId)
  *                      type: string
  *                  user:
  *                      type: object
- *                  products:
- *                      type: array
  *                  tickets:
  *                      type: array
  *            example: {

@@ -4,11 +4,11 @@ const redisClient = require("../config/RedisConfig")
 const STATUS = require("../enums/StatusEnum")
 const TOUR_SCHEDULE_STATUS = require("../enums/TourScheduleStatusEnum")
 const BOOKING_STATUS = require("../enums/BookingStatusEnum")
-const validationUtil = require('../utils/ValidationUtil')
 const readXlsxFile = require('read-excel-file/node')
 const { StatusCodes } = require("http-status-codes")
 const { sendNotification } = require("../utils/NotificationUtil")
 const { sortRouteSegmentByDepartureStation } = require("../utils/SortRouteSegmentUlti")
+// const { schedule } = require("node-cron")
 
 const getAllTour = (
     { page, limit, order, tourName, status, ...query }
@@ -134,10 +134,97 @@ const getAllTour = (
                                         "status",
                                     ],
                                 },
+                            }
+                        ]
+                    }
+                    })
+
+            await Promise.all(tours.map(async (tour) => {
+                const tourPromisses = tour.tour_schedule.map(async (schedule) => {
+                    const booking = await db.BookingDetail.findAll({
+                        raw: true,
+                        nest: true,
+                        where: {
+                            status: STATUS.ACTIVE
+                        },
+                        include: {
+                            model: db.Ticket,
+                            as: "booking_detail_ticket",
+                            where: {
+                                tourId: schedule.tourId
+                            },
+                            attributes: []
+                        },
+                        attributes: [
+                            [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
+                        ]
+                    })
+
+                    if (schedule.schedule_bus !== null) {
+                        if (booking[0].total_quantity === null) {
+                            schedule.dataValues.availableSeats = schedule.schedule_bus.numberSeat
+                        } else {
+                            schedule.dataValues.availableSeats = schedule.schedule_bus.numberSeat - parseInt(booking[0].total_quantity)
+                        }
+                    } else {
+                        schedule.dataValues.availableSeats = 0
+                    }
+
+                    const routeSegment = await db.RouteSegment.findAll({
+                        raw: true, nest: true,
+                        where: {
+                            tourId: tour.tourId
+                        },
+                        order: [
+                            ['index', 'ASC'],
+                            [{ model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
+                        ],
+                        attributes: {
+                            exclude: [
+                                "createdAt",
+                                "updatedAt",
+                                "status",
+                            ],
+                        },
+                        include: [
+                            {
+                                model: db.Station,
+                                as: "segment_departure_station",
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                            },
+                            {
+                                model: db.Station,
+                                as: "segment_end_station",
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                            },
+                            {
+                                model: db.RoutePointDetail,
+                                as: "segment_route_poi_detail",
+                                attributes: {
+                                    exclude: [
+                                        "routeSegmentId",
+                                        "poiId",
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
                                 include: [
                                     {
-                                        model: db.TicketType,
-                                        as: "ticket_type",
+                                        model: db.PointOfInterest,
+                                        as: "route_poi_detail_poi",
                                         attributes: {
                                             exclude: [
                                                 "createdAt",
@@ -151,138 +238,37 @@ const getAllTour = (
                         ]
                     })
 
-                    await Promise.all(tours.map(async (tour) => {
-                        const tourPromisses = tour.tour_schedule.map(async (schedule) => {
-                            const booking = await db.BookingDetail.findAll({
-                                raw: true,
-                                nest: true,
-                                where: {
-                                    status: STATUS.ACTIVE
-                                },
-                                include: {
-                                    model: db.Ticket,
-                                    as: "booking_detail_ticket",
-                                    where: {
-                                        tourId: schedule.tourId
-                                    },
-                                    attributes: []
-                                },
-                                attributes: [
-                                    [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
-                                ]
-                            })
+                    const routeSegmentsSortByDepartureStation = sortRouteSegmentByDepartureStation(routeSegment, schedule.departureStationId);
+                    schedule.dataValues.route_segment = routeSegmentsSortByDepartureStation;
+                })
+                await Promise.all(tourPromisses)
 
-                            if (schedule.schedule_bus !== null) {
-                                if (booking[0].total_quantity === null) {
-                                    schedule.dataValues.availableSeats = schedule.schedule_bus.numberSeat
-                                } else {
-                                    schedule.dataValues.availableSeats = schedule.schedule_bus.numberSeat - parseInt(booking[0].total_quantity)
-                                }
-                            } else {
-                                schedule.dataValues.availableSeats = 0
-                            }
+                const feedbacks = await db.Feedback.findAll({
+                    raw: true,
+                    nest: true,
+                    where: {
+                        tourId: tour.tourId,
+                    },
+                    attributes: [
+                        [db.Sequelize.fn('AVG', db.Sequelize.col('stars')), 'average_stars']
+                    ]
+                })
 
-                            const routeSegment = await db.RouteSegment.findAll({
-                                raw: true, nest: true,
-                                where: {
-                                    tourId: tour.tourId
-                                },
-                                order: [
-                                    ['index', 'ASC'],
-                                    [{ model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
-                                ],
-                                attributes: {
-                                    exclude: [
-                                        "createdAt",
-                                        "updatedAt",
-                                        "status",
-                                    ],
-                                },
-                                include: [
-                                    {
-                                        model: db.Station,
-                                        as: "segment_departure_station",
-                                        attributes: {
-                                            exclude: [
-                                                "createdAt",
-                                                "updatedAt",
-                                                "status",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        model: db.Station,
-                                        as: "segment_end_station",
-                                        attributes: {
-                                            exclude: [
-                                                "createdAt",
-                                                "updatedAt",
-                                                "status",
-                                            ],
-                                        },
-                                    },
-                                    {
-                                        model: db.RoutePointDetail,
-                                        as: "segment_route_poi_detail",
-                                        attributes: {
-                                            exclude: [
-                                                "routeSegmentId",
-                                                "poiId",
-                                                "createdAt",
-                                                "updatedAt",
-                                                "status",
-                                            ],
-                                        },
-                                        include: [
-                                            {
-                                                model: db.PointOfInterest,
-                                                as: "route_poi_detail_poi",
-                                                attributes: {
-                                                    exclude: [
-                                                        "createdAt",
-                                                        "updatedAt",
-                                                        "status",
-                                                    ],
-                                                },
-                                            }
-                                        ]
-                                    },
-                                ]
-                            })
+                if (feedbacks[0].average_stars === null) {
+                    tour.dataValues.avgStars = 0
+                } else {
+                    tour.dataValues.avgStars = parseFloat(feedbacks[0].average_stars)
+                }
+            })
+            )
 
-                            const routeSegmentsSortByDepartureStation = sortRouteSegmentByDepartureStation(routeSegment, schedule.departureStationId);
-                            schedule.dataValues.route_segment = routeSegmentsSortByDepartureStation;
-                        })
-                        await Promise.all(tourPromisses)
+            redisClient.setEx(`tours_${page}_${limit}_${order}_${tourName}_${status}`, 3600, JSON.stringify(tours))
 
-                        const feedbacks = await db.Feedback.findAll({
-                            raw: true,
-                            nest: true,
-                            where: {
-                                tourId: tour.tourId,
-                            },
-                            attributes: [
-                                [db.Sequelize.fn('AVG', db.Sequelize.col('stars')), 'average_stars']
-                            ]
-                        })
-
-                        if (feedbacks[0].average_stars === null) {
-                            tour.dataValues.avgStars = 0
-                        } else {
-                            tour.dataValues.avgStars = parseFloat(feedbacks[0].average_stars)
-                        }
-                    })
-                    )
-
-                    redisClient.setEx(`tours_${page}_${limit}_${order}_${tourName}_${status}`, 3600, JSON.stringify(tours))
-
-                    resolve({
-                        status: StatusCodes.OK,
-                        data: {
-                            msg: tours ? "Got tours" : "Tours not found!",
-                            tours: tours,
-                        }
-                    })
+            resolve({
+                status: StatusCodes.OK,
+                data: {
+                    msg: tours ? "Got tours" : "Tours not found!",
+                    tours: tours,
                 }
             })
         } catch (error) {
@@ -1415,17 +1401,14 @@ const createTourByFile = (req) => new Promise(async (resolve, reject) => {
                         continue
                     }
 
-                    const day = validationUtil.convertDepartureDateToDayForPrices(tour.departureDate)
-
                     const price = await db.Price.findOne({
                         where: {
                             ticketTypeId: ticketType.ticketTypeId,
-                            day: day,
                         }
                     })
 
                     if (!price) {
-                        let error = `Ticket price for ${day} not found with: ${ticket.ticketName}`
+                        let error = `Price not found!`
                         errors.push({ line: i, tourError: error })
                         i++
                         continue
@@ -2720,19 +2703,17 @@ const cloneTour = (id, body) =>
                                 })
                                 return
                             }
-                            const day = validationUtil.convertDepartureDateToDayForPrices(createTour.dataValues.departureDate)
 
                             const price = await db.Price.findOne({
                                 where: {
                                     ticketTypeId: ticketType.ticketTypeId,
-                                    day: day,
                                 }
                             })
                             if (!price) {
                                 resolve({
                                     status: StatusCodes.CONFLICT,
                                     data: {
-                                        msg: `Ticket type doesn't have a price for day ${day}`,
+                                        msg: `Ticket type doesn't have a price!`,
                                     }
                                 })
                             } else {
@@ -3441,12 +3422,9 @@ const createTourDemo = () =>
                                 ticketTypeId: ticketTypeId
                             },
                         })
-                        const day = validationUtil.convertDepartureDateToDayForPrices(createTour.departureDate)
-
                         const price = await db.Price.findOne({
                             where: {
                                 ticketTypeId: ticketType.ticketTypeId,
-                                day: day,
                             }
                         })
                         if (!price) {
@@ -3454,7 +3432,7 @@ const createTourDemo = () =>
                             resolve({
                                 status: StatusCodes.BAD_REQUEST,
                                 data: {
-                                    msg: `Ticket type doesn't have a price for day`,
+                                    msg: `Ticket type doesn't have a price!`,
                                 }
                             })
                         } else {
@@ -3529,6 +3507,7 @@ const createTourDemo = () =>
     })
 
 module.exports = {
+    test,
     updateTour,
     deleteTour,
     createTour,

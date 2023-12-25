@@ -467,19 +467,15 @@ const getPayOsPaymentResponse = async (req) => {
           const busArrivalTimeToBookedStation = calculateTotalTime(routeSegments, tourDepartureTime, bookedStationId)
 
           const formatDepartureDate =
-            `${busArrivalTimeToBookedStation.getDate().toString().padStart(2, "0")}/
-          ${(busArrivalTimeToBookedStation.getMonth() + 1).toString().padStart(2, "0")}/
-          ${busArrivalTimeToBookedStation.getFullYear()}  |  
-          ${busArrivalTimeToBookedStation.getHours().toString().padStart(2, "0")}:
-          ${busArrivalTimeToBookedStation.getMinutes().toString().padStart(2, "0")}:
-          ${busArrivalTimeToBookedStation.getSeconds().toString().padStart(2, "0")}`
+            `${busArrivalTimeToBookedStation.getDate().toString().padStart(2, "0")}/${(busArrivalTimeToBookedStation.getMonth() + 1).toString().padStart(2, "0")}/${busArrivalTimeToBookedStation.getFullYear()}  |  
+          ${busArrivalTimeToBookedStation.getHours().toString().padStart(2, "0")}:${busArrivalTimeToBookedStation.getMinutes().toString().padStart(2, "0")}:${busArrivalTimeToBookedStation.getSeconds().toString().padStart(2, "0")}`
 
           const tourDuration = booking.booking_schedule.schedule_tour.duration
           const totalPrice = booking.totalPrice
           const stationName = booking.booking_departure_station.stationName
           const stationAddress = booking.booking_departure_station.address
           const busPlate = booking.booking_schedule.schedule_bus.busPlate
-          const bookingCode = bookingDetail.detail_booking.bookingCode
+          const bookingCode = booking.bookingCode
 
           const customerName = booking.booking_user.userName
 
@@ -571,7 +567,7 @@ const getMoMoPaymentResponse = (req) =>
           raw: true,
           nest: true,
           where: {
-            bookingId: booking.bookingId,
+            bookingId: bookingId,
           },
           attributes: [
             "bookingId", "bookingCode", "totalPrice"
@@ -620,19 +616,16 @@ const getMoMoPaymentResponse = (req) =>
         const busArrivalTimeToBookedStation = calculateTotalTime(routeSegments, tourDepartureTime, bookedStationId)
 
         const formatDepartureDate =
-          `${busArrivalTimeToBookedStation.getDate().toString().padStart(2, "0")}/
-        ${(busArrivalTimeToBookedStation.getMonth() + 1).toString().padStart(2, "0")}/
-        ${busArrivalTimeToBookedStation.getFullYear()}  |  
-        ${busArrivalTimeToBookedStation.getHours().toString().padStart(2, "0")}:
-        ${busArrivalTimeToBookedStation.getMinutes().toString().padStart(2, "0")}:
-        ${busArrivalTimeToBookedStation.getSeconds().toString().padStart(2, "0")}`
+        `${busArrivalTimeToBookedStation.getDate().toString().padStart(2, "0")}/${(busArrivalTimeToBookedStation.getMonth() + 1).toString().padStart(2, "0")}/${busArrivalTimeToBookedStation.getFullYear()}  |  
+        ${busArrivalTimeToBookedStation.getHours().toString().padStart(2, "0")}:${busArrivalTimeToBookedStation.getMinutes().toString().padStart(2, "0")}:${busArrivalTimeToBookedStation.getSeconds().toString().padStart(2, "0")}`
+
 
         const tourDuration = booking.booking_schedule.schedule_tour.duration
         const totalPrice = booking.totalPrice
         const stationName = booking.booking_departure_station.stationName
         const stationAddress = booking.booking_departure_station.address
         const busPlate = booking.booking_schedule.schedule_bus.busPlate
-        const bookingCode = bookingDetail.detail_booking.bookingCode
+        const bookingCode = booking.bookingCode
 
         const customerName = booking.booking_user.userName
 
