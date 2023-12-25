@@ -1,5 +1,4 @@
 const sortRouteSegmentByDepartureStation = (data, departureStationId) => {
-  console.log(departureStationId);
     // Find the index of the object with the given departureStationId
     const index = data.findIndex(item => item.departureStationId === departureStationId);
   

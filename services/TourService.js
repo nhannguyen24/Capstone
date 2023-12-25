@@ -374,13 +374,76 @@ const getTourById = (tourId) =>
                         ]
                     },
                     {
-                        model: db.RouteSegment,
-                        as: "route_segment",
+                        model: db.Ticket,
+                        as: "tour_ticket",
                         attributes: {
                             exclude: [
-                                "routeId",
-                                "departureStationId",
-                                "endStationId",
+                                "tourId",
+                                "ticketTypeId",
+                                "createdAt",
+                                "updatedAt",
+                                "status",
+                            ],
+                        },
+                        include: [
+                            {
+                                model: db.TicketType,
+                                as: "ticket_type",
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                            }
+                        ]
+                    },
+                ]
+            })
+
+            await Promise.all(tours.map(async (tour) => {
+                const tourPromisses = tour.tour_schedule.map(async (schedule) => {
+                    const booking = await db.BookingDetail.findAll({
+                        raw: true,
+                        nest: true,
+                        where: {
+                            status: STATUS.ACTIVE
+                        },
+                        include: {
+                            model: db.Ticket,
+                            as: "booking_detail_ticket",
+                            where: {
+                                tourId: schedule.tourId
+                            },
+                            attributes: []
+                        },
+                        attributes: [
+                            [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
+                        ]
+                    })
+
+                    if (schedule.schedule_bus !== null) {
+                        if (booking[0].total_quantity === null) {
+                            schedule.dataValues.availableSeats = schedule.schedule_bus.numberSeat
+                        } else {
+                            schedule.dataValues.availableSeats = schedule.schedule_bus.numberSeat - parseInt(booking[0].total_quantity)
+                        }
+                    } else {
+                        schedule.dataValues.availableSeats = 0
+                    }
+
+                    const routeSegment = await db.RouteSegment.findAll({
+                        raw: true, nest: true,
+                        where: {
+                            tourId: tour.tourId
+                        },
+                        order: [
+                            ['index', 'ASC'],
+                            [{ model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
+                        ],
+                        attributes: {
+                            exclude: [
                                 "createdAt",
                                 "updatedAt",
                                 "status",
@@ -432,99 +495,22 @@ const getTourById = (tourId) =>
                                                 "status",
                                             ],
                                         },
-                                        include: [
-                                            {
-                                                model: db.Image,
-                                                as: "poi_image",
-                                                attributes: {
-                                                    exclude: [
-                                                        "tourId",
-                                                        "busId",
-                                                        "poiId",
-                                                        "productId",
-                                                        "feedbackId",
-                                                        "createdAt",
-                                                        "updatedAt",
-                                                        "status",
-                                                    ],
-                                                },
-                                            }
-                                        ]
                                     }
                                 ]
                             },
                         ]
-                    },
-                    {
-                        model: db.Ticket,
-                        as: "tour_ticket",
-                        attributes: {
-                            exclude: [
-                                "tourId",
-                                "ticketTypeId",
-                                "createdAt",
-                                "updatedAt",
-                                "status",
-                            ],
-                        },
-                        include: [
-                            {
-                                model: db.TicketType,
-                                as: "ticket_type",
-                                attributes: {
-                                    exclude: [
-                                        "createdAt",
-                                        "updatedAt",
-                                        "status",
-                                    ],
-                                },
-                            }
-                        ]
-                    },
-                ]
-            })
-
-            for (const tour of tours) {
-                const day = validationUtil.convertDepartureDateToDayForPrices(tour.departureDate)
-
-                for (const ticket of tour.tour_ticket) {
-                    const price = await db.Price.findOne({
-                        raw: true,
-                        nest: true,
-                        where: {
-                            ticketTypeId: ticket.ticket_type.ticketTypeId,
-                            day: day
-                        },
-                        attributes: {
-                            exclude: [
-                                "ticketTypeId",
-                                "createdAt",
-                                "updatedAt",
-                                "status",
-                            ]
-                        }
                     })
-                    ticket.ticket_type.price = price
-                }
 
-                const departureDate = new Date(tour.tour_schedule.departureDate)
-                // Split the duration string into hours, minutes, and seconds
-                const [hours, minutes, seconds] = tour.duration.split(':').map(Number)
-
-                // Add the duration to the departureDate
-                departureDate.setHours(departureDate.getHours() + hours)
-                departureDate.setMinutes(departureDate.getMinutes() + minutes)
-                departureDate.setSeconds(departureDate.getSeconds() + seconds)
-                // Now, departureDate holds the endTime
-                const endDate = departureDate.toISOString()
-                tour.dataValues.tour_schedule.endDate = endDate
+                    const routeSegmentsSortByDepartureStation = sortRouteSegmentByDepartureStation(routeSegment, schedule.departureStationId);
+                    schedule.dataValues.route_segment = routeSegmentsSortByDepartureStation;
+                })
+                await Promise.all(tourPromisses)
 
                 const feedbacks = await db.Feedback.findAll({
                     raw: true,
                     nest: true,
                     where: {
                         tourId: tour.tourId,
-                        status: STATUS.ACTIVE
                     },
                     attributes: [
                         [db.Sequelize.fn('AVG', db.Sequelize.col('stars')), 'average_stars']
@@ -536,35 +522,8 @@ const getTourById = (tourId) =>
                 } else {
                     tour.dataValues.avgStars = parseFloat(feedbacks[0].average_stars)
                 }
-
-                const booking = await db.BookingDetail.findAll({
-                    raw: true,
-                    nest: true,
-                    where: {
-                        status: STATUS.ACTIVE
-                    },
-                    include: {
-                        model: db.Ticket,
-                        as: "booking_detail_ticket",
-                        where: {
-                            tourId: tour.tourId
-                        },
-                        attributes: []
-                    },
-                    attributes: [
-                        [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
-                    ]
-                })
-                if (tour.tour_schedule.schedule_bus !== null) {
-                    if (booking[0].total_quantity === null) {
-                        tour.dataValues.availableSeats = tour.tour_schedule.schedule_bus.numberSeat
-                    } else {
-                        tour.dataValues.availableSeats = tour.tour_schedule.schedule_bus.numberSeat - parseInt(booking[0].total_quantity)
-                    }
-                } else {
-                    tour.dataValues.availableSeats = 0
-                }
-            }
+            })
+            )
 
             resolve({
                 status: tours.length > 0 ? StatusCodes.OK : StatusCodes.NOT_FOUND,
@@ -845,7 +804,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 const currentEndDate = currentTourDepartureDate
 
                                 let checkTourGuide = true;
-                                if (departureDate > currentEndDate && assignment.tourGuide.userId === employee.userId) {
+                                if (departureDate > currentEndDate && assignment.tourGuide?.userId === employee.userId) {
                                     checkTourGuide = false;
                                 }
 
@@ -857,7 +816,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 // console.log(`${assignment.tourGuide.userId}////${employee.userId}`, (endDate >= beforeCurrentTourDepartureDate && assignment.tourGuide.userId === employee.userId) && checkTourGuide);
 
                                 // Check if the tour guide is available
-                                return (endDate >= beforeCurrentTourDepartureDate && assignment.tourGuide.userId === employee.userId) && checkTourGuide;
+                                return (endDate >= beforeCurrentTourDepartureDate && assignment.tourGuide?.userId === employee.userId) && checkTourGuide;
                             })
                     );
 
@@ -879,12 +838,12 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 const currentEndDate = currentTourDepartureDate
 
                                 let checkDriver = true;
-                                if (departureDate > currentEndDate && assignment.driver.userId === employee.userId) {
+                                if (departureDate > currentEndDate && assignment.driver?.userId === employee.userId) {
                                     checkDriver = false;
                                 }
 
                                 // // Check if the driver is available
-                                return (endDate >= beforeCurrentTourDepartureDate && assignment.driver.userId == employee.userId) && checkDriver;
+                                return (endDate >= beforeCurrentTourDepartureDate && assignment.driver?.userId == employee.userId) && checkDriver;
                             })
                     );
 
@@ -906,12 +865,12 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 const currentEndDate = currentTourDepartureDate
 
                                 let checkBus = true;
-                                if (departureDate > currentEndDate && assignment.bus.busId == bus.busId) {
+                                if (departureDate > currentEndDate && assignment.bus?.busId == bus.busId) {
                                     checkBus = false;
                                 }
 
                                 // Check if the bus is available
-                                return (endDate >= beforeCurrentTourDepartureDate && assignment.bus.busId == bus.busId) && checkBus;
+                                return (endDate >= beforeCurrentTourDepartureDate && assignment.bus?.busId == bus.busId) && checkBus;
                             })
                     );
 
