@@ -421,3 +421,142 @@
 // *           type: string
 // *           enum: ["Available", "Started", "Canceled", "Finished"]
 // *         description: Find tour by tour status
+
+
+
+// {
+//     "tourName": "Chuyến đi tham quan buổi sáng",
+//     "description": "Một chuyến đi tuyệt vời",
+//     "duration": "02:00:00",
+//     "distance": 10.5,
+//     "geoJson": {
+//       "type": "Feature",
+//       "geometry": {
+//         "type": "LineString",
+//         "coordinates": [
+//           [
+//             "109.189296",
+//             "12.247460"
+//           ],
+//           [
+//             "109.194145",
+//             "12.250605"
+//           ],
+//           [
+//             "109.189296",
+//             "12.247460"
+//           ]
+//         ]
+//       },
+//       "properties": {
+//         "name": "Route between Stations"
+//       }
+//     },
+//     "segments": [
+//       {
+//         "departureStationId": "0aeaf58d-cea9-497f-a40a-9308c9705dbe",
+//         "endStationId": "0fb1c1e2-81a4-4ade-bb62-9a52bef8a4f3",
+//         "distance": 100.2,
+//         "points": [
+//           "4ce2f788-067a-4032-9c53-113c1aaaa638"
+//         ]
+//       },
+//       {
+//         "departureStationId": "0fb1c1e2-81a4-4ade-bb62-9a52bef8a4f3",
+//         "endStationId": "52cd4ad3-4494-403a-b8cc-b82777aa68dc",
+//         "distance": 410.3,
+//         "points": [
+//           "42cfe90e-b32a-406a-9603-8bbeafbb7e8b"
+//         ]
+//       },
+//   {
+//         "departureStationId": "52cd4ad3-4494-403a-b8cc-b82777aa68dc",
+//         "endStationId": "0aeaf58d-cea9-497f-a40a-9308c9705dbe",
+//         "distance": 410.3,
+//         "points": [
+//           "42cfe90e-b32a-406a-9603-8bbeafbb7e8b"
+//         ]
+//       }
+//     ],
+//     "tickets": [
+//       "3355c24a-741c-4e3b-9d2a-fa43c4c950c5",
+//       "99f73c58-7c81-4152-90f9-21e50637e9c8"
+//     ],
+//     "schedules": [
+//       {
+//         "departureDate": "2023-12-28T09:00:00Z",
+//         "departureStationId": "0aeaf58d-cea9-497f-a40a-9308c9705dbe"
+//       },
+//       {
+//         "departureDate": "2023-12-29T09:00:00Z",
+//         "departureStationId": "0fb1c1e2-81a4-4ade-bb62-9a52bef8a4f3"
+//       },
+//   {
+//         "departureDate": "2023-12-29T11:00:00Z",
+//         "departureStationId": "52cd4ad3-4494-403a-b8cc-b82777aa68dc"
+//       }
+//     ],
+//     "images": [
+//       "https://cdn.tuoitre.vn/471584752817336320/2023/4/18/tp-nha-trang-16818161974101240202452.jpeg"
+//     ]
+//   }
+
+
+// const { sortRouteSegmentByDepartureStation } = require("./utils/SortRouteSegmentUlti");
+
+// const data = [
+//     {
+//       routeSegmentId: '2b59e97c-b3f9-44af-9df4-888524eb39d2',
+//       tourId: 'fc9b54d2-ce00-450f-b882-d00bbc1f93cf',
+//       departureStationId: '0aeaf58d-cea9-497f-a40a-9308c9705dbe',
+//       endStationId: '0fb1c1e2-81a4-4ade-bb62-9a52bef8a4f3',
+//       distance: 100.2
+//     },
+//     {
+//       routeSegmentId: '942096a1-1178-46aa-86b2-ab373e317705',
+//       tourId: 'fc9b54d2-ce00-450f-b882-d00bbc1f93cf',
+//       departureStationId: '52cd4ad3-4494-403a-b8cc-b82777aa68dc',
+//       endStationId: '0aeaf58d-cea9-497f-a40a-9308c9705dbe',
+//       distance: 410.3
+//     },
+//     {
+//       routeSegmentId: 'e4317637-3abf-45de-9d85-6c5c91d03fcc',
+//       tourId: 'fc9b54d2-ce00-450f-b882-d00bbc1f93cf',
+//       departureStationId: '0fb1c1e2-81a4-4ade-bb62-9a52bef8a4f3',
+//       endStationId: '52cd4ad3-4494-403a-b8cc-b82777aa68dc',
+//       distance: 410.3
+//     }
+//   ]
+
+//   const data2 = [
+//     {
+//       departureStationId: '0aeaf58d-cea9-497f-a40a-9308c9705dbe',
+//       endStationId: '0fb1c1e2-81a4-4ade-bb62-9a52bef8a4f3',
+//       distance: 100.2,
+//       points: [
+//         '4ce2f788-067a-4032-9c53-113c1aaaa638'
+//       ]
+//     },
+//     {
+//         departureStationId: '52cd4ad3-4494-403a-b8cc-b82777aa68dc',
+//         endStationId: '0aeaf58d-cea9-497f-a40a-9308c9705dbe',
+//         distance: 410.3,
+//         points: [
+//           '42cfe90e-b32a-406a-9603-8bbeafbb7e8b'
+//         ]
+//       },
+//     {
+//       departureStationId: '0fb1c1e2-81a4-4ade-bb62-9a52bef8a4f3',
+//       endStationId: '52cd4ad3-4494-403a-b8cc-b82777aa68dc',
+//       distance: 410.3,
+//       points: [
+//         '42cfe90e-b32a-406a-9603-8bbeafbb7e8b'
+//       ]
+//     }
+//   ]
+
+// const routeSegmentsSortByDepartureStation = sortRouteSegmentByDepartureStation(data, '52cd4ad3-4494-403a-b8cc-b82777aa68dc');
+// const routeSegmentsSortByDepartureStation2 = sortRouteSegmentByDepartureStation(data2, '52cd4ad3-4494-403a-b8cc-b82777aa68dc');
+
+// console.log('routeSegmentsSortByDepartureStation', routeSegmentsSortByDepartureStation);
+// console.log('routeSegmentsSortByDepartureStation2', routeSegmentsSortByDepartureStation2);

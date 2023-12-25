@@ -43,7 +43,7 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
     },
     // stopoverTime: DataTypes.TIME,
-    // index: DataTypes.INTEGER,
+    index: DataTypes.INTEGER,
     tourId: {
       type: DataTypes.UUID
     },

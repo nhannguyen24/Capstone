@@ -8,6 +8,7 @@ const validationUtil = require('../utils/ValidationUtil')
 const readXlsxFile = require('read-excel-file/node')
 const { StatusCodes } = require("http-status-codes")
 const { sendNotification } = require("../utils/NotificationUtil")
+const { sortRouteSegmentByDepartureStation } = require("../utils/SortRouteSegmentUlti")
 
 const getAllTour = (
     { page, limit, order, tourName, status, ...query }
@@ -122,13 +123,76 @@ const getAllTour = (
                                 ]
                             },
                             {
-                                model: db.RouteSegment,
-                                as: "tour_segment",
+                                model: db.Ticket,
+                                as: "tour_ticket",
                                 attributes: {
                                     exclude: [
                                         "tourId",
-                                        "departureStationId",
-                                        "endStationId",
+                                        "ticketTypeId",
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                                include: [
+                                    {
+                                        model: db.TicketType,
+                                        as: "ticket_type",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                    }
+                                ]
+                            },
+                        ]
+                    })
+
+                    await Promise.all(tours.map(async (tour) => {
+                        const tourPromisses = tour.tour_schedule.map(async (schedule) => {
+                            const booking = await db.BookingDetail.findAll({
+                                raw: true,
+                                nest: true,
+                                where: {
+                                    status: STATUS.ACTIVE
+                                },
+                                include: {
+                                    model: db.Ticket,
+                                    as: "booking_detail_ticket",
+                                    where: {
+                                        tourId: schedule.tourId
+                                    },
+                                    attributes: []
+                                },
+                                attributes: [
+                                    [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
+                                ]
+                            })
+
+                            if (schedule.schedule_bus !== null) {
+                                if (booking[0].total_quantity === null) {
+                                    schedule.dataValues.availableSeats = schedule.schedule_bus.numberSeat
+                                } else {
+                                    schedule.dataValues.availableSeats = schedule.schedule_bus.numberSeat - parseInt(booking[0].total_quantity)
+                                }
+                            } else {
+                                schedule.dataValues.availableSeats = 0
+                            }
+
+                            const routeSegment = await db.RouteSegment.findAll({
+                                raw: true, nest: true,
+                                where: {
+                                    tourId: tour.tourId
+                                },
+                                order: [
+                                    ['index', 'ASC'],
+                                    [{ model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
+                                ],
+                                attributes: {
+                                    exclude: [
                                         "createdAt",
                                         "updatedAt",
                                         "status",
@@ -184,75 +248,18 @@ const getAllTour = (
                                         ]
                                     },
                                 ]
-                            },
-                            {
-                                model: db.Ticket,
-                                as: "tour_ticket",
-                                attributes: {
-                                    exclude: [
-                                        "tourId",
-                                        "ticketTypeId",
-                                        "createdAt",
-                                        "updatedAt",
-                                        "status",
-                                    ],
-                                },
-                                include: [
-                                    {
-                                        model: db.TicketType,
-                                        as: "ticket_type",
-                                        attributes: {
-                                            exclude: [
-                                                "createdAt",
-                                                "updatedAt",
-                                                "status",
-                                            ],
-                                        },
-                                    }
-                                ]
-                            },
-                        ]
-                    })
-
-                    for (const tour of tours) {
-                        const day = validationUtil.convertDepartureDateToDayForPrices(tour.tour_schedule.departureDate)
-
-                        for (const ticket of tour.tour_ticket) {
-                            const price = await db.Price.findOne({
-                                where: {
-                                    ticketTypeId: ticket.ticket_type.ticketTypeId,
-                                    day: day
-                                },
-                                attributes: {
-                                    exclude: [
-                                        "ticketTypeId",
-                                        "createdAt",
-                                        "updatedAt",
-                                        "status",
-                                    ]
-                                }
                             })
-                            ticket.ticket_type.price = price
-                        }
 
-                        const departureDate = new Date(tour.tour_schedule.departureDate)
-                        // Split the duration string into hours, minutes, and seconds
-                        const [hours, minutes, seconds] = tour.duration.split(':').map(Number)
-
-                        // Add the duration to the departureDate
-                        departureDate.setHours(departureDate.getHours() + hours)
-                        departureDate.setMinutes(departureDate.getMinutes() + minutes)
-                        departureDate.setSeconds(departureDate.getSeconds() + seconds)
-                        // Now, departureDate holds the endTime
-                        const endDate = departureDate.toISOString()
-                        tour.dataValues.tour_schedule.endDate = endDate
+                            const routeSegmentsSortByDepartureStation = sortRouteSegmentByDepartureStation(routeSegment, schedule.departureStationId);
+                            schedule.dataValues.route_segment = routeSegmentsSortByDepartureStation;
+                        })
+                        await Promise.all(tourPromisses)
 
                         const feedbacks = await db.Feedback.findAll({
                             raw: true,
                             nest: true,
                             where: {
                                 tourId: tour.tourId,
-                                status: STATUS.ACTIVE
                             },
                             attributes: [
                                 [db.Sequelize.fn('AVG', db.Sequelize.col('stars')), 'average_stars']
@@ -264,35 +271,8 @@ const getAllTour = (
                         } else {
                             tour.dataValues.avgStars = parseFloat(feedbacks[0].average_stars)
                         }
-
-                        const booking = await db.BookingDetail.findAll({
-                            raw: true,
-                            nest: true,
-                            where: {
-                                status: STATUS.ACTIVE
-                            },
-                            include: {
-                                model: db.Ticket,
-                                as: "booking_detail_ticket",
-                                where: {
-                                    tourId: tour.tourId
-                                },
-                                attributes: []
-                            },
-                            attributes: [
-                                [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
-                            ]
-                        })
-                        if (tour.tour_schedule.schedule_bus !== null) {
-                            if (booking[0].total_quantity === null) {
-                                tour.dataValues.availableSeats = tour.tour_schedule.schedule_bus.numberSeat
-                            } else {
-                                tour.dataValues.availableSeats = tour.tour_schedule.schedule_bus.numberSeat - parseInt(booking[0].total_quantity)
-                            }
-                        } else {
-                            tour.dataValues.availableSeats = 0
-                        }
-                    }
+                    })
+                    )
 
                     redisClient.setEx(`tours_${page}_${limit}_${order}_${tourName}_${status}`, 3600, JSON.stringify(tours))
 
@@ -600,322 +580,262 @@ const getTourById = (tourId) =>
 
 const createTour = ({ images, tickets, tourName, ...body }) =>
     new Promise(async (resolve, reject) => {
-        let transaction
+        const t = await db.sequelize.transaction();
         try {
-            transaction = await db.sequelize.transaction(async (t) => {
-                // const station = await db.Route.findAll({
-                //     raw: true,
-                //     nest: true,
-                //     order: [
-                //         [{ model: db.RouteSegment, as: 'route_segment' }, 'index', 'ASC'],
-                //     ],
-                //     where: {
-                //         routeId: body.routeId
-                //     },
-                //     include: [
-                //         {
-                //             model: db.RouteSegment,
-                //             as: "route_segment",
-                //             attributes: {
-                //                 exclude: [
-                //                     "createdAt",
-                //                     "updatedAt",
-                //                     "status",
-                //                 ],
-                //             },
-                //         },
-                //     ]
-                // })
+            for (const segmentObj of body.segments) {
+                const findDepartureStation = await db.Station.findOne({
+                    where: {
+                        stationId: segmentObj.departureStationId,
+                    },
+                });
 
-                // if (!station) {
-                //     resolve({
-                //         status: StatusCodes.BAD_REQUEST,
-                //         data: {
-                //             msg: "Route Id not found"
-                //         }
-                //     })
-                //     return
-                // }
-
-                // const uniqueStationArray = []
-
-                // // Loop through the JSON data and add station IDs to the array
-                // station.forEach(item => {
-                //     if (!uniqueStationArray.includes(item.route_segment.departureStationId)) {
-                //         uniqueStationArray.push(item.route_segment.departureStationId)
-                //     }
-                //     if (uniqueStationArray.includes(item.route_segment.endStationId)) {
-                //         uniqueStationArray.push(item.route_segment.endStationId)
-                //     }
-                // })
-
-                for (const segmentObj of body.segments) {
-                    const findDepartureStation = await db.Station.findOne({
-                        where: {
-                            stationId: segmentObj.departureStationId,
+                if (!findDepartureStation) {
+                    return resolve({
+                        status: StatusCodes.BAD_REQUEST,
+                        data: {
+                            msg: "Departure station Id not found!",
                         },
                     });
+                }
 
-                    if (!findDepartureStation) {
-                        return resolve({
-                            status: StatusCodes.BAD_REQUEST,
-                            data: {
-                                msg: "Departure station Id not found!",
-                            },
-                        });
-                    }
+                const findEndStation = await db.Station.findOne({
+                    where: {
+                        stationId: segmentObj.endStationId,
+                    },
+                });
 
-                    const findEndStation = await db.Station.findOne({
-                        where: {
-                            stationId: segmentObj.endStationId,
+                if (!findEndStation) {
+                    return resolve({
+                        status: StatusCodes.BAD_REQUEST,
+                        data: {
+                            msg: "End station Id not found!",
                         },
                     });
+                }
 
-                    if (!findEndStation) {
-                        return resolve({
-                            status: StatusCodes.BAD_REQUEST,
-                            data: {
-                                msg: "End station Id not found!",
+                if (segmentObj.points && Array.isArray(segmentObj.points)) {
+                    for (const pointObj of segmentObj.points) {
+                        const findPoint = await db.PointOfInterest.findOne({
+                            where: {
+                                poiId: pointObj,
                             },
                         });
-                    }
 
-                    if (segmentObj.points && Array.isArray(segmentObj.points)) {
-                        for (const pointObj of segmentObj.points) {
-                            const findPoint = await db.PointOfInterest.findOne({
-                                where: {
-                                    poiId: pointObj,
+                        if (!findPoint) {
+                            return resolve({
+                                status: StatusCodes.BAD_REQUEST,
+                                data: {
+                                    msg: "Point of interest Id not found!",
                                 },
                             });
-
-                            if (!findPoint) {
-                                return resolve({
-                                    status: StatusCodes.BAD_REQUEST,
-                                    data: {
-                                        msg: "Point of interest Id not found!",
-                                    },
-                                });
-                            }
                         }
                     }
                 }
+            }
 
-                const createTour = await db.Tour.findOrCreate({
-                    where: {
-                        tourName: tourName
+            const createTour = await db.Tour.findOrCreate({
+                where: {
+                    tourName: tourName
+                },
+                defaults: {
+                    tourName: tourName,
+                    description: body.description,
+                    duration: body.duration,
+                    distance: body.distance,
+                    geoJson: body.geoJson,
+                },
+                transaction: t,
+            })
+
+            let segmentIndex = 0;
+            for (const segmentObj of body.segments) {
+                let pointIndex = 0;
+                segmentIndex += 1;
+                const routeSegment = await db.RouteSegment.create(
+                    {
+                        tourId: createTour[0].dataValues.tourId,
+                        distance: segmentObj.distance,
+                        departureStationId: segmentObj.departureStationId,
+                        endStationId: segmentObj.endStationId,
+                        index: segmentIndex
                     },
-                    defaults: {
-                        tourName: tourName,
-                        description: body.description,
-                        duration: body.duration,
-                        distance: body.distance,
-                        geoJson: body.geoJson,
+                    { transaction: t }
+                );
+
+                if (segmentObj.points && Array.isArray(segmentObj.points)) {
+                    for (const pointObj of segmentObj.points) {
+                        pointIndex += 1;
+                        await db.RoutePointDetail.create(
+                            {
+                                index: pointIndex,
+                                poiId: pointObj,
+                                routeSegmentId: routeSegment.routeSegmentId,
+                            },
+                            { transaction: t }
+                        );
+                    }
+                }
+            }
+
+            // Initialize the schedule
+            const currentDate = new Date()
+            currentDate.setHours(currentDate.getHours() + 7)
+
+            const findScheduledTour = await db.Schedule.findAll({
+                raw: true, nest: true,
+                order: [['departureDate', 'ASC']],
+                where: {
+                    departureDate: {
+                        [Op.ne]: STATUS.DEACTIVE,
                     },
-                    transaction: t,
+                    departureDate: {
+                        [Op.gte]: currentDate,
+                    },
+                    isScheduled: true,
+                },
+                attributes: {
+                    exclude: [
+                        "createdAt",
+                        "updatedAt",
+                    ]
+                },
+                include: [
+                    {
+                        model: db.Bus,
+                        as: "schedule_bus",
+                        attributes: [
+                            "busId"
+                        ]
+                    },
+                    {
+                        model: db.User,
+                        as: "schedule_tourguide",
+                        attributes: [
+                            "userId"
+                        ]
+                    },
+                    {
+                        model: db.User,
+                        as: "schedule_driver",
+                        attributes: [
+                            "userId"
+                        ]
+                    },
+                ]
+            })
+
+            const findBusActive = await db.Bus.findAll({
+                raw: true, nest: true,
+                where: {
+                    status: STATUS.ACTIVE
+                }
+            })
+
+            if (findBusActive.length == 0) {
+                resolve({
+                    status: StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg: 'There are no buses available'
+                    }
                 })
+                return
+            }
 
-                for (const segmentObj of body.segments) {
-                    let pointIndex = 0;
-                    const routeSegment = await db.RouteSegment.create(
-                        {
-                            tourId: createTour[0].dataValues.tourId,
-                            distance: segmentObj.distance,
-                            departureStationId: segmentObj.departureStationId,
-                            endStationId: segmentObj.endStationId,
-                        },
-                        { transaction: t }
-                    );
-
-                    if (segmentObj.points && Array.isArray(segmentObj.points)) {
-                        for (const pointObj of segmentObj.points) {
-                            pointIndex += 1;
-                            await db.RoutePointDetail.create(
-                                {
-                                    index: pointIndex,
-                                    poiId: pointObj,
-                                    routeSegmentId: routeSegment.routeSegmentId,
-                                },
-                                { transaction: t }
-                            );
+            const findTourguide = await db.User.findAll({
+                raw: true, nest: true,
+                attributes: ['userId', 'userName', 'email', 'maxTour', 'deviceToken'],
+                order: [],
+                include: [
+                    {
+                        model: db.Role,
+                        as: "user_role",
+                        where: {
+                            roleName: 'TourGuide',
+                            status: STATUS.ACTIVE,
                         }
                     }
+                ]
+            })
+
+            const findDriver = await db.User.findAll({
+                raw: true, nest: true,
+                attributes: ['userId', 'userName', 'email', 'maxTour', 'deviceToken'],
+                include: [
+                    {
+                        model: db.Role,
+                        as: "user_role",
+                        where: {
+                            roleName: 'Driver',
+                            status: STATUS.ACTIVE,
+                        }
+                    }
+                ]
+            })
+
+            if (findTourguide.length == 0) {
+                resolve({
+                    status: StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg: 'There are no tour guide available'
+                    }
+                })
+                return
+            }
+
+            if (findDriver.length == 0) {
+                resolve({
+                    status: StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg: 'There are no driver available'
+                    }
+                })
+                return
+            }
+
+            const schedule = []
+            if (findScheduledTour.length > 0) {
+                for (const tour of findScheduledTour) {
+                    const tourGuide = tour.schedule_tourguide
+                    const driver = tour.schedule_driver
+                    const bus = tour.schedule_bus
+
+                    schedule.push({ tour, tourGuide, driver, bus })
                 }
+            }
 
-                const currentDate = new Date()
-                currentDate.setHours(currentDate.getHours() + 7)
-                const tDepartureDate = new Date(body.departureDate)
-                const tourBeginBookingDate = new Date(body.beginBookingDate)
-                const tourEndBookingDate = new Date(body.endBookingDate)
+            let routeSegmentsSortByDepartureStation, createSchedule, availableTourGuide, availableDriver, availableBuses;
+            for (const scheduleObj of body.schedules) {
+                const BeforeTDepartureDate = new Date(scheduleObj.departureDate)
+                const tDepartureDate = new Date(scheduleObj.departureDate)
+                const [currentScheduleHours, currentScheduleMinutes, currentScheduleSeconds] = body.duration.split(':').map(Number)
 
-                if (currentDate > tourBeginBookingDate) {
+                // Add the duration to the tDepartureDate
+                tDepartureDate.setHours(tDepartureDate.getHours() + currentScheduleHours)
+                tDepartureDate.setMinutes(tDepartureDate.getMinutes() + currentScheduleMinutes)
+                tDepartureDate.setSeconds(tDepartureDate.getSeconds() + currentScheduleSeconds)
+                const tEndDate = tDepartureDate
+
+                if (currentDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
                     resolve({
                         status: StatusCodes.BAD_REQUEST,
                         data: {
-                            msg: "Begin booking date can't be equal or earlier than current date"
+                            msg: "Departure date must be 24 hours latter than current date",
                         }
                     })
-                    return
-                } else if (tourBeginBookingDate >= tourEndBookingDate) {
-                    resolve({
-                        status: StatusCodes.BAD_REQUEST,
-                        data: {
-                            msg: "Begin booking date can't be equal or later than End booking date",
-                        }
-                    })
-                    return
-                } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
-                    resolve({
-                        status: StatusCodes.BAD_REQUEST,
-                        data: {
-                            msg: "End booking date must be 24 hours earlier than Departure date",
-                        }
-                    })
+                    await t.rollback();
                     return
                 }
                 else {
-                    // Initialize the schedule
-                    const findScheduledTour = await db.Tour.findAll({
-                        raw: true, nest: true,
-                        order: [['departureDate', 'ASC']],
-                        where: {
-                            departureDate: {
-                                [Op.gte]: currentDate,
-                            },
-                            isScheduled: true,
-                        },
-                        attributes: [
-                            "tourId",
-                            "tourName",
-                            "beginBookingDate",
-                            "endBookingDate",
-                            "departureDate",
-                            "duration",
-                            "tourStatus",
-                            "status",
-                            "isScheduled"
-                        ],
-                        include: [
-                            {
-                                model: db.Bus,
-                                as: "tour_bus",
-                                attributes: [
-                                    "busId"
-                                ]
-                            },
-                            {
-                                model: db.User,
-                                as: "tour_tourguide",
-                                attributes: [
-                                    "userId"
-                                ]
-                            },
-                            {
-                                model: db.User,
-                                as: "tour_driver",
-                                attributes: [
-                                    "userId"
-                                ]
-                            },
-                        ]
-                    })
-
-                    const findBusActive = await db.Bus.findAll({
-                        raw: true, nest: true,
-                        where: {
-                            status: STATUS.ACTIVE
-                        }
-                    })
-
-                    if (findBusActive.length == 0) {
-                        resolve({
-                            status: StatusCodes.BAD_REQUEST,
-                            data: {
-                                msg: 'There are no buses available'
-                            }
-                        })
-                        return
-                    }
-
-                    const findTourguide = await db.User.findAll({
-                        raw: true, nest: true,
-                        attributes: ['userId', 'userName', 'email', 'maxTour', 'deviceToken'],
-                        include: [
-                            {
-                                model: db.Role,
-                                as: "user_role",
-                                where: {
-                                    roleName: 'TourGuide',
-                                    status: STATUS.ACTIVE,
-                                }
-                            }
-                        ]
-                    })
-
-                    const findDriver = await db.User.findAll({
-                        raw: true, nest: true,
-                        attributes: ['userId', 'userName', 'email', 'maxTour', 'deviceToken'],
-                        include: [
-                            {
-                                model: db.Role,
-                                as: "user_role",
-                                where: {
-                                    roleName: 'Driver',
-                                    status: STATUS.ACTIVE,
-                                }
-                            }
-                        ]
-                    })
-
-                    if (findTourguide.length == 0) {
-                        resolve({
-                            status: StatusCodes.BAD_REQUEST,
-                            data: {
-                                msg: 'There are no tour guide available'
-                            }
-                        })
-                        return
-                    }
-
-                    if (findDriver.length == 0) {
-                        resolve({
-                            status: StatusCodes.BAD_REQUEST,
-                            data: {
-                                msg: 'There are no driver available'
-                            }
-                        })
-                        return
-                    }
-
-                    const schedule = []
-                    if (findScheduledTour.length > 0) {
-                        for (const tour of findScheduledTour) {
-                            const tourGuide = tour.tour_tourguide
-                            const driver = tour.tour_driver
-                            const bus = tour.tour_bus
-
-                            schedule.push({ tour, tourGuide, driver, bus })
-                        }
-                    }
-
                     // Find an available employee for the tour
-                    const availableTourGuide = findTourguide.filter(
+                    availableTourGuide = findTourguide.filter(
                         (employee) =>
                             employee.maxTour > 0 &&
                             !schedule.some((assignment) => {
-                                const beforeDepartureDate = new Date(assignment.tour.departureDate)
                                 const departureDate = new Date(assignment.tour.departureDate)
-                                // Split the duration string into hours, minutes, and seconds
-                                let [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
-                                hours += 1;
+                                const endDate = new Date(assignment.tour.endDate)
 
-                                // Add the duration to the departureDate
-                                departureDate.setHours(departureDate.getHours() + hours)
-                                departureDate.setMinutes(departureDate.getMinutes() + minutes)
-                                departureDate.setSeconds(departureDate.getSeconds() + seconds)
-                                const endDate = departureDate
-
-                                const beforeCurrentTourDepartureDate = new Date(body.departureDate)
-                                const currentTourDepartureDate = new Date(body.departureDate)
+                                const beforeCurrentTourDepartureDate = new Date(scheduleObj.departureDate)
+                                const currentTourDepartureDate = new Date(scheduleObj.departureDate)
                                 const [currentTourHours, currentTourMinutes, currentTourSeconds] = body.duration.split(':').map(Number)
 
                                 // Add the duration to the departureDate
@@ -925,7 +845,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 const currentEndDate = currentTourDepartureDate
 
                                 let checkTourGuide = true;
-                                if (beforeDepartureDate > currentEndDate && assignment.tourGuide.userId === employee.userId) {
+                                if (departureDate > currentEndDate && assignment.tourGuide.userId === employee.userId) {
                                     checkTourGuide = false;
                                 }
 
@@ -941,24 +861,15 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             })
                     );
 
-                    const availableDriver = findDriver.filter(
+                    availableDriver = findDriver.filter(
                         (employee) =>
                             employee.maxTour > 0
                             && !schedule.some((assignment) => {
-                                const beforeDepartureDate = new Date(assignment.tour.departureDate)
                                 const departureDate = new Date(assignment.tour.departureDate)
-                                // Split the duration string into hours, minutes, and seconds
-                                let [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
-                                hours += 1;
+                                const endDate = new Date(assignment.tour.endDate)
 
-                                // Add the duration to the departureDate
-                                departureDate.setHours(departureDate.getHours() + hours)
-                                departureDate.setMinutes(departureDate.getMinutes() + minutes)
-                                departureDate.setSeconds(departureDate.getSeconds() + seconds)
-                                const endDate = departureDate
-
-                                const beforeCurrentTourDepartureDate = new Date(body.departureDate)
-                                const currentTourDepartureDate = new Date(body.departureDate)
+                                const beforeCurrentTourDepartureDate = new Date(scheduleObj.departureDate)
+                                const currentTourDepartureDate = new Date(scheduleObj.departureDate)
                                 const [currentTourHours, currentTourMinutes, currentTourSeconds] = body.duration.split(':').map(Number)
 
                                 // Add the duration to the departureDate
@@ -968,7 +879,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 const currentEndDate = currentTourDepartureDate
 
                                 let checkDriver = true;
-                                if (beforeDepartureDate > currentEndDate && assignment.driver.userId === employee.userId) {
+                                if (departureDate > currentEndDate && assignment.driver.userId === employee.userId) {
                                     checkDriver = false;
                                 }
 
@@ -977,24 +888,15 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             })
                     );
 
-                    const availableBuses = findBusActive.filter(
+                    availableBuses = findBusActive.filter(
                         (bus) =>
                             // bus.numberSeat >= 2 && 
                             !schedule.some((assignment) => {
-                                const beforeDepartureDate = new Date(assignment.tour.departureDate)
                                 const departureDate = new Date(assignment.tour.departureDate)
-                                // Split the duration string into hours, minutes, and seconds
-                                let [hours, minutes, seconds] = assignment.tour.duration.split(':').map(Number)
-                                hours += 1;
+                                const endDate = new Date(assignment.tour.endDate)
 
-                                // Add the duration to the departureDate
-                                departureDate.setHours(departureDate.getHours() + hours)
-                                departureDate.setMinutes(departureDate.getMinutes() + minutes)
-                                departureDate.setSeconds(departureDate.getSeconds() + seconds)
-                                const endDate = departureDate
-
-                                const beforeCurrentTourDepartureDate = new Date(body.departureDate)
-                                const currentTourDepartureDate = new Date(body.departureDate)
+                                const beforeCurrentTourDepartureDate = new Date(scheduleObj.departureDate)
+                                const currentTourDepartureDate = new Date(scheduleObj.departureDate)
                                 const [currentTourHours, currentTourMinutes, currentTourSeconds] = body.duration.split(':').map(Number)
 
                                 // Add the duration to the departureDate
@@ -1004,7 +906,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 const currentEndDate = currentTourDepartureDate
 
                                 let checkBus = true;
-                                if (beforeDepartureDate > currentEndDate && assignment.bus.busId == bus.busId) {
+                                if (departureDate > currentEndDate && assignment.bus.busId == bus.busId) {
                                     checkBus = false;
                                 }
 
@@ -1013,34 +915,24 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             })
                     );
 
-                    let createTour
+                    let chosenTourGuide, chosenDriver, chosenBus;
                     if (availableTourGuide.length > 0 && availableDriver.length > 0 && availableBuses.length > 0) {
-                        const chosenTourGuide = availableTourGuide[0]
-                        const chosenDriver = availableDriver[0]
+                        chosenTourGuide = availableTourGuide[0]
+                        chosenDriver = availableDriver[0]
                         chosenTourGuide.maxTour--
                         chosenDriver.maxTour--
-                        const chosenBus = availableBuses[0]
+                        chosenBus = availableBuses[0]
 
-                        createTour = await db.Tour.findOrCreate({
-                            where: {
-                                tourName: tourName
-                            },
-                            defaults: {
-                                beginBookingDate: tourBeginBookingDate,
-                                endBookingDate: tourEndBookingDate,
-                                departureDate: tDepartureDate,
-                                tourName: tourName,
-                                departureStationId: uniqueStationArray[0],
-                                tourGuideId: chosenTourGuide.userId,
-                                driverId: chosenDriver.userId,
-                                busId: chosenBus.busId,
-                                isScheduled: true,
-                                description: body.description,
-                                routeId: body.routeId,
-                                duration: body.duration,
-                            },
-                            transaction: t,
-                        })
+                        createSchedule = await db.Schedule.create({
+                            departureDate: BeforeTDepartureDate,
+                            endDate: tEndDate,
+                            departureStationId: scheduleObj.departureStationId,
+                            tourGuideId: chosenTourGuide.userId,
+                            driverId: chosenDriver.userId,
+                            busId: chosenBus.busId,
+                            isScheduled: true,
+                            tourId: createTour[0].dataValues.tourId,
+                        }, { transaction: t })
 
                         await db.User.update({
                             maxTour: chosenTourGuide.maxTour,
@@ -1058,7 +950,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             transaction: t
                         })
 
-                        const createdDepartureDate = new Date(createTour[0].dataValues.departureDate);
+                        const createdDepartureDate = new Date(scheduleObj.departureDate);
 
                         const formattedDate = createdDepartureDate.toLocaleString('en-GB', {
                             day: '2-digit',
@@ -1102,160 +994,163 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 createNotiDriver.notiType
                             );
                         };
+                        schedule.push({ tour: createSchedule.dataValues, tourGuide: chosenTourGuide.userId, driver: chosenDriver.userId, bus: chosenBus.busId })
                     }
                     else {
-                        createTour = await db.Tour.findOrCreate({
-                            where: {
-                                tourName: tourName
-                            },
-                            defaults: {
-                                beginBookingDate: tourBeginBookingDate,
-                                endBookingDate: tourEndBookingDate,
-                                departureDate: tDepartureDate,
-                                tourName: tourName,
-                                departureStationId: uniqueStationArray[0],
-                                description: body.description,
-                                routeId: body.routeId,
-                                duration: body.duration,
-                            },
-                            transaction: t,
-                        })
+                        createSchedule = await db.Schedule.create({
+                            departureDate: BeforeTDepartureDate,
+                            endDate: tEndDate,
+                            departureStationId: scheduleObj.departureStationId,
+                            tourId: createTour[0].dataValues.tourId,
+                        }, { transaction: t })
+                        schedule.push({ tour: createSchedule.dataValues, tourGuide: null, driver: null, bus: null })
                     }
 
-                    let isValidTickets = false
-                    const dependTickets = []
-                    const promises = tickets.map(async (ticketTypeId) => {
-                        const ticketType = await db.TicketType.findOne({
-                            raw: true,
-                            where: {
-                                ticketTypeId: ticketTypeId
-                            },
-                        })
-                        if (!ticketType) {
-                            await t.rollback()
-                            resolve({
-                                status: StatusCodes.NOT_FOUND,
-                                data: {
-                                    msg: `Ticket type not found!`,
-                                }
-                            })
+                    routeSegmentsSortByDepartureStation = sortRouteSegmentByDepartureStation(body.segments, scheduleObj.departureStationId)
+                    let uniqueStationArray = [];
+                    routeSegmentsSortByDepartureStation.forEach(item => {
+                        if (!uniqueStationArray.includes(item.departureStationId)) {
+                            uniqueStationArray.push(item.departureStationId)
                         }
-                        if (ticketType.dependsOnGuardian === 0) {
-                            isValidTickets = true
-                        } else {
-                            dependTickets.push(ticketType.ticketTypeName)
+                        if (uniqueStationArray.includes(item.endStationId)) {
+                            uniqueStationArray.push(item.endStationId)
                         }
                     })
 
-                    await Promise.all(promises)
+                    let index = 0
+                    for (const stationId of uniqueStationArray) {
+                        index += 1
+                        await db.TourDetail.create({
+                            scheduleId: createSchedule.scheduleId,
+                            stationId: stationId,
+                            index: index,
+                        }, { transaction: t })
+                    }
+                }
+            }
 
-                    if (!isValidTickets) {
+            let isValidTickets = false
+            const dependTickets = []
+            const promises = tickets.map(async (ticketTypeId) => {
+                const ticketType = await db.TicketType.findOne({
+                    raw: true,
+                    where: {
+                        ticketTypeId: ticketTypeId
+                    },
+                })
+                if (!ticketType) {
+                    await t.rollback()
+                    resolve({
+                        status: StatusCodes.NOT_FOUND,
+                        data: {
+                            msg: `Ticket type not found!`,
+                        }
+                    })
+                }
+                if (ticketType.dependsOnGuardian === 0) {
+                    isValidTickets = true
+                } else {
+                    dependTickets.push(ticketType.ticketTypeName)
+                }
+            })
+
+            await Promise.all(promises)
+
+            if (!isValidTickets) {
+                await t.rollback()
+                resolve({
+                    status: StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg: `[${dependTickets}] need other guardian ticket to go with!`,
+                    }
+                })
+            } else {
+                const createTicketPromises = tickets.map(async (ticketTypeId) => {
+                    const ticketType = await db.TicketType.findOne({
+                        where: {
+                            ticketTypeId: ticketTypeId
+                        },
+                    })
+
+                    const price = await db.Price.findOne({
+                        where: {
+                            ticketTypeId: ticketType.ticketTypeId,
+                        }
+                    })
+                    if (!price) {
                         await t.rollback()
                         resolve({
                             status: StatusCodes.BAD_REQUEST,
                             data: {
-                                msg: `[${dependTickets}] need other guardian ticket to go with!`,
+                                msg: `Ticket type doesn't have a price`,
                             }
                         })
                     } else {
-                        const createTicketPromises = tickets.map(async (ticketTypeId) => {
-                            const ticketType = await db.TicketType.findOne({
-                                where: {
-                                    ticketTypeId: ticketTypeId
-                                },
-                            })
-                            const day = validationUtil.convertDepartureDateToDayForPrices(tour.departureDate)
-
-                            const price = await db.Price.findOne({
-                                where: {
-                                    ticketTypeId: ticketType.ticketTypeId,
-                                    day: day,
-                                }
-                            })
-                            if (!price) {
-                                await t.rollback()
-                                resolve({
-                                    status: StatusCodes.BAD_REQUEST,
-                                    data: {
-                                        msg: `Ticket type doesn't have a price for day`,
-                                    }
-                                })
-                            } else {
-                                await db.Ticket.findOrCreate({
-                                    where: {
-                                        ticketTypeId: ticketTypeId,
-                                        tourId: createTour[0].tourId
-                                    },
-                                    defaults: { ticketTypeId: ticketTypeId, tourId: createTour[0].tourId, },
-                                    transaction: t,
-                                })
-                            }
-                        })
-                        await Promise.all(createTicketPromises)
-
-                        if (createTour[1]) {
-                            if (images) {
-                                const createImagePromises = images.map(async (image) => {
-                                    await db.Image.create({
-                                        image: image,
-                                        tourId: createTour[0].tourId,
-                                    }, { transaction: t })
-                                })
-
-                                await Promise.all(createImagePromises)
-                            }
-
-                            let index = 0
-                            for (const stationId of uniqueStationArray) {
-                                index += 1
-                                await db.TourDetail.create({
-                                    tourId: createTour[0].tourId,
-                                    stationId: stationId,
-                                    index: index,
-                                }, { transaction: t })
-                            }
-                        }
-
-                        resolve({
-                            status: createTour[1] ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
-                            data: {
-                                msg: createTour[1]
-                                    ? "Create new tour successfully"
-                                    : "Cannot create new tour/Tour name already exists",
-                                tour: createTour[1] ? createTour[0].dataValues : null,
-                                assignResult: availableTourGuide.length > 0 && availableDriver.length > 0 && availableBuses.length > 0 && createTour[1]
-                                    ? "Assign employee to tour successfully!"
-                                    : 'Cannot assign employee to tour',
-                            }
-                        })
-
-                        redisClient.keys('*tours_*', (error, keys) => {
-                            if (error) {
-                                console.error('Error retrieving keys:', error)
-                                return
-                            }
-                            // Delete each key individually
-                            keys.forEach((key) => {
-                                redisClient.del(key, (deleteError, reply) => {
-                                    if (deleteError) {
-                                        console.error(`Error deleting key ${key}:`, deleteError)
-                                    } else {
-                                        console.log(`Key ${key} deleted successfully`)
-                                    }
-                                })
-                            })
+                        await db.Ticket.findOrCreate({
+                            where: {
+                                ticketTypeId: ticketTypeId,
+                                tourId: createTour[0].tourId
+                            },
+                            defaults: { ticketTypeId: ticketTypeId, tourId: createTour[0].tourId, },
+                            transaction: t,
                         })
                     }
-                }
-                await t.commit()
-            })
+                })
+                await Promise.all(createTicketPromises)
 
-        } catch (error) {
-            if (transaction) {
-                // Rollback the transaction in case of an error
-                await transaction.rollback()
+                if (createTour[1]) {
+                    if (images) {
+                        const createImagePromises = images.map(async (image) => {
+                            await db.Image.create({
+                                image: image,
+                                tourId: createTour[0].tourId,
+                            }, { transaction: t })
+                        })
+
+                        await Promise.all(createImagePromises)
+                    }
+                }
+
+                resolve({
+                    status: createTour[1] ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg: createTour[1]
+                            ? "Create new tour successfully"
+                            : "Cannot create new tour/Tour name already exists",
+                        tour: createTour[1] ? createTour[0].dataValues : null,
+                        assignResult: availableTourGuide.length > 0 && availableDriver.length > 0 && availableBuses.length > 0 && createTour[1]
+                            ? "Assign employee to tour successfully!"
+                            : 'Cannot assign employee to tour',
+                    }
+                })
+
+                if (!createTour[1]) {
+                    await t.rollback();
+                } else {
+                    await t.commit();
+                }
+                redisClient.keys('*tours_*', (error, keys) => {
+                    if (error) {
+                        console.error('Error retrieving keys:', error)
+                        return
+                    }
+                    // Delete each key individually
+                    keys.forEach((key) => {
+                        redisClient.del(key, (deleteError, reply) => {
+                            if (deleteError) {
+                                console.error(`Error deleting key ${key}:`, deleteError)
+                            } else {
+                                console.log(`Key ${key} deleted successfully`)
+                            }
+                        })
+                    })
+                })
             }
-            reject(error)
+        } catch (error) {
+            // Rollback the transaction in case of an error
+            await t.rollback();
+            console.log(error);
+            reject(error);
         }
     })
 
@@ -2030,10 +1925,8 @@ const assignTour = () =>
                 await t.commit()
             })
         } catch (error) {
-            if (transaction) {
-                // Rollback the transaction in case of an error
-                await transaction.rollback()
-            }
+            // Rollback the transaction in case of an error
+            await transaction.rollback()
             reject(error)
         }
     })
@@ -2313,8 +2206,8 @@ const updateTour = (id, { images, ...body }) =>
                 await t.commit()
             })
         } catch (error) {
+            // Rollback the transaction in case of an error
             if (transaction) {
-                // Rollback the transaction in case of an error
                 await transaction.rollback()
             }
             reject(error.message)
@@ -2380,7 +2273,7 @@ const deleteTour = (id) =>
 
 const cloneTour = (id, body) =>
     new Promise(async (resolve, reject) => {
-        let transaction
+        let transaction;
         try {
             transaction = await db.sequelize.transaction(async (t) => {
                 const tours = await db.Tour.findAll({
@@ -2980,6 +2873,10 @@ const cloneTour = (id, body) =>
                     msg: "Cannot clone new tour",
                 }
             })
+            // Rollback the transaction in case of an error
+            if (transaction) {
+                await transaction.rollback()
+            }
             // reject(error)
         }
     });
@@ -3664,8 +3561,8 @@ const createTourDemo = () =>
                 await t.commit()
             })
         } catch (error) {
+            // Rollback the transaction in case of an error
             if (transaction) {
-                // Rollback the transaction in case of an error
                 await transaction.rollback()
             }
             reject(error)

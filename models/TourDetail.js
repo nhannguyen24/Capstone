@@ -11,9 +11,9 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      TourDetail.belongsTo(models.Tour, {
-        foreignKey: "tourId",
-        as: "detail_tour",
+      TourDetail.belongsTo(models.Schedule, {
+        foreignKey: "scheduleId",
+        as: "detail_schedule",
       });
 
       TourDetail.belongsTo(models.Station, {
@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
     },
     index: DataTypes.INTEGER,
-    tourId: {
+    scheduleId: {
       type: DataTypes.UUID
     },
     stationId: {

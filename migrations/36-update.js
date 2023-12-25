@@ -31,8 +31,8 @@ module.exports = {
       // logic for transforming into the new state
       return queryInterface.addColumn(
         'RouteSegments',
-        'distance',
-       Sequelize.FLOAT
+        'index',
+       Sequelize.INTEGER
       );
   
     },
@@ -41,7 +41,7 @@ module.exports = {
       // logic for reverting the changes
       return queryInterface.removeColumn(
         'RouteSegments',
-        'distance',
+        'index',
       );
     }
   }

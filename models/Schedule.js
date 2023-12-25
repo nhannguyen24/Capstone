@@ -39,7 +39,7 @@ module.exports = (sequelize, DataTypes) => {
 
       Schedule.hasMany(models.Booking, { as: 'schedule_booking', foreignKey: 'scheduleId'});
       Schedule.hasMany(models.Tracking, { as: 'schedule_tracking', foreignKey: 'scheduleId'});
-
+      Schedule.hasMany(models.TourDetail, { as: 'schedule_detail', foreignKey: 'scheduleId'});
     }
   }
   Schedule.init({

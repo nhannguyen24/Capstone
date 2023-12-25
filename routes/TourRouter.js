@@ -202,7 +202,7 @@ router.get("/:id", controllers.getTourById);
  *                  example:
  *                    tourName: Chuyến đi tham quan buổi sáng
  *                    description: Một chuyến đi tuyệt vời
- *                    duration: 03:00:00
+ *                    duration: 02:00:00
  *                    distance: 10.5
  *                    geoJson:
  *                           type: Feature
@@ -232,9 +232,9 @@ router.get("/:id", controllers.getTourById);
  *                          - 3355c24a-741c-4e3b-9d2a-fa43c4c950c5
  *                          - 99f73c58-7c81-4152-90f9-21e50637e9c8
  *                    schedules:
- *                          - departureDate: 2023-09-23T09:00:00Z
+ *                          - departureDate: 2023-12-28T09:00:00Z
  *                            departureStationId: stationId
- *                          - departureDate: 2023-09-23T09:00:00Z
+ *                          - departureDate: 2023-12-28T15:00:00Z
  *                            departureStationId: stationId
  *                    images:
  *                          - string

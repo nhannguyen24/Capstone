@@ -12,10 +12,10 @@ module.exports = {
       //   type: Sequelize.TIME,
       //   allowNull: false,
       // },
-      // index: {
-      //   type: Sequelize.INTEGER,
-      //   allowNull: false,
-      // },
+      index: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
       distance: {
         type: Sequelize.FLOAT,
         allowNull: false,
