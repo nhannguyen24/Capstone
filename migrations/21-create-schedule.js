@@ -16,12 +16,16 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
       },
-      departureStationId: {
-        type: Sequelize.UUID,
-      },
       isScheduled: {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
+      },
+      departureStationId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'stations',
+          key: 'stationId'
+        }
       },
       tourId: {
         type: Sequelize.UUID,
@@ -51,7 +55,7 @@ module.exports = {
           key: 'busId'
         }
       },
-      tourStatus: {
+      scheduleStatus: {
         type: Sequelize.ENUM,
         values: ["Available", "Started", "Canceled", "Finished"],
         defaultValue: 'Available',

@@ -26,8 +26,8 @@ const getAllTourDetail = (
                 },
                 include: [
                     {
-                        model: db.Tour,
-                        as: "detail_tour",
+                        model: db.Schedule,
+                        as: "detail_schedule",
                         attributes: {
                             exclude: [
                                 "createdAt",
@@ -35,6 +35,19 @@ const getAllTourDetail = (
                                 "status",
                             ],
                         },
+                        include: [
+                            {
+                                model: db.Tour,
+                                as: 'schedule_tour',
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                            }
+                        ]
                     },
                     {
                         model: db.Station,

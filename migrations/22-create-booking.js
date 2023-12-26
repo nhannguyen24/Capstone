@@ -2,25 +2,40 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('RouteSegments', {
-      routeSegmentId: {
+    await queryInterface.createTable('Bookings', {
+      bookingId: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
-      // stopoverTime: {
-      //   type: Sequelize.TIME,
-      //   allowNull: false,
-      // },
-      // index: {
-      //   type: Sequelize.INTEGER,
-      //   allowNull: false,
-      // },
-      tourId: {
+      bookingDate: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
+      bookingCode: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      totalPrice: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      isAttended: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+      },
+      customerId: {
         type: Sequelize.UUID,
         references: {
-          model: 'tours',
-          key: 'tourId'
+          model: 'users',
+          key: 'userId'
+        }
+      },
+      scheduleId: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'schedules',
+          key: 'scheduleId'
         }
       },
       departureStationId: {
@@ -30,12 +45,14 @@ module.exports = {
           key: 'stationId'
         }
       },
-      endStationId: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'stations',
-          key: 'stationId'
-        }
+      endPaymentTime: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
+      bookingStatus: {
+        type: Sequelize.ENUM,
+        values: ["Draft", "Ongoing", "Canceled", "Finished"],
+        defaultValue: 'Ongoing',
       },
       status: {
         type: Sequelize.ENUM,
@@ -55,6 +72,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('RouteSegments');
+    await queryInterface.dropTable('Bookings');
   }
 };

@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
+     * The models/index file will call this method automatically.
      */
     static associate(models) {
       // define association here
@@ -40,7 +40,7 @@ module.exports = (sequelize, DataTypes) => {
       Schedule.hasMany(models.Report, { as: 'schedule_report', foreignKey: 'scheduleId'});
       Schedule.hasMany(models.Booking, { as: 'schedule_booking', foreignKey: 'scheduleId'});
       Schedule.hasMany(models.Tracking, { as: 'schedule_tracking', foreignKey: 'scheduleId'});
-
+      Schedule.hasMany(models.TourDetail, { as: 'schedule_detail', foreignKey: 'scheduleId'});
     }
   }
   Schedule.init({

@@ -11,11 +11,11 @@ module.exports = {
       index: {
         type: Sequelize.INTEGER,
       },
-      tourId: {
+      scheduleId: {
         type: Sequelize.UUID,
         references: {
-          model: 'tours',
-          key: 'tourId'
+          model: 'schedules',
+          key: 'scheduleId'
         }
       },
       stationId: {

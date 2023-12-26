@@ -4,7 +4,7 @@ const { StatusCodes } = require("http-status-codes");
 
 const getAllTour = async (req, res) => {
     try {
-        const response = await services.test(req.query);
+        const response = await services.getAllTour(req.query);
         return res.status(response.status).json(response.data);
     } catch (error) {
         throw new InternalServerError(error);
@@ -43,14 +43,11 @@ const getTourById = async (req, res) => {
 
 const createTour = async (req, res) => {
     try {
-        const { tourName, routeId } = req.body;
+        const { tourName } = req.body;
         const errors = {};
 
         if (tourName.trim() === "") {
             errors.tourName = 'Please provide tourName';
-        }
-        if (routeId.trim() === "") {
-            errors.routeId = 'Please provide routeId';
         }
 
         if (Object.keys(errors).length === 0) {
