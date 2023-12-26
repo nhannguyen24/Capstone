@@ -19,11 +19,6 @@ module.exports = {
           key: 'ticketTypeId'
         }
       },
-      day: {
-        type: Sequelize.ENUM,
-        values: ["Normal", "Weekend", "Holiday"],
-        defaultValue: 'Normal',
-      },
       status: {
         type: Sequelize.ENUM,
         values: ["Active", "Deactive"],

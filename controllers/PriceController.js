@@ -66,13 +66,11 @@ const createPrice = async (req, res) => {
         const errors = {}
         const amount = req.body.amount || ""
         const ticketTypeId = req.body.ticketTypeId || ""
-        const day = req.body.day || ""
+
         if(ticketTypeId === ""){
             errors.ticketTypeId = "ticketTypeId required!"
         }
-        if(day === ""){
-            errors.day = "Day required!"
-        }
+
         if(amount === ""){
             errors.amount = "Amount required!"
         } else {
@@ -101,16 +99,14 @@ const updatePrice = async (req, res) => {
         const priceId = req.params.id || ""
         const amount = req.body.amount || ""
         const ticketTypeId = req.params.ticketTypeId || ""
-        const day = req.body.day || ""
+
         if (priceId.trim() === "") {
             errors.priceId = "Id required!"
         }
         if (ticketTypeId.trim() === "") {
             errors.ticketTypeId = "ticketTypeId required!"
         }
-        if (day.trim() === "") {
-            errors.day = "day required!"
-        }
+
         if (amount === "") {
             errors.amount = "amount field required!"
         } else {
