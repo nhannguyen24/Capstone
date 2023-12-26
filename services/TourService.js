@@ -136,86 +136,50 @@ const getAllTour = (
                                 },
                             }
                         ]
-                    }
                     })
 
-            await Promise.all(tours.map(async (tour) => {
-                const tourPromisses = tour.tour_schedule.map(async (schedule) => {
-                    const booking = await db.BookingDetail.findAll({
-                        raw: true,
-                        nest: true,
-                        where: {
-                            status: STATUS.ACTIVE
-                        },
-                        include: {
-                            model: db.Ticket,
-                            as: "booking_detail_ticket",
-                            where: {
-                                tourId: schedule.tourId
-                            },
-                            attributes: []
-                        },
-                        attributes: [
-                            [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
-                        ]
-                    })
-
-                    if (schedule.schedule_bus !== null) {
-                        if (booking[0].total_quantity === null) {
-                            schedule.dataValues.availableSeats = schedule.schedule_bus.numberSeat
-                        } else {
-                            schedule.dataValues.availableSeats = schedule.schedule_bus.numberSeat - parseInt(booking[0].total_quantity)
-                        }
-                    } else {
-                        schedule.dataValues.availableSeats = 0
-                    }
-
-                    const routeSegment = await db.RouteSegment.findAll({
-                        raw: true, nest: true,
-                        where: {
-                            tourId: tour.tourId
-                        },
-                        order: [
-                            ['index', 'ASC'],
-                            [{ model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
-                        ],
-                        attributes: {
-                            exclude: [
-                                "createdAt",
-                                "updatedAt",
-                                "status",
-                            ],
-                        },
-                        include: [
-                            {
-                                model: db.Station,
-                                as: "segment_departure_station",
-                                attributes: {
-                                    exclude: [
-                                        "createdAt",
-                                        "updatedAt",
-                                        "status",
-                                    ],
+                    await Promise.all(tours.map(async (tour) => {
+                        const tourPromisses = tour.tour_schedule.map(async (schedule) => {
+                            const booking = await db.BookingDetail.findAll({
+                                raw: true,
+                                nest: true,
+                                where: {
+                                    status: STATUS.ACTIVE
                                 },
-                            },
-                            {
-                                model: db.Station,
-                                as: "segment_end_station",
-                                attributes: {
-                                    exclude: [
-                                        "createdAt",
-                                        "updatedAt",
-                                        "status",
-                                    ],
+                                include: {
+                                    model: db.Ticket,
+                                    as: "booking_detail_ticket",
+                                    where: {
+                                        tourId: schedule.tourId
+                                    },
+                                    attributes: []
                                 },
-                            },
-                            {
-                                model: db.RoutePointDetail,
-                                as: "segment_route_poi_detail",
+                                attributes: [
+                                    [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
+                                ]
+                            })
+
+                            if (schedule.schedule_bus !== null) {
+                                if (booking[0].total_quantity === null) {
+                                    schedule.dataValues.availableSeats = schedule.schedule_bus.numberSeat
+                                } else {
+                                    schedule.dataValues.availableSeats = schedule.schedule_bus.numberSeat - parseInt(booking[0].total_quantity)
+                                }
+                            } else {
+                                schedule.dataValues.availableSeats = 0
+                            }
+
+                            const routeSegment = await db.RouteSegment.findAll({
+                                raw: true, nest: true,
+                                where: {
+                                    tourId: tour.tourId
+                                },
+                                order: [
+                                    ['index', 'ASC'],
+                                    [{ model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
+                                ],
                                 attributes: {
                                     exclude: [
-                                        "routeSegmentId",
-                                        "poiId",
                                         "createdAt",
                                         "updatedAt",
                                         "status",
@@ -223,8 +187,8 @@ const getAllTour = (
                                 },
                                 include: [
                                     {
-                                        model: db.PointOfInterest,
-                                        as: "route_poi_detail_poi",
+                                        model: db.Station,
+                                        as: "segment_departure_station",
                                         attributes: {
                                             exclude: [
                                                 "createdAt",
@@ -232,43 +196,80 @@ const getAllTour = (
                                                 "status",
                                             ],
                                         },
-                                    }
+                                    },
+                                    {
+                                        model: db.Station,
+                                        as: "segment_end_station",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                    },
+                                    {
+                                        model: db.RoutePointDetail,
+                                        as: "segment_route_poi_detail",
+                                        attributes: {
+                                            exclude: [
+                                                "routeSegmentId",
+                                                "poiId",
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                        include: [
+                                            {
+                                                model: db.PointOfInterest,
+                                                as: "route_poi_detail_poi",
+                                                attributes: {
+                                                    exclude: [
+                                                        "createdAt",
+                                                        "updatedAt",
+                                                        "status",
+                                                    ],
+                                                },
+                                            }
+                                        ]
+                                    },
                                 ]
+                            })
+
+                            const routeSegmentsSortByDepartureStation = sortRouteSegmentByDepartureStation(routeSegment, schedule.departureStationId);
+                            schedule.dataValues.route_segment = routeSegmentsSortByDepartureStation;
+                        })
+                        await Promise.all(tourPromisses)
+
+                        const feedbacks = await db.Feedback.findAll({
+                            raw: true,
+                            nest: true,
+                            where: {
+                                tourId: tour.tourId,
                             },
-                        ]
+                            attributes: [
+                                [db.Sequelize.fn('AVG', db.Sequelize.col('stars')), 'average_stars']
+                            ]
+                        })
+
+                        if (feedbacks[0].average_stars === null) {
+                            tour.dataValues.avgStars = 0
+                        } else {
+                            tour.dataValues.avgStars = parseFloat(feedbacks[0].average_stars)
+                        }
                     })
+                    )
 
-                    const routeSegmentsSortByDepartureStation = sortRouteSegmentByDepartureStation(routeSegment, schedule.departureStationId);
-                    schedule.dataValues.route_segment = routeSegmentsSortByDepartureStation;
-                })
-                await Promise.all(tourPromisses)
+                    redisClient.setEx(`tours_${page}_${limit}_${order}_${tourName}_${status}`, 3600, JSON.stringify(tours))
 
-                const feedbacks = await db.Feedback.findAll({
-                    raw: true,
-                    nest: true,
-                    where: {
-                        tourId: tour.tourId,
-                    },
-                    attributes: [
-                        [db.Sequelize.fn('AVG', db.Sequelize.col('stars')), 'average_stars']
-                    ]
-                })
-
-                if (feedbacks[0].average_stars === null) {
-                    tour.dataValues.avgStars = 0
-                } else {
-                    tour.dataValues.avgStars = parseFloat(feedbacks[0].average_stars)
-                }
-            })
-            )
-
-            redisClient.setEx(`tours_${page}_${limit}_${order}_${tourName}_${status}`, 3600, JSON.stringify(tours))
-
-            resolve({
-                status: StatusCodes.OK,
-                data: {
-                    msg: tours ? "Got tours" : "Tours not found!",
-                    tours: tours,
+                    resolve({
+                        status: StatusCodes.OK,
+                        data: {
+                            msg: tours ? "Got tours" : "Tours not found!",
+                            tours: tours,
+                        }
+                    })
                 }
             })
         } catch (error) {
@@ -3507,7 +3508,6 @@ const createTourDemo = () =>
     })
 
 module.exports = {
-    test,
     updateTour,
     deleteTour,
     createTour,
