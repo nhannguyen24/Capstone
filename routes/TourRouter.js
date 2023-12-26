@@ -189,25 +189,25 @@ router.get("/:id", controllers.getTourById);
  */
 router.post("/", verifyToken, roleAuthen(["Admin", "Manager"]), controllers.createTour);
 
-/**
- * @swagger
- * /api/v1/tours/create/demo:
- *   post:
- *     security:
- *       - BearerAuth: []
- *     summary: Create new tour
- *     tags: [Tour]
- *     responses:
- *       200:
- *         description: Create new tour successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Tour'
- */
-router.post("/create/demo", controllers.createTourDemo);
+// /**
+//  * @swagger
+//  * /api/v1/tours/create/demo:
+//  *   post:
+//  *     security:
+//  *       - BearerAuth: []
+//  *     summary: Create new tour
+//  *     tags: [Tour]
+//  *     responses:
+//  *       200:
+//  *         description: Create new tour successfully
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: array
+//  *               items:
+//  *                 $ref: '#/components/schemas/Tour'
+//  */
+// router.post("/create/demo", controllers.createTourDemo);
 
 /**
  * @swagger
@@ -286,25 +286,25 @@ router.post("/upload", upload.single('file'), verifyToken, roleAuthen(["Manager"
  */
 router.put("/:id", verifyToken, roleAuthen(["Manager", "TourGuide", "Driver"]), controllers.updateTour);
 
-/**
- * @swagger
- * /api/v1/tours/assign/employee:
- *   put:
- *     security: 
- *         - BearerAuth: []
- *     summary: Assign employee to tour
- *     tags: [Tour]
- *     responses:
- *       200:
- *         description: Update the tour successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Tour'
- */
-router.put("/assign/employee", verifyToken, roleAuthen(["Manager"]), controllers.assignTour);
+// /**
+//  * @swagger
+//  * /api/v1/tours/assign/employee:
+//  *   put:
+//  *     security: 
+//  *         - BearerAuth: []
+//  *     summary: Assign employee to tour
+//  *     tags: [Tour]
+//  *     responses:
+//  *       200:
+//  *         description: Update the tour successfully
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: array
+//  *               items:
+//  *                 $ref: '#/components/schemas/Tour'
+//  */
+// router.put("/assign/employee", verifyToken, roleAuthen(["Manager"]), controllers.assignTour);
 
 /**
  * @swagger
@@ -332,52 +332,52 @@ router.put("/assign/employee", verifyToken, roleAuthen(["Manager"]), controllers
  */
 router.delete("/:id", verifyToken, roleAuthen(["Manager"]), controllers.deleteTour);
 
-/**
- * @swagger
- * /api/v1/tours/clone/{id}:
- *   post:
- *     security: 
- *         - BearerAuth: []
- *     summary: Clone new the tours by id
- *     tags: [Tour]
- *     parameters:
- *       - name: id
- *         in: path
- *         schema:
- *           type: string
- *         description: Find tour by id
- *     requestBody:
- *       content:
- *          application/json:
- *            schema:                     
- *                  example:
- *                    tourName: Chuyến đi tham quan buổi sáng
- *                    beginBookingDate: 2023-09-21T00:00:00Z
- *                    endBookingDate: 2023-09-22T00:00:00Z
- *                    departureDate: 2023-09-23T09:00:00Z
- *                    duration: 03:00:00
- *     responses:
- *       200:
- *         description: Clone new tour successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Tour'
- *       400:
- *         description: Bad request
- *         content:
- *           application/json:
- *             schema:
- *               type: string
- *       404:
- *         description: Not Found
- *         content:
- *           application/json:
- *             schema:
- *               type: string 
- */
-router.post("/clone/:id", controllers.cloneTour);
+// /**
+//  * @swagger
+//  * /api/v1/tours/clone/{id}:
+//  *   post:
+//  *     security: 
+//  *         - BearerAuth: []
+//  *     summary: Clone new the tours by id
+//  *     tags: [Tour]
+//  *     parameters:
+//  *       - name: id
+//  *         in: path
+//  *         schema:
+//  *           type: string
+//  *         description: Find tour by id
+//  *     requestBody:
+//  *       content:
+//  *          application/json:
+//  *            schema:                     
+//  *                  example:
+//  *                    tourName: Chuyến đi tham quan buổi sáng
+//  *                    beginBookingDate: 2023-09-21T00:00:00Z
+//  *                    endBookingDate: 2023-09-22T00:00:00Z
+//  *                    departureDate: 2023-09-23T09:00:00Z
+//  *                    duration: 03:00:00
+//  *     responses:
+//  *       200:
+//  *         description: Clone new tour successfully
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: array
+//  *               items:
+//  *                 $ref: '#/components/schemas/Tour'
+//  *       400:
+//  *         description: Bad request
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: string
+//  *       404:
+//  *         description: Not Found
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: string 
+//  */
+// router.post("/clone/:id", controllers.cloneTour);
 
 module.exports = router;
