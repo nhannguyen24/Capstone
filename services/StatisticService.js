@@ -11,26 +11,8 @@ const getStatistics = async (req) => {
         const startDate = req.query.startDate || ""
         const endDate = req.query.endDate || ""
         const periodicity = req.query.periodicity
-        //const tourId = req.query.tourId || ""
 
         var whereClause = {}
-        // if (tourId.trim() !== "") {
-        //     const tour = await db.Tour.findOne({
-        //         where: {
-        //             tourId: tourId
-        //         }
-        //     })
-
-        //     if (!tour) {
-        //         return {
-        //             status: StatusCodes.NOT_FOUND,
-        //             data: {
-        //                 msg: "Tour not found!"
-        //             }
-        //         }
-        //     }
-        //     whereClause.tourId = tourId
-        // }
 
         let periodicityDateArr = []
         const currentDate = new Date()
