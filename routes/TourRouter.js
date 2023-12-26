@@ -101,68 +101,6 @@ router.get("/", controllers.getAllTour);
 
 /**
  * @swagger
- * /api/v1/tours/manager/management:
- *   get:
- *     security: 
- *         - BearerAuth: []
- *     summary: Returns the list of all the tours
- *     tags: [Tour]
- *     parameters:
- *       - name: tourName
- *         in: query
- *         schema:
- *           type: string
- *         description: Find tour by tourName
- *       - name: departureDate
- *         in: query
- *         schema:
- *           type: string
- *         description: Find tour from departure date (2023-11-10)
- *       - name: endDate
- *         in: query
- *         schema:
- *           type: string
- *         description: Find tour to end date (2023-11-10)
- *       - name: status
- *         in: query
- *         schema:
- *           type: string
- *           enum: ["Active", "Deactive"]
- *         description: Find tour by status
- *       - name: page
- *         in: query
- *         schema:
- *           type: int
- *         description: Paging page number
- *       - name: limit
- *         in: query
- *         schema:
- *           type: int
- *         description: Paging limit row to get in 1 page
- *       - name: order[0]
- *         in: query
- *         schema:
- *           type: string
- *         description: Sort by (tourName/createdAt)
- *       - name: order[1]
- *         in: query
- *         schema:
- *           type: string
- *         description: Sort ASC/DESC
- *     responses:
- *       200:
- *         description: Get the list of the tours successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Tour'
- */
-router.get("/manager/management", controllers.getAllTourManager);
-
-/**
- * @swagger
  * /api/v1/tours/{id}:
  *   get:
  *     security: 
