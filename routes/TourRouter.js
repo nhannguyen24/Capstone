@@ -51,6 +51,11 @@ const upload = multer({ storage: storage });
  *         schema:
  *           type: string
  *         description: Find tour by tourName
+ *       - name: scheduleId
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Find tour by scheduleId
  *       - name: departureDate
  *         in: query
  *         schema:
