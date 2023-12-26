@@ -169,7 +169,7 @@ const getAllTour = (
                                 schedule.dataValues.availableSeats = 0
                             }
 
-                            const routeSegment = await db.RouteSegment.findAll({
+                            const routeSegments = await db.RouteSegment.findAll({
                                 raw: true, nest: true,
                                 where: {
                                     tourId: tour.tourId
@@ -237,7 +237,7 @@ const getAllTour = (
                                 ]
                             })
 
-                            const routeSegmentsSortByDepartureStation = sortRouteSegmentByDepartureStation(routeSegment, schedule.departureStationId);
+                            const routeSegmentsSortByDepartureStation = sortRouteSegmentByDepartureStation(routeSegments, schedule.departureStationId);
                             schedule.dataValues.route_segment = routeSegmentsSortByDepartureStation;
                         })
                         await Promise.all(tourPromisses)

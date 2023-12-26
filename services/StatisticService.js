@@ -11,26 +11,8 @@ const getStatistics = async (req) => {
         const startDate = req.query.startDate || ""
         const endDate = req.query.endDate || ""
         const periodicity = req.query.periodicity
-        //const tourId = req.query.tourId || ""
 
         var whereClause = {}
-        // if (tourId.trim() !== "") {
-        //     const tour = await db.Tour.findOne({
-        //         where: {
-        //             tourId: tourId
-        //         }
-        //     })
-
-        //     if (!tour) {
-        //         return {
-        //             status: StatusCodes.NOT_FOUND,
-        //             data: {
-        //                 msg: "Tour not found!"
-        //             }
-        //         }
-        //     }
-        //     whereClause.tourId = tourId
-        // }
 
         let periodicityDateArr = []
         const currentDate = new Date()
@@ -39,9 +21,9 @@ const getStatistics = async (req) => {
         //Return the time for periodicity from current date
         if (periodicity !== null && periodicity !== undefined) {
             if (PERIODICITY.WEEKLY === periodicity.toUpperCase()) {
-                const noTimeCurrentDateString = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${(currentDate.getDate() - 1).toString().padStart(2, '0')}T00:00:00.000Z`
+                const nonTimeCurrentDateString = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${(currentDate.getDate() - 1).toString().padStart(2, '0')}T00:00:00.000Z`
 
-                const noTimeCurrentDate = new Date(noTimeCurrentDateString)
+                const noTimeCurrentDate = new Date(nonTimeCurrentDateString)
 
                 periodicityDateArr = getStartAndEndDatesForLast7Weeks(noTimeCurrentDate)
             } else if (PERIODICITY.MONTHLY === periodicity.toUpperCase()) {
@@ -100,8 +82,6 @@ const getStatistics = async (req) => {
             }
 
             const tours = await db.Tour.findAll({
-                raw: true,
-                nest: true,
                 attributes: {
                     exclude: ["createdAt", "updatedAt", "status"]
                 },
@@ -119,109 +99,121 @@ const getStatistics = async (req) => {
                     {
                         model: db.Schedule,
                         as: "tour_schedule",
+                        attributes: {
+                            exclude: ["createdAt", "updatedAt", "status"]
+                        },
                         where: whereClause,
                         include: {
                             model: db.Bus,
-                            as: "schedule_bus"
+                            as: "schedule_bus",
+                            attributes: {
+                                exclude: ["createdAt", "updatedAt", "status"]
+                            },
                         }
                     }
                 ]
             })
-            const toursMap = {}
-            if (tours.length > 0) {
-                const bookingPromises = tours.map(async (tour) => {
-                    var bookedTicketsQuantity = 0
-                    var cancelTicketsQuantity = 0
-                    var totalTourMoneyEarned = 0
-                    const { tourId, tour_ticket, tour_schedule, ...rest } = tour
 
-                    //Find booking using IN with array of scheduleId 
-                    const bookings = await db.Booking.findAll({
-                        raw: true,
-                        nest: true,
-                        attributes: ["bookingId", "bookingDate", "totalPrice", "bookingStatus"],
-                        where: {
-                            bookingStatus: {
-                                [Op.ne]: BOOKING_STATUS.DRAFT
-                            },
-                            scheduleId: {
-                                [Op.in]: tour_schedule
-                            }
-                        },
-                        include: [
-                            {
-                                model: db.BookingDetail,
-                                as: "booking_detail",
-                            },
-                            {
-                                model: db.Transaction,
-                                as: "booking_transaction",
-                            }
-                        ]
-                    })
-
-                    bookings.map((booking) => {
-                        //Calculate ticket quantity for canceled and non-canceled
-                        if (BOOKING_STATUS.CANCELED === booking.bookingStatus) {
-                            totalCancelTickets += booking.booking_detail.quantity
-                            cancelTicketsQuantity += booking.booking_detail.quantity
-                        } else {
-                            totalBookedTickets += booking.booking_detail.quantity
-                            bookedTicketsQuantity += booking.booking_detail.quantity
-                        }
-                        //Calculate money earned for canceled and non-canceled
-                        if (STATUS.REFUNDED === booking.booking_transaction.status) {
-                            if (booking.booking_transaction.refundAmount !== 0) {
-                                totalMoneyEarned += (booking.booking_transaction.amount - booking.booking_transaction.refundAmount)
-                                totalTourMoneyEarned += (booking.booking_transaction.amount - booking.booking_transaction.refundAmount)
-                            } else {
-                                totalMoneyEarned += booking.booking_transaction.amount
-                                totalTourMoneyEarned += booking.booking_transaction.amount
-                            }
-                        } else {
-                            totalMoneyEarned += booking.booking_transaction.amount
-                            totalTourMoneyEarned += booking.booking_transaction.amount
-                        }
-                    })
-
-                    tour_ticket.ticket_statistic = { bookedTicketsQuantity: bookedTicketsQuantity, cancelTicketsQuantity: cancelTicketsQuantity }
-                    if (!toursMap[tourId]) {
-                        toursMap[tourId] = { tourId: tourId, totalTourMoneyEarned: totalTourMoneyEarned, ...rest, tour_ticket: [tour_ticket] }
-                    } else {
-                        toursMap[tourId].tour_ticket.push(tour_ticket)
-                    }
-                })
-                await Promise.all(bookingPromises)
-            }
-            const combinedTours = Object.values(toursMap)
-            combinedTours.map((tour) => {
-                if (tour.tour_bus.numberSeat !== null) {
-                    totalBusSeat += tour.tour_bus.numberSeat
-                }
-                if (TOUR_SCHEDULE_STATUS.CANCELED === tour.tourStatus) {
-                    totalCancelTours++
-                }
-                if (TOUR_SCHEDULE_STATUS.AVAILABLE === tour.tourStatus) {
-                    totalAvailableTours++
-                }
-                if (TOUR_SCHEDULE_STATUS.FINISHED === tour.tourStatus) {
-                    totalFinishedTours++
-                }
-                totalCreatedTours++
+            tourList.push({
+                date: `${date.startDate} - ${date.endDate}`, tours: tours
             })
-            tourList.push({ date: date, tours: combinedTours })
         })
         await Promise.all(tourPromises)
+        //     const toursMap = {}
+        //     if (tours.length > 0) {
+        //         const bookingPromises = tours.map(async (tour) => {
+        //             var bookedTicketsQuantity = 0
+        //             var cancelTicketsQuantity = 0
+        //             var totalTourMoneyEarned = 0
+        //             const { tourId, tour_ticket, tour_schedule, ...rest } = tour
 
-        tourList.sort((a, b) => new Date(a.date.startDate) - new Date(b.date.startDate))
-        tourList.forEach((item) => {
-            item.tours.sort((a, b) => {
-                const totalProfitA = a.totalTourMoneyEarned;
-                const totalProfitB = b.totalTourMoneyEarned;
-        
-                return totalProfitB - totalProfitA;
-            })
-        })
+        //             //Find booking using IN with array of scheduleId 
+        //             const bookings = await db.Booking.findAll({
+        //                 raw: true,
+        //                 nest: true,
+        //                 attributes: ["bookingId", "bookingDate", "totalPrice", "bookingStatus"],
+        //                 where: {
+        //                     bookingStatus: {
+        //                         [Op.ne]: BOOKING_STATUS.DRAFT
+        //                     },
+        //                     scheduleId: {
+        //                         [Op.in]: tour_schedule
+        //                     }
+        //                 },
+        //                 include: [
+        //                     {
+        //                         model: db.BookingDetail,
+        //                         as: "booking_detail",
+        //                     },
+        //                     {
+        //                         model: db.Transaction,
+        //                         as: "booking_transaction",
+        //                     }
+        //                 ]
+        //             })
+
+        //             bookings.map((booking) => {
+        //                 //Calculate ticket quantity for canceled and non-canceled
+        //                 if (BOOKING_STATUS.CANCELED === booking.bookingStatus) {
+        //                     totalCancelTickets += booking.booking_detail.quantity
+        //                     cancelTicketsQuantity += booking.booking_detail.quantity
+        //                 } else {
+        //                     totalBookedTickets += booking.booking_detail.quantity
+        //                     bookedTicketsQuantity += booking.booking_detail.quantity
+        //                 }
+        //                 //Calculate money earned for canceled and non-canceled
+        //                 if (STATUS.REFUNDED === booking.booking_transaction.status) {
+        //                     if (booking.booking_transaction.refundAmount !== 0) {
+        //                         totalMoneyEarned += (booking.booking_transaction.amount - booking.booking_transaction.refundAmount)
+        //                         totalTourMoneyEarned += (booking.booking_transaction.amount - booking.booking_transaction.refundAmount)
+        //                     } else {
+        //                         totalMoneyEarned += booking.booking_transaction.amount
+        //                         totalTourMoneyEarned += booking.booking_transaction.amount
+        //                     }
+        //                 } else {
+        //                     totalMoneyEarned += booking.booking_transaction.amount
+        //                     totalTourMoneyEarned += booking.booking_transaction.amount
+        //                 }
+        //             })
+
+        //             tour_ticket.ticket_statistic = { bookedTicketsQuantity: bookedTicketsQuantity, cancelTicketsQuantity: cancelTicketsQuantity }
+        //             if (!toursMap[tourId]) {
+        //                 toursMap[tourId] = { tourId: tourId, totalTourMoneyEarned: totalTourMoneyEarned, ...rest, tour_ticket: [tour_ticket] }
+        //             } else {
+        //                 toursMap[tourId].tour_ticket.push(tour_ticket)
+        //             }
+        //         })
+        //         await Promise.all(bookingPromises)
+        //     }
+        //     const combinedTours = Object.values(toursMap)
+        //     combinedTours.map((tour) => {
+        //         if (tour.tour_bus.numberSeat !== null) {
+        //             totalBusSeat += tour.tour_bus.numberSeat
+        //         }
+        //         if (TOUR_SCHEDULE_STATUS.CANCELED === tour.tourStatus) {
+        //             totalCancelTours++
+        //         }
+        //         if (TOUR_SCHEDULE_STATUS.AVAILABLE === tour.tourStatus) {
+        //             totalAvailableTours++
+        //         }
+        //         if (TOUR_SCHEDULE_STATUS.FINISHED === tour.tourStatus) {
+        //             totalFinishedTours++
+        //         }
+        //         totalCreatedTours++
+        //     })
+        //     tourList.push({ date: date, tours: combinedTours })
+        // })
+        // await Promise.all(tourPromises)
+
+        // tourList.sort((a, b) => new Date(a.date.startDate) - new Date(b.date.startDate))
+        // tourList.forEach((item) => {
+        //     item.tours.sort((a, b) => {
+        //         const totalProfitA = a.totalTourMoneyEarned;
+        //         const totalProfitB = b.totalTourMoneyEarned;
+
+        //         return totalProfitB - totalProfitA;
+        //     })
+        // })
         const booking_statistic = {
             totalBookedTickets: totalBookedTickets,
             totalCancelTickets: totalCancelTickets,
