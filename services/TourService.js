@@ -795,12 +795,12 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                     checkTourGuide = false;
                                 }
 
-                                // console.log('beforeCurrentTourDepartureDate', beforeCurrentTourDepartureDate);
-                                // console.log('endDate', endDate);
-                                // console.log('beforeDepartureDate', beforeDepartureDate);
-                                // console.log('currentEndDate', currentEndDate);
+                                console.log('departureDate', departureDate);
+                                console.log('endDate', endDate);
+                                console.log('beforeCurrentTourDepartureDate', beforeCurrentTourDepartureDate);
+                                console.log('currentEndDate', currentEndDate);
 
-                                // console.log(`${assignment.tourGuide.userId}////${employee.userId}`, (endDate >= beforeCurrentTourDepartureDate && assignment.tourGuide.userId === employee.userId) && checkTourGuide);
+                                console.log(`${assignment.tourGuide.userId}////${employee.userId}`, (endDate >= beforeCurrentTourDepartureDate && assignment.tourGuide.userId === employee.userId) && checkTourGuide);
 
                                 // Check if the tour guide is available
                                 return (endDate >= beforeCurrentTourDepartureDate && assignment.tourGuide?.userId === employee.userId) && checkTourGuide;
@@ -940,7 +940,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 createNotiDriver.notiType
                             );
                         };
-                        schedule.push({ tour: createSchedule.dataValues, tourGuide: chosenTourGuide.userId, driver: chosenDriver.userId, bus: chosenBus.busId })
+                        schedule.push({ tour: createSchedule.dataValues, tourGuide: {userId: chosenTourGuide.userId}, driver: {userId: chosenDriver.userId}, bus: {busId: chosenBus.busId} })
                     }
                     else {
                         createSchedule = await db.Schedule.create({
