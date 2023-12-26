@@ -7,6 +7,7 @@ const TOUR_SCHEDULE_STATUS = require("../enums/TourScheduleStatusEnum")
 const TRANSACTION_TYPE = require("../enums/TransactionTypeEnum")
 const OTP_TYPE = require("../enums/OtpTypeEnum")
 const PaymentService = require("./PaymentService")
+const SortRouteSegmentUlti = require("../utils/SortRouteSegmentUlti")
 
 const getBookingDetailByBookingId = async (bookingId) => {
     try {
@@ -802,15 +803,7 @@ const createBookingWeb = async (req) => {
                 }
             }
 
-            routeSegments = resultRouteSegments.sort((a, b) => {
-                if (a.startStationId === tourDepartureStation && a.endStationId === b.startStationId) {
-                    return -1; // a should come before b
-                } else if (b.startStationId === tourDepartureStation && b.endStationId === a.startStationId) {
-                    return 1; // b should come before a
-                } else {
-                    return 0; // no specific order
-                }
-            })
+            routeSegments = SortRouteSegmentUlti.sortRouteSegmentByDepartureStation(routeSegments, tourSchedule.departureStationId)
         }
 
         /**
@@ -1117,14 +1110,14 @@ const createBookingOffline = async (req) => {
 
         const departureDateMinusThirtyMinutes = new Date(tourSchedule.departureDate)
         departureDateMinusThirtyMinutes.setMinutes(departureDateMinusThirtyMinutes.getMinutes() - 30)
-        // if (departureDateMinusThirtyMinutes > currentDate) {
-        //     return {
-        //         status: StatusCodes.BAD_REQUEST,
-        //         data: {
-        //             msg: `Tour can only be booked after ${departureDateMinusThirtyMinutes.toISOString()}!`,
-        //         }
-        //     }
-        // }
+        if (departureDateMinusThirtyMinutes > currentDate) {
+            return {
+                status: StatusCodes.BAD_REQUEST,
+                data: {
+                    msg: `Tour can only be booked after ${departureDateMinusThirtyMinutes.toISOString()}!`,
+                }
+            }
+        }
 
         const station = await db.Station.findOne({
             where: {
@@ -1175,15 +1168,7 @@ const createBookingOffline = async (req) => {
                 }
             }
 
-            routeSegments = resultRouteSegments.sort((a, b) => {
-                if (a.startStationId === tourDepartureStation && a.endStationId === b.startStationId) {
-                    return -1; // a should come before b
-                } else if (b.startStationId === tourDepartureStation && b.endStationId === a.startStationId) {
-                    return 1; // b should come before a
-                } else {
-                    return 0; // no specific order
-                }
-            })
+            routeSegments = SortRouteSegmentUlti.sortRouteSegmentByDepartureStation(routeSegments, tourSchedule.departureStationId)
         }
 
         /**
@@ -1395,7 +1380,7 @@ const checkInQrCode = async (bookingId, scheduleId) => {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
-                    msg: `Check-in is allowed after ${thirtyMinutesBeforeDepartureDate}`,
+                    msg: `Check-in is allowed after ${thirtyMinutesBeforeDepartureDate.toISOString()}`,
                 }
             }
         }

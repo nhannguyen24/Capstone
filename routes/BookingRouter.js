@@ -339,12 +339,6 @@ router.post("/offline", verifyToken, roleAuthen(["TourGuide"]), controllers.crea
  *           application/json:
  *             schema:
  *               type: string
- *       409:
- *         description: Conflict
- *         content:
- *           application/json:
- *             schema:
- *               type: string
  */
 router.put("/:id/checkin", verifyToken, roleAuthen(["Manager", "TourGuide"]), controllers.checkInQrCode)
 
@@ -369,12 +363,6 @@ router.put("/:id/checkin", verifyToken, roleAuthen(["Manager", "TourGuide"]), co
  *               type: object
  *       400:
  *         description: Bad request
- *         content:
- *           application/json:
- *             schema:
- *               type: string
- *       409:
- *         description: Conflict
  *         content:
  *           application/json:
  *             schema:
