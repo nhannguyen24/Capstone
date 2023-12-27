@@ -11,11 +11,11 @@ const { sortRouteSegmentByDepartureStation } = require("../utils/SortRouteSegmen
 // const { schedule } = require("node-cron")
 
 const getAllTour = (
-    { page, limit, order, tourName, status, ...query }
+    { page, limit, order, tourName, status, scheduleId, ...query }
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`tours_${page}_${limit}_${order}_${tourName}_${status}`, async (error, tour) => {
+            redisClient.get(`tours_${page}_${limit}_${order}_${tourName}_${status}_${scheduleId}`, async (error, tour) => {
                 if (tour != null && tour != "") {
                     resolve({
                         status: StatusCodes.OK,
@@ -26,6 +26,7 @@ const getAllTour = (
                     })
                 } else {
                     const queries = { nest: true }
+                    const querySchedule = {}
                     const offset = !page || +page <= 1 ? 0 : +page - 1
                     const flimit = +limit || +process.env.LIMIT_POST
                     queries.offset = offset * flimit
@@ -40,6 +41,7 @@ const getAllTour = (
                     // }
                     if (tourName) query.tourName = { [Op.substring]: tourName }
                     if (status) query.status = { [Op.eq]: status }
+                    if (scheduleId) querySchedule.scheduleId = { [Op.eq]: scheduleId }
 
                     const tours = await db.Tour.findAll({
                         where: query,
@@ -75,6 +77,7 @@ const getAllTour = (
                                         "status",
                                     ],
                                 },
+                                where: querySchedule,
                                 include: [
                                     {
                                         model: db.Bus,
@@ -261,7 +264,7 @@ const getAllTour = (
                     })
                     )
 
-                    redisClient.setEx(`tours_${page}_${limit}_${order}_${tourName}_${status}`, 3600, JSON.stringify(tours))
+                    redisClient.setEx(`tours_${page}_${limit}_${order}_${tourName}_${status}_${scheduleId}`, 3600, JSON.stringify(tours))
 
                     resolve({
                         status: StatusCodes.OK,
