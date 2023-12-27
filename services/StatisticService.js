@@ -51,10 +51,10 @@ const getStatistics = async (req) => {
             }
         }
 
-        var totalCreatedTours = 0
-        var totalCancelTours = 0
-        var totalAvailableTours = 0
-        var totalFinishedTours = 0
+        var totalCreatedTourSchedules = 0
+        var totalCancelTourSchedules = 0
+        var totalAvailableTourSchedule = 0
+        var totalFinishedTourSchedule = 0
 
         var totalBookedTickets = 0
         var totalCancelTickets = 0
@@ -83,7 +83,7 @@ const getStatistics = async (req) => {
 
             const tours = await db.Tour.findAll({
                 attributes: {
-                    exclude: ["createdAt", "updatedAt", "status"]
+                    exclude: ["createdAt", "updatedAt", "status", "geoJson", "distance", "duration"]
                 },
                 include: [
                     {
@@ -103,117 +103,125 @@ const getStatistics = async (req) => {
                             exclude: ["createdAt", "updatedAt", "status"]
                         },
                         where: whereClause,
-                        include: {
-                            model: db.Bus,
-                            as: "schedule_bus",
-                            attributes: {
-                                exclude: ["createdAt", "updatedAt", "status"]
-                            },
-                        }
+                        include: [
+                            {
+                                model: db.Bus,
+                                as: "schedule_bus",
+                                attributes: {
+                                    exclude: ["createdAt", "updatedAt", "status"]
+                                },
+                            }, {
+                                model: db.Booking,
+                                as: "schedule_booking",
+                                include: [
+                                    {
+                                        model: db.BookingDetail,
+                                        as: "booking_detail",
+                                    },
+                                    {
+                                        model: db.Transaction,
+                                        as: "booking_transaction",
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 ]
             })
 
             tourList.push({
-                date: `${date.startDate} - ${date.endDate}`, tours: tours
+                date: date,
+                tours: tours
             })
         })
         await Promise.all(tourPromises)
-        //     const toursMap = {}
-        //     if (tours.length > 0) {
-        //         const bookingPromises = tours.map(async (tour) => {
-        //             var bookedTicketsQuantity = 0
-        //             var cancelTicketsQuantity = 0
-        //             var totalTourMoneyEarned = 0
-        //             const { tourId, tour_ticket, tour_schedule, ...rest } = tour
 
-        //             //Find booking using IN with array of scheduleId 
-        //             const bookings = await db.Booking.findAll({
-        //                 raw: true,
-        //                 nest: true,
-        //                 attributes: ["bookingId", "bookingDate", "totalPrice", "bookingStatus"],
-        //                 where: {
-        //                     bookingStatus: {
-        //                         [Op.ne]: BOOKING_STATUS.DRAFT
-        //                     },
-        //                     scheduleId: {
-        //                         [Op.in]: tour_schedule
-        //                     }
-        //                 },
-        //                 include: [
-        //                     {
-        //                         model: db.BookingDetail,
-        //                         as: "booking_detail",
-        //                     },
-        //                     {
-        //                         model: db.Transaction,
-        //                         as: "booking_transaction",
-        //                     }
-        //                 ]
-        //             })
+        let statisticResult = []
+        if (tourList.length > 0) {
+            statisticResult = tourList.map((tourListDetail) => {
+                const tours = tourListDetail.tours.map((tour) => {
+                    var bookedTicketsQuantity = 0
+                    var cancelTicketsQuantity = 0
+                    var totalTourMoneyEarned = 0
+                    tour.tour_schedule.map((schedule) => {
+                        schedule.schedule_booking.map((booking) => {
+                            if (BOOKING_STATUS.CANCELED === booking.bookingStatus) {
+                                for (let i = 0; i < booking.booking_detail.length; i++) {
+                                    totalCancelTickets += booking.booking_detail[i].quantity
+                                    cancelTicketsQuantity += booking.booking_detail[i].quantity
+                                }
+                            } else {
+                                for (let i = 0; i < booking.booking_detail.length; i++) {
+                                    totalBookedTickets += booking.booking_detail[i].quantity
+                                    bookedTicketsQuantity += booking.booking_detail[i].quantity
+                                }
+                            }
 
-        //             bookings.map((booking) => {
-        //                 //Calculate ticket quantity for canceled and non-canceled
-        //                 if (BOOKING_STATUS.CANCELED === booking.bookingStatus) {
-        //                     totalCancelTickets += booking.booking_detail.quantity
-        //                     cancelTicketsQuantity += booking.booking_detail.quantity
-        //                 } else {
-        //                     totalBookedTickets += booking.booking_detail.quantity
-        //                     bookedTicketsQuantity += booking.booking_detail.quantity
-        //                 }
-        //                 //Calculate money earned for canceled and non-canceled
-        //                 if (STATUS.REFUNDED === booking.booking_transaction.status) {
-        //                     if (booking.booking_transaction.refundAmount !== 0) {
-        //                         totalMoneyEarned += (booking.booking_transaction.amount - booking.booking_transaction.refundAmount)
-        //                         totalTourMoneyEarned += (booking.booking_transaction.amount - booking.booking_transaction.refundAmount)
-        //                     } else {
-        //                         totalMoneyEarned += booking.booking_transaction.amount
-        //                         totalTourMoneyEarned += booking.booking_transaction.amount
-        //                     }
-        //                 } else {
-        //                     totalMoneyEarned += booking.booking_transaction.amount
-        //                     totalTourMoneyEarned += booking.booking_transaction.amount
-        //                 }
-        //             })
+                            //Calculate money earned for canceled and non-canceled
+                            if (STATUS.REFUNDED === booking.booking_transaction.status) {
+                                if (booking.booking_transaction.refundAmount !== 0) {
+                                    totalMoneyEarned += (booking.booking_transaction.amount - booking.booking_transaction.refundAmount)
+                                    totalTourMoneyEarned += (booking.booking_transaction.amount - booking.booking_transaction.refundAmount)
+                                } else {
+                                    totalMoneyEarned += booking.booking_transaction.amount
+                                    totalTourMoneyEarned += booking.booking_transaction.amount
+                                }
+                            } else {
+                                totalMoneyEarned += booking.booking_transaction.amount
+                                totalTourMoneyEarned += booking.booking_transaction.amount
+                            }
+                        })
 
-        //             tour_ticket.ticket_statistic = { bookedTicketsQuantity: bookedTicketsQuantity, cancelTicketsQuantity: cancelTicketsQuantity }
-        //             if (!toursMap[tourId]) {
-        //                 toursMap[tourId] = { tourId: tourId, totalTourMoneyEarned: totalTourMoneyEarned, ...rest, tour_ticket: [tour_ticket] }
-        //             } else {
-        //                 toursMap[tourId].tour_ticket.push(tour_ticket)
-        //             }
-        //         })
-        //         await Promise.all(bookingPromises)
-        //     }
-        //     const combinedTours = Object.values(toursMap)
-        //     combinedTours.map((tour) => {
-        //         if (tour.tour_bus.numberSeat !== null) {
-        //             totalBusSeat += tour.tour_bus.numberSeat
-        //         }
-        //         if (TOUR_SCHEDULE_STATUS.CANCELED === tour.tourStatus) {
-        //             totalCancelTours++
-        //         }
-        //         if (TOUR_SCHEDULE_STATUS.AVAILABLE === tour.tourStatus) {
-        //             totalAvailableTours++
-        //         }
-        //         if (TOUR_SCHEDULE_STATUS.FINISHED === tour.tourStatus) {
-        //             totalFinishedTours++
-        //         }
-        //         totalCreatedTours++
-        //     })
-        //     tourList.push({ date: date, tours: combinedTours })
-        // })
-        // await Promise.all(tourPromises)
+                        if (schedule.schedule_bus.numberSeat !== null) {
+                            totalBusSeat += schedule.schedule_bus.numberSeat
+                        }
+                        if (TOUR_SCHEDULE_STATUS.CANCELED === schedule.scheduleStatus) {
+                            totalCancelTourSchedules++
+                        }
+                        if (TOUR_SCHEDULE_STATUS.AVAILABLE === schedule.scheduleStatus) {
+                            totalAvailableTourSchedule++
+                        }
+                        if (TOUR_SCHEDULE_STATUS.FINISHED === schedule.scheduleStatus) {
+                            totalFinishedTourSchedule++
+                        }
+                        totalCreatedTourSchedules++
+                    })
+                    const tourObject = {
+                        tourId: tour.tourId,
+                        tourName: tour.tourName,
+                        tour_detail_statistic: {
+                            bookedTicketsQuantity: bookedTicketsQuantity,
+                            cancelTicketsQuantity: cancelTicketsQuantity,
+                            totalTourMoneyEarned: totalTourMoneyEarned
+                        }
+                    }
+                    return tourObject
+                })
+                return {
+                    date: tourListDetail.date,
+                    tours: tours
+                }
+            })
+        }
 
-        // tourList.sort((a, b) => new Date(a.date.startDate) - new Date(b.date.startDate))
-        // tourList.forEach((item) => {
-        //     item.tours.sort((a, b) => {
-        //         const totalProfitA = a.totalTourMoneyEarned;
-        //         const totalProfitB = b.totalTourMoneyEarned;
+        statisticResult.forEach((item) => {
+            let dateMoneyEarned = 0;
+            item.tours.forEach((tour) => {
+                dateMoneyEarned += tour.tour_detail_statistic.totalTourMoneyEarned;
+            });
+            item.totalMoneyEarned = dateMoneyEarned;
+        })
 
-        //         return totalProfitB - totalProfitA;
-        //     })
-        // })
+        statisticResult.sort((a, b) => {
+            // Sort date in descending order
+            return new Date(b.date.startDate) - new Date(a.date.startDate)
+        })
+
+        statisticResult.forEach((item) => {
+            // Sort tours based on totalTourMoneyEarned in descending order
+            item.tours.sort((a, b) => b.tour_detail_statistic.totalTourMoneyEarned - a.tour_detail_statistic.totalTourMoneyEarned)
+        })
+
         const booking_statistic = {
             totalBookedTickets: totalBookedTickets,
             totalCancelTickets: totalCancelTickets,
@@ -222,10 +230,10 @@ const getStatistics = async (req) => {
         }
 
         const tour_statistic = {
-            totalCreatedTour: totalCreatedTours,
-            totalCancelTour: totalCancelTours,
-            totalAvailableTours: totalAvailableTours,
-            totalFinishedTours: totalFinishedTours
+            totalCreatedTourSchedule: totalCreatedTourSchedules,
+            totalCancelTourSchedule: totalCancelTourSchedules,
+            totalAvailableTourSchedule: totalAvailableTourSchedule,
+            totalFinishedTourSchedule: totalFinishedTourSchedule
         }
 
         return {
@@ -234,7 +242,7 @@ const getStatistics = async (req) => {
                 msg: `Get statistic successfully`,
                 booking_statistic: booking_statistic,
                 tour_statistic: tour_statistic,
-                result: tourList
+                result: statisticResult
             }
         }
     } catch (error) {
