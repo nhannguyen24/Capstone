@@ -61,6 +61,11 @@ const router = express.Router()
  *           type: string
  *         description: Search with tourId
  *       - in: query
+ *         name: scheduleId
+ *         schema:
+ *           type: string
+ *         description: Search with scheduleId
+ *       - in: query
  *         name: bookingStatus
  *         schema:
  *           type: string
@@ -129,6 +134,11 @@ router.get("/", verifyToken, roleAuthen(["Manager", "TourGuide", "Customer"]), c
  *         schema:
  *           type: string
  *         description: Search with tourId
+ *       - in: query
+ *         name: scheduleId
+ *         schema:
+ *           type: string
+ *         description: Search with scheduleId
  *       - in: query
  *         name: bookingStatus
  *         schema:
