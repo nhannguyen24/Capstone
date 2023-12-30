@@ -31,6 +31,10 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
+      isPaidToManager: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+      },
       status: {
         type: Sequelize.ENUM,
         values: ["Draft", "Paid", "Refunded"],

@@ -116,24 +116,25 @@ const getBookings = async (req) => {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
         const offset = (page - 1) * limit
-        const customerId = req.query.customerId || "";
-        const customerName = req.query.customerName || "";
-        const bookingCode = req.query.bookingCode || "";
-        const startDate = req.query.startDate || "";
-        const endDate = req.query.endDate || "";
-        const tourId = req.query.tourId || "";
-        const bookingStatus = req.query.bookingStatus || "";
+        const customerId = req.query.customerId || ""
+        const customerName = req.query.customerName || ""
+        const bookingCode = req.query.bookingCode || ""
+        const startDate = req.query.startDate || ""
+        const endDate = req.query.endDate || ""
+        const tourId = req.query.tourId || ""
+        const scheduleId = req.query.scheduleId || ""
+        const bookingStatus = req.query.bookingStatus || ""
 
-        const whereClause = {};
-        const whereClauseTour = {};
-        const whereClauseUser = {};
+        const whereClause = {}
+        const whereClauseTour = {}
+        const whereClauseUser = {}
 
         if (customerId.trim() !== "") {
             const user = await db.User.findOne({
                 where: {
                     userId: customerId
                 }
-            });
+            })
 
             if (!user) {
                 return {
@@ -168,6 +169,24 @@ const getBookings = async (req) => {
                 }
             } else {
                 whereClauseTour.tourId = tourId
+            }
+        }
+
+        if (scheduleId.trim() !== "") {
+            const tourSchedule = await db.Schedule.findOne({
+                where: {
+                    scheduleId: scheduleId
+                },
+            })
+            if (!tourSchedule) {
+                return {
+                    status: StatusCodes.NOT_FOUND,
+                    data: {
+                        msg: `Tour schedule not found!`,
+                    }
+                }
+            } else {
+                whereClause.scheduleId = scheduleId
             }
         }
 
@@ -400,6 +419,7 @@ const getBookingsByEmail = async (req) => {
         const startDate = req.query.startDate || ""
         const endDate = req.query.endDate || ""
         const tourId = req.query.tourId || ""
+        const scheduleId = req.query.scheduleId || ""
         const bookingStatus = req.query.bookingStatus || ""
 
         let whereClause = {}
@@ -469,6 +489,24 @@ const getBookingsByEmail = async (req) => {
                 }
             } else {
                 whereClauseTour.tourId = tourId
+            }
+        }
+
+        if (scheduleId.trim() !== "") {
+            const tourSchedule = await db.Schedule.findOne({
+                where: {
+                    scheduleId: scheduleId
+                },
+            })
+            if (!tourSchedule) {
+                return {
+                    status: StatusCodes.NOT_FOUND,
+                    data: {
+                        msg: `Tour schedule not found!`,
+                    }
+                }
+            } else {
+                whereClause.scheduleId = scheduleId
             }
         }
 
