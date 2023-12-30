@@ -137,7 +137,31 @@ const getAllTour = (
                                         "status",
                                     ],
                                 },
-                            }
+                                include: [
+                                    {
+                                        model: db.TicketType,
+                                        as: "ticket_type",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                        include: {
+                                            model: db.Price,
+                                            as: "ticket_type_price",
+                                            attributes: {
+                                                exclude: [
+                                                    "createdAt",
+                                                    "updatedAt",
+                                                    "status",
+                                                ],
+                                            },
+                                        }
+                                    }
+                                ]
+                            },
                         ]
                     })
 
@@ -386,6 +410,17 @@ const getTourById = (tourId) =>
                                         "status",
                                     ],
                                 },
+                                include: {
+                                    model: db.Price,
+                                    as: "ticket_type_price",
+                                    attributes: {
+                                        exclude: [
+                                            "createdAt",
+                                            "updatedAt",
+                                            "status",
+                                        ],
+                                    },
+                                }
                             }
                         ]
                     },
