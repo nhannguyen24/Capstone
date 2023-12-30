@@ -58,7 +58,7 @@ const initRoutes = (app) => {
     app.use('/api/v1/otp', otp);
     app.use('/api/v1/firebase', uploadImage);
     app.use('/api/v1/tours', tour);
-    // app.use('/api/v1/schedules', schedule);
+    app.use('/api/v1/schedules', schedule);
     // app.use('/api/v1/productCates', productCate);
     // app.use('/api/v1/announcements', announcement);
     app.use('/api/v1/payments', payment);
@@ -68,8 +68,8 @@ const initRoutes = (app) => {
     app.use('/api/v1/sounds', sound);
     app.use('/api/v1/download', templateDownload);
     // app.use('/api/v1/forms', form);
-    // app.use('/api/v1/trackings/stations', trackingStation);
-    // app.use('/api/v1/trackings/coordinates', trackingCoordinate);
+    app.use('/api/v1/trackings/stations', trackingStation);
+    app.use('/api/v1/trackings/coordinates', trackingCoordinate);
     app.use('/api/v1/statistics', statictics);
     app.use('/api/v1/notifications', notification);
 

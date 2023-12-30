@@ -266,15 +266,8 @@ router.post("/upload", upload.single('file'), verifyToken, roleAuthen(["Manager"
  *                  example:
  *                    tourName: Chuyến đi tham quan buổi sáng
  *                    description: Một chuyến đi tuyệt vời
- *                    beginBookingDate: 2023-09-21T00:00:00Z
- *                    endBookingDate: 2023-09-22T00:00:00Z
- *                    departureDate: 2023-09-23T09:00:00Z
- *                    duration: 03:00:00
- *                    routeId: 8c382e13-8620-460a-bd95-96b1152c1368
- *                    busId: 8c382e13-8620-460a-bd95-96b1152c1368
- *                    tourGuideId: 8c382e13-8620-460a-bd95-96b1152c1368
- *                    driverId: 8c382e13-8620-460a-bd95-96b1152c1368
- *                    tourStatus: Ontour
+ *                    duration: 02:00:00
+ *                    distance: 10.5
  *                    status: Active
  *                    images:
  *                          - string

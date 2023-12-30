@@ -17,7 +17,7 @@ const router = express.Router();
  *         coordinate:
  *           type: string
  *           description: The current coordinate of bus
- *         tourId:
+ *         scheduleId:
  *           type: string
  *         busId:
  *           type: string
@@ -35,11 +35,11 @@ const router = express.Router();
  *     summary: Returns the list of all the trackings
  *     tags: [Tracking]
  *     parameters:
- *       - name: tourId
+ *       - name: scheduleId
  *         in: query
  *         schema:
  *           type: string
- *         description: Find tracking by tourId
+ *         description: Find tracking by scheduleId
  *       - name: busId
  *         in: query
  *         schema:
@@ -77,7 +77,7 @@ router.get("/", controllers.getAllTracking);
  *            schema:
  *              $ref: '#/components/schemas/Tracking'
  *            example:
- *              tourId: ed1fa858-326b-408b-a2db-0290a6b5373b
+ *              scheduleId: ed1fa858-326b-408b-a2db-0290a6b5373b
  *              latitude: 10.7688046
  *              longitude: 106.6903351
  *     responses:

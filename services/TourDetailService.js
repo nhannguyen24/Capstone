@@ -3,7 +3,7 @@ const { Op } = require("sequelize");
 const { StatusCodes } = require("http-status-codes");
 
 const getAllTourDetail = (
-    { page, limit, order, tourId, status, ...query }
+    { page, limit, order, scheduleId, status, ...query }
 ) =>
     new Promise(async (resolve, reject) => {
         try {
@@ -16,13 +16,13 @@ const getAllTourDetail = (
             else {
                 queries.order = [['index', 'ASC']];
             }
-            if (tourId) query.tourId = { [Op.eq]: tourId };
+            if (scheduleId) query.scheduleId = { [Op.eq]: scheduleId };
             if (status) query.status = { [Op.eq]: status };
             const tourDetails = await db.TourDetail.findAll({
                 where: query,
                 ...queries,
                 attributes: {
-                    exclude: ["tourId", "stationId"],
+                    exclude: ["scheduleId", "stationId"],
                 },
                 include: [
                     {
@@ -41,6 +41,7 @@ const getAllTourDetail = (
                                 as: 'schedule_tour',
                                 attributes: {
                                     exclude: [
+                                        "geoJson",
                                         "createdAt",
                                         "updatedAt",
                                         "status",

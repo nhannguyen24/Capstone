@@ -3,13 +3,13 @@ const { Op } = require("sequelize");
 const { StatusCodes } = require("http-status-codes");
 
 const getAllTracking = (
-    { tourId, busId, status, ...query }
+    { scheduleId, busId, status, ...query }
 ) =>
     new Promise(async (resolve, reject) => {
         try {
             const queries = { nest: true };
             queries.order = [['updatedAt', 'DESC']];
-            if (tourId) query.tourId = { [Op.eq]: tourId };
+            if (scheduleId) query.scheduleId = { [Op.eq]: scheduleId };
             if (busId) query.busId = { [Op.eq]: busId };
             if (status) query.status = { [Op.eq]: status };
             query.status = { [Op.notIn]: ['Deactive'] };
@@ -38,17 +38,17 @@ const createTracking = (body) =>
             let latitude = body.latitude;
             let longitude = body.longitude;
 
-            const duplicateTour = await db.Tracking.findOne({
+            const duplicateSchedule = await db.Tracking.findOne({
                 raw: true,
                 where: {
-                    tourId: body.tourId
+                    scheduleId: body.scheduleId
                 }
             });
-            if (duplicateTour) {
+            if (duplicateSchedule) {
                 resolve({
                     status: StatusCodes.OK,
                     data: {
-                        msg: `Tour Id has already exist!`,
+                        msg: `Schedule Id for this tracking has already exist!`,
                     }
                 });
             } else {
@@ -57,20 +57,20 @@ const createTracking = (body) =>
                     coordinates: arrayCoordinate
                 };
 
-                const bus = await db.Tour.findOne({
+                const bus = await db.Schedule.findOne({
                     raw: true,
-                    attributes: ['busId'],
+                    attributes: ['scheduleId', 'busId'],
                     where: {
-                        tourId: body.tourId
+                        scheduleId: body.scheduleId
                     }
                 });
 
-                const create = await db.Tracking.create({ coordinates, busId: bus.busId, ...body })
+                const createTracking = await db.Tracking.create({ coordinates, busId: bus.busId, scheduleId: body.scheduleId })
                 resolve({
                     status: StatusCodes.OK,
                     data: {
                         msg: "Tracking create successfully!",
-                        tracking: create.dataValues,
+                        tracking: createTracking.dataValues,
                     }
                 });
             }

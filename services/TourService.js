@@ -634,12 +634,21 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                 raw: true, nest: true,
                 order: [['departureDate', 'ASC']],
                 where: {
-                    departureDate: {
+                    status: {
                         [Op.ne]: STATUS.DEACTIVE,
                     },
-                    departureDate: {
-                        [Op.gte]: currentDate,
-                    },
+                    [Op.and]: [
+                        {
+                            departureDate: {
+                                [Op.gte]: currentDate,
+                            },
+                        },
+                        {
+                            endDate: {
+                                [Op.gt]: currentDate,
+                            },
+                        }
+                    ],
                     isScheduled: true,
                 },
                 attributes: {
@@ -693,7 +702,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
             const findTourguide = await db.User.findAll({
                 raw: true, nest: true,
                 attributes: ['userId', 'userName', 'email', 'maxTour', 'deviceToken'],
-                order: [],
+                order: [['maxTour', 'DESC']],
                 include: [
                     {
                         model: db.Role,
@@ -709,6 +718,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
             const findDriver = await db.User.findAll({
                 raw: true, nest: true,
                 attributes: ['userId', 'userName', 'email', 'maxTour', 'deviceToken'],
+                order: [['maxTour', 'DESC']],
                 include: [
                     {
                         model: db.Role,
@@ -773,8 +783,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                     })
                     await t.rollback();
                     return
-                }
-                else {
+                } else {
                     // Find an available employee for the tour
                     availableTourGuide = findTourguide.filter(
                         (employee) =>
@@ -798,12 +807,12 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                     checkTourGuide = false;
                                 }
 
-                                console.log('departureDate', departureDate);
-                                console.log('endDate', endDate);
-                                console.log('beforeCurrentTourDepartureDate', beforeCurrentTourDepartureDate);
-                                console.log('currentEndDate', currentEndDate);
+                                // console.log('departureDate', departureDate);
+                                // console.log('endDate', endDate);
+                                // console.log('beforeCurrentTourDepartureDate', beforeCurrentTourDepartureDate);
+                                // console.log('currentEndDate', currentEndDate);
 
-                                console.log(`${assignment.tourGuide.userId}////${employee.userId}`, (endDate >= beforeCurrentTourDepartureDate && assignment.tourGuide.userId === employee.userId) && checkTourGuide);
+                                // console.log(`${assignment.tourGuide.userId}////${employee.userId}`, (endDate >= beforeCurrentTourDepartureDate && assignment.tourGuide.userId === employee.userId) && checkTourGuide);
 
                                 // Check if the tour guide is available
                                 return (endDate >= beforeCurrentTourDepartureDate && assignment.tourGuide?.userId === employee.userId) && checkTourGuide;
@@ -915,7 +924,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             body: `Chuyến tên ${createTour[0].dataValues.tourName} - ${formattedDate}`,
                             deviceToken: chosenTourGuide.deviceToken,
                             notiType: "Thông báo",
-                            userId: createTour[0].dataValues.tourGuideId
+                            userId: chosenTourGuide.userId
                         }, { transaction: t })
 
                         if (createNotiTourGuide) {
@@ -932,7 +941,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                             body: `Chuyến tên ${createTour[0].dataValues.tourName} - ${formattedDate}`,
                             deviceToken: chosenDriver.deviceToken,
                             notiType: "Thông báo",
-                            userId: createTour[0].dataValues.driverId
+                            userId: chosenDriver.userId
                         }, { transaction: t })
 
                         if (createNotiDriver) {
@@ -943,7 +952,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                                 createNotiDriver.notiType
                             );
                         };
-                        schedule.push({ tour: createSchedule.dataValues, tourGuide: {userId: chosenTourGuide.userId}, driver: {userId: chosenDriver.userId}, bus: {busId: chosenBus.busId} })
+                        schedule.push({ tour: createSchedule.dataValues, tourGuide: { userId: chosenTourGuide.userId }, driver: { userId: chosenDriver.userId }, bus: { busId: chosenBus.busId } })
                     }
                     else {
                         createSchedule = await db.Schedule.create({
@@ -1899,256 +1908,120 @@ const updateTour = (id, { images, ...body }) =>
                 //         }
                 //     })
                 // } else {
-                const currentDate = new Date()
-                currentDate.setHours(currentDate.getHours() + 7)
-                const tDepartureDate = new Date(body.departureDate)
-                const tourBeginBookingDate = new Date(body.beginBookingDate)
-                const tourEndBookingDate = new Date(body.endBookingDate)
-
-                if (currentDate > tourBeginBookingDate) {
-                    resolve({
-                        status: StatusCodes.BAD_REQUEST,
-                        data: {
-                            msg: "Begin booking date can't be earlier than current date"
-                        }
-                    })
-                    return
-                } else if (tourBeginBookingDate >= tourEndBookingDate) {
-                    resolve({
-                        status: StatusCodes.BAD_REQUEST,
-                        data: {
-                            msg: "Begin booking date can't be later than End booking date",
-                        }
-                    })
-                    return
-                } else if (tourEndBookingDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
-                    resolve({
-                        status: StatusCodes.BAD_REQUEST,
-                        data: {
-                            msg: "End booking date must be 24 hours earlier than Departure date",
-                        }
-                    })
-                    return
-                } else {
-                    let tourGuide = body.tourGuideId
-                    let driver = body.driverId
-                    const findTour = await db.Tour.findOne({
-                        raw: true, nest: true,
-                        where: {
-                            tourId: id
-                        },
-                    })
-                    if (tourGuide) {
-                        const findScheduledTourGuild = await db.Tour.findAll({
-                            raw: true, nest: true,
-                            order: [['departureDate', 'ASC']],
-                            where: {
-                                departureDate: {
-                                    [Op.gte]: currentDate,
-                                },
-                                isScheduled: true,
-                                tourGuideId: body.tourGuideId
-                            },
-                        })
-                        const checkDuplicatedTime = findScheduledTourGuild.some((assignment) => {
-                            const departureDate = new Date(assignment.departureDate)
-                            // Split the duration string into hours, minutes, and seconds
-                            const [hours, minutes, seconds] = assignment.duration.split(':').map(Number)
-
-                            // Add the duration to the departureDate
-                            departureDate.setHours(departureDate.getHours() + hours)
-                            departureDate.setMinutes(departureDate.getMinutes() + minutes)
-                            departureDate.setSeconds(departureDate.getSeconds() + seconds)
-                            const endDate = departureDate
-
-                            // Check if the tour guide is available
-                            return endDate >= findTour.departureDate
-                        })
-
-                        if (checkDuplicatedTime) {
-                            resolve({
-                                status: StatusCodes.BAD_REQUEST,
-                                data: {
-                                    msg: "Tour guide time is duplicated",
-                                }
-                            })
-                            return
-                        }
-                    } else if (driver) {
-                        const findScheduledDriver = await db.Tour.findAll({
-                            raw: true, nest: true,
-                            order: [['departureDate', 'ASC']],
-                            where: {
-                                departureDate: {
-                                    [Op.gte]: currentDate,
-                                },
-                                isScheduled: true,
-                                driverId: body.driverId
-                            },
-                        })
-
-                        const checkDuplicatedTime = findScheduledDriver.some((assignment) => {
-                            const departureDate = new Date(assignment.departureDate)
-                            // Split the duration string into hours, minutes, and seconds
-                            const [hours, minutes, seconds] = assignment.duration.split(':').map(Number)
-
-                            // Add the duration to the departureDate
-                            departureDate.setHours(departureDate.getHours() + hours)
-                            departureDate.setMinutes(departureDate.getMinutes() + minutes)
-                            departureDate.setSeconds(departureDate.getSeconds() + seconds)
-                            const endDate = departureDate
-
-                            // Check if the tour guide is available
-                            return endDate >= findTour.departureDate
-                        })
-                        if (checkDuplicatedTime) {
-                            resolve({
-                                status: StatusCodes.BAD_REQUEST,
-                                data: {
-                                    msg: "Driver time is duplicated",
-                                }
-                            })
-                            return
-                        }
+                const tours = await db.Tour.update(
+                    // departureStationId: departureStation ? station.route_segment.stationId : findTour.departureStationId,
+                    // beginBookingDate: body.beginBookingDate ? tourBeginBookingDate : findTour.beginBookingDate,
+                    // endBookingDate: body.tourEndBookingDate ? tourEndBookingDate : findTour.tourEndBookingDate,
+                    // departureDate: body.tDepartureDate ? tDepartureDate : findTour.tDepartureDate,
+                    body,
+                    {
+                        where: { tourId: id, },
+                        individualHooks: true,
+                        transaction: t
                     }
+                )
 
-                    let departureStation = body.routeId
-                    let station
-                    if (departureStation) {
-                        station = await db.Route.findOne({
-                            raw: true,
-                            nest: true,
-                            where: {
-                                routeId: departureStation
-                            },
-                            include: [
-                                {
-                                    model: db.RouteSegment,
-                                    as: "route_segment",
-                                    where: {
-                                        index: 1
-                                    }
-                                },
-                            ]
-                        })
-                    }
-
-                    const tours = await db.Tour.update({
-                        departureStationId: departureStation ? station.route_segment.stationId : findTour.departureStationId,
-                        beginBookingDate: body.beginBookingDate ? tourBeginBookingDate : findTour.beginBookingDate,
-                        endBookingDate: body.tourEndBookingDate ? tourEndBookingDate : findTour.tourEndBookingDate,
-                        departureDate: body.tDepartureDate ? tDepartureDate : findTour.tDepartureDate,
-                        ...body
+                if (body.tourStatus == TOUR_SCHEDULE_STATUS.STARTED) {
+                    await db.TourDetail.update({
+                        status: STATUS.NOTARRIVED,
                     }, {
                         where: { tourId: id, },
                         individualHooks: true,
                         transaction: t
                     })
+                }
 
-                    if (body.tourStatus == TOUR_SCHEDULE_STATUS.STARTED) {
-                        await db.TourDetail.update({
-                            status: STATUS.NOTARRIVED,
-                        }, {
-                            where: { tourId: id, },
-                            individualHooks: true,
-                            transaction: t
-                        })
-                    }
+                if (body.tourStatus == TOUR_SCHEDULE_STATUS.FINISHED) {
+                    await db.Bus.update({
+                        status: STATUS.ACTIVE,
+                    }, {
+                        where: { busId: findTour.busId },
+                        individualHooks: true,
+                        transaction: t
+                    })
 
-                    if (body.tourStatus == TOUR_SCHEDULE_STATUS.FINISHED) {
-                        await db.Bus.update({
-                            status: STATUS.ACTIVE,
-                        }, {
-                            where: { busId: findTour.busId },
-                            individualHooks: true,
-                            transaction: t
-                        })
-
-                        const bookingOfTour = await db.BookingDetail.findAll({
-                            nest: true,
-                            include: [
-                                {
-                                    model: db.Ticket,
-                                    as: "booking_detail_ticket",
-                                    attributes: {
-                                        exclude: [
-                                            "createdAt",
-                                            "updatedAt",
-                                            "status",
-                                        ],
-                                    },
-                                    where: {
-                                        tourId: { [Op.eq]: findTour.tourId },
-                                    },
+                    const bookingOfTour = await db.BookingDetail.findAll({
+                        nest: true,
+                        include: [
+                            {
+                                model: db.Ticket,
+                                as: "booking_detail_ticket",
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
                                 },
-                            ]
-                        })
-
-                        let bookingDetailIdArray = []
-                        for (const bookingDetail of bookingOfTour) {
-                            bookingDetailIdArray.push(bookingDetail.bookingId)
-                        }
-
-                        await db.Booking.update({
-                            bookingStatus: BOOKING_STATUS.FINISHED,
-                        }, {
-                            where: {
-                                bookingId: {
-                                    [Op.in]: bookingDetailIdArray
+                                where: {
+                                    tourId: { [Op.eq]: findTour.tourId },
                                 },
-                                bookingStatus: BOOKING_STATUS.ON_GOING
                             },
-                            individualHooks: true,
-                            transaction: t
-                        })
+                        ]
+                    })
+
+                    let bookingDetailIdArray = []
+                    for (const bookingDetail of bookingOfTour) {
+                        bookingDetailIdArray.push(bookingDetail.bookingId)
                     }
 
-                    if (images) {
-                        await db.Image.destroy({
-                            where: {
-                                tourId: id,
+                    await db.Booking.update({
+                        bookingStatus: BOOKING_STATUS.FINISHED,
+                    }, {
+                        where: {
+                            bookingId: {
+                                [Op.in]: bookingDetailIdArray
+                            },
+                            bookingStatus: BOOKING_STATUS.ON_GOING
+                        },
+                        individualHooks: true,
+                        transaction: t
+                    })
+                }
+
+                if (images) {
+                    await db.Image.destroy({
+                        where: {
+                            tourId: id,
+                        }
+                    })
+
+                    const createImagePromises = images.map(async (image) => {
+                        await db.Image.create({
+                            image: image,
+                            tourId: id,
+                        }, { transaction: t })
+                    })
+
+                    await Promise.all(createImagePromises)
+                }
+
+                resolve({
+                    status: tours[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
+                    data: {
+                        msg:
+                            tours[1].length !== 0
+                                ? `Tour update`
+                                : "Cannot update tour/ tourId not found",
+                    }
+                })
+
+                redisClient.keys('*tours_*', (error, keys) => {
+                    if (error) {
+                        console.error('Error retrieving keys:', error)
+                        return
+                    }
+                    // Delete each key individually
+                    keys.forEach((key) => {
+                        redisClient.del(key, (deleteError, reply) => {
+                            if (deleteError) {
+                                console.error(`Error deleting key ${key}:`, deleteError)
+                            } else {
+                                console.log(`Key ${key} deleted successfully`)
                             }
                         })
-
-                        const createImagePromises = images.map(async (image) => {
-                            await db.Image.create({
-                                image: image,
-                                tourId: id,
-                            }, { transaction: t })
-                        })
-
-                        await Promise.all(createImagePromises)
-                    }
-
-                    resolve({
-                        status: tours[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
-                        data: {
-                            msg:
-                                tours[1].length !== 0
-                                    ? `Tour update`
-                                    : "Cannot update tour/ tourId not found",
-                        }
                     })
-
-                    redisClient.keys('*tours_*', (error, keys) => {
-                        if (error) {
-                            console.error('Error retrieving keys:', error)
-                            return
-                        }
-                        // Delete each key individually
-                        keys.forEach((key) => {
-                            redisClient.del(key, (deleteError, reply) => {
-                                if (deleteError) {
-                                    console.error(`Error deleting key ${key}:`, deleteError)
-                                } else {
-                                    console.log(`Key ${key} deleted successfully`)
-                                }
-                            })
-                        })
-                    })
-
-                }
-                // }
+                })
                 await t.commit()
             })
         } catch (error) {
