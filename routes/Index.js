@@ -67,7 +67,7 @@ const initRoutes = (app) => {
     app.use('/api/v1/languages', language);
     app.use('/api/v1/sounds', sound);
     app.use('/api/v1/download', templateDownload);
-    // app.use('/api/v1/forms', form);
+    app.use('/api/v1/forms', form);
     app.use('/api/v1/trackings/stations', trackingStation);
     app.use('/api/v1/trackings/coordinates', trackingCoordinate);
     app.use('/api/v1/statistics', statictics);
