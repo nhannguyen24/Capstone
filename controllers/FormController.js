@@ -34,11 +34,14 @@ const getFormById = async (req, res) => {
 const createForm = async (req, res) => {
     try {
         const { userId } = req.user;
-        const {currentTour} = req.body;
+        const {currentSchedule, desireSchedule} = req.body;
         const errors = {};
 
-        if(currentTour.trim() === "") {
-            errors.currentTour = 'Please provide currentTour';
+        if(currentSchedule.trim() === "") {
+            errors.currentSchedule = 'Please provide currentSchedule';
+        }
+        if(desireSchedule.trim() === "") {
+            errors.desireSchedule = 'Please provide desireSchedule';
         }
 
         if (Object.keys(errors).length === 0) {

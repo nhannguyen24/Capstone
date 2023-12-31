@@ -136,8 +136,6 @@ router.get("/:id", verifyToken, controllers.getFormById);
  *          application/json:
  *            schema:                     
  *                  example:
- *                    reason: Có việc bận muốn đổi chuyến khác
- *                    file: string
  *                    currentSchedule: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    desireSchedule: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    changeEmployee: 8c382e13-8620-460a-bd95-96b1152c1368

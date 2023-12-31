@@ -3,6 +3,7 @@ const { Op } = require("sequelize");
 const STATUS = require("../enums/ReportStatusEnum");
 const { StatusCodes } = require("http-status-codes");
 const { sendNotification } = require("../utils/NotificationUtil");
+const redisClient = require("../config/RedisConfig");
 
 const getAllForm = (
     { page, limit, order, userId, changeEmployee, status, createdDate, ...query }
@@ -25,6 +26,9 @@ const getAllForm = (
             const forms = await db.Form.findAll({
                 where: query,
                 ...queries,
+                attributes: {
+                    exclude: ['userId', 'changeEmployee']
+                },
                 include: [
                     {
                         model: db.User,
@@ -386,7 +390,7 @@ const updateForm = (id, body) =>
                                 })
                             })
                         })
-    
+
                         redisClient.keys('*schedules_*', (error, keys) => {
                             if (error) {
                                 console.error('Error retrieving keys:', error);
@@ -409,7 +413,7 @@ const updateForm = (id, body) =>
                         status: formUpdate[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                         data: {
                             msg:
-                            formUpdate[1].length !== 0
+                                formUpdate[1].length !== 0
                                     ? `Form updated/TourGuideId in Schdeule of Tour updated`
                                     : "Cannot update form/ formId not found",
                         }
@@ -451,12 +455,12 @@ const updateForm = (id, body) =>
                         });
                     });
                 }
-                
+
                 resolve({
                     status: formUpdate[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                     data: {
                         msg:
-                        formUpdate[1].length !== 0
+                            formUpdate[1].length !== 0
                                 ? `Form updated`
                                 : "Cannot update form/ formId not found",
                     }

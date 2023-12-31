@@ -1943,12 +1943,7 @@ const updateTour = (id, { images, ...body }) =>
                 //         }
                 //     })
                 // } else {
-                const tours = await db.Tour.update(
-                    // departureStationId: departureStation ? station.route_segment.stationId : findTour.departureStationId,
-                    // beginBookingDate: body.beginBookingDate ? tourBeginBookingDate : findTour.beginBookingDate,
-                    // endBookingDate: body.tourEndBookingDate ? tourEndBookingDate : findTour.tourEndBookingDate,
-                    // departureDate: body.tDepartureDate ? tDepartureDate : findTour.tDepartureDate,
-                    body,
+                const tours = await db.Tour.update(body,
                     {
                         where: { tourId: id, },
                         individualHooks: true,

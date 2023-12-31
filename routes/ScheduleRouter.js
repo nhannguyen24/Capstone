@@ -158,7 +158,7 @@ router.get("/:id", verifyToken, controllers.getScheduleById);
  *            schema:                     
  *                  example:
  *                    tourId: 8c382e13-8620-460a-bd95-96b1152c1368
- *                    departureDate: 2023-12-30T00:00:00Z
+ *                    departureDate: 2024-01-02T09:00:00Z
  *                    departureStationId: a46ac6ed-7d0d-4f02-a9b5-9d9e6f39ff40
  *     responses:
  *       200:
