@@ -37,8 +37,8 @@ module.exports = (sequelize, DataTypes) => {
     changeEmployee: {
       type: DataTypes.UUID,
     },
-    currentTour: DataTypes.STRING,
-    desireTour: DataTypes.STRING,
+    currentSchedule: DataTypes.STRING,
+    desireSchedule: DataTypes.STRING,
     status: {
       type: DataTypes.ENUM,
       values: ["Approved", "Accepted", "Pending", "Rejected"],

@@ -14,7 +14,7 @@ const router = express.Router();
  *         tourDetailId:
  *           type: string
  *           description: The auto-generated id of the tourDetail
- *         tourId:
+ *         scheduleId:
  *           type: string
  *           description: The detail of tour
  *         stationId:
@@ -34,11 +34,11 @@ const router = express.Router();
  *     summary: Returns the list of all the tourDetails
  *     tags: [Tracking]
  *     parameters:
- *       - name: tourId
+ *       - name: scheduleId
  *         in: query
  *         schema:
  *           type: string
- *         description: Find tourDetail by tourId
+ *         description: Find tourDetail by scheduleId
  *       - name: status
  *         in: query
  *         schema:

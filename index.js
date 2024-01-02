@@ -49,6 +49,7 @@ const options = {
       { name: "Authentication" },
       { name: "User" },
       { name: "Tour" }, 
+      { name: "Schedule" }, 
       { name: "Statistic" },
       { name: "Booking" }, 
       { name: "Template" }, 

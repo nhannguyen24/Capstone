@@ -21,12 +21,12 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  *         file:
  *           type: string
  *           description: The form file
- *         currentTour:
+ *         currentSchedule:
  *           type: number
- *           description: The current employee's tour
- *         desireTour:
+ *           description: The current employee's tour schedule
+ *         desireSchedule:
  *           type: number
- *           description: The desire tour which employee want to change
+ *           description: The desire tour schedule which employee want to change
  *         changeEmployee:
  *           type: number
  *           description: The employee slot which employee want to change
@@ -136,10 +136,8 @@ router.get("/:id", verifyToken, controllers.getFormById);
  *          application/json:
  *            schema:                     
  *                  example:
- *                    reason: Có việc bận muốn đổi chuyến khác
- *                    file: string
- *                    currentTour: 8c382e13-8620-460a-bd95-96b1152c1368
- *                    desireTour: 8c382e13-8620-460a-bd95-96b1152c1368
+ *                    currentSchedule: 8c382e13-8620-460a-bd95-96b1152c1368
+ *                    desireSchedule: 8c382e13-8620-460a-bd95-96b1152c1368
  *                    changeEmployee: 8c382e13-8620-460a-bd95-96b1152c1368
  *     responses:
  *       200:

@@ -3,6 +3,7 @@ const { Op } = require("sequelize");
 const STATUS = require("../enums/ReportStatusEnum");
 const { StatusCodes } = require("http-status-codes");
 const { sendNotification } = require("../utils/NotificationUtil");
+const redisClient = require("../config/RedisConfig");
 
 const getAllForm = (
     { page, limit, order, userId, changeEmployee, status, createdDate, ...query }
@@ -25,6 +26,9 @@ const getAllForm = (
             const forms = await db.Form.findAll({
                 where: query,
                 ...queries,
+                attributes: {
+                    exclude: ['userId', 'changeEmployee']
+                },
                 include: [
                     {
                         model: db.User,
@@ -70,24 +74,50 @@ const getAllForm = (
             });
 
             for (const form of forms) {
-                const currentTour = await db.Tour.findOne({
+                const currentSchedule = await db.Schedule.findOne({
                     nest: true,
-                    where: { tourId: form.currentTour },
+                    where: { scheduleId: form.currentSchedule },
                     attributes: {
                         exclude: ['createdAt', 'updatedAt']
-                    }
+                    },
+                    include: [
+                        {
+                            model: db.Tour,
+                            as: "schedule_tour",
+                            attributes: {
+                                exclude: [
+                                    "createdAt",
+                                    "updatedAt",
+                                    "status",
+                                ],
+                            },
+                        }
+                    ]
                 })
 
-                const desireTour = await db.Tour.findOne({
+                const desireSchedule = await db.Schedule.findOne({
                     nest: true,
-                    where: { tourId: form.desireTour },
+                    where: { scheduleId: form.desireSchedule },
                     attributes: {
                         exclude: ['createdAt', 'updatedAt']
-                    }
+                    },
+                    include: [
+                        {
+                            model: db.Tour,
+                            as: "schedule_tour",
+                            attributes: {
+                                exclude: [
+                                    "createdAt",
+                                    "updatedAt",
+                                    "status",
+                                ],
+                            },
+                        }
+                    ]
                 })
 
-                form.dataValues.currentTour = currentTour
-                form.dataValues.desireTour = desireTour
+                form.dataValues.currentSchedule = currentSchedule
+                form.dataValues.desireSchedule = desireSchedule
             }
 
             resolve({
@@ -157,8 +187,54 @@ const getFormById = (formId) =>
                     },
                 ]
             });
+
+            const currentSchedule = await db.Schedule.findOne({
+                nest: true,
+                where: { scheduleId: form.currentSchedule },
+                attributes: {
+                    exclude: ['createdAt', 'updatedAt']
+                },
+                include: [
+                    {
+                        model: db.Tour,
+                        as: "schedule_tour",
+                        attributes: {
+                            exclude: [
+                                "createdAt",
+                                "updatedAt",
+                                "status",
+                            ],
+                        },
+                    }
+                ]
+            })
+
+            const desireSchedule = await db.Schedule.findOne({
+                nest: true,
+                where: { scheduleId: form.desireSchedule },
+                attributes: {
+                    exclude: ['createdAt', 'updatedAt']
+                },
+                include: [
+                    {
+                        model: db.Tour,
+                        as: "schedule_tour",
+                        attributes: {
+                            exclude: [
+                                "createdAt",
+                                "updatedAt",
+                                "status",
+                            ],
+                        },
+                    }
+                ]
+            })
+
+            form.dataValues.currentSchedule = currentSchedule
+            form.dataValues.desireSchedule = desireSchedule
+
             resolve({
-                status: form ? StatusCodes.OK : StatusCodes.NOT_FOUND,
+                status: StatusCodes.OK,
                 data: {
                     msg: form ? "Got form" : `Cannot find form with id: ${formId}`,
                     form: form,
@@ -172,29 +248,29 @@ const getFormById = (formId) =>
 const createForm = (body, userId) =>
     new Promise(async (resolve, reject) => {
         try {
-            const findTour = await db.Tour.findOne({
-                where: { tourId: body.currentTour }
+            const findSchedule = await db.Schedule.findOne({
+                where: { scheduleId: body.currentSchedule }
             })
 
-            if (!findTour) {
+            if (!findSchedule) {
                 resolve({
                     status: StatusCodes.BAD_REQUEST,
                     data: {
-                        msg: `Cannot find current tour with id: ${body.currentTour}!`,
+                        msg: `Cannot find current schedule with id: ${body.currentSchedule}!`,
                     }
                 });
                 return;
             }
 
-            const findChangeTour = await db.Tour.findOne({
-                where: { tourId: body.desireTour }
+            const findDesireSchedule = await db.Schedule.findOne({
+                where: { scheduleId: body.desireSchedule }
             })
 
-            if (!findChangeTour) {
+            if (!findDesireSchedule) {
                 resolve({
                     status: StatusCodes.BAD_REQUEST,
                     data: {
-                        msg: `Cannot find desire tour with id: ${body.desireTour}!`,
+                        msg: `Cannot find desire schedule with id: ${body.desireSchedule}!`,
                     }
                 });
                 return;
@@ -252,26 +328,26 @@ const updateForm = (id, body) =>
         let transaction;
         try {
             transaction = await db.sequelize.transaction(async (t) => {
-                const forms = await db.Form.update(body, {
+                const formUpdate = await db.Form.update(body, {
                     where: { formId: id },
                     individualHooks: true,
                     transaction: t
                 });
 
-                if (body.status == STATUS.APPROVED) { 
+                if (body.status == STATUS.APPROVED) {
                     const form = await db.Form.findOne({
                         where: { formId: id },
                         raw: true,
                     })
 
-                    await db.Tour.update({ tourGuideId: form.changeEmployee }, {
-                        where: { tourId: form.currentTour },
+                    await db.Schedule.update({ tourGuideId: form.changeEmployee }, {
+                        where: { scheduleId: form.currentSchedule },
                         individualHooks: true,
                         transaction: t
                     });
 
-                    await db.Tour.update({ tourGuideId: form.userId }, {
-                        where: { tourId: form.desireTour },
+                    await db.Schedule.update({ tourGuideId: form.userId }, {
+                        where: { scheduleId: form.desireSchedule },
                         individualHooks: true,
                         transaction: t
                     });
@@ -297,22 +373,94 @@ const updateForm = (id, body) =>
                         );
                     };
 
+                    if (formUpdate[1].length !== 0) {
+                        redisClient.keys('*tours_*', (error, keys) => {
+                            if (error) {
+                                console.error('Error retrieving keys:', error)
+                                return
+                            }
+                            // Delete each key individually
+                            keys.forEach((key) => {
+                                redisClient.del(key, (deleteError, reply) => {
+                                    if (deleteError) {
+                                        console.error(`Error deleting key ${key}:`, deleteError)
+                                    } else {
+                                        console.log(`Key ${key} deleted successfully`)
+                                    }
+                                })
+                            })
+                        })
+
+                        redisClient.keys('*schedules_*', (error, keys) => {
+                            if (error) {
+                                console.error('Error retrieving keys:', error);
+                                return;
+                            }
+                            // Delete each key individually
+                            keys.forEach((key) => {
+                                redisClient.del(key, (deleteError, reply) => {
+                                    if (deleteError) {
+                                        console.error(`Error deleting key ${key}:`, deleteError);
+                                    } else {
+                                        console.log(`Key ${key} deleted successfully`);
+                                    }
+                                });
+                            });
+                        });
+                    }
+
                     resolve({
-                        status: forms[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
+                        status: formUpdate[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                         data: {
                             msg:
-                                forms[1].length !== 0
-                                    ? `Form updated/TourGuideId in Tour updated`
+                                formUpdate[1].length !== 0
+                                    ? `Form updated/TourGuideId in Schdeule of Tour updated`
                                     : "Cannot update form/ formId not found",
                         }
                     });
                     return;
                 }
+                if (formUpdate[1].length !== 0) {
+                    redisClient.keys('*tours_*', (error, keys) => {
+                        if (error) {
+                            console.error('Error retrieving keys:', error)
+                            return
+                        }
+                        // Delete each key individually
+                        keys.forEach((key) => {
+                            redisClient.del(key, (deleteError, reply) => {
+                                if (deleteError) {
+                                    console.error(`Error deleting key ${key}:`, deleteError)
+                                } else {
+                                    console.log(`Key ${key} deleted successfully`)
+                                }
+                            })
+                        })
+                    })
+
+                    redisClient.keys('*schedules_*', (error, keys) => {
+                        if (error) {
+                            console.error('Error retrieving keys:', error);
+                            return;
+                        }
+                        // Delete each key individually
+                        keys.forEach((key) => {
+                            redisClient.del(key, (deleteError, reply) => {
+                                if (deleteError) {
+                                    console.error(`Error deleting key ${key}:`, deleteError);
+                                } else {
+                                    console.log(`Key ${key} deleted successfully`);
+                                }
+                            });
+                        });
+                    });
+                }
+
                 resolve({
-                    status: forms[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
+                    status: formUpdate[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                     data: {
                         msg:
-                            forms[1].length !== 0
+                            formUpdate[1].length !== 0
                                 ? `Form updated`
                                 : "Cannot update form/ formId not found",
                     }

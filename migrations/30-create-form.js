@@ -22,11 +22,11 @@ module.exports = {
           key: 'userId'
         }
       },
-      currentTour: {
+      currentSchedule: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      desireTour: {
+      desireSchedule: {
         type: Sequelize.STRING,
       },
       status: {
