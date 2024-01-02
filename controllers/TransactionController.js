@@ -44,13 +44,13 @@ const getTransactions = async (req, res) => {
 const getTourTransactionOfflineForPaidBackToManager = async (req, res) => {
     try {
         const errors = {}
-        const tourId = req.query.tourId || ""
-        if(tourId === ""){
-            errors.tourId = "Tour id required!"
+        const scheduleId = req.query.scheduleId || ""
+        if(scheduleId === ""){
+            errors.scheduleId = "Tour schedule required!"
         }
 
         if (Object.keys(errors).length === 0) {
-            const response = await services.getTourTransactionOfflineForPaidBackToManager(tourId)
+            const response = await services.getTourTransactionOfflineForPaidBackToManager(scheduleId)
             return res.status(response.status).json(response.data)
         } else {
             return res.status(StatusCodes.BAD_REQUEST).json(errors)
