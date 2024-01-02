@@ -69,79 +69,68 @@ const getTransactions = async (req) => {
         console.error(error);
     }
 }
-const getTourTransactionOfflineForPaidBackToManager = async (tourId) => {
+const getTourTransactionOfflineForPaidBackToManager = async (scheduleId) => {
     try {
-        const tour = await db.Tour.findOne({
+        const tourSchedule = await db.Schedule.findOne({
             where: {
-                tourId: tourId
+                scheduleId: scheduleId
             }
         })
-        if (!tour) {
+        if (!tourSchedule) {
             return {
                 status: StatusCodes.NOT_FOUND,
                 data: {
-                    msg: "Tour not found!"
+                    msg: "Tour schedule not found!"
                 }
             }
         }
 
-        const tourData = await db.Tour.findOne({
+        const bookings = await db.Booking.findAll({
             where: {
-                tourId: tourId
+                scheduleId: scheduleId
             },
-            include: {
-                model: db.Ticket,
-                as: "tour_ticket",
-                include: {
-                    model: db.BookingDetail,
-                    as: "ticket_booking_detail",
-                    group: "bookingId",
+            include: [
+                {
+                    model: db.Transaction,
+                    as: "booking_transaction",
+                    where: {
+                        transactionType: TRANSACTION_TYPE.MOMO,
+                        status: STATUS.PAID
+                    },
+                },
+                {
+                    model: db.Schedule,
+                    as: "booking_schedule",
                     include: {
-                        model: db.Booking,
-                        as: "detail_booking",
-                        include: {
-                            model: db.Transaction,
-                            as: "booking_transaction",
-                            where: {
-                                transactionType: TRANSACTION_TYPE.CASH,
-                                status: STATUS.PAID
-                            },
-                        }
+                        model: db.User,
+                        as: "schedule_tourguide",
+                        attributes: ["userName", "phone"]
                     }
                 }
-            },
+            ]
         })
+
         let isPaidToManager = false
-        const uniqueTransactions = new Set();
-        const filteredBookingTransactions = tourData.tour_ticket
-            .flatMap((ticket) =>
-                ticket.ticket_booking_detail
-                    .filter((bookingDetail) =>
-                        bookingDetail.detail_booking && bookingDetail.detail_booking.booking_transaction
-                    )
-                    .map((bookingDetail) => bookingDetail.detail_booking.booking_transaction)
-            )
-            .filter((transaction) => {
-                if (transaction && transaction.transactionId) {
-                    if (!uniqueTransactions.has(transaction.transactionId)) {
-                        uniqueTransactions.add(transaction.transactionId);
-                        return true
-                    }
-                    if (transaction.isPaidToManager === true) {
-                        isPaidToManager = true
-                    }
-                }
-                return false
-            })
-        const totalAmount = filteredBookingTransactions.reduce((total, transaction) => total + transaction.amount, 0)
+        let totalAmount = 0
+        const schedule = bookings[0].booking_schedule
+        bookings.map((booking) => {
+            if (booking.booking_transaction.isPaidToManager === true) {
+                isPaidToManager = true
+            }
+
+            totalAmount += booking.totalPrice
+        })
 
         return {
             status: StatusCodes.OK,
             data: {
                 msg: `Get transactions for paid back successfully`,
-                totalAmount: totalAmount,
-                isPaidToManager: isPaidToManager,
-                transactions: filteredBookingTransactions
+                paidBackInfo: {
+                    totalAmount: totalAmount,
+                    isPaidToManager: isPaidToManager,
+                    schedule: schedule
+                },
+                // transactions: bookings
             }
         }
 
@@ -158,83 +147,83 @@ const getTourTransactionOfflineForPaidBackToManager = async (tourId) => {
 
 const paidBackToManager = async (tourId) => {
     try {
-        const tour = await db.Tour.findOne({
-            where: {
-                tourId: tourId
-            }
-        })
-        if (!tour) {
-            return {
-                status: StatusCodes.NOT_FOUND,
-                data: {
-                    msg: "Tour not found!"
-                }
-            }
-        }
+        // const tour = await db.Tour.findOne({
+        //     where: {
+        //         tourId: tourId
+        //     }
+        // })
+        // if (!tour) {
+        //     return {
+        //         status: StatusCodes.NOT_FOUND,
+        //         data: {
+        //             msg: "Tour not found!"
+        //         }
+        //     }
+        // }
 
-        const tourData = await db.Tour.findOne({
-            where: {
-                tourId: tourId
-            },
-            include: {
-                model: db.Ticket,
-                as: "tour_ticket",
-                include: {
-                    model: db.BookingDetail,
-                    as: "ticket_booking_detail",
-                    group: "bookingId",
-                    include: {
-                        model: db.Booking,
-                        as: "detail_booking",
-                        include: {
-                            model: db.Transaction,
-                            as: "booking_transaction",
-                            where: {
-                                transactionType: TRANSACTION_TYPE.CASH,
-                                isPaidToManager: false,
-                                status: STATUS.PAID
-                            },
-                        }
-                    }
-                }
-            },
-        })
+        // const tourData = await db.Tour.findOne({
+        //     where: {
+        //         tourId: tourId
+        //     },
+        //     include: {
+        //         model: db.Ticket,
+        //         as: "tour_ticket",
+        //         include: {
+        //             model: db.BookingDetail,
+        //             as: "ticket_booking_detail",
+        //             group: "bookingId",
+        //             include: {
+        //                 model: db.Booking,
+        //                 as: "detail_booking",
+        //                 include: {
+        //                     model: db.Transaction,
+        //                     as: "booking_transaction",
+        //                     where: {
+        //                         transactionType: TRANSACTION_TYPE.CASH,
+        //                         isPaidToManager: false,
+        //                         status: STATUS.PAID
+        //                     },
+        //                 }
+        //             }
+        //         }
+        //     },
+        // })
 
-        const uniqueTransactions = new Set();
-        const filteredBookingTransactions = tourData.tour_ticket
-            .flatMap((ticket) =>
-                ticket.ticket_booking_detail
-                    .filter((bookingDetail) =>
-                        bookingDetail.detail_booking && bookingDetail.detail_booking.booking_transaction
-                    )
-                    .map((bookingDetail) => bookingDetail.detail_booking.booking_transaction)
-            )
-            .filter((transaction) => {
-                if (transaction && transaction.transactionId) {
-                    if (!uniqueTransactions.has(transaction.transactionId)) {
-                        uniqueTransactions.add(transaction.transactionId);
-                        return true
-                    }
-                }
-                return false
-            })
+        // const uniqueTransactions = new Set();
+        // const filteredBookingTransactions = tourData.tour_ticket
+        //     .flatMap((ticket) =>
+        //         ticket.ticket_booking_detail
+        //             .filter((bookingDetail) =>
+        //                 bookingDetail.detail_booking && bookingDetail.detail_booking.booking_transaction
+        //             )
+        //             .map((bookingDetail) => bookingDetail.detail_booking.booking_transaction)
+        //     )
+        //     .filter((transaction) => {
+        //         if (transaction && transaction.transactionId) {
+        //             if (!uniqueTransactions.has(transaction.transactionId)) {
+        //                 uniqueTransactions.add(transaction.transactionId);
+        //                 return true
+        //             }
+        //         }
+        //         return false
+        //     })
 
-            if(filteredBookingTransactions.length === 0){
-                return {
-                    status: StatusCodes.NOT_FOUND,
-                    data: {
-                        msg: "Tour got no offline bookings or already paid back to manager!"
-                    }
-                }
-            }
+        // if (filteredBookingTransactions.length === 0) {
+        //     return {
+        //         status: StatusCodes.NOT_FOUND,
+        //         data: {
+        //             msg: "Tour got no offline bookings or already paid back to manager!"
+        //         }
+        //     }
+        // }
 
-            filteredBookingTransactions.map((transaction) => {
-                db.Transaction.update({isPaidToManager: true}, {
-                    where: {
-                        transactionId: transaction.transactionId
-                    }
-                })
-            })
+        // filteredBookingTransactions.map((transaction) => {
+        //     db.Transaction.update({ isPaidToManager: true }, {
+        //         where: {
+        //             transactionId: transaction.transactionId
+        //         }
+        //     })
+        // })
 
         return {
             status: StatusCodes.OK,

@@ -80,11 +80,10 @@ router.get("/", verifyToken, roleAuthen(["Manager", "Customer"]), controllers.ge
  *     tags: [Transaction]
  *     parameters:
  *       - in: query
- *         name: tourId
+ *         name: scheduleId
  *         schema:
  *           type: string
- *           example: 014b7e96-2587-40a2-8962-007e82438570
- *         description: Search by tourId
+ *         description: Search by scheduleId
  *         required: true
  * 
  *     responses:

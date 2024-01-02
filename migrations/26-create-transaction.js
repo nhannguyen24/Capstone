@@ -9,16 +9,16 @@ module.exports = {
         primaryKey: true,
       },
       transactionCode: {
-        type: Sequelize.ENUM,
-        values: ["MOMO", "PAY-OS", "Cash"],
+        type: Sequelize.STRING,
+        allowNull: true,
       },
       amount: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
       transactionType: {
-        type: Sequelize.DECIMAL(3, 3),
-        allowNull: false,
+        type: Sequelize.ENUM,
+        values: ["MOMO", "PAY-OS", "Cash"],
       },
       bookingId: {
         type: Sequelize.UUID,
