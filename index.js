@@ -52,7 +52,6 @@ const options = {
       { name: "Schedule" }, 
       { name: "Statistic" },
       { name: "Booking" }, 
-      { name: "Template" }, 
       { name: "OTP" }, 
       { name: "Payment" }, 
       { name: "Transaction" }, 
@@ -76,11 +75,11 @@ const start = () => {
   try {
     app.listen(PORT, () => {
       console.log(`Server is listening on ${PORT}...`);
-      // cron.schedule('*/30 * * * *', () => {
-      //   deleteExpiredOtp()
-      //   deleteUnPaidBooking()
-      //   rejectForm()
-      // })
+      cron.schedule('*/30 * * * *', () => {
+        deleteExpiredOtp()
+        // deleteUnPaidBooking()
+        // rejectForm()
+      })
       // cron.schedule('00 00,00 * * *', () => {
       //   cancelTourAndRefundIfUnderbooked()
       // })
