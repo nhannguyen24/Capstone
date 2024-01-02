@@ -2113,6 +2113,17 @@ const cloneTour = (id, body) =>
                                             "status",
                                         ],
                                     },
+                                    include: {
+                                        model: db.Price,
+                                        as: "ticket_type_price",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                    }
                                 }
                             ]
                         },
