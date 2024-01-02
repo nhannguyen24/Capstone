@@ -1,9 +1,12 @@
 const db = require("../models");
 const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
-const STATUS = require("../enums/StatusEnum")
-const { StatusCodes } = require("http-status-codes")
-const { sendNotification } = require("../utils/NotificationUtil")
+const STATUS = require("../enums/StatusEnum");
+const TOUR_SCHEDULE_STATUS = require("../enums/TourScheduleStatusEnum");
+const BOOKING_STATUS = require("../enums/BookingStatusEnum");
+const { StatusCodes } = require("http-status-codes");
+const { sendNotification } = require("../utils/NotificationUtil");
+const { sortRouteSegmentByDepartureStation } = require("../utils/SortRouteSegmentUlti");
 
 const getAllSchedule = (
     { page, limit, order, busId, tourId, tourGuideId, driverId, status, departureDate, endDate, ...query },
@@ -694,6 +697,46 @@ const createSchedule = (body) =>
                         }, { transaction: t })
                     }
 
+                    if (createSchedule) {
+                        const routeSegments = await db.RouteSegment.findAll({
+                            raw: true, nest: true,
+                            where: {
+                                tourId: body.tourId
+                            },
+                            order: [
+                                ['index', 'ASC']
+                            ],
+                            attributes: {
+                                exclude: [
+                                    "createdAt",
+                                    "updatedAt",
+                                    "status",
+                                ],
+                            },
+                        })
+
+                        const routeSegmentsSortByDepartureStation = sortRouteSegmentByDepartureStation(routeSegments, body.departureStationId);
+                        let uniqueStationArray = [];
+                        routeSegmentsSortByDepartureStation.forEach(item => {
+                            if (!uniqueStationArray.includes(item.departureStationId)) {
+                                uniqueStationArray.push(item.departureStationId)
+                            }
+                            if (uniqueStationArray.includes(item.endStationId)) {
+                                uniqueStationArray.push(item.endStationId)
+                            }
+                        })
+
+                        let index = 0
+                        for (const stationId of uniqueStationArray) {
+                            index += 1
+                            await db.TourDetail.create({
+                                scheduleId: createSchedule.scheduleId,
+                                stationId: stationId,
+                                index: index,
+                            }, { transaction: t })
+                        }
+                    }
+
                     resolve({
                         status: createSchedule ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                         data: {
@@ -734,192 +777,362 @@ const createSchedule = (body) =>
 
 const updateSchedule = (id, body) =>
     new Promise(async (resolve, reject) => {
+        let transaction
         try {
-            const currentDate = new Date()
-            currentDate.setHours(currentDate.getHours() + 7)
+            transaction = await db.sequelize.transaction(async (t) => {
+                const currentDate = new Date()
+                currentDate.setHours(currentDate.getHours() + 7)
+                const tDepartureDate = new Date(body.departureDate)
 
-            const BeforeTDepartureDate = new Date(body.departureDate)
-            const tDepartureDate = new Date(body.departureDate)
-            const [currentScheduleHours, currentScheduleMinutes, currentScheduleSeconds] = body.duration.split(':').map(Number)
-
-            // Add the duration to the tDepartureDate
-            tDepartureDate.setHours(tDepartureDate.getHours() + currentScheduleHours)
-            tDepartureDate.setMinutes(tDepartureDate.getMinutes() + currentScheduleMinutes)
-            tDepartureDate.setSeconds(tDepartureDate.getSeconds() + currentScheduleSeconds)
-            const tEndDate = tDepartureDate
-
-            if (currentDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
-                resolve({
-                    status: StatusCodes.BAD_REQUEST,
-                    data: {
-                        msg: "Departure date must be 24 hours latter than current date",
-                    }
-                })
-                await t.rollback();
-                return
-            } else {
-                let tourGuide = body.tourGuideId
-                let driver = body.driverId
-                const findTour = await db.Tour.findOne({
-                    raw: true, nest: true,
-                    where: {
-                        tourId: id
-                    },
-                })
-                if (tourGuide) {
-                    const findScheduledTourGuild = await db.Schedule.findAll({
-                        raw: true, nest: true,
-                        order: [['departureDate', 'ASC']],
-                        where: {
-                            [Op.and]: [
-                                {
-                                    departureDate: {
-                                        [Op.gte]: body.departureDate,
-                                    },
-                                },
-                                {
-                                    endDate: {
-                                        [Op.gt]: body.endDate,
-                                    },
-                                }
-                            ],
-                            isScheduled: true,
-                            tourGuideId: body.tourGuideId
-                        },
-                    })
-                    const checkDuplicatedTime = findScheduledTourGuild.some((assignment) => {
-                        // const departureDate = new Date(assignment.departureDate)
-                        // // Split the duration string into hours, minutes, and seconds
-                        // const [hours, minutes, seconds] = assignment.duration.split(':').map(Number)
-
-                        // // Add the duration to the departureDate
-                        // departureDate.setHours(departureDate.getHours() + hours)
-                        // departureDate.setMinutes(departureDate.getMinutes() + minutes)
-                        // departureDate.setSeconds(departureDate.getSeconds() + seconds)
-                        // const endDate = departureDate
-
-                        // // Check if the tour guide is available
-                        // return endDate >= findTour.departureDate
-
-                        const departureDate = new Date(assignment.departureDate)
-                        const endDate = new Date(assignment.endDate)
-
-                        const beforeCurrentTourDepartureDate = new Date(body.departureDate)
-                        const currentTourDepartureDate = new Date(body.departureDate)
-                        const [currentTourHours, currentTourMinutes, currentTourSeconds] = body.duration.split(':').map(Number)
-
-                        // Add the duration to the departureDate
-                        currentTourDepartureDate.setHours(currentTourDepartureDate.getHours() + currentTourHours)
-                        currentTourDepartureDate.setMinutes(currentTourDepartureDate.getMinutes() + currentTourMinutes)
-                        currentTourDepartureDate.setSeconds(currentTourDepartureDate.getSeconds() + currentTourSeconds)
-                        const currentEndDate = currentTourDepartureDate
-
-                        let checkTourGuide = true;
-                        if (departureDate > currentEndDate && assignment.tourGuide?.userId === employee.userId) {
-                            checkTourGuide = false;
+                if (currentDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
+                    resolve({
+                        status: StatusCodes.BAD_REQUEST,
+                        data: {
+                            msg: "Departure date must be 24 hours latter than current date",
                         }
-                        // Check if the tour guide is duplicated
-                        return (endDate >= beforeCurrentTourDepartureDate && assignment.tourGuide?.userId === employee.userId) && checkTourGuide;
                     })
+                    await t.rollback();
+                    return
+                } else {
+                    let tourGuide = body.tourGuideId;
+                    let driver = body.driverId;
+                    let bus = body.busId;
 
-                    if (checkDuplicatedTime) {
-                        resolve({
-                            status: StatusCodes.BAD_REQUEST,
-                            data: {
-                                msg: "Tour guide time is duplicated",
-                            }
-                        })
-                        return
-                    }
-                } else if (driver) {
-                    const findScheduledDriver = await db.Tour.findAll({
+                    const findSchedule = await db.Schedule.findOne({
                         raw: true, nest: true,
-                        order: [['departureDate', 'ASC']],
                         where: {
-                            departureDate: {
-                                [Op.gte]: currentDate,
-                            },
-                            isScheduled: true,
-                            driverId: body.driverId
+                            scheduleId: id
                         },
-                    })
-
-                    const checkDuplicatedTime = findScheduledDriver.some((assignment) => {
-                        const departureDate = new Date(assignment.departureDate)
-                        // Split the duration string into hours, minutes, and seconds
-                        const [hours, minutes, seconds] = assignment.duration.split(':').map(Number)
-
-                        // Add the duration to the departureDate
-                        departureDate.setHours(departureDate.getHours() + hours)
-                        departureDate.setMinutes(departureDate.getMinutes() + minutes)
-                        departureDate.setSeconds(departureDate.getSeconds() + seconds)
-                        const endDate = departureDate
-
-                        // Check if the tour guide is available
-                        return endDate >= findTour.departureDate
-                    })
-                    if (checkDuplicatedTime) {
-                        resolve({
-                            status: StatusCodes.BAD_REQUEST,
-                            data: {
-                                msg: "Driver time is duplicated",
-                            }
-                        })
-                        return
-                    }
-                }
-
-                let departureStation = body.routeId
-                let station
-                if (departureStation) {
-                    station = await db.Route.findOne({
-                        raw: true,
-                        nest: true,
-                        where: {
-                            routeId: departureStation
+                        attributes: {
+                            exclude: ["status", "createdAt", "updatedAt"]
                         },
                         include: [
                             {
-                                model: db.RouteSegment,
-                                as: "route_segment",
-                                where: {
-                                    index: 1
-                                }
+                                model: db.Tour,
+                                as: "schedule_tour",
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
                             },
                         ]
                     })
-                }
 
-                resolve({
-                    status: schedules[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
-                    data: {
-                        msg:
-                            schedules[1].length !== 0
-                                ? `Schedule update`
-                                : "Cannot update schedule/ scheduleId not found",
-                    }
-                });
-
-                redisClient.keys('*schedules_*', (error, keys) => {
-                    if (error) {
-                        console.error('Error retrieving keys:', error);
-                        return;
-                    }
-                    // Delete each key individually
-                    keys.forEach((key) => {
-                        redisClient.del(key, (deleteError, reply) => {
-                            if (deleteError) {
-                                console.error(`Error deleting key ${key}:`, deleteError);
-                            } else {
-                                console.log(`Key ${key} deleted successfully`);
+                    if (!findSchedule) {
+                        resolve({
+                            status: StatusCodes.BAD_REQUEST,
+                            data: {
+                                msg: `Cannot find schedule with id: ${id}`,
                             }
+                        })
+                        return
+                    }
+
+                    let tEndDate = findSchedule.schedule_tour.endDate;
+                    if (body.departureDate) {
+                        const tDepartureDateForChange = new Date(body.departureDate)
+                        const durationCurrentTour = findSchedule.schedule_tour.duration
+                        const [currentScheduleHours, currentScheduleMinutes, currentScheduleSeconds] = durationCurrentTour.split(':').map(Number)
+    
+                        // Add the duration to the tDepartureDate
+                        tDepartureDateForChange.setHours(tDepartureDateForChange.getHours() + currentScheduleHours)
+                        tDepartureDateForChange.setMinutes(tDepartureDateForChange.getMinutes() + currentScheduleMinutes)
+                        tDepartureDateForChange.setSeconds(tDepartureDateForChange.getSeconds() + currentScheduleSeconds)
+                        tEndDate = tDepartureDateForChange
+                    }
+                    
+                    if (tourGuide) {
+                        const findScheduledTourGuild = await db.Schedule.findAll({
+                            raw: true, nest: true,
+                            order: [['departureDate', 'ASC']],
+                            where: {
+                                [Op.and]: [
+                                    {
+                                        departureDate: {
+                                            [Op.gte]: currentDate,
+                                        },
+                                    },
+                                    {
+                                        endDate: {
+                                            [Op.gte]: currentDate,
+                                        },
+                                    }
+                                ],
+                                isScheduled: true,
+                                tourGuideId: body.tourGuideId
+                            },
+                        })
+
+                        const checkDuplicatedTime = findScheduledTourGuild.some((assignment) => {
+                            const departureDate = new Date(assignment.departureDate)
+                            const endDate = new Date(assignment.endDate)
+
+                            const currentTourDepartureDate = new Date(findSchedule.departureDate)
+                            const currentEndDate = new Date(findSchedule.endDate)
+
+                            // Check if the tour guide is duplicated
+                            return endDate >= currentTourDepartureDate || departureDate <= currentEndDate;
+                        })
+
+                        if (checkDuplicatedTime) {
+                            resolve({
+                                status: StatusCodes.BAD_REQUEST,
+                                data: {
+                                    msg: "Tour guide time is duplicated",
+                                }
+                            })
+                            return
+                        }
+                    } else if (driver) {
+                        const findScheduledDriver = await db.Schedule.findAll({
+                            raw: true, nest: true,
+                            order: [['departureDate', 'ASC']],
+                            where: {
+                                [Op.and]: [
+                                    {
+                                        departureDate: {
+                                            [Op.gte]: currentDate,
+                                        },
+                                    },
+                                    {
+                                        endDate: {
+                                            [Op.gt]: currentDate,
+                                        },
+                                    }
+                                ],
+                                isScheduled: true,
+                                driverId: body.driverId
+                            },
+                        })
+
+                        const checkDuplicatedTime = findScheduledDriver.some((assignment) => {
+                            const departureDate = new Date(assignment.departureDate)
+                            const endDate = new Date(assignment.endDate)
+
+                            const currentTourDepartureDate = new Date(findSchedule.departureDate)
+                            const currentEndDate = new Date(findSchedule.endDate)
+
+                            // Check if the tour guide is duplicated
+                            return endDate >= currentTourDepartureDate || departureDate <= currentEndDate;
+                        })
+                        if (checkDuplicatedTime) {
+                            resolve({
+                                status: StatusCodes.BAD_REQUEST,
+                                data: {
+                                    msg: "Driver time is duplicated",
+                                }
+                            })
+                            return
+                        }
+                    } else if (bus) {
+                        const findScheduledBus = await db.Schedule.findAll({
+                            raw: true, nest: true,
+                            order: [['departureDate', 'ASC']],
+                            where: {
+                                [Op.and]: [
+                                    {
+                                        departureDate: {
+                                            [Op.gte]: currentDate,
+                                        },
+                                    },
+                                    {
+                                        endDate: {
+                                            [Op.gt]: currentDate,
+                                        },
+                                    }
+                                ],
+                                isScheduled: true,
+                                busId: body.busId
+                            },
+                        })
+
+                        const checkDuplicatedTime = findScheduledBus.some((assignment) => {
+                            const departureDate = new Date(assignment.departureDate)
+                            const endDate = new Date(assignment.endDate)
+
+                            const currentTourDepartureDate = new Date(findSchedule.departureDate)
+                            const currentEndDate = new Date(findSchedule.endDate)
+
+                            // Check if the tour guide is duplicated
+                            return endDate >= currentTourDepartureDate || departureDate <= currentEndDate;
+                        })
+                        if (checkDuplicatedTime) {
+                            resolve({
+                                status: StatusCodes.BAD_REQUEST,
+                                data: {
+                                    msg: "Bus time is duplicated",
+                                }
+                            })
+                            return
+                        }
+                    }
+
+                    if (body.departureDate || body.departureStationId || body.tourId) {
+                        const booking = db.Booking.findAll({
+                            raw: true, nest: true,
+                            where: { scheduleId: id }
+                        })
+                        if (booking.length > 0) {
+                            resolve({
+                                status: StatusCodes.BAD_REQUEST,
+                                data: {
+                                    msg: "Cannot update departureDate, departureStationId of schedule because there is customer book this tour's schedule",
+                                }
+                            })
+                            return
+                        }
+
+                        let currentTourId = findSchedule.schedule_tour.tourId
+                        const routeSegments = await db.RouteSegment.findAll({
+                            raw: true, nest: true,
+                            where: {
+                                tourId: currentTourId
+                            },
+                            order: [
+                                ['index', 'ASC']
+                            ],
+                            attributes: {
+                                exclude: [
+                                    "createdAt",
+                                    "updatedAt",
+                                    "status",
+                                ],
+                            },
+                        })
+
+                        const routeSegmentsSortByDepartureStation = sortRouteSegmentByDepartureStation(routeSegments, body.departureStationId);
+                        let uniqueStationArray = [];
+                        routeSegmentsSortByDepartureStation.forEach(item => {
+                            if (!uniqueStationArray.includes(item.departureStationId)) {
+                                uniqueStationArray.push(item.departureStationId)
+                            }
+                            if (uniqueStationArray.includes(item.endStationId)) {
+                                uniqueStationArray.push(item.endStationId)
+                            }
+                        })
+
+                        await db.TourDetail.destroy({
+                            where: {
+                                scheduleId: id
+                            }, transaction: t
+                        })
+
+                        let index = 0
+                        for (const stationId of uniqueStationArray) {
+                            index += 1
+                            await db.TourDetail.create({
+                                scheduleId: id,
+                                stationId: stationId,
+                                index: index,
+                            }, { transaction: t })
+                        }
+                    }
+
+                    if (body.scheduleStatus == TOUR_SCHEDULE_STATUS.STARTED) {
+                        await db.TourDetail.update({
+                            status: STATUS.NOTARRIVED,
+                        }, {
+                            where: { scheduleId: id, },
+                            individualHooks: true,
+                            transaction: t
+                        })
+                    }
+
+                    if (body.scheduleStatus == TOUR_SCHEDULE_STATUS.FINISHED) {
+                        await db.Bus.update({
+                            status: STATUS.ACTIVE,
+                        }, {
+                            where: { busId: findTour.busId },
+                            individualHooks: true,
+                            transaction: t
+                        })
+
+                        const bookingOfTour = await db.BookingDetail.findAll({
+                            nest: true,
+                            include: [
+                                {
+                                    model: db.Ticket,
+                                    as: "booking_detail_ticket",
+                                    attributes: {
+                                        exclude: [
+                                            "createdAt",
+                                            "updatedAt",
+                                            "status",
+                                        ],
+                                    },
+                                    where: {
+                                        tourId: { [Op.eq]: findTour.tourId },
+                                    },
+                                },
+                            ]
+                        })
+
+                        let bookingDetailIdArray = []
+                        for (const bookingDetail of bookingOfTour) {
+                            bookingDetailIdArray.push(bookingDetail.bookingId)
+                        }
+
+                        await db.Booking.update({
+                            bookingStatus: BOOKING_STATUS.FINISHED,
+                        }, {
+                            where: {
+                                bookingId: {
+                                    [Op.in]: bookingDetailIdArray
+                                },
+                                bookingStatus: BOOKING_STATUS.ON_GOING
+                            },
+                            individualHooks: true,
+                            transaction: t
+                        })
+                    }
+
+                    const schedules = await db.Schedule.update({
+                        endDate: tEndDate,
+                        ...body
+                    }, {
+                        where: { scheduleId: id },
+                        individualHooks: true,
+                    });
+
+                    resolve({
+                        status: schedules[1].length !== 0 ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
+                        data: {
+                            msg:
+                                schedules[1].length !== 0
+                                    ? `Schedule update`
+                                    : "Cannot update schedule/ scheduleId not found",
+                        }
+                    });
+
+                    redisClient.keys('*schedules_*', (error, keys) => {
+                        if (error) {
+                            console.error('Error retrieving keys:', error);
+                            return;
+                        }
+                        // Delete each key individually
+                        keys.forEach((key) => {
+                            redisClient.del(key, (deleteError, reply) => {
+                                if (deleteError) {
+                                    console.error(`Error deleting key ${key}:`, deleteError);
+                                } else {
+                                    console.log(`Key ${key} deleted successfully`);
+                                }
+                            });
                         });
                     });
-                });
-            }
-
+                }
+                await t.commit()
+            })
         } catch (error) {
-            reject(error.message);
+            if (transaction) {
+                // Rollback the transaction in case of an error
+                await transaction.rollback();
+            }
+            console.log(error);
+            reject(error);
         }
     });
 

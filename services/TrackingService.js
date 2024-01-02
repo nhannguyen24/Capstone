@@ -20,7 +20,7 @@ const getAllTracking = (
             resolve({
                 status: StatusCodes.OK,
                 data: {
-                    msg: trackings ? "Got trackings" : "Cannot find trackings",
+                    msg: trackings.length > 0  ? "Got trackings" : "Cannot find trackings",
                     trackings: trackings,
                 }
             });

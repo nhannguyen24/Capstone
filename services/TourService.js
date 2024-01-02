@@ -293,7 +293,7 @@ const getAllTour = (
                     resolve({
                         status: StatusCodes.OK,
                         data: {
-                            msg: tours ? "Got tours" : "Tours not found!",
+                            msg: tours.length > 0 ? "Got tours" : "Tours not found!",
                             tours: tours,
                         }
                     })
@@ -1950,64 +1950,6 @@ const updateTour = (id, { images, ...body }) =>
                         transaction: t
                     }
                 )
-
-                if (body.tourStatus == TOUR_SCHEDULE_STATUS.STARTED) {
-                    await db.TourDetail.update({
-                        status: STATUS.NOTARRIVED,
-                    }, {
-                        where: { tourId: id, },
-                        individualHooks: true,
-                        transaction: t
-                    })
-                }
-
-                if (body.tourStatus == TOUR_SCHEDULE_STATUS.FINISHED) {
-                    await db.Bus.update({
-                        status: STATUS.ACTIVE,
-                    }, {
-                        where: { busId: findTour.busId },
-                        individualHooks: true,
-                        transaction: t
-                    })
-
-                    const bookingOfTour = await db.BookingDetail.findAll({
-                        nest: true,
-                        include: [
-                            {
-                                model: db.Ticket,
-                                as: "booking_detail_ticket",
-                                attributes: {
-                                    exclude: [
-                                        "createdAt",
-                                        "updatedAt",
-                                        "status",
-                                    ],
-                                },
-                                where: {
-                                    tourId: { [Op.eq]: findTour.tourId },
-                                },
-                            },
-                        ]
-                    })
-
-                    let bookingDetailIdArray = []
-                    for (const bookingDetail of bookingOfTour) {
-                        bookingDetailIdArray.push(bookingDetail.bookingId)
-                    }
-
-                    await db.Booking.update({
-                        bookingStatus: BOOKING_STATUS.FINISHED,
-                    }, {
-                        where: {
-                            bookingId: {
-                                [Op.in]: bookingDetailIdArray
-                            },
-                            bookingStatus: BOOKING_STATUS.ON_GOING
-                        },
-                        individualHooks: true,
-                        transaction: t
-                    })
-                }
 
                 if (images) {
                     await db.Image.destroy({

@@ -123,7 +123,7 @@ const getAllForm = (
             resolve({
                 status: StatusCodes.OK,
                 data: {
-                    msg: forms ? "Got forms" : "Cannot find forms",
+                    msg: forms.length > 0  ? "Got forms" : "Cannot find forms",
                     forms: forms,
                 }
             });

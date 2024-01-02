@@ -67,7 +67,7 @@ const getAllTourDetail = (
             resolve({
                 status: StatusCodes.OK,
                 data: {
-                    msg: tourDetails ? "Got tourDetails" : "Cannot find tourDetails",
+                    msg: tourDetails.length > 0  ? "Got tourDetails" : "Cannot find tourDetails",
                     tourDetails: tourDetails,
                 }
             });
