@@ -18,10 +18,12 @@ const getStatistics = async (req) => {
         const currentDate = new Date()
         currentDate.setHours(currentDate.getHours() + 7)
 
+
+
         //Return the time for periodicity from current date
         if (periodicity !== null && periodicity !== undefined) {
             if (PERIODICITY.WEEKLY === periodicity.toUpperCase()) {
-                const nonTimeCurrentDateString = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${(currentDate.getDate() - 1).toString().padStart(2, '0')}T00:00:00.000Z`
+                const nonTimeCurrentDateString = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${(currentDate.getDate()).toString().padStart(2, '0')}T00:00:00.000Z`
 
                 const noTimeCurrentDate = new Date(nonTimeCurrentDateString)
 
@@ -64,6 +66,7 @@ const getStatistics = async (req) => {
         const tourList = []
 
         const tourPromises = periodicityDateArr.map(async (date) => {
+            //console.log(date)
             if (date.startDate !== "" && date.endDate !== "") {
                 whereClause.createdAt = {
                     [Op.between]: [date.startDate, date.endDate]
