@@ -192,6 +192,79 @@ const getAllSchedule = (
                                 ]
                             });
 
+                            await Promise.all(schedules.map(async (schedule) => {
+                                const routeSegments = await db.RouteSegment.findAll({
+                                    raw: true, nest: true,
+                                    where: {
+                                        tourId: schedule.schedule_tour.tourId
+                                    },
+                                    order: [
+                                        ['index', 'ASC'],
+                                        [{ model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
+                                    ],
+                                    attributes: {
+                                        exclude: [
+                                            "createdAt",
+                                            "updatedAt",
+                                            "status",
+                                        ],
+                                    },
+                                    include: [
+                                        {
+                                            model: db.Station,
+                                            as: "segment_departure_station",
+                                            attributes: {
+                                                exclude: [
+                                                    "createdAt",
+                                                    "updatedAt",
+                                                    "status",
+                                                ],
+                                            },
+                                        },
+                                        {
+                                            model: db.Station,
+                                            as: "segment_end_station",
+                                            attributes: {
+                                                exclude: [
+                                                    "createdAt",
+                                                    "updatedAt",
+                                                    "status",
+                                                ],
+                                            },
+                                        },
+                                        {
+                                            model: db.RoutePointDetail,
+                                            as: "segment_route_poi_detail",
+                                            attributes: {
+                                                exclude: [
+                                                    "routeSegmentId",
+                                                    "poiId",
+                                                    "createdAt",
+                                                    "updatedAt",
+                                                    "status",
+                                                ],
+                                            },
+                                            include: [
+                                                {
+                                                    model: db.PointOfInterest,
+                                                    as: "route_poi_detail_poi",
+                                                    attributes: {
+                                                        exclude: [
+                                                            "createdAt",
+                                                            "updatedAt",
+                                                            "status",
+                                                        ],
+                                                    },
+                                                }
+                                            ]
+                                        },
+                                    ]
+                                })
+
+                                const routeSegmentsSortByDepartureStation = sortRouteSegmentByDepartureStation(routeSegments, schedule.departureStationId);
+                                schedule.dataValues.route_segment = routeSegmentsSortByDepartureStation;
+                            }))
+
                             if (roleName !== "Admin") {
                                 redisClient.setEx(`schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}_${departureDate}_${endDate}`, 3600, JSON.stringify(schedules));
                             } else {
@@ -343,6 +416,80 @@ const getScheduleById = (scheduleId) =>
                     },
                 ]
             });
+
+            await schedule.map(async (scheduleObj) => {
+                const routeSegments = await db.RouteSegment.findAll({
+                    raw: true, nest: true,
+                    where: {
+                        tourId: scheduleObj.schedule_tour.tourId
+                    },
+                    order: [
+                        ['index', 'ASC'],
+                        [{ model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
+                    ],
+                    attributes: {
+                        exclude: [
+                            "createdAt",
+                            "updatedAt",
+                            "status",
+                        ],
+                    },
+                    include: [
+                        {
+                            model: db.Station,
+                            as: "segment_departure_station",
+                            attributes: {
+                                exclude: [
+                                    "createdAt",
+                                    "updatedAt",
+                                    "status",
+                                ],
+                            },
+                        },
+                        {
+                            model: db.Station,
+                            as: "segment_end_station",
+                            attributes: {
+                                exclude: [
+                                    "createdAt",
+                                    "updatedAt",
+                                    "status",
+                                ],
+                            },
+                        },
+                        {
+                            model: db.RoutePointDetail,
+                            as: "segment_route_poi_detail",
+                            attributes: {
+                                exclude: [
+                                    "routeSegmentId",
+                                    "poiId",
+                                    "createdAt",
+                                    "updatedAt",
+                                    "status",
+                                ],
+                            },
+                            include: [
+                                {
+                                    model: db.PointOfInterest,
+                                    as: "route_poi_detail_poi",
+                                    attributes: {
+                                        exclude: [
+                                            "createdAt",
+                                            "updatedAt",
+                                            "status",
+                                        ],
+                                    },
+                                }
+                            ]
+                        },
+                    ]
+                })
+
+                const routeSegmentsSortByDepartureStation = sortRouteSegmentByDepartureStation(routeSegments, scheduleObj.departureStationId);
+                scheduleObj.dataValues.route_segment = routeSegmentsSortByDepartureStation;
+            })
+
             resolve({
                 status: StatusCodes.OK,
                 data: {
@@ -836,14 +983,14 @@ const updateSchedule = (id, body) =>
                         const tDepartureDateForChange = new Date(body.departureDate)
                         const durationCurrentTour = findSchedule.schedule_tour.duration
                         const [currentScheduleHours, currentScheduleMinutes, currentScheduleSeconds] = durationCurrentTour.split(':').map(Number)
-    
+
                         // Add the duration to the tDepartureDate
                         tDepartureDateForChange.setHours(tDepartureDateForChange.getHours() + currentScheduleHours)
                         tDepartureDateForChange.setMinutes(tDepartureDateForChange.getMinutes() + currentScheduleMinutes)
                         tDepartureDateForChange.setSeconds(tDepartureDateForChange.getSeconds() + currentScheduleSeconds)
                         tEndDate = tDepartureDateForChange
                     }
-                    
+
                     if (tourGuide) {
                         const findScheduledTourGuild = await db.Schedule.findAll({
                             raw: true, nest: true,
