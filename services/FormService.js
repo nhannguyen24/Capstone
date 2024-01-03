@@ -91,7 +91,18 @@ const getAllForm = (
                                     "status",
                                 ],
                             },
-                        }
+                        },
+                        {
+                            model: db.Station,
+                            as: "schedule_departure_station",
+                            attributes: {
+                                exclude: [
+                                    "createdAt",
+                                    "updatedAt",
+                                    "status",
+                                ],
+                            },
+                        },
                     ]
                 })
 
@@ -112,7 +123,18 @@ const getAllForm = (
                                     "status",
                                 ],
                             },
-                        }
+                        },
+                        {
+                            model: db.Station,
+                            as: "schedule_departure_station",
+                            attributes: {
+                                exclude: [
+                                    "createdAt",
+                                    "updatedAt",
+                                    "status",
+                                ],
+                            },
+                        },
                     ]
                 })
 
