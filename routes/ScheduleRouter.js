@@ -15,13 +15,10 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  *         scheduleId:
  *           type: string
  *           description: The auto-generated id of the schedule
- *         date:
- *           type: string
- *           description: The schedule date
- *         startTime:
+ *         startDate:
  *           type: string
  *           description: The schedule departure time
- *         endTime:
+ *         endDate:
  *           type: string
  *           description: The schedule end time
  *         busId:

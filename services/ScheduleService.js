@@ -417,7 +417,7 @@ const getScheduleById = (scheduleId) =>
                 ]
             });
 
-            await schedule.map(async (scheduleObj) => {
+            for (const scheduleObj of schedule) {
                 const routeSegments = await db.RouteSegment.findAll({
                     raw: true, nest: true,
                     where: {
@@ -488,8 +488,7 @@ const getScheduleById = (scheduleId) =>
 
                 const routeSegmentsSortByDepartureStation = sortRouteSegmentByDepartureStation(routeSegments, scheduleObj.departureStationId);
                 scheduleObj.dataValues.route_segment = routeSegmentsSortByDepartureStation;
-            })
-
+            }
             resolve({
                 status: StatusCodes.OK,
                 data: {
