@@ -185,7 +185,7 @@ const getPointOfInterestById = (poiId) =>
 const createPointOfInterest = ({ images, poiName, ...body }) =>
     new Promise(async (resolve, reject) => {
         try {
-            const createPointOfInterest = await db.PointOfInterest.findOrCreate({
+            const [createPointOfInterest, created] = await db.PointOfInterest.findOrCreate({
                 where: {
                     poiName: poiName
                 },
@@ -195,24 +195,31 @@ const createPointOfInterest = ({ images, poiName, ...body }) =>
                 },
             });
 
-            if (images) {
+            if (created && images) {
                 const createImagePromises = images.map(async (image) => {
                     await db.Image.create({
                         image: image,
-                        poiId: createPointOfInterest[0].poiId,
+                        poiId: createPointOfInterest.poiId,
                     });
                 });
 
                 await Promise.all(createImagePromises);
             }
+            if (created) {
+                await  db.FileSound.create({
+                    file: 'https://storage.googleapis.com/wallet-fpt.appspot.com/Vietnamese.mp3?GoogleAccessId=firebase-adminsdk-9ejw2%40wallet-fpt.iam.gserviceaccount.com&Expires=1705449600&Signature=S5Pd7uN4zs4%2F0dX1kgyNyZvLi979txc%2BNRzVP5%2FzzLX6vJ5GtxXyNA5VPlZej3RKVSb7ibpU8fMTwY2SJ6p5fazWzA3G87VWUdFWGZSd23d8oJT7ciyKgnROOVlhV1FiPWTJI4%2BbMBovNqLu3bqaCCnvVI4EqI%2FB%2BYDsWHX78SeRuikSQt2bSIxHuDHDLGLkZNDRHuI5xQd%2B6AJBliRMwYWLyp3U175dtwwy5gpJIGFaxkgGiYdCzRmXkg8dl8eNeJ%2BUeejsATVQpd5mqrhiOAECaUnam6vtjD2ZJxdLcyeJBPE2utKxo0CECX7VgJXoJ6mPpNRT6YL6qpWZPiRyyg%3D%3D',
+                    poiId: createPointOfInterest.poiId,
+                    languageId: '30536f3a-7365-4a7a-a76f-2b13f140861c'
+                });
+            }
 
             resolve({
-                status: createPointOfInterest[1] ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
+                status: created ? StatusCodes.OK : StatusCodes.BAD_REQUEST,
                 data: {
-                    msg: createPointOfInterest[1]
+                    msg: created
                         ? "Create new poi successfully"
                         : "Cannot create new poi/Point name already exists",
-                    poi: createPointOfInterest[1] ? createPointOfInterest[0].dataValues : null,
+                    poi: created ? createPointOfInterest.dataValues : null,
                 }
             });
             redisClient.keys('*pois_*', (error, keys) => {
