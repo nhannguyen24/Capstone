@@ -833,6 +833,48 @@ const paymentOffline = (bookingId) =>
 
 const createStripePaymentRequest = async (amount, bookingId) => {
   try {
+    const transaction = await db.Transaction.findOne({
+      where: { bookingId: bookingId },
+      include: {
+        model: db.Booking,
+        as: "transaction_booking",
+        attributes: ["endPaymentTime"],
+      },
+    })
+    if (!transaction) {
+      resolve({
+        status: StatusCodes.NOT_FOUND,
+        data: {
+          msg: `Booking transaction not found!`,
+        },
+      })
+      return
+    } else {
+      if (STATUS.PAID === transaction.status) {
+        resolve({
+          status: StatusCodes.BAD_REQUEST,
+          data: {
+            msg: "Booking transaction already paid!",
+          },
+        })
+        return
+      }
+      const currentDate = new Date()
+      currentDate.setHours(currentDate.getHours() + 7)
+      const endBookingTime = new Date(
+        transaction.transaction_booking.endPaymentTime
+      )
+      if (endBookingTime <= currentDate) {
+        resolve({
+          status: StatusCodes.BAD_REQUEST,
+          data: {
+            msg: "Booking transaction expired!",
+          },
+        })
+        return
+      }
+    }
+
     const customer = await stripe.customers.create({
       metadata: {
         bookingId: bookingId
@@ -869,7 +911,6 @@ const createStripePaymentRequest = async (amount, bookingId) => {
         url: {}
       }
     }
-
   } catch (error) {
     console.log(error);
   }
@@ -879,7 +920,6 @@ const createStripePaymentRequest = async (amount, bookingId) => {
 // This is your Stripe CLI webhook secret for testing your endpoint locally.
 let endpointSecret;
 endpointSecret = process.env.STRIPE_SECRET_KEY;
-
 const stripeWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
 
@@ -907,58 +947,175 @@ const stripeWebhook = async (req, res) => {
     eventType = req.body.type;
     console.log('eventType', eventType);
   }
-  console.log(eventType);
+  // console.log(eventType);
   // Handle the event
   if (eventType === "checkout.session.completed") {
     // console.log('customer', data.customer);
     const cus = await stripe.customers.retrieve(
       data.customer
-    ).then((customer) => {
-      console.log("data:", data);
+    ).then(async (customer) => {
+      // console.log("data:", data);
       stripe.checkout.sessions.listLineItems(
         data.id,
         {},
-        function (err, lineItems) {
-          console.log("Line_items", lineItems);
-          console.log('cus234', customer);
-          console.log("data:", data);
+        async function (err, lineItems) {
+          const bookingId = customer.metadata.bookingId
+          const booking = await db.Booking.findOne({
+            raw: true,
+            nest: true,
+            where: {
+              bookingId: bookingId,
+            },
+            attributes: [
+              "bookingId", "bookingCode", "totalPrice"
+            ],
+            include: [
+              {
+                model: db.User,
+                as: "booking_user",
+                attributes: ["userName", "email"],
+              },
+              {
+                model: db.Station,
+                as: "booking_departure_station",
+                attributes: ["stationName", "address"],
+              },
+              {
+                model: db.Schedule,
+                as: "booking_schedule",
+                include: [
+                  {
+                    model: db.Bus,
+                    as: "schedule_bus",
+                    attributes: ["busPlate"],
+                  }, {
+                    model: db.Tour,
+                    as: "schedule_tour",
+                    attributes: ["tourName", "duration"],
+                  }
+                ]
+              }
+            ]
+          })
 
-          // createHistory(customer, data, lineItems)
+          const routeSegments = await db.RouteSegment.findAll({
+            raw: true,
+            nest: true,
+            where: {
+              tourId: booking.booking_schedule.tourId,
+            },
+          })
+
+          const tourName = booking.booking_schedule.schedule_tour.tourName
+          const bookedStationId = booking.booking_departure_station.stationId
+          const tourDepartureTime = new Date(booking.booking_schedule.departureDate).getTime()
+
+          const busArrivalTimeToBookedStation = calculateTotalTime(routeSegments, tourDepartureTime, bookedStationId)
+
+          const formatDepartureDate =
+            `${busArrivalTimeToBookedStation.getDate().toString().padStart(2, "0")}/${(busArrivalTimeToBookedStation.getMonth() + 1).toString().padStart(2, "0")}/${busArrivalTimeToBookedStation.getFullYear()}  |  
+          ${busArrivalTimeToBookedStation.getHours().toString().padStart(2, "0")}:${busArrivalTimeToBookedStation.getMinutes().toString().padStart(2, "0")}:${busArrivalTimeToBookedStation.getSeconds().toString().padStart(2, "0")}`
+
+
+          const tourDuration = booking.booking_schedule.schedule_tour.duration
+          const totalPrice = booking.totalPrice
+          const stationName = booking.booking_departure_station.stationName
+          const stationAddress = booking.booking_departure_station.address
+          const busPlate = booking.booking_schedule.schedule_bus.busPlate
+          const bookingCode = booking.bookingCode
+
+          const customerName = booking.booking_user.userName
+
+          const qrDataURL = await qr.toDataURL(`bookingId: ${booking.bookingId}`)
+          const htmlContent = {
+            body: {
+              name: customerName,
+              intro: [
+                `Thank you for choosing <b>NBTour</b> booking system. Here is your <b>QR code<b> for upcomming tour tickets`,
+                `<b>Tour Information:</b>`,
+                `  - Tour Name: <b>${tourName}</b>`,
+                `  - Tour Departure Date: <b>${formatDepartureDate}</b>`,
+                `  - Departure Station: <b>${stationName}</b>`,
+                `  - Station Address: <b>${stationAddress}</b>`,
+                `  - Booking Code: <b>${bookingCode}</b>`,
+                `  - Bus plate: <b>${busPlate}</b>`,
+                `  - Tour Duration: <b>${tourDuration}</b>`,
+                `  - Total Price: <b>${totalPrice} VNĐ</b>`,
+              ],
+              outro: [
+                `If you have any questions or need assistance, please to reach out to our customer support team at nbtour@gmail.com.`,
+              ],
+              signature: "Sincerely",
+            },
+          }
+          mailer.sendMail(
+            booking.booking_user.email,
+            "Tour booking tickets",
+            htmlContent,
+            qrDataURL
+          )
+          //Find if there are any product of a booking
+
+          db.Booking.update(
+            {
+              bookingStatus: BOOKING_STATUS.ON_GOING,
+            },
+            {
+              where: {
+                bookingId: bookingId,
+              },
+              individualHooks: true,
+            }
+          )
+
+          db.BookingDetail.update(
+            {
+              status: STATUS.ACTIVE,
+            },
+            {
+              where: {
+                bookingId: bookingId,
+              },
+              individualHooks: true,
+            }
+          )
+
+          for (const item of lineItems.data) {
+            db.Transaction.update(
+              {
+                transactionCode: item.id,
+                transactionType: TRANSACTION_TYPE.STRIPE,
+                isPaidToManager: true,
+                status: STATUS.PAID,
+              },
+              {
+                where: {
+                  bookingId: bookingId,
+                },
+                individualHooks: true,
+              }
+            )
+          }
         }
       );
+
+      // Return a 200 response to acknowledge receipt of the event
+      res.send({
+        status: StatusCodes.OK,
+        data: {
+          msg: "Payment process successfully!",
+        },
+      }).end;
     }).catch(err => console.log(err.message));
+  } else {
+    res.send({
+      status: StatusCodes.BAD_REQUEST,
+      data: {
+        msg: "Payment process failed!",
+        bookingId: bookingId,
+      },
+    }).end;
   }
-
-  // Return a 200 response to acknowledge receipt of the event
-  res.send().end;
-};
-
-const createHistory = async (customer, data, lineItems) => {
-  const newTransaction = await db.Transaction.create({
-    poster_id: customer.metadata.poster_id,
-    doer_id: customer.metadata.doer_id,
-    deliverable_id: customer.metadata.deliverable_id,
-    price: data.amount_total,
-    status: data.payment_status
-  });
-
-  const application = await db.Application.findOne({
-    where: { application_id: customer.metadata.application_id },
-  });
-
-  const project_update = await db.Project.update({ status: "Finished" }, {
-    where: { project_id: application.project_id },
-  });
-
-  const application_update = await db.Application.update({ status: 'Finished' }, {
-    where: { application_id: customer.metadata.application_id },
-  });
-
-  const deliverable_update = await db.Deliverable.update({ status: 'Finished' }, {
-    where: { deliverable_id: customer.metadata.deliverable_id },
-  });
-
-  console.log("Process: ", newTransaction.toJSON());
 };
 
 module.exports = {
