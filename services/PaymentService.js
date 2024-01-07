@@ -875,6 +875,30 @@ const createStripePaymentRequest = async (amount, bookingId) => {
       }
     }
 
+    const booking = await db.Booking.findOne({
+      raw: true,
+      nest: true,
+      where: {
+        bookingId: bookingId,
+      },
+      attributes: [
+        "bookingId", "bookingCode", "totalPrice"
+      ],
+      include: [
+        {
+          model: db.Schedule,
+          as: "booking_schedule",
+          include: [
+            {
+              model: db.Tour,
+              as: "schedule_tour",
+              attributes: ["tourName", "duration"],
+            }
+          ]
+        }
+      ]
+    })
+
     const customer = await stripe.customers.create({
       metadata: {
         bookingId: bookingId
@@ -885,7 +909,7 @@ const createStripePaymentRequest = async (amount, bookingId) => {
       price_data: {
         currency: 'vnd',
         product_data: {
-          name: 'hihi',
+          name: booking.booking_schedule.schedule_tour.tourName,
         },
         unit_amount: amount
       },
