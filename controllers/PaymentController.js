@@ -36,6 +36,7 @@ const paymentMomo = async (req, res) => {
         throw new InternalServerError(error)
     }
 }
+
 const paymentPayOs = async (req, res) => {
     try {
         const amount = req.query.amount || ""
@@ -73,6 +74,7 @@ const paymentPayOs = async (req, res) => {
         throw new InternalServerError(error)
     }
 }
+
 const paymentOffline = async (req, res) => {
     try {
         const bookingId = req.query.bookingId || ""
@@ -108,5 +110,39 @@ const getPayOsPaymentResponse = async (req, res) => {
     }
 }
 
+const paymentStripe = async (req, res) => {
+    try {
+        const amount = req.query.amount || ""
+        // const redirect = req.query.redirect || ""
+        const bookingId = req.query.bookingId || ""
+        const errors = {}
 
-module.exports = { paymentMomo, paymentPayOs, getPaymentMomo, paymentOffline, getPayOsPaymentResponse }
+        if (bookingId.trim() === "") {
+            errors.bookingId = "Booking required!"
+        }
+
+        if (amount !== "") {
+            if (isNaN(amount)) {
+                errors.amount = "Amount needs to be a number!"
+            } else {
+                if (parseInt(amount) < 1000) {
+                    errors.amount = "Amount needs to be atleast 1000!"
+                }
+            }
+        } else {
+            errors.amount = "Amount required!"
+        }
+
+        if (Object.keys(errors).length === 0) {
+            const response = await services.createStripePaymentRequest(amount, bookingId)
+            return res.status(response.status).json(response.data)
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors)
+        }
+
+    } catch (error) {
+        throw new InternalServerError(error)
+    }
+}
+
+module.exports = { paymentMomo, paymentPayOs, getPaymentMomo, paymentOffline, getPayOsPaymentResponse, paymentStripe }
