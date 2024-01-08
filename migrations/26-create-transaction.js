@@ -18,7 +18,7 @@ module.exports = {
       },
       transactionType: {
         type: Sequelize.ENUM,
-        values: ["MOMO", "PAY-OS", "Cash"],
+        values: ["MOMO", "PAY-OS", "Cash", "STRIPE"],
       },
       bookingId: {
         type: Sequelize.UUID,

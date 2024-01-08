@@ -113,7 +113,8 @@ const getPayOsPaymentResponse = async (req, res) => {
 const paymentStripe = async (req, res) => {
     try {
         const amount = req.query.amount || ""
-        // const redirect = req.query.redirect || ""
+        const success_url = req.query.success_url || ""
+        const cancel_url = req.query.cancel_url || ""
         const bookingId = req.query.bookingId || ""
         const errors = {}
 
@@ -134,7 +135,7 @@ const paymentStripe = async (req, res) => {
         }
 
         if (Object.keys(errors).length === 0) {
-            const response = await services.createStripePaymentRequest(amount, bookingId)
+            const response = await services.createStripePaymentRequest(amount, bookingId, success_url, cancel_url)
             return res.status(response.status).json(response.data)
         } else {
             return res.status(StatusCodes.BAD_REQUEST).json(errors)

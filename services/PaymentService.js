@@ -831,7 +831,7 @@ const paymentOffline = (bookingId) =>
     }
   })
 
-const createStripePaymentRequest = async (amount, bookingId) => {
+const createStripePaymentRequest = async (amount, bookingId, success_url, cancel_url) => {
   try {
     const transaction = await db.Transaction.findOne({
       where: { bookingId: bookingId },
@@ -920,8 +920,8 @@ const createStripePaymentRequest = async (amount, bookingId) => {
       line_items,
       customer: customer.id,
       mode: 'payment',
-      success_url: `https://www.google.com.vn/?hl=vi`,
-      cancel_url: `https://www.google.com.vn/?hl=vi`,
+      success_url: success_url,
+      cancel_url: cancel_url,
     });
 
     // res.send({ url: session.url });

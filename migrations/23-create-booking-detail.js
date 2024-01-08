@@ -31,7 +31,7 @@ module.exports = {
       },
       status: {
         type: Sequelize.ENUM,
-        values: ["Active", "Deactive"],
+        values: ["Active", "Draft", "Canceled"],
         defaultValue: 'Active',
       },
       createdAt: {

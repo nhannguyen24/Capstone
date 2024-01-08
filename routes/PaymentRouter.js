@@ -128,6 +128,16 @@ router.get("/pay-os", controllers.getPayOsPaymentResponse);
  *     tags: [Payment]
  *     parameters:
  *       - in: query
+ *         name: success_url
+ *         schema:
+ *           type: string
+ *           example: https://walletfpt.com
+ *       - in: query
+ *         name: cancel_url
+ *         schema:
+ *           type: string
+ *           example: https://walletfpt.com
+ *       - in: query
  *         name: amount
  *         schema:
  *           type: string

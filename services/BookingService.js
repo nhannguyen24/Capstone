@@ -765,7 +765,7 @@ const createBookingWeb = async (req) => {
                 }
             }
         }
-        if (TOUR_SCHEDULE_STATUS.AVAILABLE !== tourSchedule.scheduleStation && STATUS.ACTIVE !== tourSchedule.status) {
+        if (TOUR_SCHEDULE_STATUS.AVAILABLE !== tourSchedule.scheduleStatus && STATUS.ACTIVE !== tourSchedule.status) {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
@@ -780,14 +780,14 @@ const createBookingWeb = async (req) => {
         const checkAvailableBookingDate = tourDepartureDate - currentDate
         const oneDayInMillis = 24 * 60 * 60 * 1000
 
-        if (checkAvailableBookingDate <= oneDayInMillis) {
-            return {
-                status: StatusCodes.BAD_REQUEST,
-                data: {
-                    msg: `Tour schedule not available for booking!`,
-                }
-            }
-        }
+        // if (checkAvailableBookingDate <= oneDayInMillis) {
+        //     return {
+        //         status: StatusCodes.BAD_REQUEST,
+        //         data: {
+        //             msg: `Tour schedule not available for booking!`,
+        //         }
+        //     }
+        // }
 
         //Check if pick up station is exist
         const station = await db.Station.findOne({
