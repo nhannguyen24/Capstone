@@ -194,7 +194,7 @@ const getAllSchedule = (
 
                             await Promise.all(schedules.map(async (schedule) => {
                                 const routeSegments = await db.RouteSegment.findAll({
-                                    raw: true, nest: true,
+                                    nest: true,
                                     where: {
                                         tourId: schedule.schedule_tour.tourId
                                     },
@@ -419,7 +419,7 @@ const getScheduleById = (scheduleId) =>
 
             for (const scheduleObj of schedule) {
                 const routeSegments = await db.RouteSegment.findAll({
-                    raw: true, nest: true,
+                    nest: true,
                     where: {
                         tourId: scheduleObj.schedule_tour.tourId
                     },
