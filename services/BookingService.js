@@ -1134,7 +1134,7 @@ const createBookingOffline = async (req) => {
                 }
             }
         }
-        if (TOUR_SCHEDULE_STATUS.AVAILABLE !== tourSchedule.scheduleStation && STATUS.ACTIVE !== tourSchedule.status) {
+        if (TOUR_SCHEDULE_STATUS.AVAILABLE !== tourSchedule.scheduleStatus && STATUS.ACTIVE !== tourSchedule.status) {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
