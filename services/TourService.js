@@ -1557,7 +1557,6 @@ const assignTour = () =>
                         "endBookingDate",
                         "departureDate",
                         "duration",
-                        "tourStatus",
                         "status",
                         "isScheduled"
                     ],
@@ -2225,7 +2224,6 @@ const cloneTour = (id, body) =>
                                 "endBookingDate",
                                 "departureDate",
                                 "duration",
-                                "tourStatus",
                                 "status",
                                 "isScheduled"
                             ],
@@ -2682,11 +2680,11 @@ const cloneTour = (id, body) =>
     });
 
 const getAllTourManager = (
-    { page, limit, order, tourName, address, tourStatus, status, routeId, tourGuideId, driverId, departureDate, endDate, ...query }
+    { page, limit, order, tourName, address, status, routeId, tourGuideId, driverId, departureDate, endDate, ...query }
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`tours_manager_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}_${departureDate}_${endDate}`, async (error, tour) => {
+            redisClient.get(`tours_manager_${page}_${limit}_${order}_${tourName}_${status}_${routeId}_${tourGuideId}_${driverId}_${departureDate}_${endDate}`, async (error, tour) => {
                 if (tour != null && tour != "") {
                     resolve({
                         status: StatusCodes.OK,
@@ -2710,7 +2708,6 @@ const getAllTourManager = (
                         ]
                     }
                     if (tourName) query.tourName = { [Op.substring]: tourName }
-                    if (tourStatus) query.tourStatus = { [Op.eq]: tourStatus }
                     if (routeId) query.routeId = { [Op.eq]: routeId }
                     if (status) query.status = { [Op.eq]: status }
                     if (tourGuideId) query.tourGuideId = { [Op.eq]: tourGuideId }
@@ -2885,7 +2882,7 @@ const getAllTourManager = (
                         ]
                     })
 
-                    redisClient.setEx(`tours_manager_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}_${departureDate}_${endDate}`, 3600, JSON.stringify(tours))
+                    redisClient.setEx(`tours_manager_${page}_${limit}_${order}_${tourName}_${status}_${routeId}_${tourGuideId}_${driverId}_${departureDate}_${endDate}`, 3600, JSON.stringify(tours))
 
                     resolve({
                         status: tours ? StatusCodes.OK : StatusCodes.NOT_FOUND,
@@ -2988,7 +2985,6 @@ const createTourDemo = () =>
                         "endBookingDate",
                         "departureDate",
                         "duration",
-                        "tourStatus",
                         "status",
                         "isScheduled"
                     ],
