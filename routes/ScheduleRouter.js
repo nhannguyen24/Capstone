@@ -121,7 +121,61 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  *               items:
  *                 $ref: '#/components/schemas/Schedule'
  */
-router.get("/", verifyToken, controllers.getAllSchedule);
+router.get("/", verifyToken, controllers.getAllSchedule)
+
+/**
+ * @swagger
+ * /api/v1/schedules/transaction:
+ *   get:
+ *     security: 
+ *         - BearerAuth: []
+ *     tags: [Schedule]
+ *     parameters:
+ *       - in: query
+ *         name: tourGuideId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Search by tourGuideId
+ *       - in: query
+ *         name: isPaidToManager
+ *         schema:
+ *           type: boolean
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ */
+router.get("/transaction", verifyToken, roleAuthen(["Manager", "TourGuide"]), controllers.getScheduleTransactionList)
+
+/**
+ * @swagger
+ * /api/v1/schedules/transaction/{scheduleId}:
+ *   get:
+ *     security: 
+ *         - BearerAuth: []
+ *     summary: Get transactions of tour for paid back to manager
+ *     tags: [Schedule]
+ *     parameters:
+ *       - in: path
+ *         name: scheduleId
+ *         schema:
+ *           type: string
+ *         required: true
+ * 
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ */
+router.get("/transaction/:scheduleId", verifyToken, roleAuthen(["Manager", "TourGuide"]), controllers.getScheduleTransactionDetail)
 
 /**
  * @swagger

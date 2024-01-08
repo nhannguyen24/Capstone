@@ -41,24 +41,7 @@ const getTransactions = async (req, res) => {
         throw new InternalServerError(error)
     }
 }
-const getTourTransactionOfflineForPaidBackToManager = async (req, res) => {
-    try {
-        const errors = {}
-        const scheduleId = req.query.scheduleId || ""
-        if(scheduleId === ""){
-            errors.scheduleId = "Tour schedule required!"
-        }
 
-        if (Object.keys(errors).length === 0) {
-            const response = await services.getTourTransactionOfflineForPaidBackToManager(scheduleId)
-            return res.status(response.status).json(response.data)
-        } else {
-            return res.status(StatusCodes.BAD_REQUEST).json(errors)
-        }
-    } catch (error) {
-        throw new InternalServerError(error)
-    }
-}
 const paidBackToManager = async (req, res) => {
     try {
         const errors = {}
@@ -97,4 +80,4 @@ const getTransactionById = async (req, res) => {
     }
 }
 
-module.exports = {getTransactions, getTransactionById, getTourTransactionOfflineForPaidBackToManager, paidBackToManager}
+module.exports = {getTransactions, getTransactionById, paidBackToManager}

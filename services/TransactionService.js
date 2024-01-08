@@ -69,81 +69,7 @@ const getTransactions = async (req) => {
         console.error(error);
     }
 }
-const getTourTransactionOfflineForPaidBackToManager = async (scheduleId) => {
-    try {
-        const tourSchedule = await db.Schedule.findOne({
-            where: {
-                scheduleId: scheduleId
-            }
-        })
-        if (!tourSchedule) {
-            return {
-                status: StatusCodes.NOT_FOUND,
-                data: {
-                    msg: "Tour schedule not found!"
-                }
-            }
-        }
 
-        const bookings = await db.Booking.findAll({
-            where: {
-                scheduleId: scheduleId
-            },
-            include: [
-                {
-                    model: db.Transaction,
-                    as: "booking_transaction",
-                    where: {
-                        transactionType: TRANSACTION_TYPE.MOMO,
-                        status: STATUS.PAID
-                    },
-                },
-                {
-                    model: db.Schedule,
-                    as: "booking_schedule",
-                    include: {
-                        model: db.User,
-                        as: "schedule_tourguide",
-                        attributes: ["userName", "phone"]
-                    }
-                }
-            ]
-        })
-
-        let isPaidToManager = false
-        let totalAmount = 0
-        const schedule = bookings[0].booking_schedule
-        bookings.map((booking) => {
-            if (booking.booking_transaction.isPaidToManager === true) {
-                isPaidToManager = true
-            }
-
-            totalAmount += booking.totalPrice
-        })
-
-        return {
-            status: StatusCodes.OK,
-            data: {
-                msg: `Get transactions for paid back successfully`,
-                paidBackInfo: {
-                    totalAmount: totalAmount,
-                    isPaidToManager: isPaidToManager,
-                    schedule: schedule
-                },
-                // transactions: bookings
-            }
-        }
-
-    } catch (error) {
-        console.error(error)
-        return {
-            status: StatusCodes.INTERNAL_SERVER_ERROR,
-            data: {
-                msg: "Something went wrong while fetching transactions!"
-            }
-        }
-    }
-}
 
 const paidBackToManager = async (tourId) => {
     try {
@@ -280,4 +206,4 @@ const getTransactionById = async (transactionId) => {
     }
 }
 
-module.exports = { getTransactions, getTransactionById, getTourTransactionOfflineForPaidBackToManager, paidBackToManager };
+module.exports = { getTransactions, getTransactionById, paidBackToManager }
