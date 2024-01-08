@@ -1,7 +1,7 @@
 const controllers = require('../controllers/TransactionController');
 const express = require('express');
 const verifyToken = require('../middlewares/VerifyToken');
-const {roleAuthen} = require('../middlewares/VerifyRole');
+const { roleAuthen } = require('../middlewares/VerifyRole');
 
 const router = express.Router();
 
@@ -69,32 +69,6 @@ const router = express.Router();
  *               type: object
  */
 router.get("/", verifyToken, roleAuthen(["Manager", "Customer"]), controllers.getTransactions);
-
-/**
- * @swagger
- * /api/v1/transactions/paid-manager:
- *   get:
- *     security: 
- *         - BearerAuth: []
- *     summary: Get transactions of tour for paid back to manager
- *     tags: [Transaction]
- *     parameters:
- *       - in: query
- *         name: scheduleId
- *         schema:
- *           type: string
- *         description: Search by scheduleId
- *         required: true
- * 
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- */
-router.get("/paid-manager", verifyToken, roleAuthen(["Manager", "TourGuide"]), controllers.getTourTransactionOfflineForPaidBackToManager)
 
 /**
  * @swagger

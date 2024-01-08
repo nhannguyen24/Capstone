@@ -2,6 +2,8 @@ const db = require("../models");
 const { Op } = require("sequelize");
 const redisClient = require("../config/RedisConfig");
 const STATUS = require("../enums/StatusEnum")
+const SCHEDULE_STATUS = require('../enums/TourScheduleStatusEnum')
+const TRANSACTION_TYPE = require('../enums/TransactionTypeEnum')
 const { StatusCodes } = require("http-status-codes")
 const { sendNotification } = require("../utils/NotificationUtil")
 
@@ -209,7 +211,156 @@ const getAllSchedule = (
             console.log(error);
             reject(error);
         }
-    });
+    })
+
+const getScheduleTransactionList = async (tourGuideId, isPaidToManager) => {
+    try {
+        const tourGuide = await db.User.findOne({
+            where: {
+                userId: tourGuideId
+            }
+        })
+
+        if (!tourGuide) {
+            return {
+                status: StatusCodes.NOT_FOUND,
+                data: {
+                    msg: "Tour guide not found!",
+                }
+            }
+        }
+
+        const tourSchedules = await db.Schedule.findAll({
+            where: {
+                tourGuideId: tourGuideId,
+                scheduleStatus: SCHEDULE_STATUS.FINISHED
+            },
+            order: [
+                ["updatedAt", "DESC"]
+            ],
+            include: [
+                {
+                    model: db.Booking,
+                    as: "schedule_booking",
+                    attributes: ["bookingId"],
+                    include: {
+                        model: db.Transaction,
+                        as: "booking_transaction",
+                        attributes: {
+                            exclude: ["createdAt", "updatedAt", "bookingId"]
+                        },
+                        where: {
+                            transactionType: TRANSACTION_TYPE.CASH,
+                            isPaidToManager: isPaidToManager,
+                            status: STATUS.PAID,
+                        }
+                    }
+                }, {
+                    model: db.User,
+                    as: "schedule_tourguide",
+                    attributes: ["userId", "userName", "phone"]
+                }
+            ]
+        })
+
+        const filteredSchedules = []
+        tourSchedules.map((schedule) => {
+            if (schedule.schedule_booking.length > 0) {
+                const { schedule_booking, ...rest } = schedule.dataValues
+                let paidBackPrice = 0
+
+                schedule_booking.map((booking) => {
+                    paidBackPrice += booking.booking_transaction.amount
+                })
+                rest.paidBackPrice = paidBackPrice
+                filteredSchedules.push(rest)
+            }
+        })
+
+        return {
+            status: StatusCodes.OK,
+            data: {
+                msg: `Get schedule transaction list successfully`,
+                isPaidToManager: isPaidToManager,
+                schedules: filteredSchedules
+            }
+        }
+
+    } catch (error) {
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data: {
+                msg: "Something went wrong while fetching transactions!"
+            }
+        }
+    }
+}
+
+const getScheduleTransactionDetail = async (scheduleId) => {
+    try {
+        const tourSchedule = await db.Schedule.findOne({
+            where: {
+                scheduleId: scheduleId
+            }
+        })
+        if (!tourSchedule) {
+            return {
+                status: StatusCodes.NOT_FOUND,
+                data: {
+                    msg: "Tour schedule not found!"
+                }
+            }
+        }
+
+        const bookings = await db.Booking.findAll({
+            where: {
+                scheduleId: scheduleId
+            },
+            include: [
+                {
+                    model: db.Transaction,
+                    as: "booking_transaction",
+                    where: {
+                        transactionType: TRANSACTION_TYPE.CASH,
+                        status: STATUS.PAID
+                    },
+                }
+            ]
+        })
+
+        let isPaidToManager = true
+        let paidBackPrice = 0
+
+        bookings.map((booking) => {
+            if (booking.booking_transaction.isPaidToManager === false) {
+                isPaidToManager = false
+            }
+
+            paidBackPrice += booking.totalPrice
+        })
+
+        return {
+            status: StatusCodes.OK,
+            data: {
+                msg: `Get schedule transaction detail successfully`,
+                paidBackInfo: {
+                    paidBackPrice: paidBackPrice,
+                    isPaidToManager: isPaidToManager,
+                },
+            }
+        }
+
+    } catch (error) {
+        console.error(error)
+        return {
+            status: StatusCodes.INTERNAL_SERVER_ERROR,
+            data: {
+                msg: "Something went wrong while fetching transactions!"
+            }
+        }
+    }
+}
 
 const getScheduleById = (scheduleId) =>
     new Promise(async (resolve, reject) => {
@@ -987,5 +1138,7 @@ module.exports = {
     createSchedule,
     getAllSchedule,
     getScheduleById,
+    getScheduleTransactionList,
+    getScheduleTransactionDetail
 };
 
