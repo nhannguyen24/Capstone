@@ -1176,7 +1176,8 @@ const paidScheduleTransaction = async (scheduleId) => {
       db.Transaction.update({ isPaidToManager: true }, {
         where: {
           bookingId: booking.bookingId
-        }
+        },
+        individualHooks: true
       })
     })
 
