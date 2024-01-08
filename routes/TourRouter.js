@@ -350,10 +350,12 @@ router.delete("/:id", verifyToken, roleAuthen(["Manager"]), controllers.deleteTo
 //  *            schema:                     
 //  *                  example:
 //  *                    tourName: Chuyến đi tham quan buổi sáng
-//  *                    beginBookingDate: 2023-09-21T00:00:00Z
-//  *                    endBookingDate: 2023-09-22T00:00:00Z
-//  *                    departureDate: 2023-09-23T09:00:00Z
-//  *                    duration: 03:00:00
+//  *                    description: Một chuyến đi tuyệt vời
+//  *                    schedules:
+//  *                          - departureDate: 2023-12-28T09:00:00Z
+//  *                            departureStationId: stationId
+//  *                          - departureDate: 2023-12-28T15:00:00Z
+//  *                            departureStationId: stationId
 //  *     responses:
 //  *       200:
 //  *         description: Clone new tour successfully

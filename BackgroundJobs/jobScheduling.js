@@ -45,7 +45,22 @@ async function cancelTourAndRefundIfUnderbooked() {
         endBookingDate: {
           [Op.lte]: currentDate
         },
-        tourStatus: TOUR_SCHEDULE_STATUS.AVAILABLE
+        include: [
+          {
+            model: db.Schedule,
+            as: "tour_schedule",
+            attributes: {
+              exclude: [
+                "createdAt",
+                "updatedAt",
+                "status",
+              ],
+            },
+            where: {
+              scheduleStatus: TOUR_SCHEDULE_STATUS.AVAILABLE
+            }
+          },
+        ]
       },
       attributes: ["tourId"],
       // include: [
@@ -166,9 +181,9 @@ async function cancelTourAndRefundIfUnderbooked() {
               }
             }
 
-            await db.Tour.update(
-              { tourStatus: TOUR_SCHEDULE_STATUS.CANCELED },
-              { where: { tourId: tour.tourId }, transaction: t }
+            await db.Schedule.update(
+              { scheduleStatus: TOUR_SCHEDULE_STATUS.CANCELED },
+              { where: { tourId: tour.tour_schedule.scheduleId }, transaction: t }
             )
 
             // await db.Notification.create({

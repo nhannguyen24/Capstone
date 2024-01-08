@@ -85,7 +85,7 @@ const getAllFileSound = (
                             resolve({
                                 status: StatusCodes.OK,
                                 data: {
-                                    msg: sounds ? "Got sounds" : "Cannot find sounds",
+                                    msg: sounds.length > 0  ? "Got sounds" : "Cannot find sounds",
                                     sounds: sounds,
                                 }
                             });

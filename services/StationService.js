@@ -59,7 +59,7 @@ const getAllStation = (
                             resolve({
                                 status: StatusCodes.OK,
                                 data: {
-                                    msg: stations ? "Got stations" : "Cannot find stations",
+                                    msg: stations.length > 0  ? "Got stations" : "Cannot find stations",
                                     stations: stations,
                                 }
                             });

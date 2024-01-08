@@ -9,6 +9,7 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerJSDoc = require("swagger-jsdoc");
 require("./config/ConnectionDatabase");
 const compression = require('compression');
+const service = require('./services/PaymentService');
 
 app.use(
   compression({
@@ -66,6 +67,8 @@ const specs = swaggerJSDoc(options);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 const PORT = process.env.PORT || 3000;
+
+app.post('/api/v1/stripe/webhook', express.raw({type: "*/*"}), service.stripeWebhook);
 
 app.use(express.json());
 

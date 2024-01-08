@@ -293,7 +293,7 @@ const getAllTour = (
                     resolve({
                         status: StatusCodes.OK,
                         data: {
-                            msg: tours ? "Got tours" : "Tours not found!",
+                            msg: tours.length > 0 ? "Got tours" : "Tours not found!",
                             tours: tours,
                         }
                     })
@@ -1557,7 +1557,6 @@ const assignTour = () =>
                         "endBookingDate",
                         "departureDate",
                         "duration",
-                        "tourStatus",
                         "status",
                         "isScheduled"
                     ],
@@ -1951,64 +1950,6 @@ const updateTour = (id, { images, ...body }) =>
                     }
                 )
 
-                if (body.tourStatus == TOUR_SCHEDULE_STATUS.STARTED) {
-                    await db.TourDetail.update({
-                        status: STATUS.NOTARRIVED,
-                    }, {
-                        where: { tourId: id, },
-                        individualHooks: true,
-                        transaction: t
-                    })
-                }
-
-                if (body.tourStatus == TOUR_SCHEDULE_STATUS.FINISHED) {
-                    await db.Bus.update({
-                        status: STATUS.ACTIVE,
-                    }, {
-                        where: { busId: findTour.busId },
-                        individualHooks: true,
-                        transaction: t
-                    })
-
-                    const bookingOfTour = await db.BookingDetail.findAll({
-                        nest: true,
-                        include: [
-                            {
-                                model: db.Ticket,
-                                as: "booking_detail_ticket",
-                                attributes: {
-                                    exclude: [
-                                        "createdAt",
-                                        "updatedAt",
-                                        "status",
-                                    ],
-                                },
-                                where: {
-                                    tourId: { [Op.eq]: findTour.tourId },
-                                },
-                            },
-                        ]
-                    })
-
-                    let bookingDetailIdArray = []
-                    for (const bookingDetail of bookingOfTour) {
-                        bookingDetailIdArray.push(bookingDetail.bookingId)
-                    }
-
-                    await db.Booking.update({
-                        bookingStatus: BOOKING_STATUS.FINISHED,
-                    }, {
-                        where: {
-                            bookingId: {
-                                [Op.in]: bookingDetailIdArray
-                            },
-                            bookingStatus: BOOKING_STATUS.ON_GOING
-                        },
-                        individualHooks: true,
-                        transaction: t
-                    })
-                }
-
                 if (images) {
                     await db.Image.destroy({
                         where: {
@@ -2171,6 +2112,17 @@ const cloneTour = (id, body) =>
                                             "status",
                                         ],
                                     },
+                                    include: {
+                                        model: db.Price,
+                                        as: "ticket_type_price",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                    }
                                 }
                             ]
                         },
@@ -2272,7 +2224,6 @@ const cloneTour = (id, body) =>
                                 "endBookingDate",
                                 "departureDate",
                                 "duration",
-                                "tourStatus",
                                 "status",
                                 "isScheduled"
                             ],
@@ -2729,11 +2680,11 @@ const cloneTour = (id, body) =>
     });
 
 const getAllTourManager = (
-    { page, limit, order, tourName, address, tourStatus, status, routeId, tourGuideId, driverId, departureDate, endDate, ...query }
+    { page, limit, order, tourName, address, status, routeId, tourGuideId, driverId, departureDate, endDate, ...query }
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`tours_manager_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}_${departureDate}_${endDate}`, async (error, tour) => {
+            redisClient.get(`tours_manager_${page}_${limit}_${order}_${tourName}_${status}_${routeId}_${tourGuideId}_${driverId}_${departureDate}_${endDate}`, async (error, tour) => {
                 if (tour != null && tour != "") {
                     resolve({
                         status: StatusCodes.OK,
@@ -2757,7 +2708,6 @@ const getAllTourManager = (
                         ]
                     }
                     if (tourName) query.tourName = { [Op.substring]: tourName }
-                    if (tourStatus) query.tourStatus = { [Op.eq]: tourStatus }
                     if (routeId) query.routeId = { [Op.eq]: routeId }
                     if (status) query.status = { [Op.eq]: status }
                     if (tourGuideId) query.tourGuideId = { [Op.eq]: tourGuideId }
@@ -2932,7 +2882,7 @@ const getAllTourManager = (
                         ]
                     })
 
-                    redisClient.setEx(`tours_manager_${page}_${limit}_${order}_${tourName}_${tourStatus}_${status}_${routeId}_${tourGuideId}_${driverId}_${departureDate}_${endDate}`, 3600, JSON.stringify(tours))
+                    redisClient.setEx(`tours_manager_${page}_${limit}_${order}_${tourName}_${status}_${routeId}_${tourGuideId}_${driverId}_${departureDate}_${endDate}`, 3600, JSON.stringify(tours))
 
                     resolve({
                         status: tours ? StatusCodes.OK : StatusCodes.NOT_FOUND,
@@ -3035,7 +2985,6 @@ const createTourDemo = () =>
                         "endBookingDate",
                         "departureDate",
                         "duration",
-                        "tourStatus",
                         "status",
                         "isScheduled"
                     ],

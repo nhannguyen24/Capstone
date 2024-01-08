@@ -484,15 +484,15 @@
 //     ],
 //     "schedules": [
 //       {
-//         "departureDate": "2023-12-28T09:00:00Z",
+//         "departureDate": "2024-01-11T09:00:00Z",
 //         "departureStationId": "0aeaf58d-cea9-497f-a40a-9308c9705dbe"
 //       },
 //       {
-//         "departureDate": "2023-12-29T09:00:00Z",
+//         "departureDate": "2024-01-11T09:00:00Z",
 //         "departureStationId": "0fb1c1e2-81a4-4ade-bb62-9a52bef8a4f3"
 //       },
 //   {
-//         "departureDate": "2023-12-29T11:00:00Z",
+//         "departureDate": "2024-01-11T09:00:00Z",
 //         "departureStationId": "52cd4ad3-4494-403a-b8cc-b82777aa68dc"
 //       }
 //     ],
@@ -560,3 +560,26 @@
 
 // console.log('routeSegmentsSortByDepartureStation', routeSegmentsSortByDepartureStation);
 // console.log('routeSegmentsSortByDepartureStation2', routeSegmentsSortByDepartureStation2);
+
+
+
+
+
+// {
+//     "totalPrice": 150000,
+//     "departureStationId": "52cd4ad3-4494-403a-b8cc-b82777aa68dc",
+//     "user": {
+//       "email": "nhannd2426@gmail.com",
+//       "userName": "nhannd2426@gmail.com",
+//       "phone": "0898149849"
+//     },
+//     "tickets": [
+//       {
+//         "ticketId": "4b56ec7c-d891-4ef5-ad9e-a6e681c6b174",
+//         "ticketTypeId": "99f73c58-7c81-4152-90f9-21e50637e9c8",
+//         "scheduleId": "dbe77ea8-b9f9-4f22-8b31-97a662dcce91",
+//         "priceId": "83bdc7a1-c77e-46c7-b8f0-de7fd4bf5859",
+//         "quantity": 1
+//       }
+//     ]
+//   }

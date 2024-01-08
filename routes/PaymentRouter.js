@@ -120,4 +120,43 @@ router.get("/pay-os", controllers.getPayOsPaymentResponse);
 //  */
 // router.get("/:id", controllers.getPayOsPaymentResponse);
 
+/**
+ * @swagger
+ * /api/v1/payments/stripe:
+ *   post:
+ *     summary: Pay with Stripe
+ *     tags: [Payment]
+ *     parameters:
+ *       - in: query
+ *         name: success_url
+ *         schema:
+ *           type: string
+ *           example: https://walletfpt.com
+ *       - in: query
+ *         name: cancel_url
+ *         schema:
+ *           type: string
+ *           example: https://walletfpt.com
+ *       - in: query
+ *         name: amount
+ *         schema:
+ *           type: string
+ *           example: 30000
+ *         required: true
+ *       - in: query
+ *         name: bookingId
+ *         schema:
+ *           type: string
+ *           example: 2233d992-f13f-49b9-a878-80a77e1e2d62
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ */
+router.post("/stripe", controllers.paymentStripe)
+
 module.exports = router;

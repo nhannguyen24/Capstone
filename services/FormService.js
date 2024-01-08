@@ -91,7 +91,18 @@ const getAllForm = (
                                     "status",
                                 ],
                             },
-                        }
+                        },
+                        {
+                            model: db.Station,
+                            as: "schedule_departure_station",
+                            attributes: {
+                                exclude: [
+                                    "createdAt",
+                                    "updatedAt",
+                                    "status",
+                                ],
+                            },
+                        },
                     ]
                 })
 
@@ -112,7 +123,18 @@ const getAllForm = (
                                     "status",
                                 ],
                             },
-                        }
+                        },
+                        {
+                            model: db.Station,
+                            as: "schedule_departure_station",
+                            attributes: {
+                                exclude: [
+                                    "createdAt",
+                                    "updatedAt",
+                                    "status",
+                                ],
+                            },
+                        },
                     ]
                 })
 
@@ -123,7 +145,7 @@ const getAllForm = (
             resolve({
                 status: StatusCodes.OK,
                 data: {
-                    msg: forms ? "Got forms" : "Cannot find forms",
+                    msg: forms.length > 0  ? "Got forms" : "Cannot find forms",
                     forms: forms,
                 }
             });

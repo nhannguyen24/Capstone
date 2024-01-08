@@ -221,9 +221,24 @@ const updateBus = async (req) => {
                     where: {
                         busId: busId,
                         status: STATUS.ACTIVE,
-                        tourStatus: {
-                            [Op.in]: ['Started', 'Available'],
-                        },
+                        include: [
+                            {
+                                model: db.Schedule,
+                                as: "tour_schedule",
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                                where: {
+                                    scheduleStatus: {
+                                        [Op.in]: ['Started', 'Available'],
+                                    },
+                                }
+                            },
+                        ]
                     },
                 })
 
@@ -290,9 +305,24 @@ const deleteBus = async (busId) => {
             where: {
                 busId: busId,
                 status: STATUS.ACTIVE,
-                tourStatus: {
-                    [Op.in]: ['Started', 'Available'],
-                },
+                include: [
+                    {
+                        model: db.Schedule,
+                        as: "tour_schedule",
+                        attributes: {
+                            exclude: [
+                                "createdAt",
+                                "updatedAt",
+                                "status",
+                            ],
+                        },
+                        where: {
+                            scheduleStatus: {
+                                [Op.in]: ['Started', 'Available'],
+                            },
+                        }
+                    },
+                ]
             },
         })
 

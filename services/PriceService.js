@@ -218,7 +218,7 @@ const updatePrice = async (req) => {
                     include: {
                         model: db.Tour,
                         as: "ticket_tour",
-                        attributes: ["tourId", "tourName", "tourStatus", "departureDate"],
+                        attributes: ["tourId", "tourName", "departureDate"],
                         include: {
                             model: db.Schedule,
                             as: "tour_schedule",

@@ -28,11 +28,11 @@ module.exports = (sequelize, DataTypes) => {
     transactionCode: DataTypes.STRING,
     transactionType: {
       type: DataTypes.ENUM,
-      values: [["MOMO", "PAY-OS", "Cash"],],
+      values: [["MOMO", "PAY-OS", "Cash", "STRIPE"],],
       validate: {
         isIn: {
-          args: [["MOMO", "PAY-OS", "Cash"]],
-          msg: 'Invalid value for transaction.type (MOMO, PAY-OS, Cash)'
+          args: [["MOMO", "PAY-OS", "Cash", "STRIPE"]],
+          msg: 'Invalid value for transaction.type (MOMO, PAY-OS, Cash, STRIPE)'
         }
       }
     },

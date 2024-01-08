@@ -15,13 +15,10 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  *         scheduleId:
  *           type: string
  *           description: The auto-generated id of the schedule
- *         date:
- *           type: string
- *           description: The schedule date
- *         startTime:
+ *         startDate:
  *           type: string
  *           description: The schedule departure time
- *         endTime:
+ *         endDate:
  *           type: string
  *           description: The schedule end time
  *         busId:
@@ -36,6 +33,9 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  *         driverId:
  *           type: string
  *           description: The driver of schedule
+ *         scheduleStatus:
+ *           type: string
+ *           description: The schedule status('Available','Started','Canceled','Finished')
  *         status:
  *           type: string
  *           description: The schedule status('Active', 'Deactive')
@@ -70,6 +70,11 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  *         schema:
  *           type: string
  *         description: Find schedule by driverId
+ *       - name: scheduleStatus
+ *         in: query
+ *         schema:
+ *           type: string
+ *           enum: ["Available", "Started", "Canceled", "Finished"]
  *       - name: status
  *         in: query
  *         schema:
@@ -226,45 +231,45 @@ router.get("/:id", verifyToken, controllers.getScheduleById);
  */
 router.post("/", verifyToken, roleAuthen(["Admin", "Manager"]), controllers.createSchedule);
 
-// /**
-//  * @swagger
-//  * /api/v1/schedules:
-//  *   put:
-//  *     security: 
-//  *         - BearerAuth: []
-//  *     summary: Update the schedule by id
-//  *     tags: [Schedule]
-//  *     parameters:
-//  *       - in: path
-//  *         name: id
-//  *         schema:
-//  *           type: string
-//  *         required: true
-//  *         description: Update schedule by id
-//  *     requestBody:
-//  *       content:
-//  *          application/json:
-//  *            schema:                     
-//  *                  example:
-//  *                    departureDate: 2023-12-30T00:00:00Z
-//  *                    departureStationId: a46ac6ed-7d0d-4f02-a9b5-9d9e6f39ff40
-//  *                    tourId: 8c382e13-8620-460a-bd95-96b1152c1368
-//  *                    tourGuideId: 8c382e13-8620-460a-bd95-96b1152c1368
-//  *                    driverId: 8c382e13-8620-460a-bd95-96b1152c1368
-//  *                    busId: 8c382e13-8620-460a-bd95-96b1152c1368
-//  *                    scheduleStatus: Started
-//  *                    status: Active
-//  *     responses:
-//  *       200:
-//  *         description: Update the schedule successfully
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               type: array
-//  *               items:
-//  *                 $ref: '#/components/schemas/Schedule'
-//  */
-// router.put("/", verifyToken, roleAuthen(["Admin", "Manager"]), controllers.updateSchedule);
+/**
+ * @swagger
+ * /api/v1/schedules/{id}:
+ *   put:
+ *     security: 
+ *         - BearerAuth: []
+ *     summary: Update the schedule by id
+ *     tags: [Schedule]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Update schedule by id
+ *     requestBody:
+ *       content:
+ *          application/json:
+ *            schema:                     
+ *                  example:
+ *                    departureDate: 2024-01-02T08:00:00Z
+ *                    departureStationId: a46ac6ed-7d0d-4f02-a9b5-9d9e6f39ff40
+ *                    tourId: 8c382e13-8620-460a-bd95-96b1152c1368
+ *                    tourGuideId: 8c382e13-8620-460a-bd95-96b1152c1368
+ *                    driverId: 8c382e13-8620-460a-bd95-96b1152c1368
+ *                    busId: 8c382e13-8620-460a-bd95-96b1152c1368
+ *                    scheduleStatus: Started
+ *                    status: Active
+ *     responses:
+ *       200:
+ *         description: Update the schedule successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Schedule'
+ */
+router.put("/:id", verifyToken, roleAuthen(["Admin", "Manager", "TourGuide", "Driver"]), controllers.updateSchedule);
 
 /**
  * @swagger
