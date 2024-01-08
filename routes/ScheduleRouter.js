@@ -33,6 +33,9 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  *         driverId:
  *           type: string
  *           description: The driver of schedule
+ *         scheduleStatus:
+ *           type: string
+ *           description: The schedule status('Available','Started','Canceled','Finished')
  *         status:
  *           type: string
  *           description: The schedule status('Active', 'Deactive')
@@ -67,6 +70,11 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  *         schema:
  *           type: string
  *         description: Find schedule by driverId
+ *       - name: scheduleStatus
+ *         in: query
+ *         schema:
+ *           type: string
+ *           enum: ["Available", "Started", "Canceled", "Finished"]
  *       - name: status
  *         in: query
  *         schema:

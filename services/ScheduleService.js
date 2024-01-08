@@ -9,12 +9,12 @@ const { sendNotification } = require("../utils/NotificationUtil");
 const { sortRouteSegmentByDepartureStation } = require("../utils/SortRouteSegmentUlti");
 
 const getAllSchedule = (
-    { page, limit, order, busId, tourId, tourGuideId, driverId, status, departureDate, endDate, ...query },
+    { page, limit, order, busId, tourId, tourGuideId, driverId, status, departureDate, endDate, scheduleStatus, ...query },
     roleName
 ) =>
     new Promise(async (resolve, reject) => {
         try {
-            redisClient.get(`schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}_${departureDate}_${endDate}`, async (error, schedule) => {
+            redisClient.get(`schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}_${departureDate}_${endDate}_${scheduleStatus}`, async (error, schedule) => {
                 if (error) console.error(error);
                 if (schedule != null && schedule != "" && roleName != 'Admin') {
                     resolve({
@@ -25,7 +25,7 @@ const getAllSchedule = (
                         }
                     });
                 } else {
-                    redisClient.get(`admin_schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}_${departureDate}_${endDate}`, async (error, adminSchedule) => {
+                    redisClient.get(`admin_schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}_${departureDate}_${endDate}_${scheduleStatus}`, async (error, adminSchedule) => {
                         if (adminSchedule != null && adminSchedule != "") {
                             resolve({
                                 status: StatusCodes.OK,
@@ -49,6 +49,7 @@ const getAllSchedule = (
                             if (tourGuideId) query.tourGuideId = { [Op.eq]: tourGuideId };
                             if (driverId) query.driverId = { [Op.eq]: driverId };
                             if (status) query.status = { [Op.eq]: status };
+                            if (scheduleStatus) query.scheduleStatus = { [Op.eq]: scheduleStatus };
                             if (departureDate) {
                                 const startTimeConvert = new Date(departureDate);
                                 query.departureDate = { [Op.gte]: startTimeConvert };
@@ -56,9 +57,6 @@ const getAllSchedule = (
                             if (endDate) {
                                 const endTimeConvert = new Date(endDate);
                                 query.endDate = { [Op.lte]: endTimeConvert };
-                            }
-                            if (roleName !== "Admin") {
-                                query.status = { [Op.notIn]: ['Deactive'] };
                             }
                             const schedules = await db.Schedule.findAll({
                                 where: query,
@@ -266,9 +264,9 @@ const getAllSchedule = (
                             }))
 
                             if (roleName !== "Admin") {
-                                redisClient.setEx(`schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}_${departureDate}_${endDate}`, 3600, JSON.stringify(schedules));
+                                redisClient.setEx(`schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}_${departureDate}_${endDate}_${scheduleStatus}`, 3600, JSON.stringify(schedules));
                             } else {
-                                redisClient.setEx(`admin_schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}_${departureDate}_${endDate}`, 3600, JSON.stringify(schedules));
+                                redisClient.setEx(`admin_schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}_${departureDate}_${endDate}_${scheduleStatus}`, 3600, JSON.stringify(schedules));
                             }
                             resolve({
                                 status: StatusCodes.OK,
