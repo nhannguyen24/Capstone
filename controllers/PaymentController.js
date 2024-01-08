@@ -146,4 +146,23 @@ const paymentStripe = async (req, res) => {
     }
 }
 
-module.exports = { paymentMomo, paymentPayOs, getPaymentMomo, paymentOffline, getPayOsPaymentResponse, paymentStripe }
+const paidScheduleTransaction = async (req, res) => {
+    try {
+        const errors = {}
+        const scheduleId = req.query.scheduleId || ""
+        if(scheduleId.trim() === ""){
+            errors.scheduleId = "Tour schedule required!"
+        }
+
+        if (Object.keys(errors).length === 0) {
+            const response = await services.paidScheduleTransaction(scheduleId)
+            return res.status(response.status).json(response.data)
+        } else {
+            return res.status(StatusCodes.BAD_REQUEST).json(errors)
+        }
+    } catch (error) {
+        throw new InternalServerError(error)
+    }
+}
+
+module.exports = { paymentMomo, paymentPayOs, getPaymentMomo, paymentOffline, getPayOsPaymentResponse, paymentStripe, paidScheduleTransaction }

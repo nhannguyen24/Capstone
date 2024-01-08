@@ -72,31 +72,6 @@ router.get("/", verifyToken, roleAuthen(["Manager", "Customer"]), controllers.ge
 
 /**
  * @swagger
- * /api/v1/transactions/paid-manager:
- *   put:
- *     security: 
- *         - BearerAuth: []
- *     summary: Manager receive money from booking offline and change status
- *     tags: [Transaction]
- *     parameters:
- *       - in: query
- *         name: tourId
- *         schema:
- *           type: string
- *         required: true
- * 
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- */
-router.put("/paid-manager", verifyToken, roleAuthen(["Manager", "TourGuide"]), controllers.paidBackToManager)
-
-/**
- * @swagger
  * /api/v1/transactions/{id}:
  *   get:
  *     security: 
