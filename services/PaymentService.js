@@ -1142,6 +1142,63 @@ const stripeWebhook = async (req, res) => {
   }
 };
 
+const paidScheduleTransaction = async (scheduleId) => {
+  try {
+    const tourSchedule = await db.Schedule.findOne({
+      where: {
+        scheduleId: scheduleId
+      }
+    })
+    if (!tourSchedule) {
+      return {
+        status: StatusCodes.NOT_FOUND,
+        data: {
+          msg: "Tour schedule not found!"
+        }
+      }
+    }
+
+    const bookings = await db.Booking.findAll({
+      where: {
+        scheduleId: scheduleId
+      },
+      include: {
+        model: db.Transaction,
+        as: "booking_transaction",
+        where: {
+          transactionType: TRANSACTION_TYPE.CASH,
+          status: STATUS.PAID
+        },
+      }
+    })
+
+    bookings.map((booking) => {
+      db.Transaction.update({ isPaidToManager: true }, {
+        where: {
+          bookingId: booking.bookingId
+        },
+        individualHooks: true
+      })
+    })
+
+    return {
+      status: StatusCodes.OK,
+      data: {
+        msg: `Update paid schedule transaction successfully!`,
+      }
+    }
+
+  } catch (error) {
+    console.error(error)
+    return {
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+      data: {
+        msg: "Something went wrong while update paid schedule transaction!"
+      }
+    }
+  }
+}
+
 module.exports = {
   createMoMoPaymentRequest,
   createPayOsPaymentRequest,
@@ -1150,5 +1207,6 @@ module.exports = {
   getPayOsPaymentResponse,
   paymentOffline,
   createStripePaymentRequest,
-  stripeWebhook
+  stripeWebhook,
+  paidScheduleTransaction
 }

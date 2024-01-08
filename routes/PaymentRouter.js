@@ -1,6 +1,7 @@
 const controllers = require('../controllers/PaymentController');
 const express = require('express');
-
+const verifyToken = require('../middlewares/VerifyToken');
+const {roleAuthen} = require('../middlewares/VerifyRole');
 const router = express.Router();
 
 /**
@@ -158,5 +159,30 @@ router.get("/pay-os", controllers.getPayOsPaymentResponse);
  *               type: object
  */
 router.post("/stripe", controllers.paymentStripe)
+
+/**
+ * @swagger
+ * /api/v1/payments/schedule-transaction:
+ *   put:
+ *     security: 
+ *         - BearerAuth: []
+ *     summary: Update schedule transaction when received money from tour guide
+ *     tags: [Payment]
+ *     parameters:
+ *       - in: query
+ *         name: scheduleId
+ *         schema:
+ *           type: string
+ *         required: true
+ * 
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ */
+router.put("/schedule-transaction", verifyToken, roleAuthen(["TourGuide"]), controllers.paidScheduleTransaction)
 
 module.exports = router;
