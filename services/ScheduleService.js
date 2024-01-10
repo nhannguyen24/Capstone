@@ -1164,7 +1164,7 @@ const updateSchedule = (id, body) =>
                 } else {
                     let tourGuide = body.tourGuideId;
                     let driver = body.driverId;
-                    let bus = body.busId;
+                    let bus = body.busId; 
 
                     const findSchedule = await db.Schedule.findOne({
                         raw: true, nest: true,
@@ -1410,14 +1410,6 @@ const updateSchedule = (id, body) =>
                     }
 
                     if (body.scheduleStatus == TOUR_SCHEDULE_STATUS.FINISHED) {
-                        await db.Bus.update({
-                            status: STATUS.ACTIVE,
-                        }, {
-                            where: { busId: findTour.busId },
-                            individualHooks: true,
-                            transaction: t
-                        })
-
                         const bookingOfTour = await db.BookingDetail.findAll({
                             nest: true,
                             include: [
@@ -1432,7 +1424,7 @@ const updateSchedule = (id, body) =>
                                         ],
                                     },
                                     where: {
-                                        tourId: { [Op.eq]: findTour.tourId },
+                                        tourId: { [Op.eq]: findSchedule.schedule_tour.tourId },
                                     },
                                 },
                             ]
