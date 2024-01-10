@@ -222,7 +222,7 @@ const createReport = async (req) => {
         return{
             status: report ? StatusCodes.CREATED : StatusCodes.BAD_REQUEST,
             data: {
-                msg: report ? 'Create report successfully' : 'Failed to create report',
+                msg: report ? 'Create report successfully' : 'Failed to report!',
                 report: report
             }
         }
