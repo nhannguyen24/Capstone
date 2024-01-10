@@ -199,7 +199,7 @@ const createFeedback = async (req) => {
         return {
             status: created ? StatusCodes.CREATED : StatusCodes.BAD_REQUEST,
             data: {
-                msg: created ? 'Create feedback successfully' : 'Customer already left feedback for this route',
+                msg: created ? 'Create feedback successfully!' : 'Customer already left feedback for this tour!',
                 feedback: created ? feedback : ""
             }
         }
