@@ -97,6 +97,43 @@ const getAllSchedule = (
                                                     ],
                                                 },
                                             },
+                                            {
+                                                model: db.Ticket,
+                                                as: "tour_ticket",
+                                                attributes: {
+                                                    exclude: [
+                                                        "tourId",
+                                                        "ticketTypeId",
+                                                        "createdAt",
+                                                        "updatedAt",
+                                                        "status",
+                                                    ],
+                                                },
+                                                include: [
+                                                    {
+                                                        model: db.TicketType,
+                                                        as: "ticket_type",
+                                                        attributes: {
+                                                            exclude: [
+                                                                "createdAt",
+                                                                "updatedAt",
+                                                                "status",
+                                                            ],
+                                                        },
+                                                        include: {
+                                                            model: db.Price,
+                                                            as: "ticket_type_price",
+                                                            attributes: {
+                                                                exclude: [
+                                                                    "createdAt",
+                                                                    "updatedAt",
+                                                                    "status",
+                                                                ],
+                                                            },
+                                                        }
+                                                    }
+                                                ]
+                                            },
                                         ]
                                     },
                                     {
@@ -470,6 +507,43 @@ const getScheduleById = (scheduleId) =>
                                         "status",
                                     ],
                                 },
+                            },
+                            {
+                                model: db.Ticket,
+                                as: "tour_ticket",
+                                attributes: {
+                                    exclude: [
+                                        "tourId",
+                                        "ticketTypeId",
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                                include: [
+                                    {
+                                        model: db.TicketType,
+                                        as: "ticket_type",
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                        include: {
+                                            model: db.Price,
+                                            as: "ticket_type_price",
+                                            attributes: {
+                                                exclude: [
+                                                    "createdAt",
+                                                    "updatedAt",
+                                                    "status",
+                                                ],
+                                            },
+                                        }
+                                    }
+                                ]
                             },
                         ]
                     },
