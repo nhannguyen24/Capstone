@@ -140,6 +140,7 @@ router.get("/", verifyToken, controllers.getAllSchedule)
  *         name: isPaidToManager
  *         schema:
  *           type: boolean
+ *         required: true
  *     responses:
  *       200:
  *         description: OK
