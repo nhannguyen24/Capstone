@@ -326,27 +326,29 @@ const getAllSchedule = (
 const getScheduleTransactionList = async (tourGuideId, isPaidToManager) => {
     try {
         isPaidToManager = isPaidToManager === "true" ? true : false
+        const whereClauseSchedule = { scheduleStatus: TOUR_SCHEDULE_STATUS.FINISHED }
+        const whereClauseTransaction = { status: STATUS.PAID, transactionType: TRANSACTION_TYPE.CASH, isPaidToManager: isPaidToManager }
 
-        const tourGuide = await db.User.findOne({
-            where: {
-                userId: tourGuideId
-            }
-        })
-
-        if (!tourGuide) {
-            return {
-                status: StatusCodes.NOT_FOUND,
-                data: {
-                    msg: "Tour guide not found!",
+        if(tourGuideId.trim() !== ""){
+            const tourGuide = await db.User.findOne({
+                where: {
+                    userId: tourGuideId
+                }
+            })
+    
+            if (!tourGuide) {
+                return {
+                    status: StatusCodes.NOT_FOUND,
+                    data: {
+                        msg: "Tour guide not found!",
+                    }
                 }
             }
+            whereClauseSchedule.tourGuideId = tourGuideId
         }
 
         const tourSchedules = await db.Schedule.findAll({
-            where: {
-                tourGuideId: tourGuideId,
-                scheduleStatus: TOUR_SCHEDULE_STATUS.FINISHED
-            },
+            where: whereClauseSchedule,
             order: [
                 ["updatedAt", "DESC"]
             ],
@@ -361,11 +363,7 @@ const getScheduleTransactionList = async (tourGuideId, isPaidToManager) => {
                         attributes: {
                             exclude: ["createdAt", "updatedAt", "bookingId"]
                         },
-                        where: {
-                            transactionType: TRANSACTION_TYPE.CASH,
-                            isPaidToManager: isPaidToManager,
-                            status: STATUS.PAID,
-                        }
+                        where: whereClauseTransaction
                     }
                 }, {
                     model: db.User,
