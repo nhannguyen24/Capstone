@@ -288,6 +288,8 @@ const getAllSchedule = (
 
 const getScheduleTransactionList = async (tourGuideId, isPaidToManager) => {
     try {
+        isPaidToManager = isPaidToManager === "true" ? true : false
+
         const tourGuide = await db.User.findOne({
             where: {
                 userId: tourGuideId
@@ -354,7 +356,7 @@ const getScheduleTransactionList = async (tourGuideId, isPaidToManager) => {
             status: StatusCodes.OK,
             data: {
                 msg: `Get schedule transaction list successfully`,
-                isPaidToManager: isPaidToManager === "true" ? true : false,
+                isPaidToManager: isPaidToManager,
                 schedules: filteredSchedules
             }
         }
@@ -377,14 +379,14 @@ const getScheduleTransactionDetail = async (scheduleId) => {
                 scheduleId: scheduleId
             }
         })
-        // if (!tourSchedule) {
-        //     return {
-        //         status: StatusCodes.NOT_FOUND,
-        //         data: {
-        //             msg: "Tour schedule not found!"
-        //         }
-        //     }
-        // }
+        if (!tourSchedule) {
+            return {
+                status: StatusCodes.NOT_FOUND,
+                data: {
+                    msg: "Tour schedule not found!"
+                }
+            }
+        }
 
         const bookings = await db.Booking.findAll({
             where: {
