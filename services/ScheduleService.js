@@ -675,6 +675,41 @@ const getScheduleById = (scheduleId) =>
             });
 
             for (const scheduleObj of schedule) {
+                const booking = await db.BookingDetail.findAll({
+                    raw: true,
+                    nest: true,
+                    where: {
+                        status: STATUS.ACTIVE
+                    },
+                    include: {
+                        model: db.Ticket,
+                        as: "booking_detail_ticket",
+                        where: {
+                            tourId: scheduleObj.schedule_tour.tourId
+                        },
+                        attributes: {
+                            exclude: [
+                                "createdAt",
+                                "updatedAt",
+                                "status",
+                            ],
+                        },
+                    },
+                    attributes: [
+                        [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
+                    ]
+                })
+
+                if (scheduleObj.schedule_bus !== null) {
+                    if (booking[0].total_quantity === null) {
+                        scheduleObj.dataValues.availableSeats = scheduleObj.schedule_bus.numberSeat
+                    } else {
+                        scheduleObj.dataValues.availableSeats = scheduleObj.schedule_bus.numberSeat - parseInt(booking[0].total_quantity)
+                    }
+                } else {
+                    scheduleObj.dataValues.availableSeats = 0
+                }
+
                 const routeSegments = await db.RouteSegment.findAll({
                     nest: true,
                     where: {
