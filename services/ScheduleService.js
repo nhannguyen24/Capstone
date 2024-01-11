@@ -229,6 +229,41 @@ const getAllSchedule = (
                             });
 
                             await Promise.all(schedules.map(async (schedule) => {
+                                const booking = await db.BookingDetail.findAll({
+                                    raw: true,
+                                    nest: true,
+                                    where: {
+                                        status: STATUS.ACTIVE
+                                    },
+                                    include: {
+                                        model: db.Ticket,
+                                        as: "booking_detail_ticket",
+                                        where: {
+                                            tourId: schedule.schedule_tour.tourId
+                                        },
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                    },
+                                    attributes: [
+                                        [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
+                                    ]
+                                })
+    
+                                if (schedule.schedule_bus !== null) {
+                                    if (booking[0].total_quantity === null) {
+                                        schedule.dataValues.availableSeats = schedule.schedule_bus.numberSeat
+                                    } else {
+                                        schedule.dataValues.availableSeats = schedule.schedule_bus.numberSeat - parseInt(booking[0].total_quantity)
+                                    }
+                                } else {
+                                    schedule.dataValues.availableSeats = 0
+                                }
+
                                 const routeSegments = await db.RouteSegment.findAll({
                                     nest: true,
                                     where: {
