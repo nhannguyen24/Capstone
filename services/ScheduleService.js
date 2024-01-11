@@ -360,26 +360,30 @@ const getAllSchedule = (
 
 const getScheduleTransactionList = async (tourGuideId, isPaidToManager) => {
     try {
-        const tourGuide = await db.User.findOne({
-            where: {
-                userId: tourGuideId
-            }
-        })
+        isPaidToManager = isPaidToManager === "true" ? true : false
+        const whereClauseSchedule = { scheduleStatus: TOUR_SCHEDULE_STATUS.FINISHED }
+        const whereClauseTransaction = { status: STATUS.PAID, transactionType: TRANSACTION_TYPE.CASH, isPaidToManager: isPaidToManager }
 
-        if (!tourGuide) {
-            return {
-                status: StatusCodes.NOT_FOUND,
-                data: {
-                    msg: "Tour guide not found!",
+        if(tourGuideId.trim() !== ""){
+            const tourGuide = await db.User.findOne({
+                where: {
+                    userId: tourGuideId
+                }
+            })
+    
+            if (!tourGuide) {
+                return {
+                    status: StatusCodes.NOT_FOUND,
+                    data: {
+                        msg: "Tour guide not found!",
+                    }
                 }
             }
+            whereClauseSchedule.tourGuideId = tourGuideId
         }
 
         const tourSchedules = await db.Schedule.findAll({
-            where: {
-                tourGuideId: tourGuideId,
-                scheduleStatus: TOUR_SCHEDULE_STATUS.FINISHED
-            },
+            where: whereClauseSchedule,
             order: [
                 ["updatedAt", "DESC"]
             ],
@@ -394,11 +398,7 @@ const getScheduleTransactionList = async (tourGuideId, isPaidToManager) => {
                         attributes: {
                             exclude: ["createdAt", "updatedAt", "bookingId"]
                         },
-                        where: {
-                            transactionType: TRANSACTION_TYPE.CASH,
-                            isPaidToManager: isPaidToManager,
-                            status: STATUS.PAID,
-                        }
+                        where: whereClauseTransaction
                     }
                 }, {
                     model: db.User,
@@ -426,7 +426,7 @@ const getScheduleTransactionList = async (tourGuideId, isPaidToManager) => {
             status: StatusCodes.OK,
             data: {
                 msg: `Get schedule transaction list successfully`,
-                isPaidToManager: isPaidToManager === "true" ? true : false,
+                isPaidToManager: isPaidToManager,
                 schedules: filteredSchedules
             }
         }
@@ -449,14 +449,14 @@ const getScheduleTransactionDetail = async (scheduleId) => {
                 scheduleId: scheduleId
             }
         })
-        // if (!tourSchedule) {
-        //     return {
-        //         status: StatusCodes.NOT_FOUND,
-        //         data: {
-        //             msg: "Tour schedule not found!"
-        //         }
-        //     }
-        // }
+        if (!tourSchedule) {
+            return {
+                status: StatusCodes.NOT_FOUND,
+                data: {
+                    msg: "Tour schedule not found!"
+                }
+            }
+        }
 
         const bookings = await db.Booking.findAll({
             where: {

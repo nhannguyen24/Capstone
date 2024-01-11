@@ -135,7 +135,6 @@ router.get("/", verifyToken, controllers.getAllSchedule)
  *         name: tourGuideId
  *         schema:
  *           type: string
- *         required: true
  *         description: Search by tourGuideId
  *       - in: query
  *         name: isPaidToManager

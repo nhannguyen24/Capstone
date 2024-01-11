@@ -17,14 +17,10 @@ const getScheduleTransactionList = async (req, res) => {
         const errors = {}
         const tourGuideId = req.query.tourGuideId || ""
         const isPaidToManager = req.query.isPaidToManager || ""
-        if(tourGuideId.trim() === ""){
-            errors.tourGuideId = "Tour guide required!"
-        }
+
         if(isPaidToManager.trim() === ""){
             errors.isPaidToManager = "Is paid to manager field required!"
-        } else if(typeof isPaidToManager === "boolean"){
-            errors.isPaidToManager = "Is paid to manager need to be a boolean value!"
-        }
+        } 
 
         if (Object.keys(errors).length === 0) {
             const response = await services.getScheduleTransactionList(tourGuideId, isPaidToManager)
