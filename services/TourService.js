@@ -17,11 +17,63 @@ const getAllTour = (
         try {
             redisClient.get(`tours_${page}_${limit}_${order}_${tourName}_${status}_${scheduleId}`, async (error, tour) => {
                 if (tour != null && tour != "") {
+                    const tours = JSON.parse(tour);
+                    await Promise.all(tours.map(async (tour) => {
+                        const tourPromisses = tour.tour_schedule.map(async (schedule) => {
+                            const booking = await db.BookingDetail.findAll({
+                                raw: true,
+                                nest: true,
+                                where: {
+                                    status: STATUS.ACTIVE
+                                },
+                                include: {
+                                    model: db.Ticket,
+                                    as: "booking_detail_ticket",
+                                    where: {
+                                        tourId: schedule.tourId
+                                    },
+                                    attributes: []
+                                },
+                                attributes: [
+                                    [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
+                                ]
+                            })
+
+                            if (schedule.schedule_bus !== null) {
+                                if (booking[0].total_quantity === null) {
+                                    schedule.availableSeats = schedule.schedule_bus.numberSeat
+                                } else {
+                                    schedule.availableSeats = schedule.schedule_bus.numberSeat - parseInt(booking[0].total_quantity)
+                                }
+                            } else {
+                                schedule.availableSeats = 0
+                            }
+                        })
+                        await Promise.all(tourPromisses)
+
+                        const feedbacks = await db.Feedback.findAll({
+                            raw: true,
+                            nest: true,
+                            where: {
+                                tourId: tour.tourId,
+                            },
+                            attributes: [
+                                [db.Sequelize.fn('AVG', db.Sequelize.col('stars')), 'average_stars']
+                            ]
+                        })
+
+                        if (feedbacks[0].average_stars === null) {
+                            tour.avgStars = 0
+                        } else {
+                            tour.avgStars = parseFloat(feedbacks[0].average_stars)
+                        }
+                    }))
+
                     resolve({
                         status: StatusCodes.OK,
                         data: {
                             msg: "Got tours",
-                            tours: JSON.parse(tour),
+                            tours: tours,
                         }
                     })
                 } else {
@@ -32,13 +84,6 @@ const getAllTour = (
                     queries.offset = offset * flimit
                     queries.limit = flimit
                     if (order) queries.order = [[order]]
-                    // else {
-                    //     queries.order = [
-                    //         ['updatedAt', 'DESC'],
-                    //         [{ model: db.Route, as: 'tour_route' }, { model: db.RouteSegment, as: 'route_segment' }, 'index', 'ASC'],
-                    //         [{ model: db.Route, as: 'tour_route' }, { model: db.RouteSegment, as: 'route_segment' }, { model: db.RoutePointDetail, as: 'segment_route_poi_detail' }, 'index', 'ASC']
-                    //     ]
-                    // }
                     if (tourName) query.tourName = { [Op.substring]: tourName }
                     if (status) query.status = { [Op.eq]: status }
                     if (scheduleId) querySchedule.scheduleId = { [Op.eq]: scheduleId }
@@ -285,8 +330,7 @@ const getAllTour = (
                         } else {
                             tour.dataValues.avgStars = parseFloat(feedbacks[0].average_stars)
                         }
-                    })
-                    )
+                    }))
 
                     redisClient.setEx(`tours_${page}_${limit}_${order}_${tourName}_${status}_${scheduleId}`, 3600, JSON.stringify(tours))
 

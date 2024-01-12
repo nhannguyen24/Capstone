@@ -18,21 +18,95 @@ const getAllSchedule = (
             redisClient.get(`schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}_${departureDate}_${endDate}_${scheduleStatus}`, async (error, schedule) => {
                 if (error) console.error(error);
                 if (schedule != null && schedule != "" && roleName != 'Admin') {
+                    const schedules = JSON.parse(schedule);
+                    await Promise.all(schedules.map(async (schedule) => {
+                        const booking = await db.BookingDetail.findAll({
+                            raw: true,
+                            nest: true,
+                            where: {
+                                status: STATUS.ACTIVE
+                            },
+                            include: {
+                                model: db.Ticket,
+                                as: "booking_detail_ticket",
+                                where: {
+                                    tourId: schedule.schedule_tour.tourId
+                                },
+                                attributes: {
+                                    exclude: [
+                                        "createdAt",
+                                        "updatedAt",
+                                        "status",
+                                    ],
+                                },
+                            },
+                            attributes: [
+                                [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
+                            ]
+                        })
+
+                        if (schedule.schedule_bus !== null) {
+                            if (booking[0].total_quantity === null) {
+                                schedule.availableSeats = schedule.schedule_bus.numberSeat
+                            } else {
+                                schedule.availableSeats = schedule.schedule_bus.numberSeat - parseInt(booking[0].total_quantity)
+                            }
+                        } else {
+                            schedule.availableSeats = 0
+                        }
+                    }))
                     resolve({
                         status: StatusCodes.OK,
                         data: {
                             msg: "Got schedules",
-                            schedules: JSON.parse(schedule),
+                            schedules: schedules,
                         }
                     });
                 } else {
                     redisClient.get(`admin_schedules_${page}_${limit}_${order}_${busId}_${tourId}_${tourGuideId}_${driverId}_${status}_${departureDate}_${endDate}_${scheduleStatus}`, async (error, adminSchedule) => {
                         if (adminSchedule != null && adminSchedule != "") {
+                            const schedules = JSON.parse(adminSchedule);
+                            await Promise.all(schedules.map(async (schedule) => {
+                                const booking = await db.BookingDetail.findAll({
+                                    raw: true,
+                                    nest: true,
+                                    where: {
+                                        status: STATUS.ACTIVE
+                                    },
+                                    include: {
+                                        model: db.Ticket,
+                                        as: "booking_detail_ticket",
+                                        where: {
+                                            tourId: schedule.schedule_tour.tourId
+                                        },
+                                        attributes: {
+                                            exclude: [
+                                                "createdAt",
+                                                "updatedAt",
+                                                "status",
+                                            ],
+                                        },
+                                    },
+                                    attributes: [
+                                        [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
+                                    ]
+                                })
+
+                                if (schedule.schedule_bus !== null) {
+                                    if (booking[0].total_quantity === null) {
+                                        schedule.availableSeats = schedule.schedule_bus.numberSeat
+                                    } else {
+                                        schedule.availableSeats = schedule.schedule_bus.numberSeat - parseInt(booking[0].total_quantity)
+                                    }
+                                } else {
+                                    schedule.availableSeats = 0
+                                }
+                            }))
                             resolve({
                                 status: StatusCodes.OK,
                                 data: {
                                     msg: "Got schedules",
-                                    schedules: JSON.parse(adminSchedule),
+                                    schedules: schedules,
                                 }
                             });
                         } else {
@@ -253,7 +327,7 @@ const getAllSchedule = (
                                         [db.Sequelize.fn('SUM', db.Sequelize.col('quantity')), 'total_quantity'],
                                     ]
                                 })
-    
+
                                 if (schedule.schedule_bus !== null) {
                                     if (booking[0].total_quantity === null) {
                                         schedule.dataValues.availableSeats = schedule.schedule_bus.numberSeat
@@ -364,13 +438,13 @@ const getScheduleTransactionList = async (tourGuideId, isPaidToManager) => {
         const whereClauseSchedule = { scheduleStatus: TOUR_SCHEDULE_STATUS.FINISHED }
         const whereClauseTransaction = { status: STATUS.PAID, transactionType: TRANSACTION_TYPE.CASH, isPaidToManager: isPaidToManager }
 
-        if(tourGuideId.trim() !== ""){
+        if (tourGuideId.trim() !== "") {
             const tourGuide = await db.User.findOne({
                 where: {
                     userId: tourGuideId
                 }
             })
-    
+
             if (!tourGuide) {
                 return {
                     status: StatusCodes.NOT_FOUND,
@@ -1234,7 +1308,7 @@ const updateSchedule = (id, body) =>
                 } else {
                     let tourGuide = body.tourGuideId;
                     let driver = body.driverId;
-                    let bus = body.busId; 
+                    let bus = body.busId;
 
                     const findSchedule = await db.Schedule.findOne({
                         raw: true, nest: true,
