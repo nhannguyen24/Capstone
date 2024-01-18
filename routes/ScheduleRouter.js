@@ -81,16 +81,16 @@ const {roleAuthen} = require('../middlewares/VerifyRole');
  *           type: string
  *           enum: ["Active", "Deactive"]
  *         description: Find schedule by status
- *       - name: startTime
+ *       - name: departureDate
  *         in: query
  *         schema:
  *           type: string
- *         description: Find schedule by status
- *       - name: endTime
+ *         description: Find schedule by departure date
+ *       - name: endDate
  *         in: query
  *         schema:
  *           type: string
- *         description: Find schedule by status
+ *         description: Find schedule by end date
  *       - name: page
  *         in: query
  *         schema:
