@@ -70,7 +70,6 @@ const router = express.Router()
  *         schema:
  *           type: string
  *           enum:
- *              - Draft
  *              - Ongoing
  *              - Canceled
  *              - Finished

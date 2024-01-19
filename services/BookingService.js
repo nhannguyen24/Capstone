@@ -15,7 +15,7 @@ const getBookingDetailByBookingId = async (bookingId) => {
             raw: true,
             nest: true,
             where: {
-                bookingId: bookingId
+                bookingId: bookingId,
             },
             include: [
                 {
@@ -196,7 +196,14 @@ const getBookings = async (req) => {
             }
         }
         if (bookingStatus !== "") {
-            whereClause.bookingStatus = bookingStatus
+            whereClause.bookingStatus = {
+                [Op.notIn]: [BOOKING_STATUS.DRAFT],
+                [Op.eq]: bookingStatus,
+            };
+        } else {
+            whereClause.bookingStatus = {
+                [Op.notIn]: [BOOKING_STATUS.DRAFT],
+            };
         }
 
         if (startDate !== "" && endDate !== "") {
@@ -511,7 +518,14 @@ const getBookingsByEmail = async (req) => {
         }
 
         if (bookingStatus !== "") {
-            whereClause.bookingStatus = bookingStatus
+            whereClause.bookingStatus = {
+                [Op.notIn]: [BOOKING_STATUS.DRAFT],
+                [Op.eq]: bookingStatus,
+            }
+        } else {
+            whereClause.bookingStatus = {
+                [Op.notIn]: [BOOKING_STATUS.DRAFT],
+            }
         }
 
         if (startDate !== "" && endDate !== "") {
