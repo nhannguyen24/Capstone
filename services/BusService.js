@@ -1,6 +1,7 @@
 const db = require('../models')
 const { Op } = require('sequelize')
 const STATUS = require("../enums/StatusEnum")
+const SCHEDULE_STATUS = require("../enums/TourScheduleStatusEnum")
 const { StatusCodes } = require('http-status-codes')
 
 const getBuses = async (req) => {
@@ -217,37 +218,21 @@ const updateBus = async (req) => {
 
         if (status !== "") {
             if (STATUS.DEACTIVE == status) {
-                const tour = await db.Tour.findOne({
+                const tourSchedule = await db.Schedule.findOne({
                     where: {
                         busId: busId,
-                        status: STATUS.ACTIVE,
-                        include: [
-                            {
-                                model: db.Schedule,
-                                as: "tour_schedule",
-                                attributes: {
-                                    exclude: [
-                                        "createdAt",
-                                        "updatedAt",
-                                        "status",
-                                    ],
-                                },
-                                where: {
-                                    scheduleStatus: {
-                                        [Op.in]: ['Started', 'Available'],
-                                    },
-                                }
-                            },
-                        ]
-                    },
+                        scheduleStatus: {
+                            [Op.in]: [SCHEDULE_STATUS.STARTED, SCHEDULE_STATUS.AVAILABLE],
+                        },
+                    }
                 })
 
-                if (tour) {
+                if (tourSchedule) {
                     return {
                         status: StatusCodes.BAD_REQUEST,
                         data: {
-                            msg: `Cannot update bus status because bus currently has an on going tour`,
-                            tour: tour
+                            msg: `Cannot update bus status because bus currently has an active tour schedule`,
+                            tour: tourSchedule
                         }
                     }
                 }
@@ -301,37 +286,21 @@ const deleteBus = async (busId) => {
             }
         }
 
-        const tour = await db.Tour.findOne({
+        const tourSchedule = await db.Schedule.findOne({
             where: {
                 busId: busId,
-                status: STATUS.ACTIVE,
-                include: [
-                    {
-                        model: db.Schedule,
-                        as: "tour_schedule",
-                        attributes: {
-                            exclude: [
-                                "createdAt",
-                                "updatedAt",
-                                "status",
-                            ],
-                        },
-                        where: {
-                            scheduleStatus: {
-                                [Op.in]: ['Started', 'Available'],
-                            },
-                        }
-                    },
-                ]
-            },
+                scheduleStatus: {
+                    [Op.in]: [SCHEDULE_STATUS.STARTED, SCHEDULE_STATUS.AVAILABLE],
+                },
+            }
         })
 
-        if (tour) {
+        if (tourSchedule) {
             return {
                 status: StatusCodes.BAD_REQUEST,
                 data: {
-                    msg: `Cannot update bus status to Deactive because bus is currently has an ongoing tour`,
-                    tour: tour
+                    msg: `Cannot update bus status because bus currently has an active tour schedule`,
+                    tour: tourSchedule
                 }
             }
         }

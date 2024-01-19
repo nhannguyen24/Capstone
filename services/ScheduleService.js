@@ -479,6 +479,11 @@ const getScheduleTransactionList = async (tourGuideId, isPaidToManager) => {
                     model: db.User,
                     as: "schedule_tourguide",
                     attributes: ["userId", "userName", "phone"]
+                },
+                {
+                    model: db.Tour,
+                    as: "schedule_tour",
+                    attributes: ["tourName"]
                 }
             ]
         })

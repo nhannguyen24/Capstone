@@ -9,6 +9,7 @@ const { StatusCodes } = require("http-status-codes")
 require('dotenv').config();
 const PayOS = require("@payos/node");
 const stripe = require('stripe')(process.env.STRIPE_KEY);
+const SortRouteSegmentUtil = require('../utils/SortRouteSegmentUlti');
 
 const createMoMoPaymentRequest = (amount, redirect, bookingId) =>
   new Promise(async (resolve, reject) => {
@@ -463,9 +464,12 @@ const getPayOsPaymentResponse = async (req) => {
 
           const tourName = booking.booking_schedule.schedule_tour.tourName
           const bookedStationId = booking.booking_departure_station.stationId
+          const tourDepartureStationId = booking.booking_schedule.departureStationId
           const tourDepartureTime = new Date(booking.booking_schedule.departureDate).getTime()
 
-          const busArrivalTimeToBookedStation = calculateTotalTime(routeSegments, tourDepartureTime, bookedStationId)
+          const sortedRouteSegments = SortRouteSegmentUtil.sortRouteSegmentByDepartureStation(routeSegments, tourDepartureStationId)
+
+          const busArrivalTimeToBookedStation = calculateTotalTime(sortedRouteSegments, tourDepartureTime, bookedStationId)
 
           const formatDepartureDate =
             `${busArrivalTimeToBookedStation.getDate().toString().padStart(2, "0")}/${(busArrivalTimeToBookedStation.getMonth() + 1).toString().padStart(2, "0")}/${busArrivalTimeToBookedStation.getFullYear()}  |  
@@ -612,9 +616,12 @@ const getMoMoPaymentResponse = (req) =>
 
         const tourName = booking.booking_schedule.schedule_tour.tourName
         const bookedStationId = booking.booking_departure_station.stationId
+        const tourDepartureStationId = booking.booking_schedule.departureStationId
         const tourDepartureTime = new Date(booking.booking_schedule.departureDate).getTime()
 
-        const busArrivalTimeToBookedStation = calculateTotalTime(routeSegments, tourDepartureTime, bookedStationId)
+        const sortedRouteSegments = SortRouteSegmentUtil.sortRouteSegmentByDepartureStation(routeSegments, tourDepartureStationId)
+
+        const busArrivalTimeToBookedStation = calculateTotalTime(sortedRouteSegments, tourDepartureTime, bookedStationId)
 
         const formatDepartureDate =
           `${busArrivalTimeToBookedStation.getDate().toString().padStart(2, "0")}/${(busArrivalTimeToBookedStation.getMonth() + 1).toString().padStart(2, "0")}/${busArrivalTimeToBookedStation.getFullYear()}  |  
@@ -1032,9 +1039,12 @@ const stripeWebhook = async (req, res) => {
 
           const tourName = booking.booking_schedule.schedule_tour.tourName
           const bookedStationId = booking.booking_departure_station.stationId
+          const tourDepartureStationId = booking.booking_schedule.departureStationId
           const tourDepartureTime = new Date(booking.booking_schedule.departureDate).getTime()
 
-          const busArrivalTimeToBookedStation = calculateTotalTime(routeSegments, tourDepartureTime, bookedStationId)
+          const sortedRouteSegments = SortRouteSegmentUtil.sortRouteSegmentByDepartureStation(routeSegments, tourDepartureStationId)
+
+          const busArrivalTimeToBookedStation = calculateTotalTime(sortedRouteSegments, tourDepartureTime, bookedStationId)
 
           const formatDepartureDate =
             `${busArrivalTimeToBookedStation.getDate().toString().padStart(2, "0")}/${(busArrivalTimeToBookedStation.getMonth() + 1).toString().padStart(2, "0")}/${busArrivalTimeToBookedStation.getFullYear()}  |  
