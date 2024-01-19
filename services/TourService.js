@@ -11,7 +11,7 @@ const { sortRouteSegmentByDepartureStation } = require("../utils/SortRouteSegmen
 // const { schedule } = require("node-cron")
 
 const getAllTour = (
-    { page, limit, order, tourName, status, scheduleId, ...query }
+    { page, limit, order, tourName, status, scheduleId }
 ) =>
     new Promise(async (resolve, reject) => {
         try {
@@ -77,6 +77,7 @@ const getAllTour = (
                         }
                     })
                 } else {
+                    const query = {};
                     const queries = { nest: true }
                     const querySchedule = {}
                     const offset = !page || +page <= 1 ? 0 : +page - 1

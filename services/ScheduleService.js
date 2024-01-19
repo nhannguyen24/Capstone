@@ -10,7 +10,7 @@ const { sendNotification } = require("../utils/NotificationUtil");
 const { sortRouteSegmentByDepartureStation } = require("../utils/SortRouteSegmentUlti");
 
 const getAllSchedule = (
-    { page, limit, order, busId, tourId, tourGuideId, driverId, status, departureDate, endDate, scheduleStatus, ...query },
+    { page, limit, order, busId, tourId, tourGuideId, driverId, status, departureDate, endDate, scheduleStatus },
     roleName
 ) =>
     new Promise(async (resolve, reject) => {
@@ -110,6 +110,7 @@ const getAllSchedule = (
                                 }
                             });
                         } else {
+                            const query = {};
                             const queries = { nest: true };
                             const offset = !page || +page <= 1 ? 0 : +page - 1;
                             const flimit = +limit || +process.env.LIMIT_POST;

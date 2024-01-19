@@ -567,7 +567,7 @@
 
 // {
 //     "totalPrice": 150000,
-//     "departureStationId": "52cd4ad3-4494-403a-b8cc-b82777aa68dc",
+//     "departureStationId": "0aeaf58d-cea9-497f-a40a-9308c9705dbe",
 //     "user": {
 //       "email": "nhannd2426@gmail.com",
 //       "userName": "nhannd2426@gmail.com",
@@ -575,9 +575,9 @@
 //     },
 //     "tickets": [
 //       {
-//         "ticketId": "4b56ec7c-d891-4ef5-ad9e-a6e681c6b174",
+//         "ticketId": "09075db7-d95c-4e50-a923-bab4ccef3219",
 //         "ticketTypeId": "99f73c58-7c81-4152-90f9-21e50637e9c8",
-//         "scheduleId": "dbe77ea8-b9f9-4f22-8b31-97a662dcce91",
+//         "scheduleId": "7b1adcad-4f4a-4fe8-81a2-811690fa1e23",
 //         "priceId": "83bdc7a1-c77e-46c7-b8f0-de7fd4bf5859",
 //         "quantity": 1
 //       }
