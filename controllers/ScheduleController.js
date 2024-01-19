@@ -1,5 +1,5 @@
 const services = require('../services/ScheduleService');
-const { BadRequestError, InternalServerError } = require('../errors/Index');
+const { InternalServerError } = require('../errors/Index');
 const { StatusCodes } = require("http-status-codes");
 
 const getAllSchedule = async (req, res) => {

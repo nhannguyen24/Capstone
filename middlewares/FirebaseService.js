@@ -33,7 +33,7 @@ const uploadFile = async (req, res) => {
     const file = firebase.bucket.file(req.file.originalname);
     const [url] = await file.getSignedUrl({
       action: "read",
-      expires: "03-20-2024", // expiration date in mm-dd-yyyy format
+      expires: "05-20-2024", // expiration date in mm-dd-yyyy format
     });
 
     blobWriter.end(req.file.buffer);
@@ -42,12 +42,3 @@ const uploadFile = async (req, res) => {
 };
 
 module.exports = { uploadFile };
-
-
-
-
-
-
-
-
-
