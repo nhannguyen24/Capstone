@@ -90,16 +90,6 @@ const getStatistics = async (req) => {
                 },
                 include: [
                     {
-                        model: db.Ticket,
-                        as: "tour_ticket",
-                        attributes: ["ticketId"],
-                        include: {
-                            model: db.TicketType,
-                            as: "ticket_type",
-                            attributes: ["ticketTypeName", "description"]
-                        }
-                    },
-                    {
                         model: db.Schedule,
                         as: "tour_schedule",
                         attributes: {

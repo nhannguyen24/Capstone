@@ -232,40 +232,15 @@ const updatePrice = async (req) => {
 
         const ticket_list = price_result[0].price_ticket_type.type_ticket
 
-        // const forbiddenTicket = ticket_list.find((ticket) => {
-        //     const departureDate = new Date(ticket.ticket_tour.departureDate);
-        //     const dayOfWeek = departureDate.getDay();
-        //     const date = departureDate.getDate();
-        //     const month = departureDate.getMonth();
-        //     const dateMonth = `${date}-${month}`;
 
-        //     if (DAY_ENUM.NORMAL === day) {
-        //         if (!SPECIAL_DAY.includes(dateMonth) && [1, 2, 3, 4, 5].includes(dayOfWeek)) {
-        //             return true;
+        // if (forbiddenTicket) {
+        //     return {
+        //         status: StatusCodes.FORBIDDEN,
+        //         data: {
+        //             msg: "Cannot update price because price is currently in use"
         //         }
-        //     }
-
-        //     if (DAY_ENUM.WEEKEND === day) {
-        //         if (!SPECIAL_DAY.includes(dateMonth) && [0, 6].includes(dayOfWeek)) {
-        //             return true;
-        //         }
-        //     }
-
-        //     if (DAY_ENUM.HOLIDAY === day && SPECIAL_DAY.includes(dateMonth)) {
-        //         return true;
-        //     }
-
-        //     return false;
-        // })
-
-        if (forbiddenTicket) {
-            return {
-                status: StatusCodes.FORBIDDEN,
-                data: {
-                    msg: "Cannot update price because price is currently in use"
-                }
-            };
-        }
+        //     };
+        // }
 
         if (amount !== "") {
             updatePrice.amount = amount
