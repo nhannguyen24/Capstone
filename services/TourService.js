@@ -243,7 +243,7 @@ const getAllTour = (
                             }
 
                             const routeSegments = await db.RouteSegment.findAll({
-                                raw: true, nest: true,
+                                nest: true,
                                 where: {
                                     tourId: tour.tourId
                                 },
@@ -504,7 +504,7 @@ const getTourById = (tourId) =>
                     }
 
                     const routeSegment = await db.RouteSegment.findAll({
-                        raw: true, nest: true,
+                        nest: true,
                         where: {
                             tourId: tour.tourId
                         },
