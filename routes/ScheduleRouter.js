@@ -180,8 +180,6 @@ router.get("/transaction/:scheduleId", verifyToken, roleAuthen(["Manager", "Tour
  * @swagger
  * /api/v1/schedules/{id}:
  *   get:
- *     security: 
- *         - BearerAuth: []
  *     summary: Returns the the schedules by id
  *     tags: [Schedule]
  *     parameters:
@@ -200,7 +198,7 @@ router.get("/transaction/:scheduleId", verifyToken, roleAuthen(["Manager", "Tour
  *               items:
  *                 $ref: '#/components/schemas/Schedule'
  */
-router.get("/:id", verifyToken, controllers.getScheduleById);
+router.get("/:id", controllers.getScheduleById);
 
 /**
  * @swagger
