@@ -854,16 +854,16 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                 tDepartureDate.setSeconds(tDepartureDate.getSeconds() + currentScheduleSeconds)
                 const tEndDate = tDepartureDate
 
-                if (currentDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
-                    resolve({
-                        status: StatusCodes.BAD_REQUEST,
-                        data: {
-                            msg: "Departure date must be 24 hours latter than current date",
-                        }
-                    })
-                    await t.rollback();
-                    return
-                } else {
+                // if (currentDate.getTime() + 24 * 60 * 60 * 1000 >= tDepartureDate.getTime()) {
+                //     resolve({
+                //         status: StatusCodes.BAD_REQUEST,
+                //         data: {
+                //             msg: "Departure date must be 24 hours latter than current date",
+                //         }
+                //     })
+                //     await t.rollback();
+                //     return
+                // } else {
                     // Find an available employee for the tour
                     availableTourGuide = findTourguide.filter(
                         (employee) =>
@@ -1065,7 +1065,7 @@ const createTour = ({ images, tickets, tourName, ...body }) =>
                         }, { transaction: t })
                     }
                 }
-            }
+            // }
 
             let isValidTickets = false
             const dependTickets = []
