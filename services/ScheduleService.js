@@ -412,6 +412,19 @@ const getAllSchedule = (
                                                                     "status",
                                                                 ],
                                                             },
+                                                            include: [
+                                                                {
+                                                                    model: db.Language,
+                                                                    as: "sound_language",
+                                                                    attributes: {
+                                                                        exclude: [
+                                                                            "createdAt",
+                                                                            "updatedAt",
+                                                                            "status",
+                                                                        ],
+                                                                    },
+                                                                }
+                                                            ]
                                                         }
                                                     ]
                                                 }
@@ -876,6 +889,19 @@ const getScheduleById = (scheduleId) =>
                                                     "status",
                                                 ],
                                             },
+                                            include: [
+                                                {
+                                                    model: db.Language,
+                                                    as: "sound_language",
+                                                    attributes: {
+                                                        exclude: [
+                                                            "createdAt",
+                                                            "updatedAt",
+                                                            "status",
+                                                        ],
+                                                    },
+                                                }
+                                            ]
                                         }
                                     ]
                                 }
