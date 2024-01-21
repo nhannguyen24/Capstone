@@ -304,6 +304,32 @@ const getAllTour = (
                                                         "status",
                                                     ],
                                                 },
+                                                include: [
+                                                    {
+                                                        model: db.FileSound,
+                                                        as: "poi_sound",
+                                                        attributes: {
+                                                            exclude: [
+                                                                "createdAt",
+                                                                "updatedAt",
+                                                                "status",
+                                                            ],
+                                                        },
+                                                        include: [
+                                                            {
+                                                                model: db.Language,
+                                                                as: "sound_language",
+                                                                attributes: {
+                                                                    exclude: [
+                                                                        "createdAt",
+                                                                        "updatedAt",
+                                                                        "status",
+                                                                    ],
+                                                                },
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
                                             }
                                         ]
                                     },
@@ -565,6 +591,32 @@ const getTourById = (tourId) =>
                                                 "status",
                                             ],
                                         },
+                                        include: [
+                                            {
+                                                model: db.FileSound,
+                                                as: "poi_sound",
+                                                attributes: {
+                                                    exclude: [
+                                                        "createdAt",
+                                                        "updatedAt",
+                                                        "status",
+                                                    ],
+                                                },
+                                                include: [
+                                                    {
+                                                        model: db.Language,
+                                                        as: "sound_language",
+                                                        attributes: {
+                                                            exclude: [
+                                                                "createdAt",
+                                                                "updatedAt",
+                                                                "status",
+                                                            ],
+                                                        },
+                                                    }
+                                                ]
+                                            }
+                                        ]
                                     }
                                 ]
                             },
