@@ -1521,7 +1521,7 @@ const cancelBooking = async (bookingId) => {
         const otp = await db.Otp.findOne({
             where: {
                 otpType: OTP_TYPE.CANCEL_BOOKING,
-                userId: booking.userId
+                userId: booking.customerId
             }
         })
         if (!otp) {
