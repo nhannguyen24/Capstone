@@ -401,6 +401,19 @@ const getAllSchedule = (
                                                             "status",
                                                         ],
                                                     },
+                                                    include: [
+                                                        {
+                                                            model: db.FileSound,
+                                                            as: "poi_sound",
+                                                            attributes: {
+                                                                exclude: [
+                                                                    "createdAt",
+                                                                    "updatedAt",
+                                                                    "status",
+                                                                ],
+                                                            },
+                                                        }
+                                                    ]
                                                 }
                                             ]
                                         },
@@ -852,6 +865,19 @@ const getScheduleById = (scheduleId) =>
                                             "status",
                                         ],
                                     },
+                                    include: [
+                                        {
+                                            model: db.FileSound,
+                                            as: "poi_sound",
+                                            attributes: {
+                                                exclude: [
+                                                    "createdAt",
+                                                    "updatedAt",
+                                                    "status",
+                                                ],
+                                            },
+                                        }
+                                    ]
                                 }
                             ]
                         },
@@ -1044,215 +1070,215 @@ const createSchedule = (body) =>
                 //     await t.rollback();
                 //     return
                 // } else {
-                    // Find an available employee for the tour
-                    availableTourGuide = findTourguide.filter(
-                        (employee) =>
-                            employee.maxTour > 0 &&
-                            !schedule.some((assignment) => {
-                                const departureDate = new Date(assignment.tour.departureDate)
-                                const endDate = new Date(assignment.tour.endDate)
+                // Find an available employee for the tour
+                availableTourGuide = findTourguide.filter(
+                    (employee) =>
+                        employee.maxTour > 0 &&
+                        !schedule.some((assignment) => {
+                            const departureDate = new Date(assignment.tour.departureDate)
+                            const endDate = new Date(assignment.tour.endDate)
 
-                                const beforeCurrentTourDepartureDate = new Date(body.departureDate)
-                                const currentTourDepartureDate = new Date(body.departureDate)
-                                const [currentTourHours, currentTourMinutes, currentTourSeconds] = findCurrentTourDuration.duration.split(':').map(Number)
+                            const beforeCurrentTourDepartureDate = new Date(body.departureDate)
+                            const currentTourDepartureDate = new Date(body.departureDate)
+                            const [currentTourHours, currentTourMinutes, currentTourSeconds] = findCurrentTourDuration.duration.split(':').map(Number)
 
-                                // Add the duration to the departureDate
-                                currentTourDepartureDate.setHours(currentTourDepartureDate.getHours() + currentTourHours)
-                                currentTourDepartureDate.setMinutes(currentTourDepartureDate.getMinutes() + currentTourMinutes)
-                                currentTourDepartureDate.setSeconds(currentTourDepartureDate.getSeconds() + currentTourSeconds)
-                                const currentEndDate = currentTourDepartureDate
+                            // Add the duration to the departureDate
+                            currentTourDepartureDate.setHours(currentTourDepartureDate.getHours() + currentTourHours)
+                            currentTourDepartureDate.setMinutes(currentTourDepartureDate.getMinutes() + currentTourMinutes)
+                            currentTourDepartureDate.setSeconds(currentTourDepartureDate.getSeconds() + currentTourSeconds)
+                            const currentEndDate = currentTourDepartureDate
 
-                                let checkTourGuide = true;
-                                if (departureDate > currentEndDate && assignment.tourGuide?.userId === employee.userId) {
-                                    checkTourGuide = false;
-                                }
+                            let checkTourGuide = true;
+                            if (departureDate > currentEndDate && assignment.tourGuide?.userId === employee.userId) {
+                                checkTourGuide = false;
+                            }
 
-                                // Check if the tour guide is available
-                                return (endDate >= beforeCurrentTourDepartureDate && assignment.tourGuide?.userId === employee.userId) && checkTourGuide;
-                            })
-                    );
-
-                    availableDriver = findDriver.filter(
-                        (employee) =>
-                            employee.maxTour > 0
-                            && !schedule.some((assignment) => {
-                                const departureDate = new Date(assignment.tour.departureDate)
-                                const endDate = new Date(assignment.tour.endDate)
-
-                                const beforeCurrentTourDepartureDate = new Date(body.departureDate)
-                                const currentTourDepartureDate = new Date(body.departureDate)
-                                const [currentTourHours, currentTourMinutes, currentTourSeconds] = findCurrentTourDuration.duration.split(':').map(Number)
-
-                                // Add the duration to the departureDate
-                                currentTourDepartureDate.setHours(currentTourDepartureDate.getHours() + currentTourHours)
-                                currentTourDepartureDate.setMinutes(currentTourDepartureDate.getMinutes() + currentTourMinutes)
-                                currentTourDepartureDate.setSeconds(currentTourDepartureDate.getSeconds() + currentTourSeconds)
-                                const currentEndDate = currentTourDepartureDate
-
-                                let checkDriver = true;
-                                if (departureDate > currentEndDate && assignment.driver?.userId === employee.userId) {
-                                    checkDriver = false;
-                                }
-
-                                // // Check if the driver is available
-                                return (endDate >= beforeCurrentTourDepartureDate && assignment.driver?.userId == employee.userId) && checkDriver;
-                            })
-                    );
-
-                    availableBuses = findBusActive.filter(
-                        (bus) =>
-                            // bus.numberSeat >= 2 && 
-                            !schedule.some((assignment) => {
-                                const departureDate = new Date(assignment.tour.departureDate)
-                                const endDate = new Date(assignment.tour.endDate)
-
-                                const beforeCurrentTourDepartureDate = new Date(body.departureDate)
-                                const currentTourDepartureDate = new Date(body.departureDate)
-                                const [currentTourHours, currentTourMinutes, currentTourSeconds] = findCurrentTourDuration.duration.split(':').map(Number)
-
-                                // Add the duration to the departureDate
-                                currentTourDepartureDate.setHours(currentTourDepartureDate.getHours() + currentTourHours)
-                                currentTourDepartureDate.setMinutes(currentTourDepartureDate.getMinutes() + currentTourMinutes)
-                                currentTourDepartureDate.setSeconds(currentTourDepartureDate.getSeconds() + currentTourSeconds)
-                                const currentEndDate = currentTourDepartureDate
-
-                                let checkBus = true;
-                                if (departureDate > currentEndDate && assignment.bus?.busId == bus.busId) {
-                                    checkBus = false;
-                                }
-
-                                // Check if the bus is available
-                                return (endDate >= beforeCurrentTourDepartureDate && assignment.bus?.busId == bus.busId) && checkBus;
-                            })
-                    );
-
-                    let chosenTourGuide, chosenDriver, chosenBus;
-                    if (availableTourGuide.length > 0 && availableDriver.length > 0 && availableBuses.length > 0) {
-                        chosenTourGuide = availableTourGuide[0]
-                        chosenDriver = availableDriver[0]
-                        chosenTourGuide.maxTour--
-                        chosenDriver.maxTour--
-                        chosenBus = availableBuses[0]
-
-                        createSchedule = await db.Schedule.create({
-                            departureDate: BeforeTDepartureDate,
-                            endDate: tEndDate,
-                            departureStationId: body.departureStationId,
-                            tourGuideId: chosenTourGuide.userId,
-                            driverId: chosenDriver.userId,
-                            busId: chosenBus.busId,
-                            isScheduled: true,
-                            tourId: body.tourId,
-                        }, { transaction: t })
-
-                        await db.User.update({
-                            maxTour: chosenTourGuide.maxTour,
-                        }, {
-                            where: { userId: chosenTourGuide.userId },
-                            individualHooks: true,
-                            transaction: t
+                            // Check if the tour guide is available
+                            return (endDate >= beforeCurrentTourDepartureDate && assignment.tourGuide?.userId === employee.userId) && checkTourGuide;
                         })
+                );
 
-                        await db.User.update({
-                            maxTour: chosenDriver.maxTour,
-                        }, {
-                            where: { userId: chosenDriver.userId },
-                            individualHooks: true,
-                            transaction: t
+                availableDriver = findDriver.filter(
+                    (employee) =>
+                        employee.maxTour > 0
+                        && !schedule.some((assignment) => {
+                            const departureDate = new Date(assignment.tour.departureDate)
+                            const endDate = new Date(assignment.tour.endDate)
+
+                            const beforeCurrentTourDepartureDate = new Date(body.departureDate)
+                            const currentTourDepartureDate = new Date(body.departureDate)
+                            const [currentTourHours, currentTourMinutes, currentTourSeconds] = findCurrentTourDuration.duration.split(':').map(Number)
+
+                            // Add the duration to the departureDate
+                            currentTourDepartureDate.setHours(currentTourDepartureDate.getHours() + currentTourHours)
+                            currentTourDepartureDate.setMinutes(currentTourDepartureDate.getMinutes() + currentTourMinutes)
+                            currentTourDepartureDate.setSeconds(currentTourDepartureDate.getSeconds() + currentTourSeconds)
+                            const currentEndDate = currentTourDepartureDate
+
+                            let checkDriver = true;
+                            if (departureDate > currentEndDate && assignment.driver?.userId === employee.userId) {
+                                checkDriver = false;
+                            }
+
+                            // // Check if the driver is available
+                            return (endDate >= beforeCurrentTourDepartureDate && assignment.driver?.userId == employee.userId) && checkDriver;
                         })
+                );
 
-                        const createdDepartureDate = new Date(body.departureDate);
+                availableBuses = findBusActive.filter(
+                    (bus) =>
+                        // bus.numberSeat >= 2 && 
+                        !schedule.some((assignment) => {
+                            const departureDate = new Date(assignment.tour.departureDate)
+                            const endDate = new Date(assignment.tour.endDate)
 
-                        const formattedDate = createdDepartureDate.toLocaleString('en-GB', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit',
-                        });
+                            const beforeCurrentTourDepartureDate = new Date(body.departureDate)
+                            const currentTourDepartureDate = new Date(body.departureDate)
+                            const [currentTourHours, currentTourMinutes, currentTourSeconds] = findCurrentTourDuration.duration.split(':').map(Number)
 
-                        const createNotiTourGuide = await db.Notification.create({
-                            title: "Bạn có một chuyến đi mới",
-                            body: `Chuyến tên ${findCurrentTourDuration.tourName} - ${formattedDate}`,
-                            deviceToken: chosenTourGuide.deviceToken,
-                            notiType: "Thông báo",
-                            userId: chosenTourGuide.userId
-                        }, { transaction: t })
+                            // Add the duration to the departureDate
+                            currentTourDepartureDate.setHours(currentTourDepartureDate.getHours() + currentTourHours)
+                            currentTourDepartureDate.setMinutes(currentTourDepartureDate.getMinutes() + currentTourMinutes)
+                            currentTourDepartureDate.setSeconds(currentTourDepartureDate.getSeconds() + currentTourSeconds)
+                            const currentEndDate = currentTourDepartureDate
 
-                        if (createNotiTourGuide) {
-                            sendNotification(
-                                createNotiTourGuide.title,
-                                createNotiTourGuide.body,
-                                createNotiTourGuide.deviceToken,
-                                createNotiTourGuide.notiType
-                            );
-                        };
+                            let checkBus = true;
+                            if (departureDate > currentEndDate && assignment.bus?.busId == bus.busId) {
+                                checkBus = false;
+                            }
 
-                        const createNotiDriver = await db.Notification.create({
-                            title: "Bạn có một chuyến đi mới",
-                            body: `Chuyến tên ${findCurrentTourDuration.tourName} - ${formattedDate}`,
-                            deviceToken: chosenDriver.deviceToken,
-                            notiType: "Thông báo",
-                            userId: chosenDriver.userId
-                        }, { transaction: t })
+                            // Check if the bus is available
+                            return (endDate >= beforeCurrentTourDepartureDate && assignment.bus?.busId == bus.busId) && checkBus;
+                        })
+                );
 
-                        if (createNotiDriver) {
-                            sendNotification(
-                                createNotiDriver.title,
-                                createNotiDriver.body,
-                                createNotiDriver.deviceToken,
-                                createNotiDriver.notiType
-                            );
-                        };
-                    }
-                    else {
-                        createSchedule = await db.Schedule.create({
-                            departureDate: BeforeTDepartureDate,
-                            endDate: tEndDate,
-                            departureStationId: body.departureStationId,
-                            tourId: body.tourId,
-                        }, { transaction: t })
-                    }
+                let chosenTourGuide, chosenDriver, chosenBus;
+                if (availableTourGuide.length > 0 && availableDriver.length > 0 && availableBuses.length > 0) {
+                    chosenTourGuide = availableTourGuide[0]
+                    chosenDriver = availableDriver[0]
+                    chosenTourGuide.maxTour--
+                    chosenDriver.maxTour--
+                    chosenBus = availableBuses[0]
 
-                    if (createSchedule) {
-                        const routeSegments = await db.RouteSegment.findAll({
-                            raw: true, nest: true,
-                            where: {
-                                tourId: body.tourId
-                            },
-                            order: [
-                                ['index', 'ASC']
+                    createSchedule = await db.Schedule.create({
+                        departureDate: BeforeTDepartureDate,
+                        endDate: tEndDate,
+                        departureStationId: body.departureStationId,
+                        tourGuideId: chosenTourGuide.userId,
+                        driverId: chosenDriver.userId,
+                        busId: chosenBus.busId,
+                        isScheduled: true,
+                        tourId: body.tourId,
+                    }, { transaction: t })
+
+                    await db.User.update({
+                        maxTour: chosenTourGuide.maxTour,
+                    }, {
+                        where: { userId: chosenTourGuide.userId },
+                        individualHooks: true,
+                        transaction: t
+                    })
+
+                    await db.User.update({
+                        maxTour: chosenDriver.maxTour,
+                    }, {
+                        where: { userId: chosenDriver.userId },
+                        individualHooks: true,
+                        transaction: t
+                    })
+
+                    const createdDepartureDate = new Date(body.departureDate);
+
+                    const formattedDate = createdDepartureDate.toLocaleString('en-GB', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                    });
+
+                    const createNotiTourGuide = await db.Notification.create({
+                        title: "Bạn có một chuyến đi mới",
+                        body: `Chuyến tên ${findCurrentTourDuration.tourName} - ${formattedDate}`,
+                        deviceToken: chosenTourGuide.deviceToken,
+                        notiType: "Thông báo",
+                        userId: chosenTourGuide.userId
+                    }, { transaction: t })
+
+                    if (createNotiTourGuide) {
+                        sendNotification(
+                            createNotiTourGuide.title,
+                            createNotiTourGuide.body,
+                            createNotiTourGuide.deviceToken,
+                            createNotiTourGuide.notiType
+                        );
+                    };
+
+                    const createNotiDriver = await db.Notification.create({
+                        title: "Bạn có một chuyến đi mới",
+                        body: `Chuyến tên ${findCurrentTourDuration.tourName} - ${formattedDate}`,
+                        deviceToken: chosenDriver.deviceToken,
+                        notiType: "Thông báo",
+                        userId: chosenDriver.userId
+                    }, { transaction: t })
+
+                    if (createNotiDriver) {
+                        sendNotification(
+                            createNotiDriver.title,
+                            createNotiDriver.body,
+                            createNotiDriver.deviceToken,
+                            createNotiDriver.notiType
+                        );
+                    };
+                }
+                else {
+                    createSchedule = await db.Schedule.create({
+                        departureDate: BeforeTDepartureDate,
+                        endDate: tEndDate,
+                        departureStationId: body.departureStationId,
+                        tourId: body.tourId,
+                    }, { transaction: t })
+                }
+
+                if (createSchedule) {
+                    const routeSegments = await db.RouteSegment.findAll({
+                        raw: true, nest: true,
+                        where: {
+                            tourId: body.tourId
+                        },
+                        order: [
+                            ['index', 'ASC']
+                        ],
+                        attributes: {
+                            exclude: [
+                                "createdAt",
+                                "updatedAt",
+                                "status",
                             ],
-                            attributes: {
-                                exclude: [
-                                    "createdAt",
-                                    "updatedAt",
-                                    "status",
-                                ],
-                            },
-                        })
+                        },
+                    })
 
-                        const routeSegmentsSortByDepartureStation = sortRouteSegmentByDepartureStation(routeSegments, body.departureStationId);
-                        let uniqueStationArray = [];
-                        routeSegmentsSortByDepartureStation.forEach(item => {
-                            if (!uniqueStationArray.includes(item.departureStationId)) {
-                                uniqueStationArray.push(item.departureStationId)
-                            }
-                            if (uniqueStationArray.includes(item.endStationId)) {
-                                uniqueStationArray.push(item.endStationId)
-                            }
-                        })
-
-                        let index = 0
-                        for (const stationId of uniqueStationArray) {
-                            index += 1
-                            await db.TourDetail.create({
-                                scheduleId: createSchedule.scheduleId,
-                                stationId: stationId,
-                                index: index,
-                            }, { transaction: t })
+                    const routeSegmentsSortByDepartureStation = sortRouteSegmentByDepartureStation(routeSegments, body.departureStationId);
+                    let uniqueStationArray = [];
+                    routeSegmentsSortByDepartureStation.forEach(item => {
+                        if (!uniqueStationArray.includes(item.departureStationId)) {
+                            uniqueStationArray.push(item.departureStationId)
                         }
+                        if (uniqueStationArray.includes(item.endStationId)) {
+                            uniqueStationArray.push(item.endStationId)
+                        }
+                    })
+
+                    let index = 0
+                    for (const stationId of uniqueStationArray) {
+                        index += 1
+                        await db.TourDetail.create({
+                            scheduleId: createSchedule.scheduleId,
+                            stationId: stationId,
+                            index: index,
+                        }, { transaction: t })
+                    }
                     // }
 
                     resolve({
