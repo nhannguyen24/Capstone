@@ -1,2 +1,4 @@
 # Capstone
-Welcome to Nha rang Bus Tour System
+Welcome to Nha Trang Bus Tour System Server-Side API
+
+Language: Javascript
